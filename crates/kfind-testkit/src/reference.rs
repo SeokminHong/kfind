@@ -1454,6 +1454,9 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
                 reference_suffix(concat!($prefix, "지나"), &[$($prior,)* "ending.contrast-rieuljina"]),
                 reference_suffix(concat!($prefix, "지며"), &[$($prior,)* "ending.coordinate-rieuljimyeo"]),
+                reference_suffix(concat!($prefix, "시"), &[$($prior,)* "ending.connective-rieulsi"]),
+                reference_suffix(concat!($prefix, "시고"), &[$($prior,)* "ending.exclamative-rieulsigo"]),
+                reference_suffix(concat!($prefix, "지어다"), &[$($prior,)* "ending.imperative-rieuljieoda"]),
                 reference_suffix(concat!($prefix, "깝쇼"), &[$($prior,)* "ending.question-rieulkapsyo"]),
                 reference_suffix(concat!($prefix, "새"), &[$($prior,)* "ending.causal-rieulsae"]),
                 reference_suffix(concat!($prefix, "작시면"), &[$($prior,)* "ending.conditional-rieuljaksimyeon"]),
@@ -3217,6 +3220,11 @@ fn reference_simple_continuation(
                     || suffix.surface.contains('을')
                     || pos.is_action()
                     || (suffix.surface == "지며" && anchor.ends_with('을')))
+                && (suffix.rules.last() != Some(&"ending.exclamative-rieulsigo")
+                    || !pos.is_action())
+                && (suffix.rules.last() != Some(&"ending.imperative-rieuljieoda")
+                    || pos.is_action()
+                    || pos == PredicatePos::Copula)
                 && (suffix.rules.last() != Some(&"ending.copula-enumerative-yo")
                     || following[suffix.surface.len()..]
                         .strip_prefix(',')
@@ -3279,6 +3287,9 @@ fn reference_simple_continuation(
                             | "ending.final-merya"
                             | "ending.contrast-rieuljina"
                             | "ending.coordinate-rieuljimyeo"
+                            | "ending.connective-rieulsi"
+                            | "ending.exclamative-rieulsigo"
+                            | "ending.imperative-rieuljieoda"
                             | "ending.question-rieulkapsyo"
                             | "ending.causal-rieulsae"
                             | "ending.conditional-rieuljaksimyeon"
