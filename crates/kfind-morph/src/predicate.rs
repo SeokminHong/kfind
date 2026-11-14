@@ -815,6 +815,7 @@ fn compile_rieul_eu_endings(
             .pos
             .is_action()
             .then_some([
+                (dropped.as_str(), "사이다", "ending.propositive-saida"),
                 (stem, "러", "ending.purpose-reo"),
                 (stem, "려던", "ending.intentive-adnominal"),
                 (stem, "렴", "ending.imperative-ryeom"),

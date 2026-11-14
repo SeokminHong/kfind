@@ -2782,6 +2782,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.propositive-saida"
+category = "final"
+initial = "eu"
+forms = ["사이다", "으사이다"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.archaic-honorific-sa"
 category = "connective"
 initial = "eu"
