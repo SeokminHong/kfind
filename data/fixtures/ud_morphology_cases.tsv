@@ -983,6 +983,14 @@ regression.conditional-noramyeon.honorific-rieul	살다	verb	only-exact	0	15	사
 regression.causal-norani.color	노랗다	adjective	only-exact	7	16	잎이 노라니 가을이 온 모양이다.
 regression.conditional-noramyeon.color	노랗다	adjective	only-exact	7	16	잎이 노라면 가을이 온 겁니다.
 regression.conditional-noramyeon.separate	읽다	verb	only-exact	0	6	읽을 ‘노라면’ 용례를 골랐다.
+regression.conditional-geodeumyeon.existential	있다	verb	only-exact	0	12	있거드면 가져와라.
+regression.conditional-geodeumyeon.copula	이다	adjective	only-exact	6	18	사실이거드면 사과하겠다.
+regression.conditional-geodeumyeon.future	읽다	verb	only-exact	0	15	읽겠거드면 이리 오너라.
+regression.conditional-geodeumyeon.separate	가다	verb	only-exact	0	3	가. ‘거드면’은 여기서 쓰지 마라.
+regression.causal-gwande.past	오다	verb	only-exact	7	16	누가 왔관데 이리 소란스러울까?
+regression.causal-gwande.copula	이다	adjective	smart-only-exact	7	19	그게 누구관데 찾으시오?
+regression.causal-gwande.honorific	읽다	verb	only-exact	7	22	누가 읽으셨관데 다들 놀라시오?
+regression.causal-gwande.separate	가다	verb	only-exact	0	3	가. ‘관데’는 나도 찾아볼게.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

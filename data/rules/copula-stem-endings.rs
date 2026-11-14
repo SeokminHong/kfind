@@ -17,6 +17,8 @@ pub const COPULA_STEM_ENDINGS: &[CopulaStemEnding] = &[
         BareOrHonorific,
     ),
     ending("길래", &["ending.copula-common-connective"], Never),
+    ending("거드면", &["ending.conditional-geodeumyeon"], Never),
+    ending("관데", &["ending.causal-gwande"], BareOrHonorific),
     ending("네", &["ending.copula-common-final"], BareOrHonorific),
     ending(
         "네요",
