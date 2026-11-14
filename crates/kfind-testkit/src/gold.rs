@@ -372,7 +372,10 @@ mod tests {
                     .into_iter()
                     .map(|matched| matched.span)
                     .collect();
-                assert_eq!(spans, [0.."오니".len()], "{text:?}, {boundary:?}");
+                assert!(
+                    matches!(spans.as_slice(), [span] if *span == (0.."오니".len())),
+                    "{text:?}, {boundary:?}: {spans:?}",
+                );
             }
         }
     }
