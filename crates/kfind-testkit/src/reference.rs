@@ -2386,7 +2386,32 @@ fn reference_simple_continuation(
         }
         ContinuationState::Eu if reference_nieun_tail(following, "신") => SIN_EXTENSIONS,
         ContinuationState::Eu if reference_nieun_tail(following, "시던") => SIDEON_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with("시던") => &[
+            reference_suffix(
+                "시던",
+                &["ending.honorific", "ending.retrospective-adnominal"],
+            ),
+            reference_suffix(
+                "시던가",
+                &["ending.honorific", "ending.retrospective-question-deon"],
+            ),
+            reference_suffix(
+                "시던감",
+                &["ending.honorific", "ending.retrospective-question-deon"],
+            ),
+        ],
         ContinuationState::Eu if reference_nieun_tail(following, "시는") => SINEUN_EXTENSIONS,
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula && following.starts_with('던') =>
+        {
+            &[
+                reference_suffix("던", &["ending.retrospective-adnominal"]),
+                reference_suffix("던가", &["ending.retrospective-question-deon"]),
+                reference_suffix("던감", &["ending.retrospective-question-deon"]),
+                reference_suffix("던들", &["ending.retrospective-connective-deon"]),
+                reference_suffix("던지", &["ending.retrospective-connective-deon"]),
+            ]
+        }
         ContinuationState::Eu if reference_nieun_tail(following, "셨는") => SYEOTNEUN_EXTENSIONS,
         ContinuationState::Eu if reference_nieun_tail(following, "시겠는") => {
             SIGETNEUN_EXTENSIONS

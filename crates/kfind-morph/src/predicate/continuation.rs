@@ -361,8 +361,19 @@ const DEON_RECOLLECTION: &[Suffix] = &[
     suffix("던들", &["ending.retrospective-connective-deon"]),
     suffix("던지", &["ending.retrospective-connective-deon"]),
 ];
+const COPULA_DEON: &[Suffix] = &[
+    suffix("던", &["ending.retrospective-adnominal"]),
+    suffix("던가", &["ending.retrospective-question-deon"]),
+    suffix("던감", &["ending.retrospective-question-deon"]),
+    suffix("던들", &["ending.retrospective-connective-deon"]),
+    suffix("던지", &["ending.retrospective-connective-deon"]),
+];
 
-const SI_DEON_QUESTIONS: &[Suffix] = &[
+const SI_DEON: &[Suffix] = &[
+    suffix(
+        "시던",
+        &["ending.honorific", "ending.retrospective-adnominal"],
+    ),
     suffix(
         "시던가",
         &["ending.honorific", "ending.retrospective-question-deon"],
@@ -2435,9 +2446,13 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('던') =>
         {
-            DEON_RECOLLECTION
+            if state == ContinuationState::StemEnding && pos == PredicatePos::Copula {
+                COPULA_DEON
+            } else {
+                DEON_RECOLLECTION
+            }
         }
-        ContinuationState::Eu if following.starts_with("시던") => SI_DEON_QUESTIONS,
+        ContinuationState::Eu if following.starts_with("시던") => SI_DEON,
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('더') =>
         {
