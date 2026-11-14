@@ -1937,3 +1937,10 @@ regression.copula-ryeoni.other-nominal	이다	adjective	smart-only-exact	20	32	�
 regression.copula-ryeoni.independent-verb	이다	adjective	no-match-both	24	33	그는 동생이 먼저 보려니 생각했다.
 regression.copula-ryeoni.consonant-host	이다	adjective	no-match-both	18	30	그는 그 말을 거짓려니 생각했다.
 regression.copula-ryeoni.explicit-copula	이다	adjective	smart-only-exact	31	40	다 내가 너무 무식한 탓이려니 생각했다.
+regression.geondae.promise	장담하다	verb	exact	7	22	제가 장담하건대 신제품은 엄청난 인기를 얻을 것입니다.
+regression.geondae.infer	짐작하다	verb	exact	33	48	승규의 성품으로 미루어 짐작하건대 부모의 성품 역시 훌륭할 것이다.
+regression.geondae.swear	맹세하다	verb	exact	0	15	맹세하건대 저는 신중하게 판단했습니다.
+regression.geondae.contraction-deletion	생각하다	verb	exact	7	19	내가 생각건대 이 길이 더 빠르다.
+regression.geondae.contraction-aspiration	회상하다	verb	exact	0	12	회상컨대 그해 겨울은 추웠다.
+regression.geondae.invalid-aspiration	생각하다	verb	no-match-both	7	19	내가 생각컨대 이 길이 더 빠르다.
+regression.geondae.nominal-homograph	건대	noun	exact	0	6	건대 입구에서 만났다.
