@@ -1996,3 +1996,7 @@ regression.resultative-ja.near	가깝다	adjective	only-exact	13	28	목적지가
 regression.resultative-ja.hot	덥다	adjective	only-exact	7	19	날이 더워지자 냉방 기계가 잘 팔리고 있다.
 regression.resultative-ja.cold	차갑다	adjective	only-exact	7	22	물이 차가워지자 어항을 옮겼다.
 regression.resultative-ja.separate	가깝다	adjective	only-exact	0	9	가까워. 자, 이제 출발하자.
+regression.completion-naeda.attached	만들다	verb	only-exact	21	36	한국인, 기적을 만들어내다.
+regression.completion-naeda.past	풀다	verb	only-exact	20	32	어려운 문제를 풀어냈다.
+regression.completion-naeda.separate	만들다	verb	only-exact	10	19	기적을 만들어 내다.
+regression.completion-naeda.nominal-prefix	만들다	verb	only-exact	10	19	서류를 만들어 내다음 확인한다.
