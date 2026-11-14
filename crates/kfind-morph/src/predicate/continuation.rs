@@ -1137,6 +1137,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "라고"), &[$($prior,)* "ending.doubt-rieulrago"]),
             suffix(concat!($prefix, "레라"), &[$($prior,)* "ending.conjecture-rieulrera"]),
             suffix(concat!($prefix, "레"), &[$($prior,)* "ending.conjecture-rieulre"]),
+            suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
             suffix(concat!($prefix, "세라"), &[$($prior,)* "ending.concern-rieulsera"]),
             suffix(concat!($prefix, "수록"), &[$($prior,)* "ending.connective-rieulsurok"]),
             suffix(concat!($prefix, "뿐더러"), &[$($prior,)* "ending.connective-rieulppundeoreo"]),
@@ -1173,7 +1174,6 @@ macro_rules! rieul_endings {
 macro_rules! present_rieul_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         rieul_endings!($prefix, [$($prior),*],
-            suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
             suffix(concat!($prefix, "데라니"), &[$($prior,)* "ending.exclamative-rieulderani"]),
             suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
             suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
@@ -3404,6 +3404,7 @@ fn verify_simple_continuation(
                         | "ending.doubt-rieulrago"
                         | "ending.conjecture-rieulrera"
                         | "ending.conjecture-rieulre"
+                        | "ending.final-rieulse"
                         | "ending.final-merya"
                         | "ending.contrast-rieuljina"
                         | "ending.coordinate-rieuljimyeo"

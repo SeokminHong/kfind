@@ -1092,6 +1092,11 @@ regression.honorific-final-ji.rieul	살다	verb	only-exact	0	9	사시지? 그 �
 regression.honorific-final-ji.past	읽다	verb	only-exact	0	12	읽으셨지?
 regression.honorific-final-ji.polite	오다	verb	only-exact	0	12	오시지요?
 regression.honorific-final-ji.separate	오다	verb	only-exact	0	9	오셨다. ‘지’는 따로 읽어라.
+regression.past-rieulse.action	가다	verb	only-exact	0	9	갔을세. 한참도 전에.
+regression.past-rieulse.adjective	좋다	adjective	only-exact	0	12	좋았을세. 경치가 볼 만했다고 하더군.
+regression.past-rieulse.honorific	오다	verb	only-exact	0	12	오셨을세. 현관에 신발이 있네.
+regression.past-rieulse.present	먹다	verb	only-exact	0	9	먹을세. 먼저들 가게.
+regression.past-rieulse.separate	가다	verb	only-exact	0	6	갔을 ‘세’ 글자를 찾아라.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
