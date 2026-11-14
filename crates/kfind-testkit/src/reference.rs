@@ -1860,6 +1860,15 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
+            &[reference_suffix("누나", &["ending.exclamative-nuna"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시누나") => {
+            &[reference_suffix(
+                "시누나",
+                &["ending.honorific", "ending.exclamative-nuna"],
+            )]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다며") => {
             &[reference_suffix("다며", &["ending.quotative-damyeo"])]
         }
@@ -3132,6 +3141,7 @@ fn reference_simple_continuation(
                             | "ending.connective-geoneul"
                             | "ending.alternative-deunji"
                             | "ending.quotative-deora"
+                            | "ending.exclamative-nuna"
                             | "ending.quotative-damyeo"
                             | "ending.propositive-quotation"
                             | "ending.propositive-conditional"
