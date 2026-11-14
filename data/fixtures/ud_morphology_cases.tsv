@@ -1019,6 +1019,13 @@ regression.humble-euwa.past	믿다	verb	only-exact	0	12	믿었으와 마음을 �
 regression.humble-euwa.future	읽다	verb	only-exact	0	12	읽겠으와 먼저 말씀을 듣겠습니다.
 regression.humble-euwa.separate	참다	verb	only-exact	0	9	참는다. ‘으와’는 따로 읽자.
 regression.humble-euwa.vowel-stem	크다	adjective	no-match-both	0	9	크으와.
+regression.familiar-short-eui.good	좋다	adjective	only-exact	11	17	그것 참 좋의.
+regression.familiar-short-eui.narrow	좁다	adjective	only-exact	0	6	좁의. 자네가 앉기는 어렵겠네.
+regression.familiar-short-eui.full	좋다	adjective	only-exact	0	9	좋으이. 오래 기다린 보람이 있네.
+regression.familiar-short-eui.verb	먹다	verb	no-match-both	0	6	먹의.
+regression.familiar-short-eui.vowel	크다	adjective	no-match-both	0	6	크의.
+regression.familiar-short-eui.rieul	길다	adjective	no-match	0	6	길의 양쪽에 나무가 있다.
+regression.familiar-short-eui.token-interior	좋다	adjective	no-match-both	0	6	좋의라는 낱말을 적었다.
 regression.quotative-nyaneuni.action	서두르다	verb	only-exact	0	18	서두르냐느니 아직 이르다느니 말이 많았다.
 regression.quotative-nyaneuni.state	싫다	adjective	only-exact	0	15	싫으냐느니 좋으냐느니 거듭 물었다.
 regression.quotative-nyaneuni.past	먹다	verb	only-exact	0	15	먹었냐느니 맛은 어떠냐느니 물었다.
