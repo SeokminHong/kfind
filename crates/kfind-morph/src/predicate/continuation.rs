@@ -1309,6 +1309,11 @@ const SIGETNEUNDE: &[Suffix] = background!(
     "ending.future"
 );
 const BACKGROUND: &[Suffix] = background!("데", "ending.connective-neunde");
+pub(super) const DEPSYO: Suffix = suffix("뎁쇼", &["ending.formal-depsyo"]);
+const NEUNDEPSYO: Suffix = suffix("는뎁쇼", &["ending.formal-depsyo"]);
+const SINDEPSYO: Suffix = suffix("신뎁쇼", &["ending.honorific", "ending.formal-depsyo"]);
+pub(super) const SINEUNDEPSYO: Suffix =
+    suffix("시는뎁쇼", &["ending.honorific", "ending.formal-depsyo"]);
 const SYEOT_NYA: &[Suffix] = question!(
     "셨냐",
     "ending.interrogative-nya",
@@ -3113,6 +3118,12 @@ fn verify_simple_continuation(
         {
             &[NIEUNDEUL]
         }
+        ContinuationState::NieunEnding
+            if following.starts_with(DEPSYO.surface)
+                && (!pos.is_action() || anchor.ends_with('는')) =>
+        {
+            &[DEPSYO]
+        }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {
             NEUN_EXTENSIONS
@@ -3157,6 +3168,34 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시더") => SI_RETROSPECTIVE,
         ContinuationState::Eu if following.starts_with("셨더") => SYEOT_RETROSPECTIVE,
         ContinuationState::Eu if following.starts_with("시겠더") => SIGET_RETROSPECTIVE,
+        ContinuationState::StemEnding
+            if following.starts_with(NEUNDEPSYO.surface)
+                && (pos.is_action() || matches!(anchor, "있" | "없" | "계시"))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[NEUNDEPSYO]
+        }
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with(NEUNDEPSYO.surface) =>
+        {
+            &[NEUNDEPSYO]
+        }
+        ContinuationState::Eu if following.starts_with(SINDEPSYO.surface) => &[SINDEPSYO],
+        ContinuationState::Eu if following.starts_with(SINEUNDEPSYO.surface) => &[SINEUNDEPSYO],
+        ContinuationState::Eu
+            if following.starts_with("셨는뎁쇼") || following.starts_with("시겠는뎁쇼") =>
+        {
+            &[
+                suffix(
+                    "셨는뎁쇼",
+                    &["ending.honorific", "ending.past", "ending.formal-depsyo"],
+                ),
+                suffix(
+                    "시겠는뎁쇼",
+                    &["ending.honorific", "ending.future", "ending.formal-depsyo"],
+                ),
+            ]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE
         }
@@ -3239,6 +3278,7 @@ fn verify_simple_continuation(
                         | "ending.causal-norani"
                         | "ending.conditional-noramyeon"
                         | "ending.conditional-geodeumyeon"
+                        | "ending.formal-depsyo"
                         | "ending.causal-gwande"
                         | "ending.conditional-rieuljaksimyeon"
                         | "ending.interrogative-rieulgeona"

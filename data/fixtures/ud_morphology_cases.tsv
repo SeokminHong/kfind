@@ -991,6 +991,14 @@ regression.causal-gwande.past	오다	verb	only-exact	7	16	누가 왔관데 이�
 regression.causal-gwande.copula	이다	adjective	smart-only-exact	7	19	그게 누구관데 찾으시오?
 regression.causal-gwande.honorific	읽다	verb	only-exact	7	22	누가 읽으셨관데 다들 놀라시오?
 regression.causal-gwande.separate	가다	verb	only-exact	0	3	가. ‘관데’는 나도 찾아볼게.
+regression.formal-depsyo.copula	이다	adjective	only-exact	16	25	그는 장사꾼인뎁쇼.
+regression.formal-depsyo.adjective	좋다	adjective	only-exact	0	12	좋은뎁쇼.
+regression.formal-depsyo.rieul	살다	verb	only-exact	0	9	산뎁쇼.
+regression.formal-depsyo.consonant	먹다	verb	only-exact	0	12	먹는뎁쇼.
+regression.formal-depsyo.honorific	가다	verb	only-exact	14	29	말도 없이 가시는뎁쇼.
+regression.formal-depsyo.past	먹다	verb	only-exact	4	19	다 먹었는뎁쇼.
+regression.formal-depsyo.completed	읽다	verb	only-exact	0	6	읽은뎁쇼.
+regression.formal-depsyo.separate	읽다	verb	only-exact	0	6	읽는 ‘뎁쇼’ 예문을 찾았다.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
