@@ -1810,6 +1810,12 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
+            &[
+                reference_suffix("으려니", &["ending.conjecture-ryeo"]),
+                reference_suffix("으려니와", &["ending.concessive-ryeoniwa"]),
+            ]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("다시피") && pos != PredicatePos::Copula =>
         {
@@ -2743,6 +2749,7 @@ fn reference_simple_continuation(
                     && suffix.surface.ends_with('구'))
                     && (suffix.rules != ["ending.connective-ni"]
                         || !suffix.surface.starts_with('으')))
+                    && !matches!(suffix.surface, "으려니" | "으려니와")
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()

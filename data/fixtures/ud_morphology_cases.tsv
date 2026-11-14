@@ -753,6 +753,10 @@ regression.connective-geoniwa.stem	정리하다	verb	exact	0	18	정리하거니�
 regression.connective-geoniwa.honorific	살다	verb	exact	0	15	사시거니와 생활에도 익숙하시다.
 regression.connective-geoniwa.copula	이다	adjective	exact	6	18	학생이거니와 연구에도 참여한다.
 regression.connective-geoni.separate	그렇다	adjective	exact	0	9	그렇다. 거니는 이름이다.
+regression.prefinal-ryeoni.past	먹다	verb	exact	0	15	먹었으려니 생각했다.
+regression.prefinal-ryeoniwa.future	주다	verb	exact	0	18	주겠으려니와 시상식도 준비하겠다.
+regression.prefinal-ryeoniwa.honorific-past	읽다	verb	exact	0	21	읽으셨으려니와 내용도 기억하시겠지.
+regression.prefinal-ryeoni.separate	먹다	verb	exact	0	9	먹었다. 추측일 뿐이다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

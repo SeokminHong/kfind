@@ -1728,6 +1728,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
+            &[
+                suffix("으려니", &["ending.conjecture-ryeo"]),
+                suffix("으려니와", &["ending.concessive-ryeoniwa"]),
+            ]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("다시피") && pos != PredicatePos::Copula =>
         {
