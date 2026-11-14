@@ -540,6 +540,29 @@ pub(super) fn has_copula_subject(
     false
 }
 
+pub(super) fn has_following_final_predicate(
+    haystack: &[u8],
+    at: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let limit = at.saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = at;
+    while let Some((end, word)) = next_word_on_line(haystack, before) {
+        if end > limit {
+            return false;
+        }
+        if crate::boundary::is_sentence_end_after(haystack, end) {
+            return resolver.has_independent_final_predicate(&word)
+                || resolver.has_final_adjective_by_ending(&word);
+        }
+        if !resolver.has_exact_adverb_surface(&word) {
+            return false;
+        }
+        before = end;
+    }
+    false
+}
+
 pub(super) fn next_word_with_end(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
     let span = adjacent_token_span(
         bytes,

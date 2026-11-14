@@ -1929,3 +1929,6 @@ regression.copula-raneuni.directive-control	이다	adjective	no-match-both	10	22
 regression.copula-final-ra.genitive-head	이다	adjective	smart-only-exact	81	90	백성을 소중히 여기고 나라를 잘 다스리는 것이 군주의 기본 도리라.
 regression.copula-final-ra.other-genitive-head	이다	adjective	smart-only-exact	27	36	그것이 도시의 안전 관리라.
 regression.copula-final-ra.directive	이다	adjective	no-match-both	18	27	기계를 좀 더 돌리라.
+regression.copula-causal-ra.dictionary	이다	adjective	smart-exact	7	16	제가 바보라 그렇습니다.
+regression.copula-causal-ra.following-adverb	이다	adjective	smart-only-exact	7	16	내가 바보라 자꾸 속는다.
+regression.copula-causal-ra.directive	이다	adjective	no-match-both	14	20	네가 먼저 와라 나는 남겠다.

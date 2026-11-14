@@ -209,15 +209,25 @@ impl MorphMatcher {
                 kfind_morph::decompose_syllable(last)
                     .is_some_and(|syllable| syllable.jongseong == 0)
             })
-            && is_sentence_end_after(haystack, candidate.verified.token.end)
             && resolver.has_exact_nominal_surface(host)
             && !resolver.has_exact_non_copula_predicate_surface(&normalized)
-            && context::previous_word_with_start(haystack, candidate.verified.token.start)
-                .is_some_and(|(start, modifier)| {
-                    resolver.has_exact_nominal_surface(&modifier)
-                        && context::previous_word(haystack, start)
-                            .is_some_and(|word| resolver.has_nominal_genitive_surface(&word))
-                })
+            && if is_sentence_end_after(haystack, candidate.verified.token.end) {
+                context::previous_word_with_start(haystack, candidate.verified.token.start)
+                    .is_some_and(|(start, modifier)| {
+                        resolver.has_exact_nominal_surface(&modifier)
+                            && context::previous_word(haystack, start)
+                                .is_some_and(|word| resolver.has_nominal_genitive_surface(&word))
+                    })
+            } else {
+                !resolver.has_exact_action_predicate_surface(host)
+                    && context::previous_word(haystack, candidate.verified.token.start)
+                        .is_some_and(|word| resolver.has_subject_marked_nominal(&word))
+                    && context::has_following_final_predicate(
+                        haystack,
+                        candidate.verified.token.end,
+                        resolver,
+                    )
+            }
         {
             return true;
         }
