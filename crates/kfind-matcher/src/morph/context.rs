@@ -518,6 +518,28 @@ pub(super) fn has_contrastive_possibility_clause(
         .is_some_and(|(_, predicate)| resolver.has_existential_final_predicate(&predicate))
 }
 
+pub(super) fn has_copula_subject(
+    haystack: &[u8],
+    at: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let limit = at.saturating_sub(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = at;
+    while let Some((start, word)) = previous_word_with_start(haystack, before) {
+        if start < limit {
+            return false;
+        }
+        if resolver.has_subject_marked_nominal(&word) || resolver.has_topic_marked_nominal(&word) {
+            return true;
+        }
+        if !resolver.has_exact_adverb_surface(&word) {
+            return false;
+        }
+        before = start;
+    }
+    false
+}
+
 pub(super) fn next_word_with_end(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
     let span = adjacent_token_span(
         bytes,

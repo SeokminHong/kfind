@@ -167,6 +167,22 @@ impl MorphMatcher {
         if !self.accepts_token_boundary(haystack, &candidate.verified, branch) {
             return false;
         }
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && let Some(host) = normalized.strip_suffix('야')
+            && host.chars().next_back().is_some_and(|last| {
+                kfind_morph::decompose_syllable(last)
+                    .is_some_and(|syllable| syllable.jongseong == 0)
+            })
+            && is_sentence_end_after(haystack, candidate.verified.token.end)
+            && resolver.has_exact_nominal_surface(host)
+            && !resolver.has_exact_non_copula_predicate_surface(&normalized)
+            && (resolver.has_exact_pronoun_surface(host)
+                && (haystack[candidate.verified.token.end..].starts_with(b"?")
+                    || haystack[candidate.verified.token.end..].starts_with("？".as_bytes()))
+                || context::has_copula_subject(haystack, candidate.verified.token.start, resolver))
+        {
+            return true;
+        }
         if (normalized.ends_with("더군") || normalized.ends_with("더군요"))
             && context::previous_word(haystack, candidate.verified.token.start)
                 .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))

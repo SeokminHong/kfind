@@ -1909,3 +1909,10 @@ regression.counted-conditional.attached-digit	이다	adjective	smart-only-exact	
 regression.counted-conditional.independent-predicate	이다	adjective	no-match-both	17	23	이불을 지금 개면 방이 깨끗해진다.
 regression.counted-conditional.independent-verb	개다	verb	exact	17	23	이불을 지금 개면 방이 깨끗해진다.
 regression.counted-conditional.verb-competitor	개다	verb	no-match	35	41	이렇게 바쁠 때는 몸이 두 개면 좋겠어.
+regression.final-ya.pronoun	이다	adjective	smart-only-exact	11	20	너 지금 어디야?
+regression.final-ya.noun	이다	adjective	smart-only-exact	35	47	저기 코가 긴 동물이 바로 코끼리야.
+regression.final-ya.proper-name	이다	adjective	smart-only-exact	10	19	범인은 철수야.
+regression.final-ya.focus	이다	adjective	no-match-both	0	9	어디야 갈 수 있겠지만 지금은 쉬고 싶어.
+regression.final-ya.address	이다	adjective	no-match-both	0	12	코끼리야, 이리 와.
+regression.final-ya.address-at-end	이다	adjective	no-match-both	9	21	잘 자, 코끼리야.
+regression.final-ya.connective	이다	adjective	no-match-both	7	13	얼른 가야 늦지 않는다.
