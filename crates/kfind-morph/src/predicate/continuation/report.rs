@@ -21,6 +21,15 @@ pub(super) fn verify(
     ) {
         return None;
     }
+    if pos.is_action()
+        && matches!(
+            state,
+            ContinuationState::Eu | ContinuationState::Prospective
+        )
+        && let Some(ending) = verify_honorific_directive(anchor, following)
+    {
+        return Some(ending);
+    }
     let (honorific, following) = honorific_prefix(state, pos, following);
     let initial = following.chars().next()?;
     let last = anchor.chars().next_back();
@@ -125,6 +134,39 @@ pub(super) fn verify(
         token_end: anchor.len() + consumed_bytes,
         consumed_bytes,
         rule_path,
+    })
+}
+
+fn verify_honorific_directive(anchor: &str, following: &str) -> Option<PredicateContinuationMatch> {
+    let tail = following.strip_prefix('라')?;
+    let prefinal = tail.chars().next()?;
+    let (state, rule) = match prefinal {
+        '셨' => (ContinuationState::Past, "ending.past"),
+        '셔' => (ContinuationState::AOrEo, "ending.aoeo"),
+        _ => return None,
+    };
+    let (honorific, remaining) = tail.split_at(prefinal.len_utf8());
+    let ending = verify_simple_continuation(state, PredicatePos::Verb, honorific, remaining)?;
+    if ending.consumed_bytes == 0
+        && (state == ContinuationState::Past
+            || remaining.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
+    {
+        return None;
+    }
+    let consumed_bytes = '라'.len_utf8() + honorific.len() + ending.consumed_bytes;
+    Some(PredicateContinuationMatch {
+        token_end: anchor.len() + consumed_bytes,
+        consumed_bytes,
+        rule_path: [
+            "ending.directive-quotative",
+            REPORT_CONTRACTION,
+            "ending.honorific",
+            rule,
+        ]
+        .into_iter()
+        .map(RuleId::from_static)
+        .chain(ending.rule_path)
+        .collect(),
     })
 }
 

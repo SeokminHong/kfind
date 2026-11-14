@@ -1518,7 +1518,9 @@ pub fn verify_predicate_continuation_with_prefinal_context(
         .starts_with(['대', '댔', '래', '랬', '재', '쟀', '냬', '시', '신', '셨'])
         || following.starts_with("는대")
         || following.starts_with("는댔")
-        || following.starts_with("느냬");
+        || following.starts_with("느냬")
+        || following.starts_with("라셨")
+        || following.starts_with("라셔");
     let ordinary = reported
         .then(|| report::verify(state, pos, anchor, following))
         .flatten()
