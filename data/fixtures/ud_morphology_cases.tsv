@@ -718,6 +718,14 @@ regression.retrospective-reo.honorific	읽다	verb	exact	13	31	선생님이 읽�
 regression.retrospective-reo.recalled	오다	verb	exact	17	35	그분이 이미 오셨더러이다.
 regression.retrospective-reo.prospective	가다	verb	exact	18	33	나는 그 길을 가리러이다.
 regression.retrospective-reo.purpose	사다	verb	exact	14	20	나는 책을 사러 갔다.
+regression.retrospective-reon.copula-question	이다	adjective	only-exact	6	15	고향이런가?
+regression.retrospective-reon.copula-concession	이다	adjective	only-exact	6	15	사람이런들 어찌 알겠소.
+regression.retrospective-reon.negative-copula	아니다	adjective	only-exact	0	12	아니런가?
+regression.retrospective-reon.honorific	읽다	verb	only-exact	0	15	읽으시런가?
+regression.retrospective-reon.recalled	보다	verb	only-exact	0	12	보더런가?
+regression.retrospective-reon.prospective	가다	verb	only-exact	0	12	가리런들 어찌 막겠소.
+regression.retrospective-reon.action	이다	adjective	no-match-both	0	15	읽으시런가?
+regression.retrospective-reon.separate	아니다	adjective	only-exact	0	9	아니다. ‘런가’는 따로 읽자.
 regression.exclamative-njigo.copula	이다	adjective	exact	13	22	과연 영웅인지고.
 regression.exclamative-njigo.vowel-state	훌륭하다	adjective	exact	7	22	정말 훌륭한지고!
 regression.exclamative-njigo.consonant-state	가엾다	adjective	exact	10	25	참으로 가엾은지고!

@@ -2582,29 +2582,42 @@ fn verify_simple_continuation(
             &[suffix("락", &["ending.alternating-rak"])]
         }
         ContinuationState::StemEnding
-            if following.starts_with('러') && (pos == PredicatePos::Copula || anchor == "아니") =>
+            if following.starts_with(['러', '런'])
+                && (pos == PredicatePos::Copula || anchor == "아니") =>
         {
             reo::COPULA_REO_ENDINGS
         }
-        ContinuationState::Prospective if following.starts_with('러') && anchor.ends_with('시') => {
+        ContinuationState::Prospective
+            if following.starts_with(['러', '런']) && anchor.ends_with('시') =>
+        {
             reo::COPULA_REO_ENDINGS
         }
-        ContinuationState::Eu if following.starts_with("시러") => reo::HONORIFIC_REO_ENDINGS,
+        ContinuationState::Eu if following.starts_with("시러") || following.starts_with("시런") => {
+            reo::HONORIFIC_REO_ENDINGS
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
-            if following.starts_with("더러") =>
+            if following.starts_with("더러") || following.starts_with("더런") =>
         {
             reo::RETROSPECTIVE_REO_ENDINGS
         }
-        ContinuationState::Eu if following.starts_with("시더러") => {
+        ContinuationState::Eu
+            if following.starts_with("시더러") || following.starts_with("시더런") =>
+        {
             reo::HONORIFIC_RETROSPECTIVE_REO
         }
-        ContinuationState::Eu | ContinuationState::Prospective if following.starts_with("리러") => {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if following.starts_with("리러") || following.starts_with("리런") =>
+        {
             reo::PROSPECTIVE_REO
         }
-        ContinuationState::Eu if following.starts_with("시리러") => {
+        ContinuationState::Eu
+            if following.starts_with("시리러") || following.starts_with("시리런") =>
+        {
             reo::HONORIFIC_PROSPECTIVE_REO
         }
-        ContinuationState::Past | ContinuationState::Future if following.starts_with("으리러") => {
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("으리러") || following.starts_with("으리런") =>
+        {
             reo::PREFINAL_PROSPECTIVE_REO
         }
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
@@ -3492,6 +3505,7 @@ fn verify_simple_continuation(
                         | "ending.copula-concessive-eon"
                         | "ending.retrospective-reoni"
                         | "ending.retrospective-reo-final"
+                        | "ending.retrospective-reondeul"
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.exclamative-era"
