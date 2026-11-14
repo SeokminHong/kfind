@@ -1802,6 +1802,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.propositive-quotation"
+category = "final"
+initial = "consonant"
+forms = ["자며", "자면서", "자니까"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.propositive-conditional"
+category = "connective"
+initial = "consonant"
+forms = ["자면"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.propositive-ja"
 category = "final"
 initial = "consonant"
