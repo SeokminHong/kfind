@@ -2076,6 +2076,15 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
             &[reference_suffix("자꾸나", &["ending.propositive-ja"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("게나") => {
+            &[reference_suffix("게나", &["ending.imperative-gena"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시게나") => {
+            &[reference_suffix(
+                "시게나",
+                &["ending.honorific", "ending.imperative-gena"],
+            )]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && (following.starts_with("자며")
@@ -3094,6 +3103,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-deora"
                             | "ending.propositive-quotation"
                             | "ending.propositive-conditional"
+                            | "ending.imperative-gena"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

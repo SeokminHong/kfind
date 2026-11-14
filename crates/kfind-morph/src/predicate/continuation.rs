@@ -1945,6 +1945,15 @@ fn verify_simple_continuation(
             "시게끔",
             &["ending.honorific", "ending.adverbial-ge"],
         )],
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("게나") => {
+            &[suffix("게나", &["ending.imperative-gena"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시게나") => {
+            &[suffix(
+                "시게나",
+                &["ending.honorific", "ending.imperative-gena"],
+            )]
+        }
         ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
             &[suffix("자꾸나", &["ending.propositive-ja"])]
         }

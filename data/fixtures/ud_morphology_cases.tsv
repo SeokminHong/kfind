@@ -808,6 +808,10 @@ regression.propositive-quotation.myeonseo	가다	verb	exact	0	12	가자면서?
 regression.propositive-quotation.nikka	떠나다	verb	exact	0	15	떠나자니까.
 regression.propositive-conditional.action	밝다	verb	exact	7	16	날이 밝자면 한참 남았다.
 regression.propositive-quotation.separate	가다	verb	exact	0	6	가자. 며칠 쉬어야 한다.
+regression.imperative-gena.consonant	앉다	verb	exact	0	9	앉게나.
+regression.imperative-gena.rieul	들다	verb	exact	0	9	들게나.
+regression.imperative-gena.honorific	읽다	verb	exact	0	15	읽으시게나.
+regression.imperative-gena.adverbial	읽다	verb	exact	0	6	읽게 나만 남겨 줘.
 regression.connective-deusi.short	보다	verb	exact	0	6	보듯 결과는 뻔하다.
 regression.connective-deusi.long	오다	verb	exact	0	9	오듯이 갈 것이다.
 regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 없다.
