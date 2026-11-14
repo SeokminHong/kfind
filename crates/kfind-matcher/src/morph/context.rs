@@ -6,7 +6,7 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use kfind_morph::{
-    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver,
+    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver, MorphContinuation,
     PreparedStructuralContext, QueryMorphPattern,
 };
 use kfind_query::VerifiedSpan;
@@ -14,9 +14,68 @@ use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use super::PreparedExactTokenGraphs;
 use crate::window::{AnalysisWindowRef, nfc_status_and_scalar_count};
-use crate::{DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
+use crate::{DEFAULT_ANALYSIS_WINDOW_LIMITS, SearchDiagnostics, is_token_character};
 
 const MAX_PREPARED_CONTEXT_CACHE_ENTRIES: usize = 256;
+
+#[derive(Default)]
+pub(super) struct StructuralCache<'a> {
+    diagnostics: Option<&'a SearchDiagnostics>,
+    windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis<'a>>>,
+    prepared_contexts: PreparedStructuralContextCache,
+}
+
+impl<'a> StructuralCache<'a> {
+    pub(super) fn new(diagnostics: Option<&'a SearchDiagnostics>) -> Self {
+        Self {
+            diagnostics,
+            ..Self::default()
+        }
+    }
+
+    pub(super) fn clear_windows(&mut self) {
+        self.windows.clear();
+    }
+
+    pub(super) fn prepare(
+        &mut self,
+        haystack: &'a [u8],
+        window: &Range<usize>,
+        core: Range<usize>,
+        preparation: StructuralPreparation<'_>,
+    ) -> Option<&PreparedStructuralContextAnalysis<'a>> {
+        self.windows
+            .entry((
+                window.start,
+                window.end,
+                preparation.include_nominal_copula,
+                preparation.include_nominal_derivation_predicate,
+            ))
+            .or_insert_with(|| {
+                PreparedStructuralContextAnalysis::extract(
+                    haystack,
+                    core,
+                    preparation,
+                    &mut self.prepared_contexts,
+                )
+            })
+            .as_ref()
+    }
+
+    pub(super) fn record_unavailable(&self) {
+        if let Some(diagnostics) = self.diagnostics {
+            diagnostics.record_unavailable();
+        }
+    }
+}
+
+pub(super) fn needs_nominal_derivation(patterns: &[QueryMorphPattern]) -> bool {
+    patterns.iter().any(|pattern| {
+        pattern.fine_pos.is_nominal()
+            && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+            && pattern.component_capability.allows_runtime()
+    })
+}
 
 #[derive(Debug)]
 pub(super) struct PreparedStructuralContextAnalysis<'a> {
@@ -25,7 +84,7 @@ pub(super) struct PreparedStructuralContextAnalysis<'a> {
 }
 
 #[derive(Default)]
-pub(super) struct PreparedStructuralContextCache {
+struct PreparedStructuralContextCache {
     fingerprint_builder: RandomState,
     entries: HashMap<u64, Vec<CachedPreparedContext>>,
     entry_count: usize,
@@ -56,7 +115,7 @@ pub(super) struct StructuralPreparation<'a> {
 }
 
 impl<'a> PreparedStructuralContextAnalysis<'a> {
-    pub(super) fn extract(
+    fn extract(
         haystack: &'a [u8],
         candidate: Range<usize>,
         preparation: StructuralPreparation<'_>,

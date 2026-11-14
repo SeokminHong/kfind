@@ -97,10 +97,7 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
             pending: Vec::new(),
             group: Vec::new(),
             next_sequence: vec![0; matcher.plan.atoms.len()],
-            structural_cache: StructuralCache {
-                diagnostics,
-                ..Default::default()
-            },
+            structural_cache: StructuralCache::new(diagnostics),
             metadata,
         }
     }
