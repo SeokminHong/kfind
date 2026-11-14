@@ -1248,6 +1248,11 @@ regression.familiar-direct-question.honorific-uncontracted	읽다	verb	smart-exa
 regression.familiar-direct-question.auxiliary-resultative	이루다	verb	smart-exact	24	36	그 계획은 어떻게 이뤄지니?
 regression.familiar-direct-question.auxiliary-resultative-parallel	다루다	verb	smart-exact	27	39	이 안건은 어디에서 다뤄지니?
 regression.familiar-direct-question.auxiliary-resultative-past	다루다	verb	smart-exact	21	33	그 안건은 어제 다뤄졌니?
+regression.auxiliary-stacked-prefinals.resultative	씩씩하다	adjective	exact	0	18	씩씩해졌겠다.
+regression.auxiliary-stacked-prefinals.trial	먹다	verb	exact	0	15	먹어봤겠지?
+regression.auxiliary-stacked-prefinals.repeated-past	좋다	adjective	exact	0	15	좋아졌었다.
+regression.auxiliary-stacked-prefinals.separate	먹다	verb	only-exact	10	16	아이가 먹어 봤겠지.
+regression.auxiliary-stacked-prefinals.other-ending	좋다	adjective	only-exact	10	25	날씨가 좋아졌으나 금방 어두워졌다.
 regression.familiar-direct-question.auxiliary-trial-past	읽다	verb	smart-exact	18	30	너는 그 책을 읽어봤니?
 regression.familiar-direct-question.rieul-retained	만들다	verb	no-match	17	26	너는 무엇을 만들니?
 regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44	53	대전까지 길이 막히면 얼마 만에 가겠니?
