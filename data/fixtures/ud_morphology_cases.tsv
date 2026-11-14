@@ -1289,6 +1289,10 @@ regression.coordinating-endings.geona-copula	이다	adjective	smart-exact	3	12	�
 regression.resultative-possession.asset	가다	verb	no-match	17	26	그는 재산을 가지지 않았다.
 regression.resultative-possession.stock	가다	verb	no-match	24	33	그 회사는 주식을 가지지 않았다.
 regression.resultative-possession.route	가다	verb	smart-exact	38	47	계속 발을 내디뎌도 그 길을 가지지 않았다.
+regression.resultative-possession.patent	가다	verb	no-match	17	26	그는 특허를 가지지 않았다.
+regression.resultative-possession.copyright	가지다	verb	smart-exact	20	29	그는 저작권을 가지지 않았다.
+regression.resultative-possession.copyright-conflict	가다	verb	no-match	20	29	그는 저작권을 가지지 않았다.
+regression.resultative-possession.road	가다	verb	smart-exact	20	29	아무도 산길을 가지지 않았다.
 regression.hago.comparison	예전	noun	smart-exact	7	19	맛이 예전하고 틀려서 이젠 집에서 만들어 먹어요
 regression.hago.coordination	사과	noun	smart-exact	0	12	사과하고 배를 샀어요.
 regression.hago.association	동생	noun	smart-exact	0	12	동생하고 같이 갔어요.

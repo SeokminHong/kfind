@@ -351,9 +351,12 @@ impl ConstraintResolver {
     }
 
     #[must_use]
-    pub fn has_financial_object(&self, text: &str) -> bool {
+    pub fn has_possession_object(&self, text: &str) -> bool {
         text.strip_suffix(['을', '를']).is_some_and(|noun| {
-            FINANCIAL_NOUNS.binary_search(&noun).is_ok() && self.has_object_marked_nominal(text)
+            (FINANCIAL_NOUNS.binary_search(&noun).is_ok()
+                || POSSESSED_RIGHTS.binary_search(&noun).is_ok())
+                && PLACE_NOUNS.binary_search(&noun).is_err()
+                && self.has_object_marked_nominal(text)
         })
     }
 

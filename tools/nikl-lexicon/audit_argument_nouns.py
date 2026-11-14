@@ -29,6 +29,7 @@ def main():
     places = defaultdict(set)
     financial = defaultdict(set)
     people = defaultdict(set)
+    rights = defaultdict(set)
     scheduled = set()
     for entry in iter_entries(args.archive):
         lemma, _ = normalize_headword(direct_feat(entry.find("./Lemma"), "writtenForm") or "")
@@ -41,6 +42,17 @@ def main():
                 financial[lemma].add(source_id)
             if category in PERSON_CATEGORIES:
                 people[lemma].add(source_id)
+            # Require a rights sense and an example using that headword as the
+            # object of 가지다 or its short form 갖다 in the same sense.
+            for sense in entry.findall("./Sense"):
+                definition = direct_feat(sense, "definition") or ""
+                if not definition.endswith(" 권리."):
+                    continue
+                if any(
+                    re.search(rf"(?<![가-힣]){re.escape(lemma)}[을를] (?:가지|갖)", feature.get("val", ""))
+                    for feature in sense.findall('.//feat[@att="example"]')
+                ):
+                    rights[lemma].add(source_id)
         if lemma == "늦다" and direct_feat(entry, "partOfSpeech") == "동사":
             for sense in entry.findall("./Sense"):
                 if not any(
@@ -57,6 +69,7 @@ def main():
     for name, entries in [
         ("PLACE_NOUNS", places),
         ("FINANCIAL_NOUNS", financial),
+        ("POSSESSED_RIGHTS", rights),
         ("PERSON_NOUNS", people),
         ("SCHEDULED_COMPLEMENTS", {word: {"61181"} for word in scheduled}),
     ]:

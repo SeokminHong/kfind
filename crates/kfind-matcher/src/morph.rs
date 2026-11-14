@@ -4142,7 +4142,12 @@ fn has_possession_argument(
     atom: &AtomPlan,
     resolver: &ConstraintResolver,
 ) -> bool {
-    if !has_only_lemma(branch, atom, "가다") {
+    if !candidate
+        .suffix_rules
+        .iter()
+        .any(|rule| rule.as_str() == "ending.auxiliary-jida")
+        || !has_only_lemma(branch, atom, "가다")
+    {
         return false;
     }
     let token = surrounding_token_span(haystack, candidate.verified.core.clone());
@@ -4151,7 +4156,7 @@ fn has_possession_argument(
     }
     context::previous_word_with_start(haystack, token.start).is_some_and(|(at, previous)| {
         !haystack[at..token.start].contains(&b'\n')
-            && resolver.has_financial_object(&previous)
+            && resolver.has_possession_object(&previous)
             && context::normalized_token(haystack, token)
                 .is_some_and(|surface| resolver.has_possessive_predicate_surface(&surface))
     })
