@@ -3,9 +3,11 @@ use crate::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final}
 mod auxiliary;
 mod hao;
 mod humble;
+mod reo;
 mod report;
 mod trial;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
+pub(super) use reo::is_copula_reo_ending;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateContinuationMatch {
@@ -1762,6 +1764,32 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with('러') && (pos == PredicatePos::Copula || anchor == "아니") =>
+        {
+            reo::COPULA_REO_ENDINGS
+        }
+        ContinuationState::Prospective if following.starts_with('러') && anchor.ends_with('시') => {
+            reo::COPULA_REO_ENDINGS
+        }
+        ContinuationState::Eu if following.starts_with("시러") => reo::HONORIFIC_REO_ENDINGS,
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("더러") =>
+        {
+            reo::RETROSPECTIVE_REO_ENDINGS
+        }
+        ContinuationState::Eu if following.starts_with("시더러") => {
+            reo::HONORIFIC_RETROSPECTIVE_REO
+        }
+        ContinuationState::Eu | ContinuationState::Prospective if following.starts_with("리러") => {
+            reo::PROSPECTIVE_REO
+        }
+        ContinuationState::Eu if following.starts_with("시리러") => {
+            reo::HONORIFIC_PROSPECTIVE_REO
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으리러") => {
+            reo::PREFINAL_PROSPECTIVE_REO
+        }
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with("지라") =>
         {
@@ -2540,6 +2568,8 @@ fn verify_simple_continuation(
                         | "ending.causal-jira"
                         | "ending.final-rieuljiroda"
                         | "ending.copula-olsida"
+                        | "ending.retrospective-reoni"
+                        | "ending.retrospective-reo-final"
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"

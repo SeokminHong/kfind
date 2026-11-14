@@ -668,6 +668,13 @@ regression.copula-olsida.explicit	이다	adjective	exact	7	19	제 것이올시�
 regression.copula-olsida.negative-copula	아니다	adjective	exact	11	26	제 것이 아니올시다.
 regression.copula-olsida.consonant-host	이다	adjective	no-match	10	13	그것은 책올시다.
 regression.copula-olsida.verb-host	이다	adjective	no-match	14	17	나는 일찍 가올시다.
+regression.retrospective-reo.explicit	이다	adjective	exact	23	35	그는 참으로 명장이러이다.
+regression.retrospective-reo.omitted	이다	adjective	smart-exact	24	39	그 사람은 훌륭한 선비러니라.
+regression.retrospective-reo.negated	아니다	adjective	exact	21	36	그것은 제 것이 아니러이까?
+regression.retrospective-reo.honorific	읽다	verb	exact	13	31	선생님이 읽으시러이다.
+regression.retrospective-reo.recalled	오다	verb	exact	17	35	그분이 이미 오셨더러이다.
+regression.retrospective-reo.prospective	가다	verb	exact	18	33	나는 그 길을 가리러이다.
+regression.retrospective-reo.purpose	사다	verb	exact	14	20	나는 책을 사러 갔다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.
