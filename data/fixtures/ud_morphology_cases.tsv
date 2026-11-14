@@ -1033,6 +1033,12 @@ regression.respectful-rio.consonant	읽다	verb	only-exact	0	15	읽으오리오.
 regression.respectful-rio.past	믿다	verb	only-exact	0	18	믿었으오리오. 그때는 아무것도 몰랐소.
 regression.respectful-rio.plain	떠나다	verb	only-exact	0	12	떠나리오. 어찌 여기 머무르겠소.
 regression.respectful-rio.separate	읽다	verb	only-exact	0	9	읽었다. ‘으오리오’는 따로 보자.
+regression.copula-concessive-eon.long	이다	adjective	only-exact	6	18	작가이언마는 글을 감췄다.
+regression.copula-concessive-eon.short	이다	adjective	only-exact	6	15	배우이언만 얼굴을 감췄다.
+regression.copula-concessive-eon.jeong	이다	adjective	only-exact	3	12	약이언정 무턱대고 먹을 순 없소.
+regression.copula-concessive-eon.negative	아니다	adjective	only-exact	0	12	아니언만 어찌 그대로 두겠소.
+regression.copula-concessive-eon.honorific	이다	adjective	only-exact	9	21	선생님이시언정 답은 모르오.
+regression.copula-concessive-eon.separate	이다	adjective	only-exact	6	12	작가이다. ‘언마는’은 따로 읽자.
 regression.familiar-short-eui.good	좋다	adjective	only-exact	11	17	그것 참 좋의.
 regression.familiar-short-eui.narrow	좁다	adjective	only-exact	0	6	좁의. 자네가 앉기는 어렵겠네.
 regression.familiar-short-eui.full	좋다	adjective	only-exact	0	9	좋으이. 오래 기다린 보람이 있네.

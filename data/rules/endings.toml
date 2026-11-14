@@ -952,6 +952,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-concessive-eon"
+category = "connective"
+initial = "other"
+forms = ["언마는", "언만", "언정"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.copula-enumerative-yo"
 category = "connective"
 initial = "other"

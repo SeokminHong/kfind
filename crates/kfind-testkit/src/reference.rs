@@ -3672,6 +3672,7 @@ fn reference_simple_continuation(
                             | "ending.interrogative-rieulreongo"
                             | "ending.interrogative-rieulssonga"
                             | "ending.copula-olsida"
+                            | "ending.copula-concessive-eon"
                             | "ending.concessive-geonman"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")

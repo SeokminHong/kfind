@@ -3489,6 +3489,7 @@ fn verify_simple_continuation(
                         | "ending.interrogative-rieulreongo"
                         | "ending.interrogative-rieulssonga"
                         | "ending.copula-olsida"
+                        | "ending.copula-concessive-eon"
                         | "ending.retrospective-reoni"
                         | "ending.retrospective-reo-final"
                         | "ending.concessive-geonman"
