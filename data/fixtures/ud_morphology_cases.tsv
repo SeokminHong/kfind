@@ -1202,6 +1202,12 @@ regression.propositive-se.rieul	만들다	verb	smart-exact	0	9	만드세.
 regression.propositive-se.irregular	걷다	verb	smart-exact	0	9	걸으세.
 regression.propositive-se.adjective	넓다	adjective	no-match	0	9	넓으세.
 regression.propositive-se.attached-auxiliary	보다	verb	smart-exact	6	12	읽어보세.
+regression.propositive-sena.open	가다	verb	exact	0	9	가세나.
+regression.propositive-sena.consonant	먹다	verb	exact	0	12	먹으세나.
+regression.propositive-sena.consonant-direct	읽다	verb	exact	0	9	읽세나.
+regression.propositive-sena.rieul	살다	verb	exact	0	9	사세나.
+regression.propositive-sena.honorific	읽다	verb	exact	0	15	읽으시세나.
+regression.propositive-sena.adjective	넓다	adjective	no-match	0	12	넓으세나.
 regression.directive-ram.closed	먹다	verb	smart-exact	10	19	어떻게 먹으람?
 regression.directive-ram.open	가다	verb	smart-exact	10	16	어디로 가람?
 regression.directive-ram.rieul	살다	verb	smart-exact	10	16	어떻게 사람?

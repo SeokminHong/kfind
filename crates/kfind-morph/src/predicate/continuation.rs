@@ -802,6 +802,7 @@ const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
 );
 const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
 const PROPOSITIVE_SE: Suffix = suffix("세", &["ending.propositive-se"]);
+const PROPOSITIVE_SENA: Suffix = suffix("세나", &["ending.propositive-se"]);
 const DIRECTIVE_RAM: Suffix = suffix("람", &["ending.directive-ram"]);
 const RYEOM_IMPERATIVES: &[Suffix] = &[
     suffix("렴", &["ending.imperative-ryeom"]),
@@ -1708,7 +1709,7 @@ fn verify_simple_continuation(
                     .next_back()
                     .is_some_and(|last| !has_final(last)) =>
         {
-            &[PROPOSITIVE_SE, DIRECTIVE_RAM]
+            &[PROPOSITIVE_SE, PROPOSITIVE_SENA, DIRECTIVE_RAM]
         }
         ContinuationState::ReportEnding
             if pos.is_action() && following.starts_with(DANDA.surface) =>
@@ -1740,6 +1741,16 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("세나")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[PROPOSITIVE_SENA]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("기로") =>
         {
@@ -2085,8 +2096,14 @@ fn verify_simple_continuation(
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는지라") => {
             &[suffix("는지라", &["ending.causal-jira"])]
         }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시세나") => {
+            &[suffix(
+                "시세나",
+                &["ending.honorific", "ending.propositive-se"],
+            )]
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with(['세', '람']) => {
-            &[PROPOSITIVE_SE, DIRECTIVE_RAM]
+            &[PROPOSITIVE_SE, PROPOSITIVE_SENA, DIRECTIVE_RAM]
         }
         ContinuationState::Eu if pos.is_action() && following.starts_with("시람") => &[suffix(
             "시람",
@@ -2100,7 +2117,7 @@ fn verify_simple_continuation(
                     .next_back()
                     .is_some_and(|last| !has_final(last)) =>
         {
-            &[PROPOSITIVE_SE, DIRECTIVE_RAM]
+            &[PROPOSITIVE_SE, PROPOSITIVE_SENA, DIRECTIVE_RAM]
         }
         ContinuationState::StemEnding
             if pos.is_action()
