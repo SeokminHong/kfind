@@ -53,3 +53,4 @@ pub use rules::{
 };
 pub use validation::{ValidatedData, load_data_dir, validate_data, validate_predicates};
 include!("../../../data/rules/nikl-geondae-stems.rs");
+include!("../../../data/rules/nikl-resultative-geora-stems.rs");

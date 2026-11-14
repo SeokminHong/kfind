@@ -2005,3 +2005,6 @@ regression.stative-auxiliary-hada.full	힘들다	adjective	only-exact	7	22	너�
 regression.stative-auxiliary-hada.past	가엽다	adjective	only-exact	0	18	가여워하였다.
 regression.stative-auxiliary-hada.contracted-past	힘들다	adjective	only-exact	17	32	그때는 몹시 힘들어했다.
 regression.stative-auxiliary-hada.separate	힘들다	adjective	only-exact	0	9	힘들어. 하여튼 먼저 해 보자.
+regression.resultative-geora.stand	서다	verb	only-exact	12	21	이놈, 게 섰거라!
+regression.resultative-geora.withdraw	무르다	verb	only-exact	35	47	당장 물고를 내기 전에 썩 물렀거라.
+regression.resultative-geora.separate	서다	verb	only-exact	4	7	게 서 있거라.

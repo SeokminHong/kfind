@@ -536,6 +536,22 @@ fn compile_productive(
                 alternation: entry.alternation,
             }
         })?;
+        if entry.pos.is_action() && kfind_data::RESULTATIVE_GEORA_STEMS.contains(&stem) {
+            let mut rules = aeo.rules.clone();
+            rules.extend([
+                rule("ending.aoeo"),
+                rule("contraction.resultative-it-geora"),
+                rule("ending.imperative-geora"),
+            ]);
+            push_branch(
+                branches,
+                entry,
+                format!("{past}거라"),
+                aeo.core_len,
+                ContinuationState::Terminal,
+                rules,
+            );
+        }
         let mut past_rules = aeo.rules;
         past_rules.push(rule("ending.past"));
         push_branch(
