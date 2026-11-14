@@ -3681,9 +3681,9 @@ fn has_jiyo_object_frame(
         }
         if scheduled_verb && resolver.has_person_subject(&word) {
             has_person = true;
-        } else if !has_schedule && !resolver.has_exact_adverb_surface(&word) {
-            break;
-        } else if has_schedule && resolver.has_independent_final_predicate(&word) {
+        } else if (!has_schedule && !resolver.has_exact_adverb_surface(&word))
+            || (has_schedule && resolver.has_independent_final_predicate(&word))
+        {
             break;
         }
         if has_schedule && has_person {
