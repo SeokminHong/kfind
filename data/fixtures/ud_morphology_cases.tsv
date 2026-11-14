@@ -68,6 +68,11 @@ regression.ryeonman.rieul	살다	verb	smart-exact	0	12	살련마는 그럴 수 �
 regression.ryeonman.honorific	오다	verb	smart-exact	0	12	오시련만 길이 막혔다.
 regression.ryeonman.past	가다	verb	smart-exact	0	15	갔으련마는 비가 왔다.
 regression.ryeonman.bad-vowel	가다	verb	no-match	0	12	가으련만 비가 왔다.
+regression.ryeon.vowel	운전하다	verb	smart-exact	0	12	운전하련?
+regression.ryeon.regular-d	걷다	verb	smart-exact	10	19	빨래를 걷으련?
+regression.ryeon.irregular-d	걷다	verb	smart-exact	11	20	이 길을 걸으련?
+regression.ryeon.rieul	살다	verb	smart-exact	7	13	여기 살련?
+regression.ryeon.bad-vowel	가다	verb	no-match	0	9	가으련?
 regression.doe.token-interior	작다	adjective	no-match	3	9	시작되었고그 자동차 회사는 남았다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
