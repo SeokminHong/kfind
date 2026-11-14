@@ -39,3 +39,9 @@ node --expose-gc scripts/benchmark-npm-startup.cjs --probe +  "$module_dir/kfind
 구조 리소스 크기는 37,103,813 bytes이며 WASM 파일 SHA-256은 기준
 `8dfe25ec53fac66a294bb11be1ba0e0d38f759b459e365d52edba45acce80d23`,
 후보 `e012e9e974488ce68a3141adc1147ee14ebe0ec7e74950d633d5b39627d31dbb`다.
+
+패키지 CI와 같은 Node 24 계열(24.5.0)에서 동일한 WASM 두 파일로 full POS +
+component를 다시 측정했다. 구조 리소스는 877.13 [873.41, 1112.36] ms에서
+149.73 [146.92, 151.17] ms로, 전체 초기화는 938.54 [936.61, 1172.69] ms에서
+210.58 [207.17, 213.27] ms로 줄었다. RSS는 210.58 [210.00, 213.73] MiB에서
+211.38 [210.63, 211.86] MiB였다.
