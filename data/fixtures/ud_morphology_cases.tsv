@@ -475,7 +475,7 @@ regression.copula-enumerative-yo.omitted	이다	adjective	smart-exact	41	53	오�
 regression.copula-enumerative-yo.polite	이다	adjective	no-match-both	10	22	메뉴는 냉면이요?
 regression.copula-enumerative-yo.polite-continued	이다	adjective	no-match-both	0	9	사과요, 사과를 주세요.
 regression.copula-enumerative-yo.lexical	이다	adjective	no-match-both	10	16	준비에 소요 시간이 길다.
-regression.copula-enumerative-yo.predictive	이다	adjective	no-match-both	10	16	못할 거요. 나중에 합시다.
+regression.copula-enumerative-yo.predictive	이다	adjective	no-match-both	7	13	못할 거요. 나중에 합시다.
 corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
 regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
 regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.
