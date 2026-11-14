@@ -739,6 +739,13 @@ fn reference_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
+    if state == ContinuationState::AOrEo
+        && following.starts_with("지이다")
+        && let Some(ending) = reference_simple_continuation(state, pos, anchor, following)
+        && ending.0 == "지이다".len()
+    {
+        return Some(ending);
+    }
     if pos.is_action()
         && matches!(state, ContinuationState::StemEnding | ContinuationState::Eu)
         && let Some(auxiliary) = reference_gopeuda(state, following)
@@ -2515,6 +2522,9 @@ fn reference_simple_continuation(
             reference_suffix("다", &["ending.aoeo-daga"]),
             reference_suffix("다가", &["ending.aoeo-daga"]),
         ],
+        ContinuationState::AOrEo if following.starts_with("지이다") => {
+            &[reference_suffix("지이다", &["ending.desiderative-jida"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
@@ -3211,6 +3221,7 @@ fn reference_simple_continuation(
                             | "ending.imperative-gena"
                             | "ending.honorific-request-sipsa"
                             | "ending.aoeo-daga"
+                            | "ending.desiderative-jida"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
@@ -3721,6 +3732,7 @@ mod tests {
         "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
         "꽃이 예쁘군요. 집까지 걸으시는군요.\n",
         "꽃이 예뻐졌겠다. 아이는 먹어봤겠다. 아이는 먹어 봤겠다.\n",
+        "꽃이 예뻐지이다. 꽃이 예뻐지기를 바란다.\n",
     );
 
     #[test]

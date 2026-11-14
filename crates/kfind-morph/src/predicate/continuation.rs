@@ -1438,6 +1438,13 @@ pub fn verify_predicate_continuation_with_prefinal_context(
         }
     }
     if state == ContinuationState::AOrEo
+        && following.starts_with("지이다")
+        && let Some(ending) = verify_simple_continuation(state, pos, anchor, following)
+        && ending.consumed_bytes == "지이다".len()
+    {
+        return Some(ending);
+    }
+    if state == ContinuationState::AOrEo
         && let Some(auxiliary) = match following.chars().next() {
             Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
                 trial::verify(anchor.len(), following)
@@ -1856,6 +1863,9 @@ fn verify_simple_continuation(
             suffix("다", &["ending.aoeo-daga"]),
             suffix("다가", &["ending.aoeo-daga"]),
         ],
+        ContinuationState::AOrEo if following.starts_with("지이다") => {
+            &[suffix("지이다", &["ending.desiderative-jida"])]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
             &[suffix(
                 "다더라",
@@ -3125,6 +3135,7 @@ fn verify_simple_continuation(
                         | "ending.directive-ram"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
+                        | "ending.desiderative-jida"
                         | "ending.colloquial-rieulramyeon"
                 )
             ) || dapsigo
