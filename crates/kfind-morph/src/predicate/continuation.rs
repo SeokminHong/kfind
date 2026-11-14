@@ -1763,6 +1763,14 @@ fn verify_simple_continuation(
                 &["ending.honorific", "ending.comparative-neuniman"],
             ),
         ],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("걸랑") =>
+        {
+            &[suffix("걸랑", &["ending.geodeun"])]
+        }
+        ContinuationState::Eu if following.starts_with("시걸랑") => {
+            &[suffix("시걸랑", &["ending.honorific", "ending.geodeun"])]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 suffix("으려니", &["ending.conjecture-ryeo"]),

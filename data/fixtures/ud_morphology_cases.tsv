@@ -780,6 +780,12 @@ regression.ending-neuni.honorific	읽다	verb	exact	0	15	읽으시느니 다시 
 regression.ending-neuni.past	있다	verb	exact	0	12	있었느니.
 regression.ending-neuni.comparison	죽다	verb	exact	0	12	죽느니만 못하다.
 regression.ending-neuni.unrelated	읽다	verb	exact	0	6	읽은 니체의 책을 건넸다.
+regression.conditional-geollang.stem	보다	verb	exact	0	9	보걸랑 연락해 줘.
+regression.conditional-geollang.past	먹다	verb	exact	0	12	먹었걸랑 쉬어라.
+regression.conditional-geollang.state	조용하다	adjective	exact	0	15	조용하걸랑. 잠깐 있어 봐.
+regression.conditional-geollang.honorific	읽다	verb	exact	0	15	읽으시걸랑 책을 가져오세요.
+regression.conditional-geollang.copula	이다	adjective	exact	6	15	학생이걸랑 참고서를 빌려 줘.
+regression.conditional-geollang.long	보다	verb	exact	0	12	보거들랑 연락해 줘.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
