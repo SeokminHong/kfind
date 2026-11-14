@@ -639,6 +639,20 @@ fn compile_productive(
             completed,
             ContinuationState::CompletedNieunEnding,
         );
+    } else if uses_neun {
+        for ending in continuation::CAUSAL_NIEUNJUK {
+            let mut rules = past.rules.clone();
+            rules.pop();
+            rules.extend(ending.rules.iter().map(|id| rule(id)));
+            push_branch(
+                branches,
+                entry,
+                format!("{}{}", past.surface, ending.surface),
+                past.core_len,
+                ContinuationState::Terminal,
+                rules,
+            );
+        }
     }
     let mut background = if uses_neun {
         let present = present_adnominal(stem)?;

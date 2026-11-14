@@ -1810,6 +1810,24 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with('즉')
+                && (state == ContinuationState::CompletedNieunEnding
+                    || !anchor.ends_with('는')) =>
+        {
+            &[
+                reference_suffix("즉", &["ending.causal-nieunjuk"]),
+                reference_suffix("즉슨", &["ending.causal-nieunjuk"]),
+            ]
+        }
+        ContinuationState::Past if following.starts_with("은즉") => &[
+            reference_suffix("은즉", &["ending.causal-nieunjuk"]),
+            reference_suffix("은즉슨", &["ending.causal-nieunjuk"]),
+        ],
+        ContinuationState::Eu if following.starts_with("신즉") => &[
+            reference_suffix("신즉", &["ending.honorific", "ending.causal-nieunjuk"]),
+            reference_suffix("신즉슨", &["ending.honorific", "ending.causal-nieunjuk"]),
+        ],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("도다") =>
         {
@@ -2686,6 +2704,7 @@ fn reference_simple_continuation(
                             | "ending.formal-intention-statement"
                             | "ending.exclamative-doda"
                             | "ending.exclamative-neundoda"
+                            | "ending.causal-nieunjuk"
                             | "ending.final-rieuljiroda"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"
