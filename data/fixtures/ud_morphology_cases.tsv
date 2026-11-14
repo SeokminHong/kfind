@@ -709,6 +709,12 @@ regression.exclamative-doda.honorific	읽다	verb	exact	13	31	선생님이 읽�
 regression.exclamative-doda.past	내리다	verb	exact	7	19	비가 내렸도다!
 regression.exclamative-doda.rieul	알다	verb	exact	10	22	참으로 아는도다!
 regression.exclamative-doda.copula-ro	이다	adjective	exact	13	22	그것은 꿈이로다.
+regression.causal-nieunjuk.action	읽다	verb	exact	7	16	책을 읽은즉 답이 보였다.
+regression.causal-nieunjuk.copula	이다	adjective	exact	16	22	그것이 사실인즉 받아들여라.
+regression.causal-nieunjuk.state	맑다	adjective	exact	7	16	물이 맑은즉 반대편이 보인다.
+regression.causal-nieunjuk.state-neun	없다	adjective	exact	10	19	방법이 없은즉 기다리자.
+regression.causal-nieunjuk.past	읽다	verb	exact	7	22	어제 읽었은즉슨 내용을 기억한다.
+regression.causal-nieunjuk.separate-word	읽다	verb	exact	7	13	일단 읽은 즉흥시를 기억했다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

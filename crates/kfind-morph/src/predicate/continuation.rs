@@ -1325,6 +1325,10 @@ const SYEOTNEUN_EXTENSIONS: &[Suffix] =
 const SIGETNEUN_EXTENSIONS: &[Suffix] =
     nieun_extensions!("시겠는", "ending.honorific", "ending.future");
 const NIEUNDEUL: Suffix = suffix("들", &["ending.concessive-nieundeul"]);
+pub(super) const CAUSAL_NIEUNJUK: &[Suffix] = &[
+    suffix("즉", &["ending.causal-nieunjuk"]),
+    suffix("즉슨", &["ending.causal-nieunjuk"]),
+];
 const NJIGO: Suffix = suffix("지고", &["ending.exclamative-njigo"]);
 const SINJIGO: Suffix = suffix("신지고", &["ending.honorific", "ending.exclamative-njigo"]);
 const COMPLETED_NIEUN: &[Suffix] = &[
@@ -1723,7 +1727,20 @@ fn verify_simple_continuation(
     if let Some(continuation) = humble::verify(state, pos, anchor, following) {
         return Some(continuation);
     }
-    let doda: &[Suffix] = match state {
+    let token_endings: &[Suffix] = match state {
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with('즉') && !anchor.ends_with('는') =>
+        {
+            CAUSAL_NIEUNJUK
+        }
+        ContinuationState::Past if following.starts_with("은즉") => &[
+            suffix("은즉", &["ending.causal-nieunjuk"]),
+            suffix("은즉슨", &["ending.causal-nieunjuk"]),
+        ],
+        ContinuationState::Eu if following.starts_with("신즉") => &[
+            suffix("신즉", &["ending.honorific", "ending.causal-nieunjuk"]),
+            suffix("신즉슨", &["ending.honorific", "ending.causal-nieunjuk"]),
+        ],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("도다") =>
         {
@@ -1758,10 +1775,11 @@ fn verify_simple_continuation(
         }
         _ => &[],
     };
-    if let Some(ending) = doda.first()
-        && !following[ending.surface.len()..]
-            .starts_with(|next: char| next.is_alphanumeric() || next == '_')
-    {
+    if let Some(ending) = token_endings.iter().find(|ending| {
+        following.strip_prefix(ending.surface).is_some_and(|tail| {
+            !tail.starts_with(|next: char| next.is_alphanumeric() || next == '_')
+        })
+    }) {
         return Some(matched(anchor.len(), Some(ending)));
     }
     let additional_endings: &[Suffix] = match state {

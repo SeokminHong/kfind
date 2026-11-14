@@ -312,6 +312,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.causal-nieunjuk"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ즉", "은즉", "ㄴ즉슨", "은즉슨"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-njigo"
 category = "final"
 initial = "attach-nieun"
