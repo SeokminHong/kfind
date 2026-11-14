@@ -675,6 +675,13 @@ regression.retrospective-reo.honorific	읽다	verb	exact	13	31	선생님이 읽�
 regression.retrospective-reo.recalled	오다	verb	exact	17	35	그분이 이미 오셨더러이다.
 regression.retrospective-reo.prospective	가다	verb	exact	18	33	나는 그 길을 가리러이다.
 regression.retrospective-reo.purpose	사다	verb	exact	14	20	나는 책을 사러 갔다.
+regression.exclamative-njigo.copula	이다	adjective	exact	13	22	과연 영웅인지고.
+regression.exclamative-njigo.vowel-state	훌륭하다	adjective	exact	7	22	정말 훌륭한지고!
+regression.exclamative-njigo.consonant-state	가엾다	adjective	exact	10	25	참으로 가엾은지고!
+regression.exclamative-njigo.completed-action	읽다	verb	exact	14	26	참 많이도 읽은지고!
+regression.exclamative-njigo.current-action	하다	verb	exact	14	26	참으로 잘 하는지고!
+regression.exclamative-njigo.honorific	읽다	verb	exact	16	31	선생님께서 읽으신지고!
+regression.exclamative-njigo.separate-word	읽다	verb	exact	7	13	책을 읽은 지 오래다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.

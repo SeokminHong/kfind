@@ -1367,6 +1367,8 @@ const SYEOTNEUN_EXTENSIONS: &[Suffix] =
 const SIGETNEUN_EXTENSIONS: &[Suffix] =
     nieun_extensions!("시겠는", "ending.honorific", "ending.future");
 const NIEUNDEUL: Suffix = suffix("들", &["ending.concessive-nieundeul"]);
+const NJIGO: Suffix = suffix("지고", &["ending.exclamative-njigo"]);
+const SINJIGO: Suffix = suffix("신지고", &["ending.honorific", "ending.exclamative-njigo"]);
 const COMPLETED_NIEUN: &[Suffix] = &[
     NIEUNDEUL,
     suffix("걸", &["ending.explanatory-ngeol"]),
@@ -1790,6 +1792,12 @@ fn verify_simple_continuation(
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으리러") => {
             reo::PREFINAL_PROSPECTIVE_REO
         }
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with("지고") =>
+        {
+            &[NJIGO]
+        }
+        ContinuationState::Eu if following.starts_with("신지고") => &[SINJIGO],
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with("지라") =>
         {
@@ -2566,6 +2574,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nama"
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
+                        | "ending.exclamative-njigo"
                         | "ending.final-rieuljiroda"
                         | "ending.copula-olsida"
                         | "ending.retrospective-reoni"
