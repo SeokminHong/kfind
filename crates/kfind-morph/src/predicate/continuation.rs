@@ -1727,6 +1727,11 @@ fn verify_simple_continuation(
     if let Some(continuation) = humble::verify(state, pos, anchor, following) {
         return Some(continuation);
     }
+    if following.starts_with(['고', '곤', '시'])
+        && let Some(ending) = go_extension(state, pos, anchor, following)
+    {
+        return Some(matched(anchor.len(), Some(ending)));
+    }
     let token_endings: &[Suffix] = match state {
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
@@ -2782,6 +2787,50 @@ fn verify_simple_continuation(
         return None;
     }
     Some(matched(anchor.len(), suffix))
+}
+
+macro_rules! go_extensions {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "고는"), &[$($prior,)* "ending.connective-go", "particle.topic"]),
+            suffix(concat!($prefix, "곤"), &[$($prior,)* "ending.connective-go", "particle.topic"]),
+            suffix(concat!($prefix, "고도"), &[$($prior,)* "ending.connective-go", "particle.additive"]),
+            suffix(concat!($prefix, "고야"), &[$($prior,)* "ending.connective-goya"]),
+            suffix(concat!($prefix, "고자"), &[$($prior,)* "ending.intentive-goja"]),
+        ]
+    };
+}
+
+fn go_extension(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<&'static Suffix> {
+    const PLAIN: &[Suffix] = go_extensions!("");
+    const HONORIFIC: &[Suffix] = go_extensions!("시", "ending.honorific");
+    let endings = match state {
+        ContinuationState::StemEnding => PLAIN,
+        ContinuationState::Eu if following.starts_with("시고") || following.starts_with("시곤") => {
+            HONORIFIC
+        }
+        _ => return None,
+    };
+    endings.iter().find(|ending| {
+        if !following.strip_prefix(ending.surface).is_some_and(|rest| {
+            !rest.starts_with(|next: char| next.is_alphanumeric() || next == '_')
+        }) {
+            return false;
+        }
+        match ending.rules.last().copied() {
+            Some("particle.topic") => pos != PredicatePos::Copula,
+            Some("ending.connective-goya") => pos.is_action(),
+            Some("ending.intentive-goja") => {
+                pos.is_action() || anchor.ends_with(['있', '없']) || anchor == "계시"
+            }
+            _ => true,
+        }
+    })
 }
 
 fn declarative_suffix(following: &str) -> Option<&'static Suffix> {

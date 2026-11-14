@@ -141,6 +141,38 @@ impl MorphMatcher {
                     return None;
                 }
                 let remaining = &consumption_following[normalized_consumed..];
+                if let Some(resolver) = self.constraint_resolver.as_ref()
+                    && matches!(
+                        rule_path.as_slice(),
+                        [.., connective, particle]
+                            if connective.as_str() == "ending.connective-go"
+                                && matches!(particle.as_str(), "particle.topic" | "particle.additive")
+                    )
+                {
+                    let suffix = &consumption_following[..normalized_consumed];
+                    if let Some((particle_start, _)) = suffix.char_indices().next_back()
+                        && suffix[..particle_start].ends_with('고')
+                    {
+                        let token = format!("{consumption_anchor}{suffix}");
+                        let ending_len = consumption_anchor.len() + particle_start;
+                        let core_len = if is_nfc(anchor) {
+                            core.len()
+                        } else {
+                            anchor.get(..core.len())?.nfc().map(char::len_utf8).sum()
+                        };
+                        if !source_positions.iter().any(|source_pos| {
+                            resolver.supports_predicate_ending_particle_path(
+                                &token,
+                                core_len,
+                                ending_len,
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            )
+                        }) {
+                            return None;
+                        }
+                    }
+                }
                 if let Some(tail) = remaining.strip_prefix("부터")
                     && rule_path.last().map_or_else(
                         || {

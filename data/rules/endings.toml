@@ -22,6 +22,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-goya"
+category = "connective"
+initial = "consonant"
+forms = ["고야"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.intentive-goja"
+category = "connective"
+initial = "consonant"
+forms = ["고자"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.auxiliary-gopeuda"
 category = "prefinal"
 initial = "other"

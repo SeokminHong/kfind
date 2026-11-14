@@ -766,9 +766,45 @@ fn reference_predicate_continuation(
     {
         return Some(auxiliary);
     }
+    if let Some(found) = reference_go_extension(state, pos, anchor, following) {
+        return Some(found);
+    }
     reference_report_contraction(state, pos, anchor, following)
         .or_else(|| reference_retrospective_reo(state, pos, anchor, following))
         .or_else(|| reference_simple_continuation(state, pos, anchor, following))
+}
+
+fn reference_go_extension(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
+    let (tail, honorific) = match state {
+        ContinuationState::StemEnding => (following, None),
+        ContinuationState::Eu => (following.strip_prefix('시')?, Some("ending.honorific")),
+        _ => return None,
+    };
+    let ending = tail.split(|ch| !is_reference_token_character(ch)).next()?;
+    let rules: &[&str] = match ending {
+        "고는" | "곤" if pos != PredicatePos::Copula => {
+            &["ending.connective-go", "particle.topic"]
+        }
+        "고도" => &["ending.connective-go", "particle.additive"],
+        "고야" if pos.is_action() => &["ending.connective-goya"],
+        "고자" if pos.is_action() || anchor.ends_with(['있', '없']) || anchor == "계시" => {
+            &["ending.intentive-goja"]
+        }
+        _ => return None,
+    };
+    Some((
+        following.len() - tail.len() + ending.len(),
+        honorific
+            .into_iter()
+            .chain(rules.iter().copied())
+            .map(RuleId::from)
+            .collect(),
+    ))
 }
 
 fn reference_retrospective_reo(
