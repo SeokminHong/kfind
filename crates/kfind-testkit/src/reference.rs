@@ -1099,6 +1099,8 @@ fn reference_simple_continuation(
     }
     const PAST: &[ReferenceSuffix] = &[
         reference_suffix("다느니", &["ending.quotative-daneuni"]),
+        reference_suffix("다던데", &["ending.quotative-deonde"]),
+        reference_suffix("다던데요", &["ending.quotative-deonde", "ending.polite-yo"]),
         reference_suffix("다가는", &["ending.connective-daganeun"]),
         reference_suffix("다간", &["ending.connective-daganeun"]),
         reference_suffix("단", &["ending.connective-daganeun"]),
@@ -1142,6 +1144,9 @@ fn reference_simple_continuation(
     ];
     const FUTURE: &[ReferenceSuffix] = &[
         reference_suffix("다느니", &["ending.quotative-daneuni"]),
+        reference_suffix("다던데", &["ending.quotative-deonde"]),
+        reference_suffix("다던데요", &["ending.quotative-deonde", "ending.polite-yo"]),
+        reference_suffix("는", &["ending.present-adnominal"]),
         reference_suffix("으며", &["ending.coordinate-myeo"]),
         reference_suffix("으면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("으니", &["ending.connective-ni"]),
@@ -1167,6 +1172,8 @@ fn reference_simple_continuation(
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
         reference_suffix("느니", &["ending.quotative-daneuni"]),
+        reference_suffix("던데", &["ending.quotative-deonde"]),
+        reference_suffix("던데요", &["ending.quotative-deonde", "ending.polite-yo"]),
         reference_suffix("손", &["ending.concessive-dason"]),
         reference_suffix("더라", &["ending.quotative-deora"]),
         reference_suffix(

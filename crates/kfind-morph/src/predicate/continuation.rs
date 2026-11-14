@@ -513,6 +513,8 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 
 const PAST_SUFFIXES: &[Suffix] = &[
     DANEUNI,
+    DADEONDE,
+    DADEONDE_YO,
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
     JI,
@@ -621,6 +623,9 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
     DANEUNI,
+    DADEONDE,
+    DADEONDE_YO,
+    suffix("는", &["ending.present-adnominal"]),
     suffix("으며", &["ending.coordinate-myeo"]),
     suffix("으면서", &["ending.simultaneous-myeonseo"]),
     PREFINAL_DAMYEON,
@@ -682,6 +687,11 @@ const DECLARATIVE_NEUN_GUN_YO: Suffix = suffix(
     ],
 );
 const DECLARATIVE_RETROSPECTIVE: Suffix = suffix("던", &["ending.quotative-retrospective"]);
+const DECLARATIVE_DEONDE: Suffix = suffix("던데", &["ending.quotative-deonde"]);
+const DECLARATIVE_DEONDE_YO: Suffix =
+    suffix("던데요", &["ending.quotative-deonde", "ending.polite-yo"]);
+const DADEONDE: Suffix = suffix("다던데", &["ending.quotative-deonde"]);
+const DADEONDE_YO: Suffix = suffix("다던데요", &["ending.quotative-deonde", "ending.polite-yo"]);
 const DECLARATIVE_DEORA: Suffix = suffix("더라", &["ending.quotative-deora"]);
 const DECLARATIVE_DEONI: Suffix = suffix("더니", &["ending.retrospective-connective"]);
 const DECLARATIVE_DEONIMAN: Suffix = suffix("더니만", &["ending.retrospective-contrast"]);
@@ -3736,6 +3746,8 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '네' if following.starts_with("네요") => Some(&DECLARATIVE_NE_YO),
         '네' => Some(&DECLARATIVE_NE),
         '손' if ends_at_boundary(DECLARATIVE_SON.surface) => Some(&DECLARATIVE_SON),
+        '던' if ends_at_boundary(DECLARATIVE_DEONDE_YO.surface) => Some(&DECLARATIVE_DEONDE_YO),
+        '던' if ends_at_boundary(DECLARATIVE_DEONDE.surface) => Some(&DECLARATIVE_DEONDE),
         '던' => Some(&DECLARATIVE_RETROSPECTIVE),
         '더' if following.starts_with(DECLARATIVE_DEONIMANEUN.surface) => {
             Some(&DECLARATIVE_DEONIMANEUN)
