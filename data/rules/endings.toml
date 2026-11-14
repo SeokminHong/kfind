@@ -932,6 +932,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-enumerative-yo"
+category = "connective"
+initial = "other"
+forms = ["요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.imperative-gena"
 category = "final"
 initial = "consonant"

@@ -163,9 +163,13 @@ pub(super) fn accepts_omitted_copula(
     has_quotative_head: impl Fn() -> bool,
     supports_counted_unit: impl Fn(&str) -> bool,
     supports_adnominal_dependent_noun: impl Fn(&str) -> bool,
+    continues_enumeration: impl Fn(&str) -> bool,
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
+        if suffix == "요" && !continues_enumeration(host) {
+            return false;
+        }
         if suffix == "시던고" && !is_sentence_end() {
             return false;
         }

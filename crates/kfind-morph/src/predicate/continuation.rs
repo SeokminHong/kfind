@@ -3143,6 +3143,7 @@ fn verify_simple_continuation(
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.desiderative-jida"
+                        | "ending.copula-enumerative-yo"
                         | "ending.colloquial-rieulramyeon"
                 )
             ) || dapsigo
@@ -3151,6 +3152,11 @@ fn verify_simple_continuation(
                 || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'))
                 || matches!(suffix.surface, "으려나" | "시려나");
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.copula-enumerative-yo")
+                    || following[suffix.surface.len()..]
+                        .strip_prefix(',')
+                        .unwrap_or(&following[suffix.surface.len()..])
+                        .starts_with(|ch: char| ch.is_whitespace() && ch != '\r' && ch != '\n'))
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action() && has_separate_malrak(&following[suffix.surface.len()..])))
                 && !(dapsigo

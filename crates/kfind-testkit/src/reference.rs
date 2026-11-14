@@ -3194,6 +3194,11 @@ fn reference_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.copula-enumerative-yo")
+                    || following[suffix.surface.len()..]
+                        .strip_prefix(',')
+                        .unwrap_or(&following[suffix.surface.len()..])
+                        .starts_with(|ch: char| ch.is_whitespace() && ch != '\r' && ch != '\n'))
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action()
                         && following[suffix.surface.len()..]
@@ -3229,6 +3234,7 @@ fn reference_simple_continuation(
                             | "ending.honorific-request-sipsa"
                             | "ending.aoeo-daga"
                             | "ending.desiderative-jida"
+                            | "ending.copula-enumerative-yo"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
