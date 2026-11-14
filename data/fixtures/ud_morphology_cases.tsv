@@ -1916,3 +1916,7 @@ regression.final-ya.focus	이다	adjective	no-match-both	0	9	어디야 갈 수 �
 regression.final-ya.address	이다	adjective	no-match-both	0	12	코끼리야, 이리 와.
 regression.final-ya.address-at-end	이다	adjective	no-match-both	9	21	잘 자, 코끼리야.
 regression.final-ya.connective	이다	adjective	no-match-both	7	13	얼른 가야 늦지 않는다.
+regression.copula-rason.derived-host	이다	adjective	smart-only-exact	7	22	내가 비겁자라손 치더라도 어떻게 그를 내버려두고 갈 수 있겠는가.
+regression.copula-rason.other-host	이다	adjective	smart-only-exact	7	22	내가 초보자라손 치더라도 기회는 있다.
+regression.copula-rason.directive-control	이다	adjective	no-match-both	11	20	너 먼저 가라손 치더라도 나는 남겠다.
+regression.copula-rason.directive-verb	가다	verb	only-exact	11	20	너 먼저 가라손 치더라도 나는 남겠다.

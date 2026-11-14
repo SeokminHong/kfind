@@ -246,6 +246,7 @@ pub(super) fn accepts_omitted_copula(
                 || (matches!(suffix, "지만" | "지마는") && follows_adnominal()))
             && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
             && (resolver.has_exact_nominal_surface(host)
+                || (suffix == "라손" && resolver.has_complete_nominal_surface(host))
                 || (matches!(suffix, "라고" | "라고요" | "라는")
                     && resolver.has_compound_noun_surface(host)
                     && !resolver.has_independent_final_predicate(host)
