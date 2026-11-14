@@ -246,6 +246,33 @@ impl MorphMatcher {
             return true;
         }
         if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && let Some(host) = normalized
+                .strip_suffix("라면서")
+                .or_else(|| normalized.strip_suffix("라며"))
+            && host.chars().next_back().is_some_and(|last| {
+                kfind_morph::decompose_syllable(last)
+                    .is_some_and(|syllable| syllable.jongseong == 0)
+            })
+            && haystack
+                .get(candidate.verified.token.end..)
+                .is_some_and(|following| {
+                    following.starts_with(b"?") || following.starts_with("？".as_bytes())
+                })
+            && resolver.has_exact_nominal_surface(host)
+            && context::previous_word_with_start(haystack, candidate.verified.token.start)
+                .is_some_and(|(at, noun)| {
+                    resolver.has_exact_nominal_surface(&noun)
+                        && context::previous_word_with_start(haystack, at).is_some_and(
+                            |(before, modifier)| {
+                                resolver.has_adjective_adnominal_surface(&modifier)
+                                    && context::has_copula_subject(haystack, before, resolver)
+                            },
+                        )
+                })
+        {
+            return true;
+        }
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
             && let Some(host) = normalized.strip_suffix("려니")
             && host.chars().next_back().is_some_and(|last| {
                 kfind_morph::decompose_syllable(last)
