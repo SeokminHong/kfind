@@ -1428,6 +1428,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
                 reference_suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
                 reference_suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+                reference_suffix(concat!($prefix, "거나"), &[$($prior,)* "ending.interrogative-rieulgeona"]),
                 reference_suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
                 reference_suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
                 reference_suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
@@ -1858,6 +1859,22 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Future if pos.is_action() && following.starts_with("을거나") => {
+            &[reference_suffix(
+                "을거나",
+                &["ending.interrogative-rieulgeona"],
+            )]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시겠을거나") => {
+            &[reference_suffix(
+                "시겠을거나",
+                &[
+                    "ending.honorific",
+                    "ending.future",
+                    "ending.interrogative-rieulgeona",
+                ],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("거늘") =>
         {
@@ -3042,6 +3059,7 @@ fn reference_simple_continuation(
                             | "ending.causal-nieunjuk"
                             | "ending.final-rieuljiroda"
                             | "ending.doubt-rieulrago"
+                            | "ending.interrogative-rieulgeona"
                             | "ending.final-rieuljira"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"
@@ -3073,6 +3091,7 @@ fn reference_simple_continuation(
                 && (pos.is_action()
                     || suffix.rules == ["ending.exclamative-aoeora"]
                     || (!suffix.rules.contains(&"ending.intent-rieulrae")
+                        && !suffix.rules.contains(&"ending.interrogative-rieulgeona")
                         && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
                         && !matches!(
                             suffix.surface,
