@@ -2262,6 +2262,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.affirmative-emphasis"
+category = "final"
+initial = "consonant"
+forms = ["다마다", "고말고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-geondae"
 category = "connective"
 initial = "consonant"
