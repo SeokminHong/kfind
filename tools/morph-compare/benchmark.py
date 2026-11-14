@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Sequence
+from itertools import chain
 from pathlib import Path
 from statistics import median
 
@@ -36,6 +37,7 @@ from python.validation import (
     validate_hard_negatives,
     validate_query_matrix_dataset,
     validate_robustness_dataset,
+    validate_split_isolation,
     validate_untagged_dataset,
     write_cases,
 )
@@ -849,6 +851,10 @@ def main() -> int:
             query_matrix_untagged_cases,
             query_matrix_untagged_metadata,
             "untagged",
+        )
+        validate_split_isolation(
+            chain(dev_cases, query_matrix_dev_cases),
+            chain(cases, query_matrix_cases, human_untagged_cases, query_matrix_untagged_cases),
         )
         robustness_cases = load_cases(args.robustness_cases)
         robustness_metadata = json.loads(

@@ -451,6 +451,9 @@ SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는
 허용하는 hard-negative는 `contract_expected`와 사유를 명시하고 strict·계약 보정 결과에 모두
 남긴다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
 deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
+벤치마크는 canonical과 query matrix의 dev 문장을 합쳐 canonical·query matrix·무품사
+test 문장과 대조한다. NFC로 정규화하고 공백을 접은 문장이 양쪽에 있으면, 실행하기 전에
+중복 건수와 해당 case ID를 보고한다. 같은 split에서 여러 질의가 한 문장을 공유하는 것은 허용한다.
 
 명시적 품사 `smart` 형태 품질 변경은 dev strict precision 99.00% 이상과 version-controlled
 hard-negative 신규 contract FP 0을 지키면서 표준 띄어쓰기 case의 FN을 늘리지 않아야 한다.

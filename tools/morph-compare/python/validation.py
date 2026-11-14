@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import unicodedata
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
 
 try:
@@ -31,6 +33,26 @@ def sha256(path: Path) -> str:
 def load_cases(path: Path) -> list[dict[str, object]]:
     with path.open(encoding="utf-8") as fixture_file:
         return [json.loads(line) for line in fixture_file if line.strip()]
+
+
+def validate_split_isolation(
+    dev: Iterable[dict[str, object]], test: Iterable[dict[str, object]]
+) -> None:
+    def sentence_ids(cases: Iterable[dict[str, object]]) -> dict[str, str]:
+        return {
+            " ".join(unicodedata.normalize("NFC", str(case["text"])).split()): str(case["id"])
+            for case in cases
+        }
+
+    dev_ids = sentence_ids(dev)
+    test_ids = sentence_ids(test)
+    overlap = dev_ids.keys() & test_ids.keys()
+    if overlap:
+        sample = min(overlap, key=lambda text: (dev_ids[text], test_ids[text]))
+        raise ValueError(
+            f"dev/test fixtures share {len(overlap)} normalized sentences "
+            f"(e.g. {dev_ids[sample]} and {test_ids[sample]})"
+        )
 
 
 def select_smoke_cases(

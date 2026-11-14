@@ -5,7 +5,22 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from validation import sha256, validate_robustness_dataset
+from validation import sha256, validate_robustness_dataset, validate_split_isolation
+
+
+class SplitIsolationTests(unittest.TestCase):
+    def test_repeated_queries_within_a_split_are_allowed(self) -> None:
+        validate_split_isolation(
+            [{"id": "dev-1", "text": "학교에 갔다."}, {"id": "dev-2", "text": "학교에 갔다."}],
+            [{"id": "test-1", "text": "병원에 갔다."}],
+        )
+
+    def test_duplicate_sentence_with_different_ids_and_normalization_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, r"share 1 normalized sentences .*dev-1 and test-1"):
+            validate_split_isolation(
+                [{"id": "dev-1", "text": "학교에 갔다."}],
+                [{"id": "test-1", "text": "학교에\t갔다."}],
+            )
 
 
 class RobustnessValidationTests(unittest.TestCase):
