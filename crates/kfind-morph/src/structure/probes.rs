@@ -110,7 +110,28 @@ const DURATION_UNITS: &[&str] = &[
     "초",
 ];
 
-const INDEFINITE_COUNTER_QUANTITIES: &[&str] = &["한두", "두세", "서너", "너덧", "네댓", "대여섯"];
+// Approximate quantities attested in the NIKL dictionary and Saegugeosaenghwal.
+const INDEFINITE_COUNTER_QUANTITIES: &[&str] = &[
+    "한두",
+    "두어",
+    "두세",
+    "두서너",
+    "서너",
+    "수삼",
+    "네다섯",
+    "네댓",
+    "너덧",
+    "너더댓",
+    "댓",
+    "대여섯",
+    "대엿",
+    "예닐곱",
+    "일고여덟",
+    "일여덟",
+    "여덟아홉",
+    "엳아홉",
+    "여남은",
+];
 
 // Numeric senses attested by the pinned Korean Basic Dictionary and licensed
 // in digit-led unit constructions.

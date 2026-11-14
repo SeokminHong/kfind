@@ -18,6 +18,9 @@ regression.postnominal-count.approximate-particle	되다	verb	no-match	0	6	돼�
 regression.postnominal-count.date	참가하다	verb	smart-exact	10	22	후보가 참가하여 6월 8일까지 유세를 했다.
 regression.postnominal-count.price	위하다	verb	smart-exact	10	16	복구를 위해 2조엔을 승인했다.
 regression.postnominal-count.after-locative	가다	verb	no-match	13	19	시장에서 가지 약 두 개를 샀다.
+regression.postnominal-count.approximate-native	가다	verb	no-match	0	6	가지 예닐곱 개쯤 주세요.
+regression.postnominal-count.split-native	가다	verb	no-match	0	6	가지 예 닐곱 개쯤 주세요.
+regression.postnominal-count.other-native-determiner	되다	verb	no-match	0	6	돼지 두어 마리가 필요하다.
 corpus.ud-gsd.test.test-s570.adverb-before-bare-object	무조건	adverb	smart-exact	13	22	겨울에는 무조건 내복 입고 주무세요.
 regression.geon-nominal-conflict.adverb-before-predicate	무조건	adverb	smart-exact	0	9	무조건 쉬세요.
 regression.geon-nominal-conflict.determiner	무조건	adverb	no-match	4	13	그 무조건 항복 요구를 거부했다.
