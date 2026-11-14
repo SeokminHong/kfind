@@ -1075,6 +1075,13 @@ regression.archaic-noni.future	살다	verb	only-exact	0	12	살겠노니 나를 �
 regression.archaic-noni.honorific	읽다	verb	only-exact	0	15	읽으시노니 귀를 기울여라.
 regression.archaic-noni.humble	받다	verb	only-exact	0	15	받자옵노니 은혜를 잊지 않겠나이다.
 regression.archaic-noni.separate	읽다	verb	only-exact	0	6	읽을 ‘노니’ 예문을 골랐다.
+regression.rhetorical-ryeogo.past	풀다	verb	only-exact	0	15	풀었으려고? 그렇게 어려운 문제를?
+regression.rhetorical-ryeogo.adjective	넓다	adjective	only-exact	7	19	설마 넓으려고?
+regression.rhetorical-ryeogo.adjective-vowel	크다	adjective	only-exact	0	9	크려고? 고작 손바닥만 한데.
+regression.rhetorical-ryeogo.adjective-rieul	길다	adjective	only-exact	0	9	길려고? 멀어 봐야 한 걸음이다.
+regression.rhetorical-ryeogo.action-connective	읽다	verb	only-exact	0	12	읽으려고 안경을 꺼냈다.
+regression.rhetorical-ryeogo.adjective-embedded	넓다	adjective	no-match-both	0	12	넓으려고라는 표현을 인용했다.
+regression.rhetorical-ryeogo.separate	풀다	verb	only-exact	0	9	풀었다. ‘으려고’는 따로 보자.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

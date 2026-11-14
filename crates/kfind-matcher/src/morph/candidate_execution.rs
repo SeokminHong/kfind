@@ -588,9 +588,10 @@ impl MorphMatcher {
             return None;
         }
         if suffix_rules.last().is_some_and(|rule| match rule.as_str() {
-            "ending.copula-ya" | "ending.copula-ge" | "ending.final-ge" => {
-                !is_sentence_end_after(haystack, token_end)
-            }
+            "ending.copula-ya"
+            | "ending.copula-ge"
+            | "ending.final-ge"
+            | "ending.rhetorical-ryeogo" => !is_sentence_end_after(haystack, token_end),
             "ending.interrogative-ni" => {
                 branch.boundary().require_right && !is_boundary_after(haystack, token_end)
             }
