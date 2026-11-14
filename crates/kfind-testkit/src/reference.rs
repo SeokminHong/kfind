@@ -2028,6 +2028,16 @@ fn reference_simple_continuation(
             "시와",
             &["ending.honorific", "ending.humble-wa"],
         )],
+        ContinuationState::Eu
+            if pos != PredicatePos::Copula
+                && anchor.ends_with('으')
+                && following.starts_with('와') =>
+        {
+            &[reference_suffix("와", &["ending.humble-euwa"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으와") => {
+            &[reference_suffix("으와", &["ending.humble-euwa"])]
+        }
         ContinuationState::Past if following.starts_with("에라") => {
             &[reference_suffix("에라", &["ending.exclamative-era"])]
         }
@@ -3553,6 +3563,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-aoeora"
                             | "ending.exclamative-era"
                             | "ending.humble-wa"
+                            | "ending.humble-euwa"
                             | "ending.archaic-honorific-sa"
                             | "ending.quotative-nyaneuni"
                             | "ending.archaic-interrogative-nyo"

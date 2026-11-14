@@ -1925,6 +1925,16 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시와") => {
             &[suffix("시와", &["ending.honorific", "ending.humble-wa"])]
         }
+        ContinuationState::Eu
+            if pos != PredicatePos::Copula
+                && anchor.ends_with('으')
+                && following.starts_with('와') =>
+        {
+            &[suffix("와", &["ending.humble-euwa"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으와") => {
+            &[suffix("으와", &["ending.humble-euwa"])]
+        }
         ContinuationState::Past if following.starts_with("에라") => {
             &[suffix("에라", &["ending.exclamative-era"])]
         }

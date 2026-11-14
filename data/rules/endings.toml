@@ -2762,6 +2762,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.humble-euwa"
+category = "connective"
+initial = "eu"
+forms = ["으와"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.archaic-honorific-sa"
 category = "connective"
 initial = "eu"
