@@ -232,6 +232,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.necessity-yaman"
+category = "connective"
+initial = "other"
+forms = ["야만", "어야만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.necessity-yaji"
 category = "final"
 initial = "other"

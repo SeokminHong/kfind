@@ -850,6 +850,19 @@ pub(super) const POLITE_HONORIFIC_ENDINGS: &[Suffix] = &[
 ];
 
 pub(super) const HONORIFIC_VOWEL_CONNECTIVES: &[Suffix] = &[
+    suffix(
+        "시어야만",
+        &["ending.honorific", "ending.aoeo", "ending.necessity-yaman"],
+    ),
+    suffix(
+        "셔야만",
+        &[
+            "ending.honorific",
+            "contraction.i-eo",
+            "ending.aoeo",
+            "ending.necessity-yaman",
+        ],
+    ),
     suffix("시어서", &["ending.honorific", "ending.aoeo-seo"]),
     suffix(
         "셔서",
@@ -1711,6 +1724,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::AOrEo if following.starts_with("야만") => {
+            &[suffix("야만", &["ending.necessity-yaman"])]
+        }
+        ContinuationState::Past if following.starts_with("어야만") => {
+            &[suffix("어야만", &["ending.aoeo", "ending.necessity-yaman"])]
+        }
         ContinuationState::Eu if following.starts_with('락') => {
             &[suffix("락", &["ending.alternating-rak"])]
         }
@@ -2538,6 +2557,7 @@ fn verify_simple_continuation(
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
                         | "ending.exclamative-njigo"
+                        | "ending.necessity-yaman"
                         | "ending.final-rieuljiroda"
                         | "ending.final-rieuljinira"
                         | "ending.interrogative-rieulreongo"

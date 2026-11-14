@@ -970,6 +970,7 @@ fn reference_simple_continuation(
         reference_suffix("서야", &["ending.aoeo-seoya"]),
         reference_suffix("도", &["ending.connective-do"]),
         reference_suffix("야", &["ending.connective-ya"]),
+        reference_suffix("야만", &["ending.necessity-yaman"]),
         reference_suffix("요", &["ending.polite-yo"]),
         reference_suffix("라", &["ending.imperative-ra"]),
     ];
@@ -1032,6 +1033,7 @@ fn reference_simple_continuation(
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
         reference_suffix("습디다", &["ending.retrospective-declarative"]),
         reference_suffix("어야지", &["ending.necessity-yaji"]),
+        reference_suffix("어야만", &["ending.aoeo", "ending.necessity-yaman"]),
         reference_suffix("어야지요", &["ending.necessity-yaji-polite"]),
         reference_suffix("어야죠", &["ending.necessity-yaji-polite"]),
         reference_suffix("건", &["ending.geodeun-short"]),
@@ -1327,6 +1329,19 @@ fn reference_simple_continuation(
         reference_suffix("시고", &["ending.honorific", "ending.connective-go"]),
         reference_suffix("시면", &["ending.honorific", "ending.conditional"]),
         reference_suffix("시어서", &["ending.honorific", "ending.aoeo-seo"]),
+        reference_suffix(
+            "시어야만",
+            &["ending.honorific", "ending.aoeo", "ending.necessity-yaman"],
+        ),
+        reference_suffix(
+            "셔야만",
+            &[
+                "ending.honorific",
+                "contraction.i-eo",
+                "ending.aoeo",
+                "ending.necessity-yaman",
+            ],
+        ),
         reference_suffix(
             "셔서",
             &["ending.honorific", "contraction.i-eo", "ending.aoeo-seo"],
@@ -2601,6 +2616,7 @@ fn reference_simple_continuation(
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
                             | "ending.exclamative-njigo"
+                            | "ending.necessity-yaman"
                             | "ending.final-rieuljiroda"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"
