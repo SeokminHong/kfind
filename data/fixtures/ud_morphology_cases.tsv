@@ -666,6 +666,10 @@ corpus.ud-kaist.test.MH2_0010-s353.compound-copula	이다	adjective	smart-exact	
 regression.compound-copula.quoted-polite	이다	adjective	smart-exact	0	21	가격통제라고요?
 regression.omitted-copula.quoted-counted-unit	이다	adjective	smart-exact	23	32	난 또 이 개가 네 개라고.
 regression.omitted-copula.quoted-dependent-noun	이다	adjective	smart-exact	37	46	그것이 내가 잘못해서 그런 거라고.
+regression.omitted-copula.quoted-dependent-final	이다	adjective	smart-exact	4	13	갈 거라나 봐.
+regression.omitted-copula.quoted-dependent-after-object	이다	adjective	smart-exact	14	23	옷을 입을 거라나.
+regression.omitted-copula.quoted-counted-final	이다	adjective	smart-exact	11	20	전부 두 개라나.
+regression.omitted-copula.quoted-command	이다	adjective	no-match	4	13	또 가라나.
 regression.omitted-copula.quoted-fold-command	이다	adjective	no-match	10	19	종이를 개라고 했다.
 regression.omitted-copula.explicit-after-modifier	이다	adjective	smart-exact	10	19	아는 사이라고 말했다.
 regression.compound-copula.direct-quote	이다	adjective	no-match	0	24	‘코카콜라’라는 글자가 보인다.
