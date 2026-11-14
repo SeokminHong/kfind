@@ -684,6 +684,7 @@ const MAN: Suffix = suffix("만", &["ending.concessive-damaneun"]);
 const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
 const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
+const DANI: Suffix = suffix("다니", &["ending.quotative-ni"]);
 const DECLARATIVE_NA: Suffix = suffix("나", &["ending.quotative-na"]);
 const DANA: Suffix = suffix("다나", &["ending.quotative-na"]);
 const DANDA: Suffix = suffix("단다", &["ending.quotative-danda"]);
@@ -1745,6 +1746,15 @@ fn verify_simple_continuation(
         {
             DANIKKA_ENDINGS
         }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with(DANI.surface) =>
+        {
+            &[DANI]
+        }
+        ContinuationState::Eu if following.starts_with("시다니") => &[suffix(
+            "시다니",
+            &["ending.honorific", "ending.quotative-ni"],
+        )],
         ContinuationState::AOrEo
             if matches!(
                 pos,
@@ -2332,6 +2342,7 @@ fn verify_simple_continuation(
                         | "ending.quotative-na"
                         | "ending.quotative-danda"
                         | "ending.quotative-nikka"
+                        | "ending.quotative-ni"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
@@ -2437,7 +2448,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '니' if ends_at_boundary(DECLARATIVE_NIKKANEUN.surface) => Some(&DECLARATIVE_NIKKANEUN),
         '니' if ends_at_boundary(DECLARATIVE_NIKKAYO.surface) => Some(&DECLARATIVE_NIKKAYO),
         '니' if ends_at_boundary(DECLARATIVE_NIKKA.surface) => Some(&DECLARATIVE_NIKKA),
-        '니' => Some(&DECLARATIVE_NI),
+        '니' if ends_at_boundary(DECLARATIVE_NI.surface) => Some(&DECLARATIVE_NI),
         '며' => Some(&DECLARATIVE_MYEO),
         '지' => Some(&DECLARATIVE_JI),
         '오' => Some(&DECLARATIVE_O),
