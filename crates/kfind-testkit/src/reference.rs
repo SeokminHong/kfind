@@ -1897,6 +1897,18 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Adjective
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last))
+                && following
+                    .strip_prefix('의')
+                    .is_some_and(|tail| !tail.starts_with(is_reference_token_character)) =>
+        {
+            &[reference_suffix("의", &["ending.familiar-final-i"])]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("자누") => {
             &[reference_suffix(
                 "자누",
