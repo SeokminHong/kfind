@@ -28,6 +28,31 @@ impl MorphMatcher {
             && candidate
                 .suffix_rules
                 .last()
+                .or_else(|| {
+                    let (first, rest) = branch.origins.split_first()?;
+                    let rule = first.rule_path.last()?;
+                    rest.iter()
+                        .all(|origin| origin.rule_path.last() == Some(rule))
+                        .then_some(rule)
+                })
+                .is_some_and(|rule| rule.as_str() == "ending.archaic-honorific-sa")
+            && (!is_boundary_after(haystack, candidate.consumed.end)
+                || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                    let span = &candidate.consumed;
+                    context::normalized_token(haystack, span.clone()).is_some_and(|word| {
+                        resolver.has_exact_nominal_surface(&word)
+                            && context::next_word_on_line(haystack, span.end).is_some_and(
+                                |(_, next)| resolver.has_nominal_with_optional_particles(&next),
+                            )
+                    })
+                }))
+        {
+            return false;
+        }
+        if boundary == BoundaryPolicy::Smart
+            && candidate
+                .suffix_rules
+                .last()
                 .is_some_and(|rule| rule.as_str() == "ending.directive-ram")
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 let token = &candidate.consumed;

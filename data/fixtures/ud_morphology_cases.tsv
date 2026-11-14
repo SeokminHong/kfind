@@ -1051,6 +1051,18 @@ regression.formal-siap.consonant	잡다	verb	only-exact	0	12	잡으시압. 안�
 regression.formal-siap.rieul	열다	verb	only-exact	0	9	여시압. 양쪽 창문을 모두 말합니다.
 regression.formal-siap.irregular	듣다	verb	only-exact	0	12	들으시압. 안내를 경청하기 바랍니다.
 regression.formal-siap.separate	잡다	verb	only-exact	0	6	잡아. ‘시압’을 따로 쓰지 마라.
+regression.archaic-honorific-sa.vowel	염려하다	verb	only-exact	0	12	염려하사 밤잠도 설치신다.
+regression.archaic-honorific-sa.consonant	깊다	adjective	only-exact	0	9	깊으사 보답할 길이 없구나.
+regression.archaic-honorific-sa.rieul	만들다	verb	only-exact	0	9	만드사 사람들에게 베푸셨다.
+regression.archaic-honorific-sa.separate	오다	verb	only-exact	0	9	오셨다. ‘사’는 별도 어미다.
+regression.archaic-honorific-sa.nominal	기다	verb	no-match	0	6	기사가 사실을 보도했다.
+regression.archaic-honorific-sa.proper-prefix	알다	verb	no-match	0	6	아사히신문이 기사로 다뤘다.
+regression.archaic-honorific-sa.nominal-compound	놀다	verb	no-match	0	6	노사상생의 원칙을 따랐다.
+regression.archaic-honorific-sa.nominal-before-head	조다	verb	no-match	32	38	연방 스캔들을 조사하는조사 위원회의 책임자가 발언했다.
+regression.archaic-honorific-sa.nominal-with-particle	조다	verb	no-match	0	6	조사를 맡은 위원회가 열렸다.
+regression.archaic-honorific-sa.adverb-derivation	물다	verb	no-match	0	6	무사히 귀국했다.
+regression.archaic-honorific-sa.nominal-derivation	길다	adjective	no-match	0	6	기사화되었다.
+regression.archaic-honorific-sa.nominal-apposition	길다	adjective	no-match	0	6	기사 라이벳이 풀려났다.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
