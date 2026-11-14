@@ -10,9 +10,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
-    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation, ParticleChainModel,
-    ParticleVerifier, PreparedTokenGraph, ProductPolicy, RuleId,
-    verify_copula_surface_after_nominal, verify_predicate_continuation,
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
+    PreparedTokenGraph, ProductPolicy, RuleId, verify_copula_surface_after_nominal,
+    verify_predicate_continuation,
 };
 use kfind_query::{
     AnalysisSource, AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision,
@@ -38,8 +38,7 @@ mod streaming_phrase;
 
 pub use candidates::LocalAnalysisCandidate;
 use context::{
-    PreparedStructuralContextAnalysis, PreparedStructuralContextCache, StructuralPreparation,
-    StructuralRequest,
+    StructuralCache, StructuralPreparation, StructuralRequest, needs_nominal_derivation,
 };
 use phrase::{PhraseMatchLimit, PhraseSelection};
 
@@ -52,19 +51,6 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
     "ending.future-adnominal",
     "ending.retrospective-adnominal",
 ];
-#[derive(Default)]
-struct StructuralCache<'a> {
-    diagnostics: Option<&'a SearchDiagnostics>,
-    windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis<'a>>>,
-    prepared_contexts: PreparedStructuralContextCache,
-}
-
-impl StructuralCache<'_> {
-    fn clear_windows(&mut self) {
-        self.windows.clear();
-    }
-}
-
 impl PreparedExactTokenGraphs {
     fn build(plan: &QueryPlan, anchor_memory_usage: usize) -> Self {
         let program_count = plan.atoms.iter().try_fold(0usize, |count, atom| {
@@ -181,11 +167,7 @@ fn exact_token_graph_key(branch: &CandidateProgram) -> Option<(Cow<'_, str>, boo
     } else {
         Cow::Owned(raw_text.nfc().collect())
     };
-    let include_nominal_derivation_predicate = patterns.iter().any(|pattern| {
-        pattern.fine_pos.is_nominal()
-            && matches!(pattern.continuation, MorphContinuation::NominalParticles)
-            && pattern.component_capability.allows_runtime()
-    });
+    let include_nominal_derivation_predicate = needs_nominal_derivation(patterns);
     let include_nominal_copula = matches!(
         branch.consumption,
         CandidateConsumption::PredicateContinuation {
@@ -377,10 +359,7 @@ impl MorphMatcher {
             return None;
         }
         if self.plan.atoms.len() == 1 && self.plan.graph.is_none() {
-            let mut cache = StructuralCache {
-                diagnostics: Some(diagnostics),
-                ..Default::default()
-            };
+            let mut cache = StructuralCache::new(Some(diagnostics));
             return self
                 .find_single_atom_best_with_cache(haystack, at, MatchMetadata::SpanOnly, &mut cache)
                 .map(|span| span.token);
@@ -486,10 +465,7 @@ impl MorphMatcher {
         }
         let mut matches = Vec::new();
         let mut at = 0;
-        let mut structural_cache = StructuralCache {
-            diagnostics: Some(diagnostics),
-            ..Default::default()
-        };
+        let mut structural_cache = StructuralCache::new(Some(diagnostics));
         loop {
             structural_cache.clear_windows();
             let Some(matched) = self.find_single_atom_best_with_cache(
@@ -1327,11 +1303,7 @@ impl MorphMatcher {
                     .iter()
                     .any(|pattern| pattern.fine_pos.is_predicate())
                 && nominal_copula_surface_at(haystack, candidate.verified.core.start, whole.end));
-        let include_nominal_derivation_predicate = patterns.iter().any(|pattern| {
-            pattern.fine_pos.is_nominal()
-                && matches!(pattern.continuation, MorphContinuation::NominalParticles)
-                && pattern.component_capability.allows_runtime()
-        });
+        let include_nominal_derivation_predicate = needs_nominal_derivation(patterns);
         let consumed = licensed_trailing.unwrap_or_else(|| candidate.consumed.clone());
         let consumed_end = consumed.end;
         let rejected_suffix =
@@ -1400,33 +1372,19 @@ impl MorphMatcher {
         {
             return false;
         }
-        let window = whole.clone();
-        let context = structural_cache
-            .windows
-            .entry((
-                window.start,
-                window.end,
+        let Some(context) = structural_cache.prepare(
+            haystack,
+            &whole,
+            candidate.verified.core.clone(),
+            StructuralPreparation {
+                resolver,
+                node_limit: DEFAULT_LATTICE_NODE_LIMIT,
                 include_nominal_copula,
                 include_nominal_derivation_predicate,
-            ))
-            .or_insert_with(|| {
-                PreparedStructuralContextAnalysis::extract(
-                    haystack,
-                    candidate.verified.core.clone(),
-                    StructuralPreparation {
-                        resolver,
-                        node_limit: DEFAULT_LATTICE_NODE_LIMIT,
-                        include_nominal_copula,
-                        include_nominal_derivation_predicate,
-                        prepared_exact_tokens: &self.prepared_exact_tokens,
-                    },
-                    &mut structural_cache.prepared_contexts,
-                )
-            });
-        let Some(context) = context.as_ref() else {
-            if let Some(diagnostics) = structural_cache.diagnostics {
-                diagnostics.record_unavailable();
-            }
+                prepared_exact_tokens: &self.prepared_exact_tokens,
+            },
+        ) else {
+            structural_cache.record_unavailable();
             return false;
         };
         let compound_prefix = possible_compound_prefix
@@ -1461,9 +1419,8 @@ impl MorphMatcher {
                 decision.outcome,
                 kfind_morph::ConstraintOutcome::Unavailable(_)
             )
-        }) && let Some(diagnostics) = structural_cache.diagnostics
-        {
-            diagnostics.record_unavailable();
+        }) {
+            structural_cache.record_unavailable();
         }
         let accepted =
             decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision));
