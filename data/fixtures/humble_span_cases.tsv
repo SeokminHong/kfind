@@ -107,4 +107,7 @@ biopnaida-empty-duration	비다	verb	exact	27	42	동쪽 객방은 보름을 비�
 biopnaida-object-verb	빌다	verb	exact	17	32	부디 합격을 비옵나이다.
 biopnaida-object-no-empty	비다	verb	no-match	17	32	부디 합격을 비옵나이다.
 binaida-counted-duration	비다	verb	exact	24	36	연회장은 두 주를 비나이다.
+binaida-semester	비다	verb	smart-exact	25	37	그 방은 한 학기를 비나이다.
+binaida-seasons	비다	verb	smart-exact	25	37	그 방은 두 계절을 비나이다.
+binaida-quarter	비다	verb	smart-exact	25	37	그 방은 한 분기를 비나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.

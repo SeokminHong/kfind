@@ -1820,7 +1820,8 @@ impl MorphMatcher {
                 CandidateConsumption::NominalParticleChain { .. }
             )
             && patterns.iter().any(|pattern| {
-                pattern.fine_pos == DataFinePos::Nnb && pattern.lexical_form.as_ref() == "내"
+                pattern.fine_pos == DataFinePos::Nnb
+                    && resolver.has_scope_dependent_noun(&pattern.lexical_form)
             })
         {
             if let Some(host) = context::previous_word(haystack, whole.start) {
@@ -3744,10 +3745,10 @@ fn has_interrogative_auxiliary_frame(
     {
         return false;
     }
-    context::next_word_with_end(haystack, token.end)
-        .is_some_and(|(end, next)| next == "보다" && is_sentence_end_after(haystack, end))
-        && context::previous_word(haystack, token.start)
-            .is_some_and(|previous| resolver.has_subject_marked_nominal(&previous))
+    context::next_word_on_line(haystack, token.end).is_some_and(|(end, next)| {
+        is_sentence_end_after(haystack, end) && resolver.has_interrogative_auxiliary_surface(&next)
+    }) && context::previous_word(haystack, token.start)
+        .is_some_and(|previous| resolver.has_subject_marked_nominal(&previous))
         && (resolver.has_exact_predicate_ending_path(&text, PredicatePos::Adjective)
             || resolver.has_exact_lost_span_copula_ending_path(&text))
 }
@@ -4242,7 +4243,8 @@ fn has_nominal_frame_for_volitional(
             .origins
             .iter()
             .all(|origin| origin.rule_path.last() == Some(rule)))
-        && (context::next_word(haystack, whole.end).as_deref() == Some("때문에")
+        && (context::next_word_on_line(haystack, whole.end)
+            .is_some_and(|(_, next)| resolver.has_causal_nominal_surface(&next))
             || context::previous_word(haystack, whole.start).is_some_and(|previous| {
                 resolver.has_predicate_adnominal_surface(&previous)
                     || resolver.has_nominal_genitive_surface(&previous)

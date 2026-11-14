@@ -40,6 +40,12 @@ oreumse-verb	오르다	verb	exact	48	57	자네는 쉬게. 전망대에는 내가
 oreumse-noun-context	오름세	noun	exact	48	57	자네는 쉬게. 전망대에는 내가 먼저 오름세.
 oreumse-noun	오름세	noun	exact	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
 oreumse-verb-context	오르다	verb	no-match	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
+cause-blame	오르다	verb	no-match	0	9	오름세 탓에 금리가 높아졌다.
+cause-benefit	오르다	verb	no-match	0	9	오름세 덕에 이익을 봤다.
+cause-impact	오르다	verb	no-match	0	9	오름세 영향으로 계약을 미뤘다.
+cause-credit	내리다	verb	no-match	0	9	내림세 덕분에 지출이 줄었다.
+cause-merit	오르다	verb	no-match	0	9	오름세 덕택에 이익이 났다.
+cause-unrelated	오르다	verb	smart-exact	30	39	전망대에는 내가 먼저 오름세. 덕은 여기서 쉬게.
 meomchumse-verb	멈추다	verb	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
 meomchumse-verb-context	멈추다	verb	no-match	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
 meomchumse-noun-context	멈춤세	noun	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.

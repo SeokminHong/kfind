@@ -1,5 +1,6 @@
 //! Predicate stem alternation and ending branch generation.
 
+use std::collections::BTreeSet;
 use std::error::Error;
 use std::fmt;
 use std::sync::OnceLock;
@@ -173,7 +174,8 @@ fn compile_stem(
     let final_da_continuation = if (matches!(
         entry.pos,
         PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
-    ) || matches!(stem, "있" | "없" | "계시"))
+    ) || STATE_PREDICATES_WITH_DA_QUOTATIVE
+        .contains(&entry.lemma.as_ref()))
         && !entry
             .flags
             .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
@@ -408,8 +410,7 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
-    let uses_neun =
-        entry.pos.is_action() || stem.ends_with("있") || stem.ends_with("없") || stem == "계시";
+    let uses_neun = entry.pos.is_action() || takes_present_neun(entry, stem);
     push_branch(
         branches,
         entry,
@@ -696,6 +697,39 @@ fn compile_productive(
     );
 
     Ok(())
+}
+
+// State predicates with a plain -다 quotative even in a verbal analysis.
+const STATE_PREDICATES_WITH_DA_QUOTATIVE: &[&str] = &["있다", "없다", "계시다"];
+
+fn takes_present_neun(entry: &PredicateEntry, stem: &str) -> bool {
+    static DICTIONARY_FORMS: OnceLock<BTreeSet<String>> = OnceLock::new();
+    if entry.pos != PredicatePos::Adjective {
+        return false;
+    }
+    let forms = DICTIONARY_FORMS.get_or_init(|| {
+        let (records, _) = kfind_data::parse_predicates_tsv(
+            "data/enriched/predicates.tsv",
+            include_str!("../../../data/enriched/predicates.tsv"),
+        )
+        .expect("valid embedded dictionary conjugations");
+        records
+            .into_iter()
+            .filter(|record| {
+                record.pos == kfind_data::DataFinePos::Va
+                    && record.overrides.iter().any(|form| {
+                        form.rule_id == kfind_data::DICTIONARY_CONJUGATION_RULE_ID
+                            && form.surface.strip_suffix('는') == record.lemma.strip_suffix('다')
+                    })
+            })
+            .map(|record| record.lemma)
+            .collect()
+    });
+    forms.contains(entry.lemma.as_ref())
+        || entry.overrides.iter().any(|form| {
+            form.rule_id.as_str() == kfind_data::DICTIONARY_CONJUGATION_RULE_ID
+                && form.surface.strip_suffix('는') == Some(stem)
+        })
 }
 
 fn push_adjective_question(
