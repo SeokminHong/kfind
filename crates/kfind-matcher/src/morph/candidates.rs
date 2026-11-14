@@ -23,7 +23,7 @@ impl MorphMatcher {
         let mut candidates = Vec::new();
         let mut seen = HashSet::new();
         for hit in self.anchor_hits(haystack, 0) {
-            for branch_ref in &self.anchor_programs[hit.anchor_index] {
+            for branch_ref in self.anchor_programs.get(hit.anchor_index) {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.programs[branch_ref.program_index];
                 if !matches!(&branch.decision, CandidateDecision::Structural(_)) {

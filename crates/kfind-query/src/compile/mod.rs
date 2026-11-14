@@ -980,15 +980,20 @@ fn compile_predicate_with_generated(
         });
     }
     if structural_fallback {
-        let mut stems = if let Some(stems) = generated_fallback_stems {
-            stems.to_vec()
+        let owned_stems;
+        let fallback_stems = if let Some(stems) = generated_fallback_stems {
+            stems
         } else {
-            generate_predicate_fallback_stems(predicate)
-                .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?
-        }
-        .into_iter()
-        .map(|(stem, class)| (stem, class, kfind_morph::ContinuationState::Terminal, true))
-        .collect::<Vec<_>>();
+            owned_stems = generate_predicate_fallback_stems(predicate)
+                .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+            &owned_stems
+        };
+        let mut stems = Vec::with_capacity(fallback_stems.len() + branches.len());
+        stems.extend(
+            fallback_stems.iter().map(|(stem, class)| {
+                (stem, *class, kfind_morph::ContinuationState::Terminal, true)
+            }),
+        );
         stems.extend(
             branches
                 .iter()
@@ -1017,7 +1022,7 @@ fn compile_predicate_with_generated(
                 })
                 .filter_map(|branch| {
                     structural_stem_class(&branch.anchor)
-                        .map(|class| (branch.clone(), class, branch.continuation, false))
+                        .map(|class| (branch, class, branch.continuation, false))
                 }),
         );
         stems.sort_by(|left, right| left.0.anchor.cmp(&right.0.anchor));
@@ -1026,7 +1031,7 @@ fn compile_predicate_with_generated(
         });
         for (stem, stem_class, base_state, validate_anchor) in stems {
             let mut rule_path = prefix_rules.clone();
-            rule_path.extend(stem.rule_path);
+            rule_path.extend(stem.rule_path.iter().cloned());
             let unsupported = rule_path
                 .iter()
                 .filter(|rule| !is_known_or_internal(rule, known_rule_ids))
@@ -1037,7 +1042,7 @@ fn compile_predicate_with_generated(
                 continue;
             }
             output.push(DraftBranch {
-                anchor: stem.anchor.into(),
+                anchor: stem.anchor.to_string(),
                 consumption: CandidateConsumption::StructuralPredicateEnding {
                     pos: predicate.pos.execution(),
                     source_positions: PredicatePosSet::one(predicate.pos),

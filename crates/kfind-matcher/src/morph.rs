@@ -212,7 +212,7 @@ const fn prepared_token_slot(
 pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
-    anchor_programs: Vec<Box<[ProgramRef]>>,
+    anchor_programs: AnchorPrograms,
     fused_copula_anchor: Option<usize>,
     max_anchor_end_from_token_start: usize,
     is_line_local: bool,
@@ -306,12 +306,7 @@ impl MorphMatcher {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
-        let (anchors, mut anchor_programs, fused_copula_programs) = unique_anchors(&plan);
-        let fused_copula_anchor = (!fused_copula_programs.is_empty()).then(|| {
-            let index = anchor_programs.len();
-            anchor_programs.push(fused_copula_programs.into_boxed_slice());
-            index
-        });
+        let (anchors, anchor_programs, fused_copula_anchor) = unique_anchors(&plan);
         let mut max_anchor_end_from_token_start =
             anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         if fused_copula_anchor.is_some() {
@@ -599,7 +594,7 @@ impl MorphMatcher {
         let mut structural_cache = StructuralCache::default();
         for hit in self.anchor_hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
-            for branch_ref in &self.anchor_programs[hit.anchor_index] {
+            for branch_ref in self.anchor_programs.get(hit.anchor_index) {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.programs[branch_ref.program_index];
                 let Some(mut candidate) = self.execute_program_without_decision(
@@ -665,7 +660,7 @@ impl MorphMatcher {
             }) {
                 break;
             }
-            for branch_ref in &self.anchor_programs[hit.anchor_index] {
+            for branch_ref in self.anchor_programs.get(hit.anchor_index) {
                 if branch_ref.atom_index != 0 {
                     continue;
                 }
@@ -4869,13 +4864,25 @@ struct ProgramRef {
     program_index: usize,
 }
 
-type AnchorsAndPrograms<'a> = (Vec<&'a [u8]>, Vec<Box<[ProgramRef]>>, Vec<ProgramRef>);
+#[derive(Debug)]
+struct AnchorPrograms {
+    offsets: Vec<usize>,
+    programs: Vec<ProgramRef>,
+}
 
-fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms<'_> {
-    let mut anchor_indices = HashMap::<&[u8], usize>::new();
-    let mut anchors = Vec::<&[u8]>::new();
-    let mut program_lists = Vec::<Vec<ProgramRef>>::new();
-    let mut fused_copula = Vec::new();
+impl AnchorPrograms {
+    fn get(&self, anchor_index: usize) -> &[ProgramRef] {
+        &self.programs[self.offsets[anchor_index]..self.offsets[anchor_index + 1]]
+    }
+}
+
+fn unique_anchors(plan: &QueryPlan) -> (Vec<&[u8]>, AnchorPrograms, Option<usize>) {
+    let program_count = plan.atoms.iter().map(|atom| atom.programs.len()).sum();
+    let mut anchor_indices = HashMap::<&[u8], usize>::with_capacity(program_count);
+    let mut anchors = Vec::<&[u8]>::with_capacity(program_count);
+    let mut links = Vec::with_capacity(program_count);
+    let mut counts = Vec::<usize>::with_capacity(program_count);
+    let mut fused_count = 0;
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
             let program = ProgramRef {
@@ -4883,26 +4890,45 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms<'_> {
                 program_index,
             };
             if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding) {
-                fused_copula.push(program);
+                links.push((None, program));
+                fused_count += 1;
                 continue;
             }
             let anchor_index = *anchor_indices.entry(&branch.anchor).or_insert_with(|| {
                 let index = anchors.len();
                 anchors.push(&branch.anchor);
-                program_lists.push(Vec::new());
+                counts.push(0);
                 index
             });
-            program_lists[anchor_index].push(program);
+            links.push((Some(anchor_index), program));
+            counts[anchor_index] += 1;
         }
     }
-    (
-        anchors,
-        program_lists
-            .into_iter()
-            .map(Vec::into_boxed_slice)
-            .collect(),
-        fused_copula,
-    )
+    let fused_anchor = (fused_count != 0).then(|| {
+        let index = counts.len();
+        counts.push(fused_count);
+        index
+    });
+    let mut offsets = Vec::with_capacity(counts.len() + 1);
+    offsets.push(0);
+    for count in &mut counts {
+        let start = *offsets.last().expect("initial offset");
+        offsets.push(start + *count);
+        *count = start;
+    }
+    let mut programs = vec![
+        ProgramRef {
+            atom_index: 0,
+            program_index: 0
+        };
+        program_count
+    ];
+    for (anchor_index, program) in links {
+        let index = anchor_index.or(fused_anchor).expect("fused anchor");
+        programs[counts[index]] = program;
+        counts[index] += 1;
+    }
+    (anchors, AnchorPrograms { offsets, programs }, fused_anchor)
 }
 
 fn mapped_core(
