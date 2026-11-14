@@ -682,6 +682,11 @@ regression.exclamative-njigo.completed-action	읽다	verb	exact	14	26	참 많이
 regression.exclamative-njigo.current-action	하다	verb	exact	14	26	참으로 잘 하는지고!
 regression.exclamative-njigo.honorific	읽다	verb	exact	16	31	선생님께서 읽으신지고!
 regression.exclamative-njigo.separate-word	읽다	verb	exact	7	13	책을 읽은 지 오래다.
+regression.rieul-sentence-endings.jinira	믿다	verb	exact	21	36	너희는 내 말을 믿을지니라.
+regression.rieul-sentence-endings.copula	이다	adjective	exact	20	32	그것은 내 책임일지니라.
+regression.rieul-sentence-endings.reongo-honorific	돌아오다	verb	exact	7	25	언제 돌아오실런고?
+regression.rieul-sentence-endings.ssonga	높다	adjective	exact	13	25	하늘보다 높을쏜가.
+regression.rieul-sentence-endings.separate-question	있다	adjective	exact	14	23	무슨 일이 있을지 모르겠다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
