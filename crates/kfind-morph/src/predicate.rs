@@ -754,6 +754,8 @@ fn compile_rieul_eu_endings(
     for (base, suffix, rule_id) in [
         (stem, "면서", "ending.simultaneous-myeonseo"),
         (&dropped, "나", "ending.connective-na"),
+        (&dropped, "니만큼", "ending.causal-nimankeum"),
+        (&dropped, "니만치", "ending.causal-nimankeum"),
         (&dropped, "나마", "ending.concessive-nama"),
         (&dropped, "나요", "ending.interrogative-na"),
         (&dropped, "나이다", "ending.archaic-naida"),

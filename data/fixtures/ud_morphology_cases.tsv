@@ -631,6 +631,13 @@ regression.concessive-nama.nominal-particle	초안	noun	smart-exact	0	15	초안�
 regression.concessive-nama.nominal-not-copula	이다	adjective	no-match	0	15	초안이나마 참고해 주세요.
 regression.concessive-nama.proper-name	팔다	verb	no-match	0	9	파나마 지협의 남쪽을 지났다.
 regression.concessive-nama.action	팔다	verb	smart-exact	7	16	옷을 파나마 수익은 많지 않다.
+regression.causal-nimankeum.consonant	적다	adjective	smart-exact	10	25	팀원이 적으니만큼 일이 많다.
+regression.causal-nimankeum.rieul	멀다	adjective	smart-exact	10	22	학교가 머니만치 일찍 나가자.
+regression.causal-nimankeum.copula	이다	adjective	smart-exact	16	28	오늘은 첫날이니만큼 가볍게 둘러보자.
+regression.causal-nimankeum.honorific	읽다	verb	smart-exact	13	31	교수님이 읽으시니만큼 우리도 읽자.
+regression.causal-nimankeum.past	늦다	adjective	smart-exact	10	28	시간이 늦었으니만치 택시로 가자.
+regression.causal-nimankeum.action	읽다	verb	smart-exact	17	32	아이가 글을 읽느니만큼 조용히 하자.
+regression.causal-nimankeum.separate-dependent	읽다	verb	smart-exact	10	16	아이가 읽는 만큼 기다리자.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.

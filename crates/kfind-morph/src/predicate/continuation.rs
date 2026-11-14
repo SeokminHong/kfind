@@ -2244,6 +2244,57 @@ fn verify_simple_continuation(
             &[NIRA]
         }
         ContinuationState::StemEnding
+            if following.starts_with("니만")
+                && (pos == PredicatePos::Copula || !pos.is_action() || anchor.ends_with('시'))
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[
+                suffix("니만큼", &["ending.causal-nimankeum"]),
+                suffix("니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("니만") && (anchor.ends_with('으') || !pos.is_action()) =>
+        {
+            &[
+                suffix("니만큼", &["ending.causal-nimankeum"]),
+                suffix("니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시니만") => &[
+            suffix("시니만큼", &["ending.honorific", "ending.causal-nimankeum"]),
+            suffix("시니만치", &["ending.honorific", "ending.causal-nimankeum"]),
+        ],
+        ContinuationState::StemEnding
+            if following.starts_with("느니만")
+                && (pos.is_action() || anchor.ends_with(['있', '없']))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[
+                suffix("느니만큼", &["ending.causal-nimankeum"]),
+                suffix("느니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시느니만") => &[
+            suffix(
+                "시느니만큼",
+                &["ending.honorific", "ending.causal-nimankeum"],
+            ),
+            suffix(
+                "시느니만치",
+                &["ending.honorific", "ending.causal-nimankeum"],
+            ),
+        ],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으니만") => {
+            &[
+                suffix("으니만큼", &["ending.causal-nimankeum"]),
+                suffix("으니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::StemEnding
             if pos == PredicatePos::Copula
                 && anchor == "이시"
                 && following.starts_with("느니라") =>
@@ -2431,6 +2482,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
+                        | "ending.causal-nimankeum"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
