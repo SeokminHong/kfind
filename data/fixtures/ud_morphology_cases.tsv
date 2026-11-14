@@ -1,4 +1,22 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.postnominal-count.eggplant	가다	verb	no-match	0	6	가지 두 개만 주세요.
+regression.postnominal-count.eggplant-noun	가지	noun	smart-exact	0	6	가지 두 개만 주세요.
+regression.postnominal-count.attached-digits	가다	verb	no-match	0	6	가지 2개 주세요.
+regression.postnominal-count.nominal-particle	가다	verb	no-match	0	9	가지를 두 개만 주세요.
+regression.postnominal-count.pig	되다	verb	no-match	0	6	돼지 세 마리를 키웠다.
+regression.postnominal-count.prohibitive	가다	verb	smart-exact	0	6	가지 마.
+regression.postnominal-count.object-particle-on-connective	가다	verb	smart-exact	0	9	가지를 말든가 그랬어.
+regression.postnominal-count.clause-boundary	가다	verb	smart-exact	7	13	지금 가지, 두 시간 뒤에 보자.
+regression.postnominal-count.oblique	가다	verb	smart-exact	7	13	집에 가지 두 시간 동안 여기서 뭐 해?
+regression.postnominal-count.next-instrument	가다	verb	smart-exact	13	16	강변으로 가 두 손으로 물을 떴다.
+regression.postnominal-count.next-quantified-modifier	인하다	verb	smart-exact	10	16	폭설로 인해 여러 가지 사고가 발생했다.
+regression.postnominal-count.approximate-adverb	가다	verb	no-match	0	6	가지 대략 두 개
+regression.postnominal-count.approximate-determiner	가다	verb	no-match	0	6	가지 약 두 개
+regression.postnominal-count.approximate-connective	가다	verb	no-match	0	6	가지 어림잡아 서너 개쯤
+regression.postnominal-count.split-approximate	가다	verb	no-match	0	6	가지 어림잡아 서 너 개 쯤
+regression.postnominal-count.approximate-particle	되다	verb	no-match	0	6	돼지 적어도 세 마리가량은 필요하다.
+regression.postnominal-count.date	참가하다	verb	smart-exact	10	22	후보가 참가하여 6월 8일까지 유세를 했다.
+regression.postnominal-count.price	위하다	verb	smart-exact	10	16	복구를 위해 2조엔을 승인했다.
 corpus.ud-gsd.test.test-s570.adverb-before-bare-object	무조건	adverb	smart-exact	13	22	겨울에는 무조건 내복 입고 주무세요.
 regression.geon-nominal-conflict.adverb-before-predicate	무조건	adverb	smart-exact	0	9	무조건 쉬세요.
 regression.geon-nominal-conflict.determiner	무조건	adverb	no-match	4	13	그 무조건 항복 요구를 거부했다.

@@ -110,6 +110,8 @@ const DURATION_UNITS: &[&str] = &[
     "초",
 ];
 
+const INDEFINITE_COUNTER_QUANTITIES: &[&str] = &["한두", "두세", "서너", "너덧", "네댓", "대여섯"];
+
 // Numeric senses attested by the pinned Korean Basic Dictionary and licensed
 // in digit-led unit constructions.
 const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
@@ -1356,6 +1358,23 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_noun_with_optional_particles(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |len, positions| {
+                if matches!(
+                    positions,
+                    [StructuralPos::NNG | StructuralPos::NNP | StructuralPos::NNBC]
+                ) && (len == text.len()
+                    || complete_suffix(&self.resource, &text[len..], StructuralPos::is_particle))
+                {
+                    matched = true;
+                }
+            });
+        matched
+    }
+
+    #[must_use]
     pub fn has_explicit_copula_after_nominal(&self, text: &str) -> bool {
         text.char_indices().skip(1).any(|(split, initial)| {
             crate::drop_final(initial).unwrap_or(initial) == '이'
@@ -1451,16 +1470,67 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_standalone_counted_unit(&self, count: &str, unit: &str) -> bool {
-        (matches!(
-            count,
-            "수" | "여러" | "한두" | "두세" | "서너" | "너덧" | "네댓" | "대여섯"
-        ) || self.has_measure_count(count)
+        self.is_counter_quantity(count) && self.has_exact_counter(unit)
+    }
+
+    fn is_counter_quantity(&self, count: &str) -> bool {
+        matches!(count, "수" | "여러")
+            || INDEFINITE_COUNTER_QUANTITIES.contains(&count)
+            || self.has_measure_count(count)
             || count.strip_suffix('여').is_some_and(|cardinal| {
                 (!cardinal.is_empty() && cardinal.bytes().all(|byte| byte.is_ascii_digit()))
                     || Self::is_mixed_cardinal(cardinal)
                     || has_exact_fine_pos(&self.resource, cardinal, |pos| pos == DataFinePos::Nr)
-            }))
-            && self.has_exact_counter(unit)
+            })
+    }
+
+    /// Recognizes an object count without treating date, price or measure phrases as object counts.
+    #[must_use]
+    pub fn has_postnominal_object_count(&self, first: &str, second: Option<&str>) -> bool {
+        if first.starts_with(|ch: char| ch.is_ascii_digit())
+            && first[1..].char_indices().rev().any(|(offset, _)| {
+                let (count, rest) = first.split_at(offset + 1);
+                (self.is_counter_quantity(count) || Self::is_mixed_cardinal(count))
+                    && self.has_object_counter(count, rest)
+            })
+        {
+            return true;
+        }
+        (self.is_counter_quantity(first) || Self::is_mixed_cardinal(first))
+            && second.is_some_and(|unit| self.has_object_counter(first, unit))
+    }
+
+    pub fn split_counter_quantity(first: &str, second: &str) -> Option<&'static str> {
+        INDEFINITE_COUNTER_QUANTITIES
+            .iter()
+            .copied()
+            .find(|quantity| {
+                !first.is_empty()
+                    && !second.is_empty()
+                    && quantity.strip_prefix(first) == Some(second)
+            })
+    }
+
+    fn has_object_counter(&self, count: &str, text: &str) -> bool {
+        let mut host = None;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |len, positions| {
+                if positions == [StructuralPos::NNBC] && {
+                    let tail = &text[len..];
+                    let particles = tail
+                        .strip_prefix("쯤")
+                        .or_else(|| tail.strip_prefix("가량"))
+                        .unwrap_or(tail);
+                    particles.is_empty()
+                        || complete_suffix(&self.resource, particles, StructuralPos::is_particle)
+                } {
+                    host = Some(&text[..len]);
+                }
+            });
+        host.is_some_and(|unit| {
+            !matches!(unit, "월" | "원" | "달러" | "엔" | "유로" | "위안")
+                && !self.has_elapsed_measure(unit, Some(count))
+        })
     }
 
     #[must_use]
