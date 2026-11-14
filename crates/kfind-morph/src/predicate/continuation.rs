@@ -1739,6 +1739,15 @@ fn verify_simple_continuation(
             suffix("게", &["ending.promise-rieulge"]),
             suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
         ],
+        ContinuationState::StemEnding
+            if following.starts_with("게끔") && pos != PredicatePos::Copula =>
+        {
+            &[suffix("게끔", &["ending.adverbial-ge"])]
+        }
+        ContinuationState::Eu if following.starts_with("시게끔") => &[suffix(
+            "시게끔",
+            &["ending.honorific", "ending.adverbial-ge"],
+        )],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {

@@ -1850,6 +1850,15 @@ fn reference_simple_continuation(
             reference_suffix("게", &["ending.promise-rieulge"]),
             reference_suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
         ],
+        ContinuationState::StemEnding
+            if following.starts_with("게끔") && pos != PredicatePos::Copula =>
+        {
+            &[reference_suffix("게끔", &["ending.adverbial-ge"])]
+        }
+        ContinuationState::Eu if following.starts_with("시게끔") => &[reference_suffix(
+            "시게끔",
+            &["ending.honorific", "ending.adverbial-ge"],
+        )],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {
@@ -2850,7 +2859,14 @@ fn reference_simple_continuation(
                     && !suffix.rules.contains(&"ending.promise-rieulge")
                     && !matches!(
                         suffix.surface,
-                        "으려니" | "으려니와" | "디" | "시디" | "걸랑" | "시걸랑"
+                        "으려니"
+                            | "으려니와"
+                            | "디"
+                            | "시디"
+                            | "걸랑"
+                            | "시걸랑"
+                            | "게끔"
+                            | "시게끔"
                     )
                     || !following[suffix.surface.len()..]
                         .chars()
