@@ -1859,6 +1859,34 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past if following.starts_with('든') => {
+            &[
+                reference_suffix("든", &["ending.alternative-deunji"]),
+                reference_suffix("든지", &["ending.alternative-deunji"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시든") || following.starts_with("셨든") => {
+            &[
+                reference_suffix("시든", &["ending.honorific", "ending.alternative-deunji"]),
+                reference_suffix("시든지", &["ending.honorific", "ending.alternative-deunji"]),
+                reference_suffix(
+                    "셨든",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+                reference_suffix(
+                    "셨든지",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::Future if pos.is_action() && following.starts_with("을거나") => {
             &[reference_suffix(
                 "을거나",
@@ -3042,6 +3070,7 @@ fn reference_simple_continuation(
                             | "ending.connective-dasipi"
                             | "ending.connective-geoni"
                             | "ending.connective-geoneul"
+                            | "ending.alternative-deunji"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

@@ -1743,6 +1743,34 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past if following.starts_with('든') => {
+            &[
+                suffix("든", &["ending.alternative-deunji"]),
+                suffix("든지", &["ending.alternative-deunji"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시든") || following.starts_with("셨든") => {
+            &[
+                suffix("시든", &["ending.honorific", "ending.alternative-deunji"]),
+                suffix("시든지", &["ending.honorific", "ending.alternative-deunji"]),
+                suffix(
+                    "셨든",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+                suffix(
+                    "셨든지",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::Future if pos.is_action() && following.starts_with("을거나") => {
             &[suffix("을거나", &["ending.interrogative-rieulgeona"])]
         }
