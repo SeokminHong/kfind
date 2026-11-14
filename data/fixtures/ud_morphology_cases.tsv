@@ -795,6 +795,10 @@ regression.connective-gekkeum.action	지나가다	verb	exact	0	15	지나가게�
 regression.connective-gekkeum.state	없다	adjective	exact	0	9	없게끔 정리해라.
 regression.connective-gekkeum.honorific	듣다	verb	exact	0	15	들으시게끔 크게 말했다.
 regression.connective-gekkeum.separate	읽다	verb	exact	0	6	읽게 끔찍한 소리를 줄였다.
+regression.propositive-jakkuna.vowel	가다	verb	exact	0	12	가자꾸나.
+regression.propositive-jakkuna.rieul	놀다	verb	exact	0	12	놀자꾸나.
+regression.propositive-jakkuna.resultative	부지런하다	adjective	exact	0	24	부지런해지자꾸나.
+regression.propositive-jakkuna.separate	가다	verb	exact	0	6	가자. 꾸나 씨가 기다린다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

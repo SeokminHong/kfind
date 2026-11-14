@@ -1748,6 +1748,9 @@ fn verify_simple_continuation(
             "시게끔",
             &["ending.honorific", "ending.adverbial-ge"],
         )],
+        ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
+            &[suffix("자꾸나", &["ending.propositive-ja"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {
