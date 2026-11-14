@@ -1,0 +1,56 @@
+// Continuations after the explicit copula stem or 아니. Omission applies
+// to nominal hosts that end in a vowel.
+pub const COPULA_STEM_ENDINGS: &[CopulaStemEnding] = &[
+    ending("랴", &["ending.rya"], BareOrHonorific),
+    ending("렷다", &["ending.ryeotda"], BareOrHonorific),
+    ending("게", &["ending.copula-ge"], BareOrHonorific),
+    ending("고말고", &["ending.copula-common-final"], Never),
+    ending("고요", &["ending.connective-go", "ending.polite-yo"], Never),
+    ending("구나", &["ending.copula-common-final"], BareOrHonorific),
+    ending("구려", &["ending.copula-common-final"], BareOrHonorific),
+    ending("구먼", &["ending.copula-common-final"], BareOrHonorific),
+    ending("군", &["ending.copula-common-final"], BareOrHonorific),
+    ending(
+        "군요",
+        &["ending.copula-common-final", "ending.polite-yo"],
+        BareOrHonorific,
+    ),
+    ending("길래", &["ending.copula-common-connective"], Never),
+    ending("네", &["ending.copula-common-final"], BareOrHonorific),
+    ending(
+        "네요",
+        &["ending.copula-common-final", "ending.polite-yo"],
+        BareOrHonorific,
+    ),
+    ending("니", &["ending.copula-common-connective"], BareOrHonorific),
+    ending(
+        "니까",
+        &["ending.copula-common-connective"],
+        BareOrHonorific,
+    ),
+    ending(
+        "니까는",
+        &["ending.copula-common-connective"],
+        BareOrHonorific,
+    ),
+    ending(
+        "니깐",
+        &["ending.copula-common-connective"],
+        BareOrHonorific,
+    ),
+    ending("니라", &["ending.copula-common-final"], Never),
+    ending("면", &["ending.copula-common-connective"], BareOrHonorific),
+    ending(
+        "면서",
+        &["ending.copula-common-connective"],
+        BareOrHonorific,
+    ),
+    ending("세요", &["ending.honorific", "ending.copula-polite"], Never),
+    ending("야", &["ending.copula-ya"], Never),
+    ending("어요", &["ending.copula-polite"], Never),
+    ending("에요", &["ending.copula-polite"], Never),
+    ending("자", &["ending.copula-common-connective"], Never),
+    ending("죠", &["ending.copula-common-final"], BareOrHonorific),
+    ending("지요", &["ending.copula-common-final"], BareOrHonorific),
+    ending("올시다", &["ending.copula-olsida"], Bare),
+];
