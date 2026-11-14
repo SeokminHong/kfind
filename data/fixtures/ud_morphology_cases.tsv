@@ -464,6 +464,10 @@ regression.honorific-declarative.action-only	크다	adjective	no-match	25	37	아
 regression.honorific-declarative.rieul-adjective	길다	adjective	smart-exact	23	35	선생님은 머리가 기시다고 들었어요.
 regression.honorific-declarative.go	가다	verb	smart-exact	47	59	특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.
 regression.honorific-declarative.grind	갈다	verb	smart-exact	24	36	손님이 칼을 직접 가신다면 숫돌을 드리겠습니다.
+regression.honorific-present-declarative.vowel	쓰다	verb	exact	0	9	쓰신다.
+regression.honorific-present-declarative.consonant	먹다	verb	exact	0	12	먹으신다.
+regression.honorific-present-declarative.rieul	살다	verb	exact	0	9	사신다.
+regression.honorific-present-declarative.adjective	좋다	adjective	exact	0	12	좋으시다.
 corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
 regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
 regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.
