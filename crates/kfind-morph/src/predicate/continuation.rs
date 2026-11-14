@@ -676,6 +676,7 @@ const DAMANEUN: Suffix = suffix("다마는", &["ending.concessive-damaneun"]);
 const DAMAN: Suffix = suffix("다만", &["ending.concessive-damaneun"]);
 const MANEUN: Suffix = suffix("마는", &["ending.concessive-damaneun"]);
 const MAN: Suffix = suffix("만", &["ending.concessive-damaneun"]);
+const DECLARATIVE_SON: Suffix = suffix("손", &["ending.concessive-dason"]);
 const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
 const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
@@ -1744,6 +1745,9 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다손") => {
+            &[suffix("다손", &["ending.concessive-dason"])]
+        }
         ContinuationState::Past | ContinuationState::Future
             if following.starts_with("다고")
                 || following.starts_with("다네")
@@ -3251,6 +3255,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '고' => Some(&DECLARATIVE_GO),
         '네' if following.starts_with("네요") => Some(&DECLARATIVE_NE_YO),
         '네' => Some(&DECLARATIVE_NE),
+        '손' if ends_at_boundary(DECLARATIVE_SON.surface) => Some(&DECLARATIVE_SON),
         '던' => Some(&DECLARATIVE_RETROSPECTIVE),
         '더' if following.starts_with(DECLARATIVE_DEONIMANEUN.surface) => {
             Some(&DECLARATIVE_DEONIMANEUN)

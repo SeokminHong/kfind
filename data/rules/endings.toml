@@ -462,6 +462,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-dason"
+category = "connective"
+initial = "consonant"
+forms = ["ㄴ다손", "는다손", "다손"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.concessive-damaneun"
 category = "connective"
 initial = "other"
