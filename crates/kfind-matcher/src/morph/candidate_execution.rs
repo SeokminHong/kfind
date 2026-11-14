@@ -118,11 +118,12 @@ impl MorphMatcher {
                             })
                     },
                 )?;
-                if matched
-                    .rule_path
-                    .first()
-                    .is_some_and(|rule| rule.as_str() == "ending.auxiliary-naeda")
-                    && !is_boundary_before(haystack, core.start)
+                if matched.rule_path.first().is_some_and(|rule| {
+                    matches!(
+                        rule.as_str(),
+                        "ending.auxiliary-naeda" | "ending.auxiliary-stative-hada"
+                    )
+                }) && !is_boundary_before(haystack, core.start)
                 {
                     return None;
                 }

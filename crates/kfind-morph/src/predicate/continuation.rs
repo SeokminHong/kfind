@@ -1522,6 +1522,14 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             Some('내' | '냈') if pos.is_action() => {
                 auxiliary::verify_completion_naeda(anchor.len(), following)
             }
+            Some('하' | '해' | '했')
+                if matches!(
+                    pos,
+                    PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+                ) =>
+            {
+                auxiliary::verify_stative_hada(anchor.len(), following)
+            }
             _ => auxiliary::verify_resultative(anchor.len(), following),
         }
     {

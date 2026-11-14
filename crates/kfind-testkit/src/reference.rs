@@ -3922,6 +3922,23 @@ fn reference_attached_auxiliary(
         ("보", Eu, false, &[]),
     ];
     let (forms, stem, auxiliary) = match following.chars().next()? {
+        '하' | '해' | '했'
+            if matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) =>
+        {
+            (
+                &[
+                    ("하였", Past, false, &["ending.past"][..]),
+                    ("했", Past, false, &["ending.past"][..]),
+                    ("하여", AOrEo, true, &["ending.aoeo"][..]),
+                    ("해", AOrEo, true, &["ending.aoeo"][..]),
+                ][..],
+                '하',
+                "ending.auxiliary-stative-hada",
+            )
+        }
         '내' if pos.is_action()
             && following
                 .strip_prefix("내다")
@@ -4065,7 +4082,10 @@ fn reference_attached_auxiliary(
                 .collect(),
         ));
     }
-    if auxiliary == "ending.auxiliary-naeda" {
+    if matches!(
+        auxiliary,
+        "ending.auxiliary-naeda" | "ending.auxiliary-stative-hada"
+    ) {
         return best
             .filter(|(length, _)| !following[*length..].starts_with(is_reference_token_character));
     }
