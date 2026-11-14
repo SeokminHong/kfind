@@ -52,6 +52,17 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
     "ending.future-adnominal",
     "ending.retrospective-adnominal",
 ];
+const QUANTITY_MODIFIERS: &[&str] = &[
+    "약",
+    "대략",
+    "대충",
+    "대강",
+    "어림잡아",
+    "기껏해야",
+    "적어도",
+    "많아야",
+];
+
 #[derive(Default)]
 struct StructuralCache<'a> {
     diagnostics: Option<&'a SearchDiagnostics>,
@@ -1448,6 +1459,7 @@ impl MorphMatcher {
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
+                    || has_postnominal_count_frame(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
                     || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
                     || has_comparative_nominal_frame(haystack, candidate, branch, resolver)
@@ -3747,6 +3759,62 @@ fn has_topic_before_independent_predicate(
                                     }))
                         },
                     ))
+        })
+}
+
+fn has_postnominal_count_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| matches!(rule.as_str(), "ending.aoeo" | "ending.connective-ji"))
+        })
+        || candidate.suffix_rules.iter().any(|rule| {
+            !rule.as_str().starts_with("particle.") && rule.as_str() != "structural.ending-path"
+        })
+        || !is_boundary_before(haystack, candidate.consumed.start)
+    {
+        return false;
+    }
+    let span = surrounding_token_span(haystack, candidate.consumed.clone());
+    let Some((mut next_end, mut first)) = context::next_word_on_line(haystack, span.end) else {
+        return false;
+    };
+    if QUANTITY_MODIFIERS.contains(&first.as_ref()) {
+        let Some(next) = context::next_word_on_line(haystack, next_end) else {
+            return false;
+        };
+        (next_end, first) = next;
+    }
+    let second = context::next_word_on_line(haystack, next_end);
+    let complete_aoeo = span == candidate.consumed
+        && branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.aoeo")
+        });
+    (resolver.has_postnominal_object_count(&first, second.as_ref().map(|(_, word)| word.as_ref()))
+        || second.is_some_and(|(end, second)| {
+            ConstraintResolver::split_counter_quantity(&first, &second).is_some_and(|count| {
+                context::next_word_on_line(haystack, end).is_some_and(|(_, unit)| {
+                    resolver.has_postnominal_object_count(count, Some(&unit))
+                })
+            })
+        }))
+        && context::normalized_token(haystack, span).is_some_and(|token| {
+            resolver.has_exact_noun_with_optional_particles(&token)
+                && !resolver.has_predicate_adnominal_surface(&token)
+        })
+        && !context::previous_word(haystack, candidate.consumed.start).is_some_and(|word| {
+            resolver.has_object_marked_nominal(&word)
+                || (complete_aoeo && resolver.has_nominal_oblique(&word))
         })
 }
 
