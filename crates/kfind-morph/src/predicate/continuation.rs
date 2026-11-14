@@ -1744,6 +1744,10 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::AOrEo if pos.is_action() && following.starts_with('다') => &[
+            suffix("다", &["ending.aoeo-daga"]),
+            suffix("다가", &["ending.aoeo-daga"]),
+        ],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
             &[suffix(
                 "다더라",
@@ -2627,9 +2631,6 @@ fn verify_simple_continuation(
             HONORIFIC_GUN_ENDINGS
         }
         ContinuationState::AOrEo if following.starts_with('서') => A_OR_EO_SEO_SUFFIXES,
-        ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
-            &[suffix("다가", &["ending.aoeo-daga"])]
-        }
         ContinuationState::StemEnding
             if following.starts_with("고서") && (pos.is_action() || anchor == "아니") =>
         {
