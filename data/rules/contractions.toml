@@ -81,6 +81,22 @@ result = "치"
 ending_ids = ["ending.connective-ji"]
 
 [[contraction]]
+id = "contraction.ha-geondae-aspiration"
+kind = "stem-rewrite"
+left = "하"
+right = "건대"
+result = "컨대"
+ending_ids = ["ending.connective-geondae"]
+
+[[contraction]]
+id = "contraction.ha-geondae-deletion"
+kind = "stem-rewrite"
+left = "하"
+right = "건대"
+result = "건대"
+ending_ids = ["ending.connective-geondae"]
+
+[[contraction]]
 id = "contraction.ha-gi"
 kind = "stem-rewrite"
 left = "하"

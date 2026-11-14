@@ -121,6 +121,31 @@ pub fn generate_predicate_branches(
 
     let mut branches = Vec::new();
     compile_stem(entry, stem, &mut branches)?;
+    if entry.pos.is_action() && kfind_data::GEONDAE_STEMS.contains(&stem) {
+        push_branch(
+            &mut branches,
+            entry,
+            format!("{stem}건대"),
+            stem.len(),
+            ContinuationState::Terminal,
+            vec![rule("ending.connective-geondae")],
+        );
+        if let Some(base) = stem.strip_suffix('하') {
+            let (ending, contraction) = if ha_aspirates_after(base) {
+                ("컨대", "contraction.ha-geondae-aspiration")
+            } else {
+                ("건대", "contraction.ha-geondae-deletion")
+            };
+            push_branch(
+                &mut branches,
+                entry,
+                format!("{base}{ending}"),
+                base.len(),
+                ContinuationState::Terminal,
+                vec![rule(contraction), rule("ending.connective-geondae")],
+            );
+        }
+    }
     if let Some(contracted) = contract_eoji_stem(entry, stem) {
         let first_alias = branches.len();
         compile_stem(entry, &contracted, &mut branches)?;
