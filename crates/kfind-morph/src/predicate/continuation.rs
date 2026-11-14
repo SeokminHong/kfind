@@ -1744,6 +1744,25 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("다고")
+                || following.starts_with("다네")
+                || following.starts_with("다지") =>
+        {
+            &[
+                suffix("다고", &["ending.final-da", "ending.quotative-go"]),
+                suffix(
+                    "다고요",
+                    &["ending.final-da", "ending.quotative-go", "ending.polite-yo"],
+                ),
+                suffix("다네", &["ending.final-da", "ending.final-ne"]),
+                suffix(
+                    "다네요",
+                    &["ending.final-da", "ending.final-ne", "ending.polite-yo"],
+                ),
+                suffix("다지", &["ending.final-da", "ending.quotative-ji"]),
+            ]
+        }
         // The dictionary lists this ending specifically after the adjective 같다.
         ContinuationState::Eu
             if pos == PredicatePos::Adjective
