@@ -1735,6 +1735,18 @@ fn verify_simple_continuation(
             ]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('데') =>
+        {
+            &[
+                suffix("데", &["ending.retrospective-de"]),
+                suffix("데요", &["ending.retrospective-de"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시데") => &[
+            suffix("시데", &["ending.honorific", "ending.retrospective-de"]),
+            suffix("시데요", &["ending.honorific", "ending.retrospective-de"]),
+        ],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("다시피") && pos != PredicatePos::Copula =>
         {
             &[suffix("다시피", &["ending.connective-dasipi"])]

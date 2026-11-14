@@ -1817,6 +1817,18 @@ fn reference_simple_continuation(
             ]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('데') =>
+        {
+            &[
+                reference_suffix("데", &["ending.retrospective-de"]),
+                reference_suffix("데요", &["ending.retrospective-de"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시데") => &[
+            reference_suffix("시데", &["ending.honorific", "ending.retrospective-de"]),
+            reference_suffix("시데요", &["ending.honorific", "ending.retrospective-de"]),
+        ],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("다시피") && pos != PredicatePos::Copula =>
         {
             &[reference_suffix("다시피", &["ending.connective-dasipi"])]
@@ -2721,6 +2733,7 @@ fn reference_simple_continuation(
                     suffix.rules.last().copied(),
                     Some(
                         "ending.connective-daganeun"
+                            | "ending.retrospective-de"
                             | "ending.connective-dasipi"
                             | "ending.connective-geoni"
                             | "ending.dialect-past-je"

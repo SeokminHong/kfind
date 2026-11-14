@@ -757,6 +757,11 @@ regression.prefinal-ryeoni.past	먹다	verb	exact	0	15	먹었으려니 생각했
 regression.prefinal-ryeoniwa.future	주다	verb	exact	0	18	주겠으려니와 시상식도 준비하겠다.
 regression.prefinal-ryeoniwa.honorific-past	읽다	verb	exact	0	21	읽으셨으려니와 내용도 기억하시겠지.
 regression.prefinal-ryeoni.separate	먹다	verb	exact	0	9	먹었다. 추측일 뿐이다.
+regression.retrospective-de.state	똑똑하다	adjective	exact	0	15	똑똑하데요.
+regression.retrospective-de.copula	이다	adjective	exact	6	15	동창이데요.
+regression.retrospective-de.honorific-past	오다	verb	exact	0	12	오셨데요.
+regression.retrospective-de.past	피다	verb	exact	0	9	폈데요.
+regression.retrospective-de.bound-noun	읽다	verb	exact	0	6	읽는 데 시간이 걸렸다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
