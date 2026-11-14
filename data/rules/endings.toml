@@ -2115,7 +2115,17 @@ terminal = true
 id = "ending.propositive-quotation"
 category = "final"
 initial = "consonant"
-forms = ["자며", "자면서", "자니까"]
+forms = ["자며", "자면서", "자니까", "자나"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.propositive-concessive"
+category = "connective"
+initial = "consonant"
+forms = ["자손"]
 required = ["action-verb"]
 forbidden = []
 next = []
