@@ -15,6 +15,7 @@ use kfind_query::{
 };
 use unicode_normalization::UnicodeNormalization;
 
+use super::trailing::licensed_source_ending_surface;
 use super::*;
 
 #[test]
