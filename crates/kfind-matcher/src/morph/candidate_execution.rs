@@ -75,6 +75,17 @@ impl MorphMatcher {
                 if !accepts_left_context(left_context, haystack, hit.span.start) {
                     return None;
                 }
+                if *pos == kfind_morph::PredicatePos::Copula
+                    && *continuation == kfind_morph::ContinuationState::Terminal
+                    && is_boundary_before(haystack, hit.span.start)
+                    && branch.origins.iter().any(|origin| {
+                        matches!(origin.rule_path.as_slice(), [.., honorific, adnominal]
+                            if honorific.as_str() == "ending.honorific"
+                                && adnominal.as_str() == "ending.past-adnominal")
+                    })
+                {
+                    return None;
+                }
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
