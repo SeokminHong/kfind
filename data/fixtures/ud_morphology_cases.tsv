@@ -885,6 +885,13 @@ regression.final-merya.future	먹다	verb	exact	7	22	이미 먹겠음에랴.
 regression.final-merya.copula	이다	adjective	exact	16	28	그분이 스승이심에랴.
 regression.final-merya.nominalizer	좋다	adjective	only-exact	0	9	좋음에 기대어 살았다.
 regression.final-merya.separate	먹다	verb	only-exact	0	6	먹음. 에랴 씨가 기록했다.
+regression.rieuljina.state	많다	adjective	exact	10	22	사람이 많을지나 자리는 비리라.
+regression.rieuljina.past	찾다	verb	exact	7	22	이미 찾았을지나 알릴 수는 없었다.
+regression.rieuljina.separate	읽다	verb	only-exact	0	6	읽을 지나 씨의 편지를 꺼냈다.
+regression.rieuljina.doubt	오다	verb	only-exact	7	13	언제 올지, 나는 묻지 않았다.
+regression.rieuljimyeo.honorific	읽다	verb	exact	10	25	스승이 읽으실지며 제자도 따를 것이다.
+regression.rieuljimyeo.state-consonant	높다	adjective	exact	7	19	산은 높을지며 골은 깊으리라.
+regression.rieuljimyeo.state-vowel	예쁘다	adjective	smart-only-exact	7	13	꽃은 예쁠지며 향도 좋으리라.
 regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
 regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
 regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?

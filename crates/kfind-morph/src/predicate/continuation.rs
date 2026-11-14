@@ -1123,6 +1123,8 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "밖에"), &[$($prior,)* "ending.final-rieulbakke"]),
             suffix(concat!($prefix, "쏘냐"), &[$($prior,)* "ending.interrogative-rieulssonya"]),
             suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
+            suffix(concat!($prefix, "지나"), &[$($prior,)* "ending.contrast-rieuljina"]),
+            suffix(concat!($prefix, "지며"), &[$($prior,)* "ending.coordinate-rieuljimyeo"]),
             suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
             suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
             suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
@@ -3140,6 +3142,8 @@ fn verify_simple_continuation(
                         | "ending.doubt-rieulrago"
                         | "ending.conjecture-rieulrera"
                         | "ending.final-merya"
+                        | "ending.contrast-rieuljina"
+                        | "ending.coordinate-rieuljimyeo"
                         | "ending.interrogative-rieulgeona"
                         | "ending.final-rieuljira"
                         | "ending.final-rieuljinira"
@@ -3176,6 +3180,10 @@ fn verify_simple_continuation(
                         .starts_with(|ch: char| ch.is_whitespace() && ch != '\r' && ch != '\n'))
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action() && has_separate_malrak(&following[suffix.surface.len()..])))
+                && (suffix.rules.last() != Some(&"ending.coordinate-rieuljimyeo")
+                    || suffix.surface.contains('을')
+                    || pos.is_action()
+                    || (suffix.surface == "지며" && anchor.ends_with('을')))
                 && !(dapsigo
                     && state == ContinuationState::StemEnding
                     && pos.is_action()
