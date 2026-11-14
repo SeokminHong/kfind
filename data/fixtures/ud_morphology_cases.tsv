@@ -1143,6 +1143,10 @@ regression.concessive-gironi.rieul	벌다	verb	exact	0	12	벌기로니 당장 �
 regression.concessive-gironi.honorific-past	읽다	verb	exact	0	18	읽으셨기로니 다 기억하실까.
 regression.concessive-gironi.copula	이다	adjective	exact	6	18	학생이기로니 책임이 없겠느냐.
 regression.concessive-gironi.nominalized	읽다	verb	only-exact	0	9	읽기로 마음먹었다.
+regression.concessive-giroseondeul.adjective	없다	adjective	only-exact	0	15	없기로선들 도둑질을 할 수야 있나.
+regression.concessive-giroseondeul.copula	이다	adjective	only-exact	6	21	약골이기로선들 쌀 한 말을 못 들까?
+regression.concessive-giroseondeul.past	읽다	verb	only-exact	0	18	읽었기로선들 모두 외우겠느냐?
+regression.concessive-giroseondeul.separate	읽다	verb	only-exact	0	9	읽기로 선들바람을 쐴 시간을 미뤘다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
