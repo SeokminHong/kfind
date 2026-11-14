@@ -2302,6 +2302,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-geoneul"
+category = "connective"
+initial = "consonant"
+forms = ["거늘"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-geondae"
 category = "connective"
 initial = "consonant"
