@@ -4,8 +4,8 @@
 
 ## 19. 참조 구현과 검증 전략
 
-Reference backend는 production anchor 계획과 결과 타입을 공유한다. 지정사 어간 뒤의
-공통 어미는 표면형·규칙 경로를 같은 정의에서 읽는다. 서술어 continuation과 조사 연쇄
+Reference backend는 production anchor 계획과 결과 타입을 공유한다. 지정사 어간과
+`-라` 뒤의 공통 어미는 표면형·규칙 경로를 같은 정의에서 읽는다. 서술어 continuation과 조사 연쇄
 판정은 production consumption을 호출하지 않고 별도 순회 구현으로 계산한다. 공유한 어미
 정의의 문법적 오류는 별도 정답 예문과 반례로 확인한다.
 

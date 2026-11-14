@@ -4,7 +4,10 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_data::{COPULA_STEM_ENDINGS, EndingSurface as ReferenceSuffix};
+use kfind_data::{
+    COPULA_RA_SUFFIXES, COPULA_REPORTING_AND_RO_ENDINGS, COPULA_STEM_ENDINGS,
+    EndingSurface as ReferenceSuffix,
+};
 use kfind_morph::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
 use kfind_query::{
     CandidateConsumption, CandidateLeftContext, CandidateProgram, CoreMapping, Origin,
@@ -1720,35 +1723,7 @@ fn reference_simple_continuation(
         ],
         ContinuationState::ReportEnding => return None,
         ContinuationState::Interrogative => INTERROGATIVE,
-        ContinuationState::CopulaRa => &[
-            reference_suffix("", &["ending.copula-ra-connective"]),
-            reference_suffix("고", &["ending.copula-quotative-go"]),
-            reference_suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
-            reference_suffix("는", &["ending.copula-quotative-adnominal"]),
-            reference_suffix(
-                "는군요",
-                &[
-                    "ending.copula-quotative-adnominal",
-                    "ending.final-neun-exclamative",
-                    "ending.polite-yo",
-                ],
-            ),
-            reference_suffix("나", &["ending.copula-ra-final"]),
-            reference_suffix("네", &["ending.copula-ra-final"]),
-            reference_suffix("느니", &["ending.copula-ra-connective"]),
-            reference_suffix("도", &["ending.copula-ra-connective"]),
-            reference_suffix("니", &["ending.copula-ra-final"]),
-            reference_suffix("니까", &["ending.copula-ra-final"]),
-            reference_suffix("며", &["ending.copula-ra-connective"]),
-            reference_suffix("면", &["ending.copula-ra-connective"]),
-            reference_suffix("면서", &["ending.copula-ra-connective"]),
-            reference_suffix("서", &["ending.copula-ra-connective"]),
-            reference_suffix("손", &["ending.copula-ra-connective"]),
-            reference_suffix("야", &["ending.copula-ra-connective"]),
-            reference_suffix("야만", &["ending.copula-ra-connective"]),
-            reference_suffix("오", &["ending.copula-ra-final"]),
-            reference_suffix("지", &["ending.copula-ra-final"]),
-        ],
+        ContinuationState::CopulaRa => COPULA_RA_SUFFIXES,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
@@ -2361,29 +2336,7 @@ fn reference_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with(['란', '람', '랍', '래', '로']) =>
         {
-            &[
-                reference_suffix("란다", &["ending.copula-reporting-final"]),
-                reference_suffix("람", &["ending.copula-reporting-final"]),
-                reference_suffix("랍니까", &["ending.copula-reporting-final"]),
-                reference_suffix("랍니다", &["ending.copula-reporting-final"]),
-                reference_suffix("랍시고", &["ending.copula-reporting-connective"]),
-                reference_suffix("래", &["ending.copula-reporting-final"]),
-                reference_suffix(
-                    "래요",
-                    &["ending.copula-reporting-final", "ending.polite-yo"],
-                ),
-                reference_suffix("로고", &["ending.copula-ro-final"]),
-                reference_suffix("로구나", &["ending.copula-ro-final"]),
-                reference_suffix("로구려", &["ending.copula-ro-final"]),
-                reference_suffix("로구먼", &["ending.copula-ro-final"]),
-                reference_suffix("로군", &["ending.copula-ro-final"]),
-                reference_suffix("로군요", &["ending.copula-ro-final", "ending.polite-yo"]),
-                reference_suffix("로다", &["ending.copula-ro-final"]),
-                reference_suffix("로되", &["ending.copula-ro-connective"]),
-                reference_suffix("로라", &["ending.copula-ro-final"]),
-                reference_suffix("로서니", &["ending.copula-ro-connective"]),
-                reference_suffix("로세", &["ending.copula-ro-final"]),
-            ]
+            COPULA_REPORTING_AND_RO_ENDINGS
         }
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with("지고") =>

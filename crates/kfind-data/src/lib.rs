@@ -21,7 +21,10 @@ pub use component::{
     ComponentAnalysisRef, ComponentPart, ComponentPos, ComponentResource, ComponentResourceStats,
     MAX_COMPONENT_RESOURCE_BYTES, decode_component_resource, encode_component_resource,
 };
-pub use copula::{COPULA_STEM_ENDINGS, CopulaOmission, CopulaStemEnding, EndingSurface};
+pub use copula::{
+    COPULA_RA_SUFFIXES, COPULA_REPORTING_AND_RO_ENDINGS, COPULA_STEM_ENDINGS, CopulaOmission,
+    CopulaStemEnding, EndingSurface,
+};
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};
 pub use lexicon::{
