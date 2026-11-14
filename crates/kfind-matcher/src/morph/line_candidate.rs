@@ -22,7 +22,7 @@ pub(super) fn find(matcher: &MorphMatcher, haystack: &[u8]) -> Option<LineMatchK
         loop {
             cover_atoms(
                 &mut covered_atoms,
-                &matcher.anchor_programs[current.anchor_index],
+                matcher.anchor_programs.get(current.anchor_index),
                 &mut remaining_atoms,
             );
             if remaining_atoms == 0 {
