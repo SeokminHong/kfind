@@ -912,6 +912,40 @@ fn reference_report_contraction(
 ) -> Option<(usize, Vec<RuleId>)> {
     use ContinuationState::{Eu, Future, NieunEnding, Past, Prospective, ReportEnding, StemEnding};
 
+    if pos.is_action() && matches!(state, Eu | Prospective) {
+        for (form, next, rule) in [
+            ("라셨", Past, "ending.past"),
+            ("라셔", ContinuationState::AOrEo, "ending.aoeo"),
+        ] {
+            let Some(rest) = following.strip_prefix(form) else {
+                continue;
+            };
+            let (length, suffix) = reference_simple_continuation(
+                next,
+                PredicatePos::Verb,
+                &form['라'.len_utf8()..],
+                rest,
+            )?;
+            if length == 0
+                && (next == Past || rest.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
+            {
+                continue;
+            }
+            return Some((
+                form.len() + length,
+                [
+                    "ending.directive-quotative",
+                    "ending.report-contraction",
+                    "ending.honorific",
+                    rule,
+                ]
+                .into_iter()
+                .map(RuleId::from)
+                .chain(suffix)
+                .collect(),
+            ));
+        }
+    }
     let stem = anchor.chars().next_back();
     let rieul = stem.is_some_and(has_rieul_final);
     let prefinal = matches!(state, Past | Future);
@@ -2237,6 +2271,9 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[reference_suffix("누나", &["ending.exclamative-nuna"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("누먼") => {
+            &[reference_suffix("누먼", &["ending.exclamative-numeon"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('누') =>
         {
@@ -2246,6 +2283,12 @@ fn reference_simple_continuation(
             &[reference_suffix(
                 "시누나",
                 &["ending.honorific", "ending.exclamative-nuna"],
+            )]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시누먼") => {
+            &[reference_suffix(
+                "시누먼",
+                &["ending.honorific", "ending.exclamative-numeon"],
             )]
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다며") => {
@@ -3608,6 +3651,7 @@ fn reference_simple_continuation(
                             | "ending.alternative-deunji"
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
+                            | "ending.exclamative-numeon"
                             | "ending.interrogative-nu"
                             | "ending.directive-quotative-short-adnominal"
                             | "ending.archaic-nani"

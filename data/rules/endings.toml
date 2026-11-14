@@ -2742,6 +2742,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.exclamative-numeon"
+category = "final"
+initial = "consonant"
+forms = ["누먼"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-deora"
 category = "final"
 initial = "consonant"
