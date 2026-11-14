@@ -701,6 +701,14 @@ fn compile_productive(
                 ContinuationState::Interrogative,
                 vec![rule("ending.interrogative-neunya")],
             );
+            push_branch(
+                branches,
+                entry,
+                format!("{question_stem}느뇨"),
+                present.core_len,
+                ContinuationState::Terminal,
+                vec![rule("ending.archaic-interrogative-nyo")],
+            );
         }
         if entry.pos.is_action() {
             push_derived(
@@ -1180,6 +1188,21 @@ fn compile_copula(
             surface.to_owned(),
             stem.len(),
             ContinuationState::Interrogative,
+            rules,
+        );
+    }
+    for (surface, honorific) in [("이뇨", false), ("이시뇨", true), ("이시느뇨", true)] {
+        let mut rules = vec![rule("lexical.copula")];
+        if honorific {
+            rules.push(rule("ending.honorific"));
+        }
+        rules.push(rule("ending.archaic-interrogative-nyo"));
+        push_branch(
+            branches,
+            entry,
+            surface.to_owned(),
+            stem.len(),
+            ContinuationState::Terminal,
             rules,
         );
     }

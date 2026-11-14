@@ -1804,6 +1804,40 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu
+            if following.starts_with('뇨')
+                && !pos.is_action()
+                && !anchor.ends_with("있으")
+                && !anchor.ends_with("없으")
+                && anchor != "계시" =>
+        {
+            &[suffix("뇨", &["ending.archaic-interrogative-nyo"])]
+        }
+        ContinuationState::Prospective if anchor.ends_with('시') && following.starts_with('뇨') => {
+            &[suffix("뇨", &["ending.archaic-interrogative-nyo"])]
+        }
+        ContinuationState::Prospective
+            if anchor.ends_with('시') && following.starts_with("느뇨") =>
+        {
+            &[suffix("느뇨", &["ending.archaic-interrogative-nyo"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("느뇨") => {
+            &[suffix("느뇨", &["ending.archaic-interrogative-nyo"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시뇨") || following.starts_with("시느뇨") =>
+        {
+            &[
+                suffix(
+                    "시뇨",
+                    &["ending.honorific", "ending.archaic-interrogative-nyo"],
+                ),
+                suffix(
+                    "시느뇨",
+                    &["ending.honorific", "ending.archaic-interrogative-nyo"],
+                ),
+            ]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if following.starts_with(RYAMANEUN.surface) =>
         {
