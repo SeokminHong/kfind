@@ -1897,6 +1897,18 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if pos.is_action()
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last))
+                && following
+                    .strip_prefix("사이다")
+                    .is_some_and(|tail| !tail.starts_with(is_reference_token_character)) =>
+        {
+            &[reference_suffix("사이다", &["ending.propositive-saida"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if anchor.chars().next_back().is_some_and(has_final)
                 && following
