@@ -1086,6 +1086,12 @@ regression.honorific-causal-ni.consonant	편찮다	adjective	only-exact	0	21	편
 regression.honorific-causal-ni.rieul	살다	verb	only-exact	0	15	사시니까는 이곳 사정을 아신다.
 regression.honorific-causal-ni.short	읽다	verb	only-exact	0	15	읽으시니깐 잠시 기다리자.
 regression.honorific-causal-ni.separate	읽다	verb	only-exact	0	12	읽으셨다. ‘니까는’은 따로 보자.
+regression.honorific-final-ji.vowel	오다	verb	only-exact	7	16	언제 오시지?
+regression.honorific-final-ji.consonant	읽다	verb	only-exact	0	12	읽으시지? 책을 다 준비했어.
+regression.honorific-final-ji.rieul	살다	verb	only-exact	0	9	사시지? 그 동네에.
+regression.honorific-final-ji.past	읽다	verb	only-exact	0	12	읽으셨지?
+regression.honorific-final-ji.polite	오다	verb	only-exact	0	12	오시지요?
+regression.honorific-final-ji.separate	오다	verb	only-exact	0	9	오셨다. ‘지’는 따로 읽어라.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

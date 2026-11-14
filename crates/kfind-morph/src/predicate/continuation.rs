@@ -1813,6 +1813,13 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu if following.starts_with("시지") => &[suffix(
+            "시지",
+            &["ending.honorific", "ending.confirmation-jiyo"],
+        )],
+        ContinuationState::Prospective if anchor.ends_with('시') && following.starts_with('지') => {
+            &[JI]
+        }
         ContinuationState::Eu
             if following.starts_with("시니까") || following.starts_with("시니깐") =>
         {
