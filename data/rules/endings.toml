@@ -2272,6 +2272,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-giroseoni"
+category = "connective"
+initial = "consonant"
+forms = ["기로서니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.affirmative-emphasis"
 category = "final"
 initial = "consonant"

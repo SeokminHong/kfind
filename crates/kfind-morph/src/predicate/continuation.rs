@@ -1741,6 +1741,39 @@ fn verify_simple_continuation(
     }
     let token_endings: &[Suffix] = match state {
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("기로서니") =>
+        {
+            &[suffix("기로서니", &["ending.concessive-giroseoni"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시기로서니")
+                || following.starts_with("셨기로서니")
+                || following.starts_with("시겠기로서니") =>
+        {
+            &[
+                suffix(
+                    "시기로서니",
+                    &["ending.honorific", "ending.concessive-giroseoni"],
+                ),
+                suffix(
+                    "셨기로서니",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.concessive-giroseoni",
+                    ],
+                ),
+                suffix(
+                    "시겠기로서니",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.concessive-giroseoni",
+                    ],
+                ),
+            ]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('듯') =>
         {
             &[
