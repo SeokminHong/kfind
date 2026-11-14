@@ -1472,14 +1472,18 @@ impl ConstraintResolver {
     }
 
     fn is_counter_quantity(&self, count: &str) -> bool {
-        matches!(count, "수" | "여러")
+        UNSPECIFIED_COUNTER_QUANTITIES.contains(&count)
             || INDEFINITE_COUNTER_QUANTITIES.contains(&count)
             || self.has_measure_count(count)
-            || count.strip_suffix('여').is_some_and(|cardinal| {
-                (!cardinal.is_empty() && cardinal.bytes().all(|byte| byte.is_ascii_digit()))
-                    || Self::is_mixed_cardinal(cardinal)
-                    || has_exact_fine_pos(&self.resource, cardinal, |pos| pos == DataFinePos::Nr)
-            })
+            || count
+                .strip_suffix(APPROXIMATE_CARDINAL_SUFFIX)
+                .is_some_and(|cardinal| {
+                    (!cardinal.is_empty() && cardinal.bytes().all(|byte| byte.is_ascii_digit()))
+                        || Self::is_mixed_cardinal(cardinal)
+                        || has_exact_fine_pos(&self.resource, cardinal, |pos| {
+                            pos == DataFinePos::Nr
+                        })
+                })
     }
 
     /// Recognizes an object count without treating date, price or measure phrases as object counts.

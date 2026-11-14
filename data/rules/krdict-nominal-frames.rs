@@ -55,6 +55,10 @@ const QUANTITY_MODIFIERS: &[&str] = &[
 // 표준국어대사전의 어림 접미사. 단위 명사 뒤에 붙고 뒤에 조사가 올 수 있다.
 const QUANTITY_APPROXIMATION_SUFFIXES: &[&str] = &["쯤", "가량"];
 
+// 정확한 수를 밝히지 않는 수량 관형사와 수 뒤에 붙는 어림 접미사.
+const UNSPECIFIED_COUNTER_QUANTITIES: &[&str] = &["수", "여러"];
+const APPROXIMATE_CARDINAL_SUFFIX: char = '여';
+
 // 날짜나 가격을 나타낼 수 있어 사물의 개수를 세는 증거로 쓰지 않는 단위.
 const DATE_AND_PRICE_UNITS: &[&str] = &["월", "원", "달러", "엔", "유로", "위안"];
 
