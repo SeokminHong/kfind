@@ -72,6 +72,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-geonman"
+category = "connective"
+initial = "consonant"
+forms = ["건마는", "건만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.concessive-nieundeul"
 category = "connective"
 initial = "attach-nieun"
