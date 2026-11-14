@@ -362,6 +362,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.exclamative-era"
+category = "final"
+initial = "other"
+forms = ["에라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-aoeora"
 category = "final"
 initial = "other"

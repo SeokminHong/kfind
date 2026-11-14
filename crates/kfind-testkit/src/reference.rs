@@ -1887,6 +1887,13 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Past if following.starts_with("에라") => {
+            &[reference_suffix("에라", &["ending.exclamative-era"])]
+        }
+        ContinuationState::Eu if following.starts_with("셨에라") => &[reference_suffix(
+            "셨에라",
+            &["ending.honorific", "ending.past", "ending.exclamative-era"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다손") => {
             &[reference_suffix("다손", &["ending.concessive-dason"])]
         }
@@ -3392,6 +3399,7 @@ fn reference_simple_continuation(
                             | "ending.copula-enumerative-yo"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
+                            | "ending.exclamative-era"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
                             | "ending.alternating-rak"
