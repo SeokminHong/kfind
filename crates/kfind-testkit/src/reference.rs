@@ -1416,6 +1416,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "오리이까"), &[$($prior,)* "ending.hao-respectful-final"]),
                 reference_suffix(concat!($prefix, "오리이다"), &[$($prior,)* "ending.hao-respectful-final"]),
                 reference_suffix(concat!($prefix, "오이다"), &[$($prior,)* "ending.hao-respectful-final"]),
+                reference_suffix(concat!($prefix, "외다"), &[$($prior,)* "ending.hao-respectful-final"]),
                 reference_suffix(concat!($prefix, "오이까"), &[$($prior,)* "ending.hao-respectful-final"]),
                 reference_suffix(concat!($prefix, "오니"), &[$($prior,)* "ending.hao-respectful-connective"]),
                 reference_suffix(concat!($prefix, "오면"), &[$($prior,)* "ending.hao-respectful-connective"]),
@@ -2526,19 +2527,21 @@ fn reference_simple_continuation(
             std::slice::from_ref(&HAO_U)
         }
         ContinuationState::StemEnding
-            if pos == PredicatePos::Copula && following.starts_with(['오', '우']) =>
+            if pos == PredicatePos::Copula && following.starts_with(['오', '우', '외']) =>
         {
             HAO_ENDINGS
         }
         ContinuationState::Eu
-            if following.starts_with('오')
+            if following.starts_with(['오', '외'])
                 || (following.starts_with('우')
                     && !anchor.strip_suffix('으').is_some_and(takes_bare_u)) =>
         {
             HAO_ENDINGS
         }
         ContinuationState::Eu
-            if (following.starts_with("시오") || following.starts_with("시우")) =>
+            if following.starts_with("시오")
+                || following.starts_with("시우")
+                || following.starts_with("시외") =>
         {
             if pos.is_action() {
                 HONORIFIC_HAO_AFTER_ACTION
@@ -2549,7 +2552,9 @@ fn reference_simple_continuation(
         ContinuationState::Past if following.starts_with(['소', '우']) => PAST_HAO_FINALS,
         ContinuationState::Future if following.starts_with('소') => FUTURE_HAO_FINALS,
         ContinuationState::Eu if following.starts_with("소서") => std::slice::from_ref(&SOSEO),
-        ContinuationState::Past | ContinuationState::Future if following.starts_with("으오") => {
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("으오") || following.starts_with("으외") =>
+        {
             PREFINAL_HAO_ENDINGS
         }
         ContinuationState::Eu
@@ -2558,8 +2563,14 @@ fn reference_simple_continuation(
             HONORIFIC_PAST_HAO_FINALS
         }
         ContinuationState::Eu if following.starts_with("시겠소") => HONORIFIC_FUTURE_HAO_FINALS,
-        ContinuationState::Eu if following.starts_with("셨으오") => HONORIFIC_PAST_HAO_ENDINGS,
-        ContinuationState::Eu if following.starts_with("시겠으오") => {
+        ContinuationState::Eu
+            if following.starts_with("셨으오") || following.starts_with("셨으외") =>
+        {
+            HONORIFIC_PAST_HAO_ENDINGS
+        }
+        ContinuationState::Eu
+            if following.starts_with("시겠으오") || following.starts_with("시겠으외") =>
+        {
             HONORIFIC_FUTURE_HAO_ENDINGS
         }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with('구') => &[

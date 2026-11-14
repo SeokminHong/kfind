@@ -648,6 +648,15 @@ regression.causal-jira.current-action	계시다	verb	smart-exact	13	28	선생님
 regression.causal-jira.copula	이다	adjective	smart-exact	13	22	오랜 친구인지라 마음이 놓였다.
 regression.causal-jira.separate-dependent	오다	verb	smart-exact	7	10	비가 온 지 오래됐다.
 regression.causal-jira.embedded-question	오다	verb	smart-exact	7	16	비가 오는지 확인했다.
+regression.respectful-oeda.vowel	떠나다	verb	smart-exact	14	26	나는 오늘 떠나외다.
+regression.respectful-oeda.consonant	맑다	adjective	smart-exact	10	22	날씨는 맑으외다.
+regression.respectful-oeda.copula	이다	adjective	smart-exact	16	25	그것이 사실이외다.
+regression.respectful-oeda.rieul	살다	verb	smart-exact	17	26	여기서 오래 사외다.
+regression.respectful-oeda.honorific	읽다	verb	smart-exact	16	31	선생님께서 읽으시외다.
+regression.respectful-oeda.past	떠나다	verb	smart-exact	14	29	나는 이미 떠났으외다.
+regression.respectful-oeda.full-form	이다	adjective	smart-exact	16	28	그것이 사실이오이다.
+regression.respectful-oeda.missing-eu	찾다	verb	no-match	0	9	찾외다.
+regression.respectful-oeda.lexical	외다	verb	smart-exact	13	19	구구단을 외다.
 regression.final-jiroda.vowel	공부하다	verb	smart-exact	10	28	학생은 공부할지로다.
 regression.final-jiroda.consonant	좋다	adjective	smart-exact	10	25	성품이 좋을지로다.
 regression.final-jiroda.copula	이다	adjective	smart-exact	16	28	그것은 선물일지로다.
