@@ -1402,6 +1402,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.doubt-rieulrago"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ라고", "을라고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.concern-rieulra"
 category = "final"
 initial = "attach-rieul"

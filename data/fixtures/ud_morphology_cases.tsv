@@ -826,6 +826,12 @@ regression.final-rieuljira.honorific	읽다	verb	exact	0	15	읽으실지라.
 regression.final-rieuljira.past	오다	verb	exact	0	12	왔을지라.
 regression.final-rieuljira.copula	이다	adjective	exact	6	15	사실일지라.
 regression.final-rieuljira.separate	찾다	verb	exact	0	6	찾을 지라의 위치를 표시했다.
+regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
+regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
+regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?
+regression.doubt-rieulrago.past	가다	verb	exact	0	12	갔을라고?
+regression.doubt-rieulrago.honorific	읽다	verb	exact	0	15	읽으실라고?
+regression.doubt-rieulrago.separate	오다	verb	exact	0	3	올 라고 씨를 기다린다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
