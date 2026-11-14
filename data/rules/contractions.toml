@@ -81,6 +81,14 @@ result = "치"
 ending_ids = ["ending.connective-ji"]
 
 [[contraction]]
+id = "contraction.resultative-it-geora"
+kind = "stem-rewrite"
+left = "어"
+right = "있거라"
+result = "었거라"
+ending_ids = ["ending.imperative-geora"]
+
+[[contraction]]
 id = "contraction.ha-geondae-aspiration"
 kind = "stem-rewrite"
 left = "하"
