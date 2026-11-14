@@ -1454,6 +1454,9 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
                 reference_suffix(concat!($prefix, "지나"), &[$($prior,)* "ending.contrast-rieuljina"]),
                 reference_suffix(concat!($prefix, "지며"), &[$($prior,)* "ending.coordinate-rieuljimyeo"]),
+                reference_suffix(concat!($prefix, "깝쇼"), &[$($prior,)* "ending.question-rieulkapsyo"]),
+                reference_suffix(concat!($prefix, "새"), &[$($prior,)* "ending.causal-rieulsae"]),
+                reference_suffix(concat!($prefix, "작시면"), &[$($prior,)* "ending.conditional-rieuljaksimyeon"]),
                 reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
                 reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
                 reference_suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
@@ -3276,6 +3279,9 @@ fn reference_simple_continuation(
                             | "ending.final-merya"
                             | "ending.contrast-rieuljina"
                             | "ending.coordinate-rieuljimyeo"
+                            | "ending.question-rieulkapsyo"
+                            | "ending.causal-rieulsae"
+                            | "ending.conditional-rieuljaksimyeon"
                             | "ending.interrogative-rieulgeona"
                             | "ending.final-rieuljira"
                             | "ending.final-rieuljinira"
@@ -3321,6 +3327,8 @@ fn reference_simple_continuation(
                     || suffix.rules == ["ending.exclamative-aoeora"]
                     || (!suffix.rules.contains(&"ending.intent-rieulrae")
                         && !suffix.rules.contains(&"ending.interrogative-rieulgeona")
+                        && !suffix.rules.contains(&"ending.question-rieulkapsyo")
+                        && !suffix.rules.contains(&"ending.conditional-rieuljaksimyeon")
                         && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
                         && !matches!(
                             suffix.surface,
