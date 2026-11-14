@@ -611,7 +611,7 @@ fn mismatch(entry: &PredicateEntry) -> GenerateError {
     }
 }
 
-fn with_rule(mut rules: Vec<RuleId>, id: &str) -> Vec<RuleId> {
+fn with_rule(mut rules: Vec<RuleId>, id: &'static str) -> Vec<RuleId> {
     rules.push(rule(id));
     rules
 }
@@ -624,6 +624,6 @@ fn derived(surface: String, core_len: usize, rules: Vec<RuleId>) -> DerivedSurfa
     }
 }
 
-fn rule(id: &str) -> RuleId {
-    RuleId::from(id)
+fn rule(id: &'static str) -> RuleId {
+    RuleId::from_static(id)
 }

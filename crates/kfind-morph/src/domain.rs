@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt;
 use std::ops::{BitOr, BitOrAssign};
 use std::sync::{Arc, OnceLock};
@@ -195,12 +196,16 @@ impl BitOrAssign for PredicateFlags {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct RuleId(Box<str>);
+pub struct RuleId(Cow<'static, str>);
 
 impl RuleId {
     #[must_use]
     pub fn new(value: impl Into<Box<str>>) -> Self {
-        Self(value.into())
+        Self(Cow::Owned(value.into().into_string()))
+    }
+
+    pub(crate) const fn from_static(value: &'static str) -> Self {
+        Self(Cow::Borrowed(value))
     }
 
     #[must_use]

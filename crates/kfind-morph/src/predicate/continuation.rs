@@ -3023,7 +3023,12 @@ fn has_separate_malrak(tail: &str) -> bool {
 fn matched(anchor_len: usize, suffix: Option<&Suffix>) -> PredicateContinuationMatch {
     let consumed_bytes = suffix.map_or(0, |suffix| suffix.surface.len());
     let rule_path = suffix.map_or_else(Vec::new, |suffix| {
-        suffix.rules.iter().copied().map(RuleId::from).collect()
+        suffix
+            .rules
+            .iter()
+            .copied()
+            .map(RuleId::from_static)
+            .collect()
     });
     PredicateContinuationMatch {
         token_end: anchor_len + consumed_bytes,
