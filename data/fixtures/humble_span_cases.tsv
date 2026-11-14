@@ -19,6 +19,10 @@ stdict.사오리이까:2	받다	verb	exact	17	35	제가 이것을 받사오리�
 stdict.사오리이다:1	받다	verb	exact	10	28	감사히 받사오리이다.
 stdict.사오이다:1	하다	verb	exact	7	25	제가 하겠사오이다.
 stdict.사오이다:2	좋다	adjective	exact	10	25	보기에 좋사오이다.
+stdict.사외다:1	하다	verb	exact	7	22	제가 하겠사외다.
+stdict.사외다:2	좋다	adjective	exact	10	22	보기에 좋사외다.
+regression.사외다.past	먹다	verb	exact	7	22	이미 먹었사외다.
+regression.사외다.token-tail	먹다	verb	no-match	7	25	이미 먹었사외다말.
 stdict.사옵:1	믿다	verb	exact	10	22	당신을 믿사옵고 따르옵니다.
 stdict.사옵나이까:1	깊다	adjective	exact	17	35	그렇게 병이 깊사옵나이까?
 stdict.사옵나이다:1	깊다	adjective	exact	7	25	병이 깊사옵나이다.
