@@ -239,6 +239,7 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     suffix("요", &["ending.polite-yo"]),
     suffix("라", &["ending.imperative-ra"]),
 ];
+const EXCLAMATIVE_AOEO_RA: Suffix = suffix("라", &["ending.exclamative-aoeora"]);
 
 const A_OR_EO_SEO_SUFFIXES: &[Suffix] = &[
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
@@ -1684,6 +1685,14 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::AOrEo
+            if matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) && following.starts_with('라') =>
+        {
+            &[EXCLAMATIVE_AOEO_RA]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if (state != ContinuationState::StemEnding || !pos.is_action())
                 && (following.starts_with("다마") || following.starts_with("다만")) =>
@@ -2259,6 +2268,7 @@ fn verify_simple_continuation(
                         | "ending.interrogative-ngam"
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
+                        | "ending.exclamative-aoeora"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
@@ -2739,8 +2749,12 @@ mod tests {
             "예뻐",
             "라",
         )
-        .expect("completed vowel anchor remains valid");
-        assert_eq!(adjective.consumed_bytes, 0);
+        .expect("adjective exclamative");
+        assert_eq!(adjective.token_end, "예뻐라".len());
+        assert_eq!(
+            adjective.rule_path,
+            [RuleId::from("ending.exclamative-aoeora")]
+        );
     }
 
     #[test]
