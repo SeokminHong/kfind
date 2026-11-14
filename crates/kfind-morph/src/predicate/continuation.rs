@@ -1,5 +1,8 @@
 use crate::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
-use kfind_data::{COPULA_STEM_ENDINGS, CopulaOmission, EndingSurface as Suffix};
+use kfind_data::{
+    COPULA_RA_SUFFIXES, COPULA_REPORTING_AND_RO_ENDINGS, COPULA_STEM_ENDINGS, CopulaOmission,
+    EndingSurface as Suffix,
+};
 
 mod auxiliary;
 mod hao;
@@ -23,60 +26,8 @@ const YAJI: Suffix = suffix("야지", &["ending.necessity-yaji"]);
 const YAJI_POLITE: Suffix = suffix("야지요", &["ending.necessity-yaji-polite"]);
 const YAJI_CONTRACTED: Suffix = suffix("야죠", &["ending.necessity-yaji-polite"]);
 pub(super) const YAJI_ENDINGS: &[Suffix] = &[YAJI, YAJI_POLITE, YAJI_CONTRACTED];
-const COPULA_RA_SUFFIXES: &[Suffix] = &[
-    suffix("", &["ending.copula-ra-connective"]),
-    suffix("고", &["ending.copula-quotative-go"]),
-    suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
-    suffix("는", &["ending.copula-quotative-adnominal"]),
-    suffix(
-        "는군요",
-        &[
-            "ending.copula-quotative-adnominal",
-            "ending.final-neun-exclamative",
-            "ending.polite-yo",
-        ],
-    ),
-    suffix("나", &["ending.copula-ra-final"]),
-    suffix("네", &["ending.copula-ra-final"]),
-    suffix("느니", &["ending.copula-ra-connective"]),
-    suffix("도", &["ending.copula-ra-connective"]),
-    suffix("니", &["ending.copula-ra-final"]),
-    suffix("니까", &["ending.copula-ra-final"]),
-    suffix("며", &["ending.copula-ra-connective"]),
-    suffix("면", &["ending.copula-ra-connective"]),
-    suffix("면서", &["ending.copula-ra-connective"]),
-    suffix("서", &["ending.copula-ra-connective"]),
-    suffix("손", &["ending.copula-ra-connective"]),
-    suffix("야", &["ending.copula-ra-connective"]),
-    suffix("야만", &["ending.copula-ra-connective"]),
-    suffix("오", &["ending.copula-ra-final"]),
-    suffix("지", &["ending.copula-ra-final"]),
-];
-
-const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
-    suffix("란", &["ending.copula-quotative-adnominal"]),
-    suffix("란다", &["ending.copula-reporting-final"]),
-    suffix("람", &["ending.copula-reporting-final"]),
-    suffix("랍니까", &["ending.copula-reporting-final"]),
-    suffix("랍니다", &["ending.copula-reporting-final"]),
-    suffix("랍시고", &["ending.copula-reporting-connective"]),
-    suffix("래", &["ending.copula-reporting-final"]),
-    suffix(
-        "래요",
-        &["ending.copula-reporting-final", "ending.polite-yo"],
-    ),
-    suffix("로고", &["ending.copula-ro-final"]),
-    suffix("로구나", &["ending.copula-ro-final"]),
-    suffix("로구려", &["ending.copula-ro-final"]),
-    suffix("로구먼", &["ending.copula-ro-final"]),
-    suffix("로군", &["ending.copula-ro-final"]),
-    suffix("로군요", &["ending.copula-ro-final", "ending.polite-yo"]),
-    suffix("로다", &["ending.copula-ro-final"]),
-    suffix("로되", &["ending.copula-ro-connective"]),
-    suffix("로라", &["ending.copula-ro-final"]),
-    suffix("로서니", &["ending.copula-ro-connective"]),
-    suffix("로세", &["ending.copula-ro-final"]),
-];
+// The abbreviated adnominal also participates in omission and particle competition.
+const COPULA_RAN: Suffix = suffix("란", &["ending.copula-quotative-adnominal"]);
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
 const COLLOQUIAL_GU: Suffix = suffix("구", &["ending.connective-go"]);
@@ -163,6 +114,7 @@ pub(super) fn is_copula_omission_ending(surface: &str) -> bool {
             CopulaOmission::Bare => entry.suffix.surface == surface,
             CopulaOmission::BareOrHonorific => entry.suffix.surface == bare,
         })
+        || bare == COPULA_RAN.surface
         || COPULA_REPORTING_AND_RO_ENDINGS
             .iter()
             .any(|ending| ending.surface == bare)
@@ -2391,6 +2343,13 @@ fn verify_simple_continuation(
             if following.starts_with("시니라") || following.starts_with("시느니라") =>
         {
             HONORIFIC_NIRA
+        }
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && following.starts_with(COPULA_RAN.surface)
+                && !following.starts_with("란다") =>
+        {
+            &[COPULA_RAN]
         }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
