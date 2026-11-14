@@ -1897,6 +1897,12 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자누") => {
+            &[reference_suffix(
+                "자누",
+                &["ending.propositive-ja", "ending.interrogative-nu"],
+            )]
+        }
         ContinuationState::Eu if following.starts_with("시지") => &[
             reference_suffix("시지", &["ending.honorific", "ending.confirmation-jiyo"]),
             reference_suffix("시지요", &["ending.honorific", "ending.confirmation-jiyo"]),
@@ -2165,6 +2171,11 @@ fn reference_simple_continuation(
         }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[reference_suffix("누나", &["ending.exclamative-nuna"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('누') =>
+        {
+            &[reference_suffix("누", &["ending.interrogative-nu"])]
         }
         ContinuationState::Eu if pos.is_action() && following.starts_with("시누나") => {
             &[reference_suffix(
@@ -3524,6 +3535,7 @@ fn reference_simple_continuation(
                             | "ending.alternative-deunji"
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
+                            | "ending.interrogative-nu"
                             | "ending.archaic-nani"
                             | "ending.archaic-noni"
                             | "ending.reproach-eunirago"
