@@ -799,6 +799,12 @@ regression.propositive-jakkuna.vowel	가다	verb	exact	0	12	가자꾸나.
 regression.propositive-jakkuna.rieul	놀다	verb	exact	0	12	놀자꾸나.
 regression.propositive-jakkuna.resultative	부지런하다	adjective	exact	0	24	부지런해지자꾸나.
 regression.propositive-jakkuna.separate	가다	verb	exact	0	6	가자. 꾸나 씨가 기다린다.
+regression.connective-deusi.short	보다	verb	exact	0	6	보듯 결과는 뻔하다.
+regression.connective-deusi.long	오다	verb	exact	0	9	오듯이 갈 것이다.
+regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 없다.
+regression.connective-deusi.honorific	읽다	verb	exact	0	15	읽으시듯이 발음했다.
+regression.connective-deusi.copula	이다	adjective	exact	6	15	사실이듯이 전해졌다.
+regression.connective-deusi.bound-noun	읽다	verb	exact	0	6	읽은 듯 고개를 끄덕였다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
