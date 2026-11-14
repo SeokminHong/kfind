@@ -41,6 +41,7 @@ pub(in crate::structure) enum StructureSelection {
         preserves_counted_noun: bool,
     },
     NominalWhole,
+    RelativeLocationNoun,
     NominalOrAdverbWhole,
     BeforeHonorificSsi {
         preserves_anonymous_pronoun: bool,
@@ -172,6 +173,10 @@ impl StructureSelection {
                     && (pattern.fine_pos.is_nominal()
                         || (matches!(self, Self::NominalOrAdverbWhole)
                             && pattern.fine_pos == DataFinePos::Mag))
+            }
+            Self::RelativeLocationNoun => {
+                support.evidence == StructuralEvidence::Whole
+                    && matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnb)
             }
             Self::BeforeHonorificSsi {
                 preserves_anonymous_pronoun,
@@ -487,13 +492,24 @@ pub(in crate::structure) fn select_structure(
                 || has_complete_subject_phrase(resource, next)
         })
         && context.previous.is_some_and(|previous| {
-            complete_nominal_particle_host(resource, previous).map_or_else(
-                || has_exact_fine_pos(resource, previous, DataFinePos::is_nominal),
-                |host| has_exact_sequence(resource, &previous[host.end..], &[StructuralPos::JKG]),
-            ) && !complete_predicate_ending_path(resource, previous)
+            !exact_analysis_starts_with_pos(resource, previous, StructuralPos::is_predicate_tag)
+                && (previous.strip_suffix('의').is_some_and(|host| {
+                    complete_nominal_host(resource, host)
+                        && has_exact_sequence(resource, "의", &[StructuralPos::JKG])
+                }) || (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
+                    && complete_nominal_particle_host(resource, previous).is_none_or(|host| {
+                        has_exact_sequence(resource, previous, &[StructuralPos::NNP])
+                            && !has_exact_sequence(
+                                resource,
+                                &previous[host.end..],
+                                &[StructuralPos::JKB],
+                            )
+                            && !has_complete_subject_phrase(resource, previous)
+                            && !has_complete_object_phrase(resource, previous)
+                    })))
         })
     {
-        return StructureSelection::NominalWhole;
+        return StructureSelection::RelativeLocationNoun;
     }
     if evidence.has_whole(DataFinePos::Mag)
         && evidence

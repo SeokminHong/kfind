@@ -1055,6 +1055,13 @@ regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개
 regression.scope-nominal.common	내	noun	smart-exact	7	10	학교 내 시설을 확인했다.
 regression.relative-location.picture	속	noun	smart-exact	7	10	화보 속 박하선은 웃었다.
 regression.relative-location.object	속	noun	smart-exact	4	7	책 속 이야기를 읽었다.
+regression.relative-location.lexical-reference	사이	determiner	no-match	7	13	나무 사이 통로를 걸었다.
+regression.relative-location.genitive-reference	사이	determiner	no-match	14	20	두 나무의 사이 통로를 지나갔다.
+regression.relative-location.pronoun	옆	pronoun	no-match	7	10	책장 옆 사진을 골랐다.
+regression.relative-location.place-name	일대	determiner	no-match	7	13	서울 일대 상점이 문을 닫았다.
+regression.relative-location.marked-reference	일대	determiner	smart-exact	10	16	유치에 일대 전기를 마련했다.
+regression.relative-location.surroundings	주위	adverb	no-match	4	10	코 주위 상처가 아물었다.
+regression.relative-location.middle	중간	adverb	no-match	10	16	운동장 중간 자리가 비었다.
 regression.relative-location.negation	안	adverb	smart-exact	10	13	친구는 안 먹었다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
