@@ -1443,6 +1443,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
                 reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
                 reference_suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
+                reference_suffix(concat!($prefix, "지라"), &[$($prior,)* "ending.final-rieuljira"]),
                 reference_suffix(concat!($prefix, "지니라"), &[$($prior,)* "ending.final-rieuljinira"]),
                 reference_suffix(concat!($prefix, "런고"), &[$($prior,)* "ending.interrogative-rieulreongo"]),
                 reference_suffix(concat!($prefix, "쏜가"), &[$($prior,)* "ending.interrogative-rieulssonga"]),
@@ -2900,6 +2901,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-neundoda"
                             | "ending.causal-nieunjuk"
                             | "ending.final-rieuljiroda"
+                            | "ending.final-rieuljira"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"
                             | "ending.interrogative-rieulssonga"
