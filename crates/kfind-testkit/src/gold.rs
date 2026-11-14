@@ -358,6 +358,29 @@ mod tests {
     }
 
     #[test]
+    fn exclamative_nuna_does_not_consume_the_separate_noun() {
+        let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+        for text in [
+            "오니 누나가 웃었다.",
+            "오니 누나를 만났다.",
+            "오니 누나도 웃었다.",
+        ] {
+            for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+                let spans: Vec<_> = harness
+                    .find_lemma_matches("오다", text, CoarsePos::Verb, boundary)
+                    .expect("fixture query compiles")
+                    .into_iter()
+                    .map(|matched| matched.span)
+                    .collect();
+                assert!(
+                    matches!(spans.as_slice(), [span] if *span == (0.."오니".len())),
+                    "{text:?}, {boundary:?}: {spans:?}",
+                );
+            }
+        }
+    }
+
+    #[test]
     fn imperative_ryeom_preserves_regular_and_irregular_stems() {
         let harness = GoldHarness::embedded()
             .expect("embedded lexicons are valid")
