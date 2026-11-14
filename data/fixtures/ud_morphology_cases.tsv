@@ -870,6 +870,14 @@ regression.final-rieuljira.honorific	읽다	verb	exact	0	15	읽으실지라.
 regression.final-rieuljira.past	오다	verb	exact	0	12	왔을지라.
 regression.final-rieuljira.copula	이다	adjective	exact	6	15	사실일지라.
 regression.final-rieuljira.separate	찾다	verb	only-exact	0	6	찾을 지라의 위치를 표시했다.
+regression.conjecture-rieulrera.vowel	오다	verb	exact	18	27	그 사람도 곧 올레라.
+regression.conjecture-rieulrera.consonant	읽다	verb	exact	11	23	그 글도 읽을레라.
+regression.conjecture-rieulrera.honorific	읽다	verb	exact	13	28	선생님도 읽으실레라.
+regression.conjecture-rieulrera.past	오다	verb	exact	14	26	그도 이미 왔을레라.
+regression.conjecture-rieulrera.copula	이다	adjective	exact	27	36	그것도 한 가지 이유일레라.
+regression.conjecture-rieulrera.separate	읽다	verb	only-exact	0	6	읽을 레라 씨의 편지를 꺼냈다.
+regression.conjecture-rieulrera.nominal-quote	오다	verb	no-match	7	16	제주 올레라 불리는 길이다.
+regression.conjecture-rieulrera.nominal	올레	noun	smart-exact	7	13	제주 올레라 불리는 길이다.
 regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
 regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
 regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?
