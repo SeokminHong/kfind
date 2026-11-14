@@ -892,6 +892,11 @@ regression.prefinal-quotatives.report	사다	verb	exact	0	12	사겠다고 말했
 regression.prefinal-quotatives.ne	듣다	verb	exact	0	15	들었다네요.
 regression.prefinal-quotatives.ji	읽다	verb	exact	0	12	읽었다지?
 regression.prefinal-quotatives.separate	오다	verb	only-exact	0	6	왔다. 네가 불렀지?
+regression.eojjeoda.past-quotative	어쩌다	verb	exact	0	12	어쨌다고?
+regression.eojjeoda.past-polite	어쩌다	verb	exact	0	12	어쨌어요?
+regression.eojjeoda.past-connective	어쩌다	verb	exact	0	9	어쨌고 이제 뭘 할 건데?
+regression.eojjeoda.present	어쩌다	verb	exact	0	12	어쩌려고?
+regression.eojjeoda.other-verb	어쩌다	verb	only-exact	0	12	어쩌려고? 자루를 쨌다고 말할 거야?
 regression.concessive-dason.vowel	오다	verb	exact	0	9	온다손 다시 만나지는 않겠다.
 regression.concessive-dason.consonant	먹다	verb	exact	0	12	먹는다손 허기가 가시지 않는다.
 regression.concessive-dason.state	크다	adjective	exact	0	9	크다손 치자.
