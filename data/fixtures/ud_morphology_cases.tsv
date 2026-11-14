@@ -832,6 +832,12 @@ regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?
 regression.doubt-rieulrago.past	가다	verb	exact	0	12	갔을라고?
 regression.doubt-rieulrago.honorific	읽다	verb	exact	0	15	읽으실라고?
 regression.doubt-rieulrago.separate	오다	verb	exact	0	3	올 라고 씨를 기다린다.
+regression.interrogative-rieulgeona.vowel	보다	verb	exact	0	9	볼거나?
+regression.interrogative-rieulgeona.consonant	먹다	verb	exact	0	12	먹을거나?
+regression.interrogative-rieulgeona.irregular	짓다	verb	exact	0	12	지을거나?
+regression.interrogative-rieulgeona.past	읽다	verb	exact	0	15	읽었을거나?
+regression.interrogative-rieulgeona.honorific	읽다	verb	exact	0	15	읽으실거나?
+regression.interrogative-rieulgeona.separate	먹다	verb	exact	0	9	먹거나 마시거나 편한 대로 하세요.
 regression.connective-geoneul.stem	크다	adjective	exact	0	9	크거늘 어찌 보이지 않는다고 하느냐.
 regression.connective-geoneul.past	가다	verb	exact	0	9	갔거늘 어찌 돌아왔느냐.
 regression.connective-geoneul.honorific	읽다	verb	exact	0	15	읽으시거늘 어찌 말리느냐.

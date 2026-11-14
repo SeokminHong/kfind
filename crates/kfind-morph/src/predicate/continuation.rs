@@ -1103,6 +1103,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
             suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
             suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+            suffix(concat!($prefix, "거나"), &[$($prior,)* "ending.interrogative-rieulgeona"]),
             suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
             suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
             suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
@@ -1742,6 +1743,19 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Future if pos.is_action() && following.starts_with("을거나") => {
+            &[suffix("을거나", &["ending.interrogative-rieulgeona"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시겠을거나") => {
+            &[suffix(
+                "시겠을거나",
+                &[
+                    "ending.honorific",
+                    "ending.future",
+                    "ending.interrogative-rieulgeona",
+                ],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("거늘") =>
         {
@@ -2926,6 +2940,7 @@ fn verify_simple_continuation(
                         | "ending.formal-intention-statement"
                         | "ending.final-rieuljiroda"
                         | "ending.doubt-rieulrago"
+                        | "ending.interrogative-rieulgeona"
                         | "ending.final-rieuljira"
                         | "ending.final-rieuljinira"
                         | "ending.interrogative-rieulreongo"
@@ -2980,6 +2995,7 @@ fn verify_simple_continuation(
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"
                                 | "ending.intent-rieulrae"
+                                | "ending.interrogative-rieulgeona"
                                 | "ending.conditional-rieulrachimyeon"
                                 | "ending.colloquial-rieulramyeon"
                         )
