@@ -812,6 +812,11 @@ regression.imperative-gena.consonant	앉다	verb	exact	0	9	앉게나.
 regression.imperative-gena.rieul	들다	verb	exact	0	9	들게나.
 regression.imperative-gena.honorific	읽다	verb	exact	0	15	읽으시게나.
 regression.imperative-gena.adverbial	읽다	verb	exact	0	6	읽게 나만 남겨 줘.
+regression.aoeo-da.a	잡다	verb	exact	0	9	잡아다 매운탕을 끓였다.
+regression.aoeo-da.eo	꺾다	verb	exact	0	9	꺾어다 꽃시계를 만들었다.
+regression.aoeo-da.yeo	복사하다	verb	exact	0	15	복사하여다 붙였다.
+regression.aoeo-da.contraction	모으다	verb	exact	0	9	모아다 줄을 세웠다.
+regression.aoeo-da.separate	잡다	verb	exact	0	6	잡아 다음 칸에 넣어.
 regression.connective-deusi.short	보다	verb	exact	0	6	보듯 결과는 뻔하다.
 regression.connective-deusi.long	오다	verb	exact	0	9	오듯이 갈 것이다.
 regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 없다.

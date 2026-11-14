@@ -2412,9 +2412,10 @@ fn reference_simple_continuation(
         {
             &[reference_suffix("라", &["ending.exclamative-aoeora"])]
         }
-        ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
-            &[reference_suffix("다가", &["ending.aoeo-daga"])]
-        }
+        ContinuationState::AOrEo if pos.is_action() && following.starts_with('다') => &[
+            reference_suffix("다", &["ending.aoeo-daga"]),
+            reference_suffix("다가", &["ending.aoeo-daga"]),
+        ],
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
@@ -3104,6 +3105,7 @@ fn reference_simple_continuation(
                             | "ending.propositive-quotation"
                             | "ending.propositive-conditional"
                             | "ending.imperative-gena"
+                            | "ending.aoeo-daga"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
