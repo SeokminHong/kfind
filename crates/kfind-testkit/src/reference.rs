@@ -2247,6 +2247,13 @@ fn reference_simple_continuation(
             "시걸랑",
             &["ending.honorific", "ending.geodeun"],
         )],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
+            &[reference_suffix("으려나", &["ending.conjecture-ryeo"])]
+        }
+        ContinuationState::Eu if following.starts_with("시려나") => &[reference_suffix(
+            "시려나",
+            &["ending.honorific", "ending.conjecture-ryeo"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 reference_suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -3254,7 +3261,9 @@ fn reference_simple_continuation(
                     && !suffix.rules.contains(&"ending.promise-rieulge")
                     && !matches!(
                         suffix.surface,
-                        "으려니"
+                        "으려나"
+                            | "시려나"
+                            | "으려니"
                             | "으려니와"
                             | "디"
                             | "시디"

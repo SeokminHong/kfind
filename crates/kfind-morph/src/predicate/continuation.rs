@@ -2128,6 +2128,13 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시걸랑") => {
             &[suffix("시걸랑", &["ending.honorific", "ending.geodeun"])]
         }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
+            &[suffix("으려나", &["ending.conjecture-ryeo"])]
+        }
+        ContinuationState::Eu if following.starts_with("시려나") => &[suffix(
+            "시려나",
+            &["ending.honorific", "ending.conjecture-ryeo"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -3141,7 +3148,8 @@ fn verify_simple_continuation(
             ) || dapsigo
                 || (suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))
-                || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'));
+                || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'))
+                || matches!(suffix.surface, "으려나" | "시려나");
             following.starts_with(suffix.surface)
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action() && has_separate_malrak(&following[suffix.surface.len()..])))

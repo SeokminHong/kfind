@@ -766,6 +766,12 @@ regression.prefinal-ryeoni.past	먹다	verb	exact	0	15	먹었으려니 생각했
 regression.prefinal-ryeoniwa.future	주다	verb	exact	0	18	주겠으려니와 시상식도 준비하겠다.
 regression.prefinal-ryeoniwa.honorific-past	읽다	verb	exact	0	21	읽으셨으려니와 내용도 기억하시겠지.
 regression.prefinal-ryeoni.separate	먹다	verb	only-exact	0	9	먹었다. 추측일 뿐이다.
+regression.prefinal-ryeona.honorific	오다	verb	exact	0	12	오시려나?
+regression.prefinal-ryeona.past	모이다	verb	exact	0	15	모였으려나?
+regression.prefinal-ryeona.future	읽다	verb	exact	4	19	또 읽겠으려나?
+regression.prefinal-ryeona.honorific-past	읽다	verb	exact	7	25	벌써 읽으셨으려나?
+regression.prefinal-ryeona.adjective	맑다	adjective	exact	10	22	내일은 맑으려나?
+regression.prefinal-ryeona.separate	오다	verb	only-exact	0	6	왔다. 으려나 씨는 기다렸다.
 regression.retrospective-de.state	똑똑하다	adjective	exact	0	15	똑똑하데요.
 regression.retrospective-de.copula	이다	adjective	exact	6	15	동창이데요.
 regression.retrospective-de.honorific-past	오다	verb	exact	0	12	오셨데요.
