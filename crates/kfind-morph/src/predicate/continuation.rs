@@ -1467,20 +1467,30 @@ pub fn verify_predicate_continuation_with_prefinal_context(
     let honorific_declarative = if state == ContinuationState::Eu {
         let declarative = if pos.is_action() { "신다" } else { "시다" };
         following.strip_prefix(declarative).and_then(|tail| {
-            let suffix = declarative_suffix(tail)?;
+            let suffix = declarative_suffix(tail);
+            let complete_action_form =
+                pos.is_action() && !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_');
+            if suffix.is_none() && !complete_action_form {
+                return None;
+            }
             let base_rule = if pos.is_action() {
                 "ending.declarative"
             } else {
                 "ending.final-da"
             };
-            let consumed_bytes = declarative.len() + suffix.surface.len();
+            let consumed_bytes =
+                declarative.len() + suffix.map_or(0, |suffix| suffix.surface.len());
             Some(PredicateContinuationMatch {
                 token_end: anchor.len() + consumed_bytes,
                 consumed_bytes,
                 rule_path: ["ending.honorific", base_rule]
                     .into_iter()
-                    .chain(suffix.rules.iter().copied())
-                    .map(RuleId::from)
+                    .chain(
+                        suffix
+                            .into_iter()
+                            .flat_map(|suffix| suffix.rules.iter().copied()),
+                    )
+                    .map(RuleId::from_static)
                     .collect(),
             })
         })
