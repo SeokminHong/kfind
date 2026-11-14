@@ -1762,6 +1762,28 @@ fn verify_simple_continuation(
             suffix("시느라", &["ending.honorific", "ending.causal-neurago"]),
             suffix("시느라고", &["ending.honorific", "ending.causal-neurago"]),
         ],
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("다마다") || following.starts_with("고말고") =>
+        {
+            &[
+                suffix("다마다", &["ending.affirmative-emphasis"]),
+                suffix("고말고", &["ending.affirmative-emphasis"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다마다") || following.starts_with("시고말고") =>
+        {
+            &[
+                suffix(
+                    "시다마다",
+                    &["ending.honorific", "ending.affirmative-emphasis"],
+                ),
+                suffix(
+                    "시고말고",
+                    &["ending.honorific", "ending.affirmative-emphasis"],
+                ),
+            ]
+        }
         ContinuationState::RieulFinal if following.starts_with('게') && pos.is_action() => &[
             suffix("게", &["ending.promise-rieulge"]),
             suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
