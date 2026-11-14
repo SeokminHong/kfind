@@ -442,6 +442,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.directive-quotative-short-adnominal"
+category = "adnominal"
+initial = "eu"
+forms = ["란", "으란"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.directive-quotative"
 category = "connective"
 initial = "eu"
