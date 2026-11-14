@@ -2552,6 +2552,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.causal-norani"
+category = "connective"
+initial = "consonant"
+forms = ["노라니", "노라니까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.conditional-noramyeon"
+category = "connective"
+initial = "consonant"
+forms = ["노라면"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-nuna"
 category = "final"
 initial = "consonant"

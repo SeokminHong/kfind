@@ -554,6 +554,18 @@ fn compile_productive(
                 base.clone(),
                 ContinuationState::ReportEnding,
             );
+            if entry.pos.is_action() {
+                for ending in continuation::NORA_CONNECTIVES {
+                    push_branch(
+                        branches,
+                        entry,
+                        format!("{}{}", base.surface, ending.surface),
+                        base.core_len,
+                        ContinuationState::Terminal,
+                        ending.rules.iter().map(|id| rule(id)).collect(),
+                    );
+                }
+            }
             if !uses_neunya {
                 push_adjective_question(branches, entry, base);
             }
@@ -910,6 +922,7 @@ fn compile_rieul_honorific(
         .chain(continuation::POLITE_HONORIFIC_ENDINGS)
         .chain(continuation::HONORIFIC_VOWEL_CONNECTIVES)
         .chain(continuation::HONORIFIC_NIRA)
+        .chain([&continuation::HONORIFIC_NORAMYEON])
         .chain([&continuation::HONORIFIC_DAM])
         .chain(&continuation::HONORIFIC_NE_ENDINGS)
         .chain(if entry.pos.is_action() {

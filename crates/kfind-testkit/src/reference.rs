@@ -1932,6 +1932,27 @@ fn reference_simple_continuation(
                 ),
             ]
         }
+        ContinuationState::StemEnding
+            if (pos.is_action() || matches!(anchor, "있" | "없" | "계시"))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final)
+                && (following.starts_with("노라니") || following.starts_with("노라면")) =>
+        {
+            &[
+                reference_suffix("노라니", &["ending.causal-norani"]),
+                reference_suffix("노라니까", &["ending.causal-norani"]),
+                reference_suffix("노라면", &["ending.conditional-noramyeon"]),
+            ]
+        }
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if following.starts_with("시노라면")
+                && (state == ContinuationState::Eu
+                    || !anchor.chars().next_back().is_some_and(has_final)) =>
+        {
+            &[reference_suffix(
+                "시노라면",
+                &["ending.honorific", "ending.conditional-noramyeon"],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos.is_action() && following.starts_with("노라") =>
         {
@@ -3304,6 +3325,8 @@ fn reference_simple_continuation(
                             | "ending.conditional-rieuljindaeneun"
                             | "ending.question-rieulkapsyo"
                             | "ending.causal-rieulsae"
+                            | "ending.causal-norani"
+                            | "ending.conditional-noramyeon"
                             | "ending.conditional-rieuljaksimyeon"
                             | "ending.interrogative-rieulgeona"
                             | "ending.final-rieuljira"
