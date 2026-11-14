@@ -21,6 +21,11 @@ regression.postnominal-count.after-locative	가다	verb	no-match	13	19	시장에
 regression.postnominal-count.approximate-native	가다	verb	no-match	0	6	가지 예닐곱 개쯤 주세요.
 regression.postnominal-count.split-native	가다	verb	no-match	0	6	가지 예 닐곱 개쯤 주세요.
 regression.postnominal-count.other-native-determiner	되다	verb	no-match	0	6	돼지 두어 마리가 필요하다.
+regression.postnominal-count.mixed-cardinal	가다	verb	no-match	0	6	가지 약 2천 개를 주문했다.
+regression.postnominal-count.approximate-cardinal-suffix	가다	verb	no-match	0	6	가지 10여 개만 남았다.
+regression.postnominal-count.attached-counter-and-approximation	되다	verb	no-match	0	6	돼지 약 2마리쯤 더 키울 수 있다.
+regression.postnominal-count.approximation-across-clause	가다	verb	smart-exact	0	6	가지, 약 두 개는 사야 해.
+regression.postnominal-count.adverb-without-count	가다	verb	smart-exact	0	6	가지 대충 주워 와.
 corpus.ud-gsd.test.test-s570.adverb-before-bare-object	무조건	adverb	smart-exact	13	22	겨울에는 무조건 내복 입고 주무세요.
 regression.geon-nominal-conflict.adverb-before-predicate	무조건	adverb	smart-exact	0	9	무조건 쉬세요.
 regression.geon-nominal-conflict.determiner	무조건	adverb	no-match	4	13	그 무조건 항복 요구를 거부했다.

@@ -17,5 +17,50 @@ const COMPARATIVE_NOMINALS: &[&str] = &["이상", "이하", "미만", "초과", 
 // 학기(72420), 계절(22537), 철(계절), 분기(한 해의 4분의 1).
 const COUNTABLE_PERIODS: &[&str] = &["학기", "계절", "철", "분기"];
 
+// 국립국어원 한국어기초사전과 새국어생활에 등재된 어림수.
+const INDEFINITE_COUNTER_QUANTITIES: &[&str] = &[
+    "한두",
+    "두어",
+    "두세",
+    "두서너",
+    "서너",
+    "수삼",
+    "네다섯",
+    "네댓",
+    "너덧",
+    "너더댓",
+    "댓",
+    "대여섯",
+    "대엿",
+    "예닐곱",
+    "일고여덟",
+    "일여덟",
+    "여덟아홉",
+    "엳아홉",
+    "여남은",
+];
+
+// 수량 전체에 어림값이나 상·하한을 부여하는 표현.
+const QUANTITY_MODIFIERS: &[&str] = &[
+    "약",
+    "대략",
+    "대충",
+    "대강",
+    "어림잡아",
+    "기껏해야",
+    "적어도",
+    "많아야",
+];
+
+// 표준국어대사전의 어림 접미사. 단위 명사 뒤에 붙고 뒤에 조사가 올 수 있다.
+const QUANTITY_APPROXIMATION_SUFFIXES: &[&str] = &["쯤", "가량"];
+
+// 정확한 수를 밝히지 않는 수량 관형사와 수 뒤에 붙는 어림 접미사.
+const UNSPECIFIED_COUNTER_QUANTITIES: &[&str] = &["수", "여러"];
+const APPROXIMATE_CARDINAL_SUFFIX: char = '여';
+
+// 날짜나 가격을 나타낼 수 있어 사물의 개수를 세는 증거로 쓰지 않는 단위.
+const DATE_AND_PRICE_UNITS: &[&str] = &["월", "원", "달러", "엔", "유로", "위안"];
+
 // 국립국어원 온라인가나다의 ‘범위 안’을 나타내는 의존 명사.
 const SCOPE_DEPENDENT_NOUNS: &[&str] = &["내"];

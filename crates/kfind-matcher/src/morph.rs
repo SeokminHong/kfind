@@ -52,17 +52,6 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
     "ending.future-adnominal",
     "ending.retrospective-adnominal",
 ];
-const QUANTITY_MODIFIERS: &[&str] = &[
-    "약",
-    "대략",
-    "대충",
-    "대강",
-    "어림잡아",
-    "기껏해야",
-    "적어도",
-    "많아야",
-];
-
 #[derive(Default)]
 struct StructuralCache<'a> {
     diagnostics: Option<&'a SearchDiagnostics>,
@@ -3786,7 +3775,7 @@ fn has_postnominal_count_frame(
     let Some((mut next_end, mut first)) = context::next_word_on_line(haystack, span.end) else {
         return false;
     };
-    if QUANTITY_MODIFIERS.contains(&first.as_ref()) {
+    if ConstraintResolver::is_quantity_modifier(&first) {
         let Some(next) = context::next_word_on_line(haystack, next_end) else {
             return false;
         };
