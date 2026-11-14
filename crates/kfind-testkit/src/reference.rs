@@ -3407,9 +3407,39 @@ fn reference_attached_auxiliary(
         let Some(rest) = following.strip_prefix(form) else {
             continue;
         };
-        let (consumed, suffix) =
+        let ordinary =
             reference_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, rest)
                 .unwrap_or_default();
+        let (consumed, suffix) = if state == Past {
+            let after_past = rest.strip_prefix('었');
+            let tail = after_past.unwrap_or(rest);
+            let after_future = tail.strip_prefix('겠');
+            let tail = after_future.unwrap_or(tail);
+            let prefinal_len = rest.len() - tail.len();
+            let next_state = if after_future.is_some() { Future } else { Past };
+            if prefinal_len > 0
+                && let Some((length, suffix)) = reference_simple_continuation(
+                    next_state,
+                    PredicatePos::AuxiliaryVerb,
+                    &rest[..prefinal_len],
+                    tail,
+                )
+                && length > 0
+                && prefinal_len + length > ordinary.0
+            {
+                let path = after_past
+                    .map(|_| RuleId::from("ending.past"))
+                    .into_iter()
+                    .chain(after_future.map(|_| RuleId::from("ending.future")))
+                    .chain(suffix)
+                    .collect();
+                (prefinal_len + length, path)
+            } else {
+                ordinary
+            }
+        } else {
+            ordinary
+        };
         if consumed == 0 && !standalone {
             continue;
         }
@@ -3690,6 +3720,7 @@ mod tests {
         "사용자는은 오류다. 사용자도만 오류다.\n",
         "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
         "꽃이 예쁘군요. 집까지 걸으시는군요.\n",
+        "꽃이 예뻐졌겠다. 아이는 먹어봤겠다. 아이는 먹어 봤겠다.\n",
     );
 
     #[test]
