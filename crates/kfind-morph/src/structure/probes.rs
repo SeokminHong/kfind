@@ -1829,6 +1829,30 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_conjecture_complement_predicate(&self, text: &str) -> bool {
+        // 한국어기초사전 -려니¹의 결합 용언.
+        [
+            "하",
+            "생각하",
+            "싶",
+            "여기",
+            "해",
+            "생각해",
+            "했",
+            "생각했",
+            "싶었",
+            "여겼",
+        ]
+        .into_iter()
+        .any(|stem| {
+            text.strip_prefix(stem).is_some_and(|tail| {
+                (!tail.is_empty() || matches!(stem, "해" | "생각해"))
+                    && complete_suffix(&self.resource, tail, StructuralPos::is_ending)
+            })
+        })
+    }
+
+    #[must_use]
     pub fn has_final_adjective_by_ending(&self, text: &str) -> bool {
         text.char_indices().skip(1).any(|(split, _)| {
             let (stem, tail) = text.split_at(split);

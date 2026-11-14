@@ -113,7 +113,7 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
     normalized.char_indices().rev().any(|(start, character)| {
         if ((starts_omitted_copula_ending(character)
             && is_omitted_copula_ending(&normalized[start..]))
-            || (character == '야' && start + character.len_utf8() == normalized.len()))
+            || (matches!(character, '야' | '려') && matches!(&normalized[start..], "야" | "려니")))
             && vowel_final(&normalized[..start])
         {
             return true;
