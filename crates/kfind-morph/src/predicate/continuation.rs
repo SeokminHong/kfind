@@ -1744,6 +1744,14 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos.is_action() && following.starts_with("노라") =>
+        {
+            &[
+                suffix("노라", &["ending.archaic-nora"]),
+                suffix("노라고", &["ending.archaic-nora", "ending.quotative-go"]),
+            ]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[suffix("누나", &["ending.exclamative-nuna"])]
         }

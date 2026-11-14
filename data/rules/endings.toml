@@ -2362,6 +2362,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.archaic-nora"
+category = "final"
+initial = "consonant"
+forms = ["노라", "노라고"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-nuna"
 category = "final"
 initial = "consonant"
