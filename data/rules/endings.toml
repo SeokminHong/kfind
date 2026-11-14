@@ -1242,6 +1242,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.quotative-daneuni"
+category = "connective"
+initial = "consonant"
+forms = ["ㄴ다느니", "는다느니", "다느니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-janeuni"
+category = "connective"
+initial = "consonant"
+forms = ["자느니"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.interrogative-nya"
 category = "final"
 initial = "other"

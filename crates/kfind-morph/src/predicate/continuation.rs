@@ -512,6 +512,7 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    DANEUNI,
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
     JI,
@@ -619,6 +620,7 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 );
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    DANEUNI,
     suffix("으며", &["ending.coordinate-myeo"]),
     suffix("으면서", &["ending.simultaneous-myeonseo"]),
     PREFINAL_DAMYEON,
@@ -667,6 +669,8 @@ pub(super) const HONORIFIC_CAUSAL_NI: &[Suffix] = &[
 const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
+const DECLARATIVE_NEUNI: Suffix = suffix("느니", &["ending.quotative-daneuni"]);
+const DANEUNI: Suffix = suffix("다느니", &["ending.quotative-daneuni"]);
 const DECLARATIVE_ADNOMINAL: Suffix = suffix("는", &["ending.quotative-adnominal"]);
 const PLAIN_QUOTATIVE_ADNOMINAL: Suffix = suffix("다는", &["ending.quotative-adnominal"]);
 const DECLARATIVE_NEUN_GUN_YO: Suffix = suffix(
@@ -2381,6 +2385,9 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
             &[suffix("자꾸나", &["ending.propositive-ja"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자느니") => {
+            &[suffix("자느니", &["ending.quotative-janeuni"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && (following.starts_with("자며")
@@ -3525,6 +3532,8 @@ fn verify_simple_continuation(
                         | "ending.exclamative-era"
                         | "ending.humble-wa"
                         | "ending.quotative-nyaneuni"
+                        | "ending.quotative-daneuni"
+                        | "ending.quotative-janeuni"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
                         | "ending.quotative-danda"
@@ -3695,6 +3704,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
             Some(&DECLARATIVE_NEUN_GUN_YO)
         }
         '는' => Some(&DECLARATIVE_ADNOMINAL),
+        '느' if ends_at_boundary(DECLARATIVE_NEUNI.surface) => Some(&DECLARATIVE_NEUNI),
         '고' => Some(&DECLARATIVE_GO),
         '네' if following.starts_with("네요") => Some(&DECLARATIVE_NE_YO),
         '네' => Some(&DECLARATIVE_NE),
