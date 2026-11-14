@@ -1478,12 +1478,26 @@ fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
 
-    assert!(verb.find_at_with_meta("어서 가라".as_bytes(), 0).is_some());
-    assert!(
-        adjective
-            .find_at_with_meta("꽃이 예뻐라".as_bytes(), 0)
-            .is_none()
-    );
+    let imperative = verb.find_at_with_meta("어서 가라".as_bytes(), 0).unwrap();
+    let exclamative = adjective
+        .find_at_with_meta("꽃이 예뻐라".as_bytes(), 0)
+        .unwrap();
+    assert!(imperative.atoms[0].origins.iter().any(|origin| {
+        origin
+            .rule_path
+            .iter()
+            .any(|rule| rule.as_str() == "ending.imperative-ra")
+            || origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "ending.imperative")
+    }));
+    assert!(exclamative.atoms[0].origins.iter().any(|origin| {
+        origin
+            .rule_path
+            .iter()
+            .any(|rule| rule.as_str() == "ending.exclamative-aoeora")
+    }));
 }
 
 #[test]
