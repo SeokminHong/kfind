@@ -279,6 +279,33 @@ pub(super) fn accepts_omitted_copula(
         && (nominal_frame || !resolver.has_exact_non_copula_predicate_surface(token))
 }
 
+pub(super) fn accepts_fused_explanatory(token: &str, resolver: &ConstraintResolver) -> bool {
+    let Some((stem, last)) = token.strip_suffix('걸').and_then(|stem| {
+        let (last_start, last) = stem.char_indices().next_back()?;
+        decompose_syllable(last)
+            .filter(|syllable| syllable.jongseong == JONG_NIEUN)
+            .map(|_| (&stem[..last_start], last))
+    }) else {
+        return false;
+    };
+    if resolver.has_exact_non_copula_predicate_surface(token)
+        || resolver.has_exact_nominal_surface(token)
+        || resolver.has_whole_modifier(token)
+    {
+        return false;
+    }
+    let Some(vowel) = drop_final(last) else {
+        return false;
+    };
+    let mut host = String::with_capacity(stem.len() + vowel.len_utf8());
+    host.push_str(stem);
+    host.push(vowel);
+    !host
+        .strip_suffix('이')
+        .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
+        && resolver.has_exact_nominal_surface(&host)
+}
+
 pub(super) fn accepts_fused_retrospective(token: &str, resolver: &ConstraintResolver) -> bool {
     let Some(stem) = token
         .strip_suffix("디까")

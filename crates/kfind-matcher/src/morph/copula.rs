@@ -215,6 +215,9 @@ impl MorphMatcher {
             && resolver.has_exact_lost_span_copula_ending_path(&normalized))
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
+                    || (normalized.ends_with('걸')
+                        && is_sentence_end_after(haystack, candidate.verified.token.end)
+                        && fused_copula::accepts_fused_explanatory(&normalized, resolver))
                     || fused_copula::accepts_omitted_copula(
                         &normalized,
                         resolver,
