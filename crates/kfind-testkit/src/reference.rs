@@ -1088,6 +1088,7 @@ fn reference_simple_continuation(
         reference_suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
         reference_suffix("으면", &["ending.conditional"]),
         reference_suffix("으며", &["ending.coordinate-myeo"]),
+        reference_suffix("으면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("지만", &["ending.connective-jiman"]),
         reference_suffix("는데", &["ending.connective-neunde"]),
         reference_suffix("다고", &["ending.quotative-go"]),
@@ -1101,6 +1102,8 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("으며", &["ending.coordinate-myeo"]),
+        reference_suffix("으면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("으니", &["ending.connective-ni"]),
         reference_suffix("으니까", &["ending.connective-ni"]),
         reference_suffix("으니까는", &["ending.connective-ni"]),
@@ -1408,6 +1411,7 @@ fn reference_simple_continuation(
             "시면서",
             &["ending.honorific", "ending.simultaneous-myeonseo"],
         ),
+        reference_suffix("시며", &["ending.honorific", "ending.coordinate-myeo"]),
         reference_suffix("신", &["ending.honorific", "ending.past-adnominal"]),
         reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
         reference_suffix("면", &["ending.conditional"]),
