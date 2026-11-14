@@ -1012,6 +1012,10 @@ regression.humble-wa.nominal	사과	noun	only-exact	0	9	사과와 배를 샀다.
 regression.humble-wa.nominal-competitor	돌다	verb	no-match	0	9	도시와 농촌의 교류가 활발하다.
 regression.humble-wa.vowel-competitor	날다	verb	no-match	7	13	밖에 나와 하늘을 보았다.
 regression.humble-wa.independent-auxiliary	돌다	verb	no-match	0	6	도와달라고 부탁했다.
+regression.quotative-nyaneuni.action	서두르다	verb	only-exact	0	18	서두르냐느니 아직 이르다느니 말이 많았다.
+regression.quotative-nyaneuni.state	싫다	adjective	only-exact	0	15	싫으냐느니 좋으냐느니 거듭 물었다.
+regression.quotative-nyaneuni.past	먹다	verb	only-exact	0	15	먹었냐느니 맛은 어떠냐느니 물었다.
+regression.quotative-nyaneuni.separate	먹다	verb	only-exact	0	9	먹었냐? ‘느니’를 왜 뒤에 붙였지?
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

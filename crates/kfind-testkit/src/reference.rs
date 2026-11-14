@@ -1667,6 +1667,7 @@ fn reference_simple_continuation(
                 reference_suffix($surface, &[$($prior,)* $rule]),
                 reference_suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
                 reference_suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
+                reference_suffix(concat!($surface, "느니"), &[$($prior,)* "ending.quotative-nyaneuni"]),
             ]
         };
     }
@@ -1740,6 +1741,7 @@ fn reference_simple_continuation(
     const INTERROGATIVE: &[ReferenceSuffix] = &[
         reference_suffix("고", &["ending.quotative-go"]),
         reference_suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
+        reference_suffix("느니", &["ending.quotative-nyaneuni"]),
     ];
 
     macro_rules! nieun_extensions {
@@ -3422,6 +3424,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-aoeora"
                             | "ending.exclamative-era"
                             | "ending.humble-wa"
+                            | "ending.quotative-nyaneuni"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
                             | "ending.alternating-rak"
