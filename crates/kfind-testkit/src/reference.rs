@@ -1449,6 +1449,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
                 reference_suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
                 reference_suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
+                reference_suffix(concat!($prefix, "러니"), &[$($prior,)* "ending.retrospective-rieulreoni"]),
                 reference_suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
                 reference_suffix(concat!($prefix, "라고"), &[$($prior,)* "ending.doubt-rieulrago"]),
                 reference_suffix(concat!($prefix, "레라"), &[$($prior,)* "ending.conjecture-rieulrera"]),
@@ -3649,6 +3650,7 @@ fn reference_simple_continuation(
                             | "ending.doubt-rieulrago"
                             | "ending.conjecture-rieulrera"
                             | "ending.conjecture-rieulre"
+                            | "ending.retrospective-rieulreoni"
                             | "ending.final-rieulse"
                             | "ending.final-merya"
                             | "ending.contrast-rieuljina"

@@ -722,6 +722,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.retrospective-rieulreoni"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ러니", "을러니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.retrospective-reo-final"
 category = "final"
 initial = "consonant"
