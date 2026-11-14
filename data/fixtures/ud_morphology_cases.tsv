@@ -1043,6 +1043,11 @@ regression.copula-honorific-adnominal.closed	이다	adjective	only-exact	9	15	�
 regression.copula-honorific-adnominal.open	이다	adjective	only-exact	6	12	의사이신 분께 여쭸다.
 regression.copula-honorific-adnominal.background	이다	adjective	only-exact	6	15	의사이신데 무슨 걱정이 있소.
 regression.copula-honorific-adnominal.independent-action	이다	adjective	no-match-both	0	6	마신 물이 차가웠다.
+regression.fused-copula-ngeol.contracted	이다	adjective	smart-only-exact	10	25	우리도 마찬가진걸.
+regression.fused-copula-ngeol.nominal	이다	adjective	smart-only-exact	10	19	저분은 의산걸.
+regression.fused-copula-ngeol.explicit	이다	adjective	only-exact	19	25	아직 어린아이인걸.
+regression.fused-copula-ngeol.action	이다	adjective	no-match-both	0	9	먹은걸. 또 먹으라고?
+regression.fused-copula-ngeol.dependent-noun	이다	adjective	no-match-both	0	7	먼 걸 가리켜 봐.
 regression.familiar-short-eui.good	좋다	adjective	only-exact	11	17	그것 참 좋의.
 regression.familiar-short-eui.narrow	좁다	adjective	only-exact	0	6	좁의. 자네가 앉기는 어렵겠네.
 regression.familiar-short-eui.full	좋다	adjective	only-exact	0	9	좋으이. 오래 기다린 보람이 있네.
