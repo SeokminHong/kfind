@@ -698,6 +698,11 @@ regression.formal-intention.rieul	살다	verb	exact	17	29	앞으로 오래 살�
 regression.formal-intention.honorific	오다	verb	exact	11	26	몇 시에 오시렵니까?
 regression.formal-intention.statement	찾다	verb	exact	18	33	그 사람을 꼭 찾으렵니다.
 regression.formal-intention.ordinary-formal	읽다	verb	exact	10	22	당신이 읽습니까?
+regression.conditional-ryeogeodeun.vowel	오다	verb	exact	7	19	비가 오려거든 한 닷새 왔으면 좋겠다.
+regression.conditional-ryeogeodeun.irregular	낫다	verb	exact	7	22	병이 나으려거든 푹 쉬어라.
+regression.conditional-ryeogeodeun.honorific	읽다	verb	exact	13	31	선생님이 읽으시려거든 책을 준비해라.
+regression.conditional-ryeogeodeun.rieul	살다	verb	exact	10	22	이곳에 살려거든 지도를 익혀라.
+regression.conditional-ryeogeodeun.ordinary	오다	verb	exact	7	16	비가 오거든 우산을 챙겨라.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

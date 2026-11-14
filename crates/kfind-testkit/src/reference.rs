@@ -1811,6 +1811,20 @@ fn reference_simple_continuation(
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::Eu | ContinuationState::Prospective
+            if pos.is_action() && following.starts_with("려거든") =>
+        {
+            &[reference_suffix(
+                "려거든",
+                &["ending.conditional-ryeogeodeun"],
+            )]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시려거든") => {
+            &[reference_suffix(
+                "시려거든",
+                &["ending.honorific", "ending.conditional-ryeogeodeun"],
+            )]
+        }
+        ContinuationState::Eu | ContinuationState::Prospective
             if pos.is_action() && following.starts_with('렵') =>
         {
             &[
@@ -2636,6 +2650,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-njigo"
                             | "ending.necessity-yaman"
                             | "ending.formal-intention-question"
+                            | "ending.conditional-ryeogeodeun"
                             | "ending.formal-intention-statement"
                             | "ending.final-rieuljiroda"
                             | "ending.final-rieuljinira"

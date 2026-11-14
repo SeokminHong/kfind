@@ -1602,6 +1602,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.conditional-ryeogeodeun"
+category = "connective"
+initial = "eu"
+forms = ["려거든", "으려거든"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.intentive-ryeo"
 category = "connective"
 initial = "eu"
