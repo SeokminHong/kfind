@@ -740,7 +740,20 @@ fn read_array<const N: usize>(input: &[u8], cursor: &mut usize) -> Result<[u8; N
 }
 
 fn sha256(input: &[u8]) -> [u8; 32] {
-    Sha256::digest(input).into()
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Let the runtime switch to optimized compression code between batches.
+        // A single call over a large section can stay in baseline code until it returns.
+        let mut digest = Sha256::new();
+        for batch in input.chunks(64 * 1024) {
+            digest.update(batch);
+        }
+        digest.finalize().into()
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        Sha256::digest(input).into()
+    }
 }
 
 fn build_conversion_error(error: impl ToString) -> DataError {

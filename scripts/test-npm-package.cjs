@@ -88,6 +88,17 @@ assert.throws(
   () => engine.loadComponentResource(new Uint8Array([0])),
   /failed to initialize/,
 );
+// Change a byte near the end of the payload so that its digest must include later batches.
+const corruptedComponent = Buffer.from(componentResource);
+const sectionLengthsOffset = 92;
+const sectionDataOffset = 212;
+const indexLength = Number(corruptedComponent.readBigUInt64LE(sectionLengthsOffset));
+const payloadLength = Number(corruptedComponent.readBigUInt64LE(sectionLengthsOffset + 8));
+corruptedComponent[sectionDataOffset + indexLength + payloadLength - 1] ^= 1;
+assert.throws(
+  () => engine.loadComponentResource(corruptedComponent),
+  /section digest mismatch/,
+);
 assert.equal(engine.componentResourceLoaded, true);
 
 assert.throws(
