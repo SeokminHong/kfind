@@ -786,6 +786,11 @@ regression.conditional-geollang.state	조용하다	adjective	exact	0	15	조용�
 regression.conditional-geollang.honorific	읽다	verb	exact	0	15	읽으시걸랑 책을 가져오세요.
 regression.conditional-geollang.copula	이다	adjective	exact	6	15	학생이걸랑 참고서를 빌려 줘.
 regression.conditional-geollang.long	보다	verb	exact	0	12	보거들랑 연락해 줘.
+regression.rieul-promise-ge.vowel	가다	verb	exact	0	6	갈게.
+regression.rieul-promise-ge.consonant	읽다	verb	exact	0	12	읽을게요.
+regression.rieul-promise-ge.rieul	만들다	verb	exact	0	9	만들게.
+regression.rieul-promise-ge.irregular	듣다	verb	exact	0	9	들을게.
+regression.rieul-promise-ge.separate	읽다	verb	exact	0	6	읽을 게 하나 남았다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
