@@ -1880,6 +1880,15 @@ fn reference_simple_continuation(
                 &["ending.honorific", "ending.comparative-neuniman"],
             ),
         ],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("걸랑") =>
+        {
+            &[reference_suffix("걸랑", &["ending.geodeun"])]
+        }
+        ContinuationState::Eu if following.starts_with("시걸랑") => &[reference_suffix(
+            "시걸랑",
+            &["ending.honorific", "ending.geodeun"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 reference_suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -2834,7 +2843,10 @@ fn reference_simple_continuation(
                     && suffix.surface.ends_with('구'))
                     && (suffix.rules != ["ending.connective-ni"]
                         || !suffix.surface.starts_with('으')))
-                    && !matches!(suffix.surface, "으려니" | "으려니와" | "디" | "시디")
+                    && !matches!(
+                        suffix.surface,
+                        "으려니" | "으려니와" | "디" | "시디" | "걸랑" | "시걸랑"
+                    )
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
