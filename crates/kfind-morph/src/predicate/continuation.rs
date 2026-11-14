@@ -1707,6 +1707,16 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::Eu if following.starts_with('락') => {
+            &[suffix("락", &["ending.alternating-rak"])]
+        }
+        ContinuationState::StemEnding
+            if pos != PredicatePos::Copula
+                && following.starts_with('락')
+                && anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[suffix("락", &["ending.alternating-rak"])]
+        }
         ContinuationState::StemEnding
             if following.starts_with('러') && (pos == PredicatePos::Copula || anchor == "아니") =>
         {
@@ -2520,6 +2530,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
+                        | "ending.alternating-rak"
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
                         | "ending.exclamative-njigo"
@@ -2669,6 +2680,28 @@ const fn suffix(surface: &'static str, rules: &'static [&'static str]) -> Suffix
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn alternating_rak_requires_an_eligible_stem_and_token_end() {
+        assert!(
+            verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "접",
+                "락 펴락"
+            )
+            .is_none()
+        );
+        assert!(
+            verify_predicate_continuation(
+                ContinuationState::Eu,
+                PredicatePos::Verb,
+                "접으",
+                "락말"
+            )
+            .is_none()
+        );
+    }
 
     #[test]
     fn bare_dana_does_not_extend_an_action_verb_stem() {

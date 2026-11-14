@@ -682,6 +682,10 @@ regression.exclamative-njigo.completed-action	읽다	verb	exact	14	26	참 많이
 regression.exclamative-njigo.current-action	하다	verb	exact	14	26	참으로 잘 하는지고!
 regression.exclamative-njigo.honorific	읽다	verb	exact	16	31	선생님께서 읽으신지고!
 regression.exclamative-njigo.separate-word	읽다	verb	exact	7	13	책을 읽은 지 오래다.
+regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
+regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
+regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
+regression.alternating-rak.rieul	울다	verb	exact	10	16	아이는 울락 웃으락 했다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.

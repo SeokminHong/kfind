@@ -2475,6 +2475,16 @@ fn reference_simple_continuation(
         ContinuationState::Eu if starts_prospective("시") => HONORIFIC_PROSPECTIVE,
         ContinuationState::Eu if starts_prospective("셨으") => HONORIFIC_PAST_PROSPECTIVE,
         ContinuationState::Eu if starts_prospective("시겠으") => HONORIFIC_FUTURE_PROSPECTIVE,
+        ContinuationState::Eu if following.starts_with('락') => {
+            &[reference_suffix("락", &["ending.alternating-rak"])]
+        }
+        ContinuationState::StemEnding
+            if pos != PredicatePos::Copula
+                && following.starts_with('락')
+                && anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[reference_suffix("락", &["ending.alternating-rak"])]
+        }
         ContinuationState::Past if following.starts_with('을') => PAST_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
@@ -2577,6 +2587,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
+                            | "ending.alternating-rak"
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
                             | "ending.exclamative-njigo"
