@@ -2588,7 +2588,7 @@ initial = "other"
 forms = ["옵", "으옵", "사옵", "자옵", "삽", "잡", "사오", "자오"]
 required = []
 forbidden = []
-next = ["ending.archaic-naida", "ending.archaic-ida", "ending.entreaty-soseo", "ending.polite-declarative", "ending.formal-interrogative", "ending.retrospective-declarative", "ending.retrospective-interrogative", "ending.connective-go", "ending.retrospective-connective", "ending.connective-jiman", "ending.connective-geondae", "ending.honorific", "ending.connective-ni", "ending.conditional", "ending.prospective-final"]
+next = ["ending.archaic-naida", "ending.archaic-ida", "ending.entreaty-soseo", "ending.polite-declarative", "ending.formal-interrogative", "ending.retrospective-declarative", "ending.retrospective-interrogative", "ending.connective-go", "ending.retrospective-connective", "ending.connective-jiman", "ending.connective-geondae", "ending.honorific", "ending.connective-ni", "ending.conditional", "ending.prospective-final", "ending.connective-neunde"]
 terminal = false
 
 [[ending]]

@@ -8,6 +8,7 @@ const HONORIFIC: &str = "ending.honorific";
 
 const FINALS: &[Suffix] = &[suffix("나이다", &[NAIDA]), suffix("나이까", &[NAIDA])];
 const SAOEDA: Suffix = suffix("사외다", &["ending.archaic-saoeda"]);
+const SAONDE: Suffix = suffix("사온데", &[HUMBLE, "ending.connective-neunde"]);
 const HONORIFIC_FINALS: &[Suffix] = &[
     suffix("시나이다", &[HONORIFIC, NAIDA]),
     suffix("시나이까", &[HONORIFIC, NAIDA]),
@@ -113,10 +114,12 @@ pub(super) fn verify(
         ('사' | '삽', StemEnding | Past | Future)
             if anchor.chars().next_back().is_some_and(has_final) =>
         {
-            if following.strip_prefix(SAOEDA.surface).is_some_and(|tail| {
-                !tail.starts_with(|next: char| next.is_alphanumeric() || next == '_')
+            if let Some(ending) = [SAOEDA, SAONDE].iter().find(|ending| {
+                following.strip_prefix(ending.surface).is_some_and(|tail| {
+                    !tail.starts_with(|next: char| next.is_alphanumeric() || next == '_')
+                })
             }) {
-                return Some(matched(anchor.len(), Some(&SAOEDA)));
+                return Some(matched(anchor.len(), Some(ending)));
             }
             CONSONANT_PREFIXES
         }
