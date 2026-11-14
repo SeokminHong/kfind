@@ -1542,6 +1542,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.promise-rieulge"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ게", "을게"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.polite-yo"]
+terminal = true
+
+[[ending]]
 id = "ending.intent-rieulrae"
 category = "final"
 initial = "attach-rieul"

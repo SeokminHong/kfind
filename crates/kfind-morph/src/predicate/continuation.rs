@@ -1735,6 +1735,10 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::RieulFinal if following.starts_with('게') && pos.is_action() => &[
+            suffix("게", &["ending.promise-rieulge"]),
+            suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
+        ],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {
