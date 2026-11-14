@@ -4521,6 +4521,15 @@ fn stem_accepts_ending(
     {
         return false;
     }
+    if pos.is_action()
+        && suffix == "답시고"
+        && !matches!(
+            base_state,
+            kfind_morph::ContinuationState::Past | kfind_morph::ContinuationState::Future
+        )
+    {
+        return false;
+    }
     let declarative_continuation = ["다면", "다며", "다면서", "다니", "다는데", "다지"]
         .iter()
         .any(|prefix| suffix.starts_with(prefix));
