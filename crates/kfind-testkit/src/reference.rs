@@ -1897,6 +1897,23 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos.is_action() && following.starts_with('란') =>
+        {
+            &[reference_suffix(
+                "란",
+                &["ending.directive-quotative-short-adnominal"],
+            )]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시란") => {
+            &[reference_suffix(
+                "시란",
+                &[
+                    "ending.honorific",
+                    "ending.directive-quotative-short-adnominal",
+                ],
+            )]
+        }
         ContinuationState::StemEnding
             if pos == PredicatePos::Adjective
                 && anchor
@@ -3558,6 +3575,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
                             | "ending.interrogative-nu"
+                            | "ending.directive-quotative-short-adnominal"
                             | "ending.archaic-nani"
                             | "ending.archaic-noni"
                             | "ending.reproach-eunirago"

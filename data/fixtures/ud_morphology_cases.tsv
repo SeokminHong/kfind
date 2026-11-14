@@ -1026,6 +1026,14 @@ regression.familiar-short-eui.verb	먹다	verb	no-match-both	0	6	먹의.
 regression.familiar-short-eui.vowel	크다	adjective	no-match-both	0	6	크의.
 regression.familiar-short-eui.rieul	길다	adjective	no-match	0	6	길의 양쪽에 나무가 있다.
 regression.familiar-short-eui.token-interior	좋다	adjective	no-match-both	0	6	좋의라는 낱말을 적었다.
+regression.directive-short-ran.closed	죽다	verb	only-exact	0	9	죽으란 말보다 더 심하다.
+regression.directive-short-ran.open	가다	verb	only-exact	0	6	가란 말에 자리를 떴다.
+regression.directive-short-ran.rieul	살다	verb	only-exact	0	6	살란 말이 귓가를 맴돈다.
+regression.directive-short-ran.irregular	듣다	verb	only-exact	0	9	들으란 말에 귀를 기울였다.
+regression.directive-short-ran.honorific	읽다	verb	only-exact	0	12	읽으시란 말을 전했다.
+regression.directive-short-ran.full	먹다	verb	only-exact	0	12	먹으라는 말은 못 들었다.
+regression.directive-short-ran.adjective	넓다	adjective	no-match-both	0	9	넓으란.
+regression.directive-short-ran.separate	먹다	verb	only-exact	0	9	먹었다. ‘으란’은 따로 본다.
 regression.quotative-nyaneuni.action	서두르다	verb	only-exact	0	18	서두르냐느니 아직 이르다느니 말이 많았다.
 regression.quotative-nyaneuni.state	싫다	adjective	only-exact	0	15	싫으냐느니 좋으냐느니 거듭 물었다.
 regression.quotative-nyaneuni.past	먹다	verb	only-exact	0	15	먹었냐느니 맛은 어떠냐느니 물었다.
