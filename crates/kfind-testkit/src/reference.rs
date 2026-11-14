@@ -1487,6 +1487,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
                 reference_suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
                 reference_suffix(concat!($prefix, "러니"), &[$($prior,)* "ending.retrospective-rieulreoni"]),
+            reference_suffix(concat!($prefix, "러라"), &[$($prior,)* "ending.conjecture-rieulreora"]),
                 reference_suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
                 reference_suffix(concat!($prefix, "라고"), &[$($prior,)* "ending.doubt-rieulrago"]),
                 reference_suffix(concat!($prefix, "레라"), &[$($prior,)* "ending.conjecture-rieulrera"]),
@@ -1527,6 +1528,7 @@ fn reference_simple_continuation(
     macro_rules! present_rieul_endings {
         ($prefix:literal $(, $prior:literal)*) => {
             rieul_endings!($prefix, [$($prior),*],
+            reference_suffix(concat!($prefix, "사"), &[$($prior,)* "ending.exclamative-rieulsa"]),
                 reference_suffix(concat!($prefix, "데라니"), &[$($prior,)* "ending.exclamative-rieulderani"]),
                 reference_suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
                 reference_suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
@@ -1611,7 +1613,8 @@ fn reference_simple_continuation(
     const HAO_U: ReferenceSuffix = reference_suffix("우", &["ending.hao-final-u"]);
     const SOSEO: ReferenceSuffix = reference_suffix("소서", &["ending.entreaty-soseo"]);
     const SOIDA: ReferenceSuffix = reference_suffix("소이다", &["ending.hao-final-soida"]);
-    const CONSONANT_HAO_FINALS: &[ReferenceSuffix] = &[HAO_SO, SOIDA];
+    const SOEDA: ReferenceSuffix = reference_suffix("쇠다", &["ending.hao-final-soida"]);
+    const CONSONANT_HAO_FINALS: &[ReferenceSuffix] = &[HAO_SO, SOIDA, SOEDA];
     macro_rules! prefinal_so_endings {
         ($prefix:literal, [$($prior:literal),*] $(, $plain:expr)*) => {
             &[
@@ -1620,6 +1623,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "소다"), &[$($prior,)* "ending.hao-final-soda"]),
                 reference_suffix(concat!($prefix, "소이까"), &[$($prior,)* "ending.hao-final-soida"]),
                 reference_suffix(concat!($prefix, "소이다"), &[$($prior,)* "ending.hao-final-soida"]),
+                reference_suffix(concat!($prefix, "쇠다"), &[$($prior,)* "ending.hao-final-soida"]),
             ]
         };
     }
@@ -3529,7 +3533,7 @@ fn reference_simple_continuation(
         ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
         ContinuationState::StemEnding
-            if pos != PredicatePos::Copula && following.starts_with('소') =>
+            if pos != PredicatePos::Copula && following.starts_with(['소', '쇠']) =>
         {
             if anchor
                 .chars()
@@ -3567,8 +3571,8 @@ fn reference_simple_continuation(
                 HONORIFIC_HAO_ENDINGS
             }
         }
-        ContinuationState::Past if following.starts_with(['소', '우']) => PAST_HAO_FINALS,
-        ContinuationState::Future if following.starts_with('소') => FUTURE_HAO_FINALS,
+        ContinuationState::Past if following.starts_with(['소', '쇠', '우']) => PAST_HAO_FINALS,
+        ContinuationState::Future if following.starts_with(['소', '쇠']) => FUTURE_HAO_FINALS,
         ContinuationState::Eu if following.starts_with("소서") => std::slice::from_ref(&SOSEO),
         ContinuationState::Past | ContinuationState::Future
             if following.starts_with("으오") || following.starts_with("으외") =>
@@ -3576,11 +3580,19 @@ fn reference_simple_continuation(
             PREFINAL_HAO_ENDINGS
         }
         ContinuationState::Eu
-            if (following.starts_with("셨소") || following.starts_with("셨우")) =>
+            if following
+                .strip_prefix('셨')
+                .is_some_and(|tail| tail.starts_with(['소', '쇠', '우'])) =>
         {
             HONORIFIC_PAST_HAO_FINALS
         }
-        ContinuationState::Eu if following.starts_with("시겠소") => HONORIFIC_FUTURE_HAO_FINALS,
+        ContinuationState::Eu
+            if following
+                .strip_prefix("시겠")
+                .is_some_and(|tail| tail.starts_with(['소', '쇠'])) =>
+        {
+            HONORIFIC_FUTURE_HAO_FINALS
+        }
         ContinuationState::Eu
             if following.starts_with("셨으오") || following.starts_with("셨으외") =>
         {
@@ -3625,6 +3637,11 @@ fn reference_simple_continuation(
                     || (suffix.surface == "지며" && anchor.ends_with('을')))
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulsigo")
                     || !pos.is_action())
+                && (suffix.rules.last() != Some(&"ending.exclamative-rieulsa")
+                    || matches!(
+                        pos,
+                        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+                    ) && state == ContinuationState::RieulFinal)
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulderani")
                     || matches!(
                         pos,
@@ -3664,6 +3681,8 @@ fn reference_simple_continuation(
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
                             | "ending.exclamative-numeon"
+                            | "ending.conjecture-rieulreora"
+                            | "ending.exclamative-rieulsa"
                             | "ending.interrogative-nu"
                             | "ending.directive-quotative-short-adnominal"
                             | "ending.archaic-nani"

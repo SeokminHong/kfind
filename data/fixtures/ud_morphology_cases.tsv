@@ -1973,3 +1973,11 @@ regression.propositive-quoted.consonant	먹다	verb	only-exact	37	46	갑자기 �
 regression.propositive-quoted.concessive	가다	verb	exact	10	19	아무리 가자손 치더라도 가지 말았어야 했다.
 regression.propositive-quoted.separate-son	가다	verb	only-exact	14	20	그 사람은 가자. 손을 잡았다.
 regression.propositive-quoted.separate-na	먹다	verb	exact	14	20	그 사람은 먹자. 나도 밥을 먹었다.
+regression.archaic-rieulreora.vowel	끝나다	verb	only-exact	24	36	그 일은 내일이면 끝날러라.
+regression.archaic-rieulreora.consonant	없다	adjective	only-exact	25	37	사람의 속은 알 수 없을러라.
+regression.archaic-rieulreora.separate	가다	verb	only-exact	17	20	너는 그곳에 갈. 러라는 어미다.
+regression.archaic-rieulsa.vowel	어여쁘다	adjective	only-exact	0	12	어여쁠사! 임의 얼굴이여.
+regression.archaic-rieulsa.consonant	밝다	adjective	exact	10	19	밝기도 밝을사. 보름달이여!
+regression.archaic-soeda.past	알다	verb	only-exact	4	16	잘 알았쇠다.
+regression.archaic-soeda.future	가다	verb	only-exact	7	19	그만 가겠쇠다.
+regression.archaic-soeda.full	알다	verb	only-exact	4	19	잘 알았소이다.
