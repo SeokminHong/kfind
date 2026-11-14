@@ -1773,6 +1773,16 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding => GEODEUN,
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
+        ContinuationState::ReportEnding
+            if pos.is_action()
+                && following.starts_with("세나")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[reference_suffix("세나", &["ending.propositive-se"])]
+        }
         ContinuationState::ReportEnding if pos.is_action() && following.starts_with('답') => &[
             reference_suffix("답니다", &["ending.formal-report-dap"]),
             reference_suffix("답니까", &["ending.formal-report-dap"]),
@@ -1847,6 +1857,22 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("세나")
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[reference_suffix("세나", &["ending.propositive-se"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("세나") => {
+            &[reference_suffix("세나", &["ending.propositive-se"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시세나") => {
+            &[reference_suffix(
+                "시세나",
+                &["ending.honorific", "ending.propositive-se"],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("기로") =>
         {
@@ -2937,6 +2963,7 @@ fn reference_simple_continuation(
                             | "ending.causal-neurago"
                             | "ending.affirmative-emphasis"
                             | "ending.concessive-giroseoni"
+                            | "ending.propositive-se"
                             | "ending.neuni"
                             | "ending.comparative-neuniman"
                             | "ending.retrospective-de"
