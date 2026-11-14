@@ -885,6 +885,10 @@ regression.quotative-damyeo.past	오르다	verb	exact	0	12	올랐다며?
 regression.quotative-damyeo.future	읽다	verb	exact	0	12	읽겠다며?
 regression.quotative-damyeo.longer	오다	verb	exact	0	12	왔다면서?
 regression.quotative-damyeo.separate	오르다	verb	exact	0	9	올랐다. 며칠 뒤에 내려갔다.
+regression.exclamative-nuna.vowel	뜨다	verb	exact	0	9	뜨누나!
+regression.exclamative-nuna.consonant	먹다	verb	exact	0	9	먹누나!
+regression.exclamative-nuna.honorific	읽다	verb	exact	0	15	읽으시누나!
+regression.exclamative-nuna.separate	오다	verb	exact	0	6	오니 누나가 웃었다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
