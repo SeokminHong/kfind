@@ -1029,6 +1029,10 @@ regression.propositive-saida.consonant	받다	verb	only-exact	0	15	받으사이�
 regression.propositive-saida.irregular	듣다	verb	only-exact	0	15	들으사이다. 말씀을 아뢰겠나이다.
 regression.propositive-saida.beverage	가다	verb	only-exact	0	3	가. 사이다는 여기 있다.
 regression.propositive-saida.adjective	깊다	adjective	no-match-both	0	15	깊으사이다.
+regression.respectful-rio.consonant	읽다	verb	only-exact	0	15	읽으오리오. 어찌 그 책을 모른 체하겠소.
+regression.respectful-rio.past	믿다	verb	only-exact	0	18	믿었으오리오. 그때는 아무것도 몰랐소.
+regression.respectful-rio.plain	떠나다	verb	only-exact	0	12	떠나리오. 어찌 여기 머무르겠소.
+regression.respectful-rio.separate	읽다	verb	only-exact	0	9	읽었다. ‘으오리오’는 따로 보자.
 regression.familiar-short-eui.good	좋다	adjective	only-exact	11	17	그것 참 좋의.
 regression.familiar-short-eui.narrow	좁다	adjective	only-exact	0	6	좁의. 자네가 앉기는 어렵겠네.
 regression.familiar-short-eui.full	좋다	adjective	only-exact	0	9	좋으이. 오래 기다린 보람이 있네.
