@@ -1829,6 +1829,31 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_final_adjective_by_ending(&self, text: &str) -> bool {
+        text.char_indices().skip(1).any(|(split, _)| {
+            let (stem, tail) = text.split_at(split);
+            self.has_exact_adjective_surface(stem)
+                && (has_exact_sequence(&self.resource, tail, &[StructuralPos::EF])
+                    || tail.strip_prefix('습').is_some_and(|ending| {
+                        stem.chars().next_back().is_some_and(|last| {
+                            crate::hangul::has_final(last) && !crate::hangul::has_rieul_final(last)
+                        }) && crate::verify_predicate_continuation(
+                            crate::ContinuationState::BieupFinal,
+                            PredicatePos::Adjective,
+                            stem,
+                            ending,
+                        )
+                        .is_some_and(|matched| {
+                            matched.consumed_bytes == ending.len()
+                                && matched.rule_path.last().is_some_and(|rule| {
+                                    rule.as_str() == "ending.polite-declarative"
+                                })
+                        })
+                    }))
+        })
+    }
+
+    #[must_use]
     pub fn has_independent_final_adjective(&self, text: &str) -> bool {
         self.independent_final_predicate::<false>(text).0
             == PredicatePosSet::one(PredicatePos::Adjective)
