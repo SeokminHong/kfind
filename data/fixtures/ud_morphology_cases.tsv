@@ -768,6 +768,11 @@ regression.connective-go-extension.contrast	이다	adjective	exact	6	15	학생�
 regression.connective-go-extension.emphasis	합격하다	verb	exact	0	15	합격하고야 말겠다.
 regression.connective-go-extension.purpose	말씀하다	verb	exact	0	18	말씀하시고자 연락했다.
 regression.connective-go-extension.separate	먹다	verb	exact	0	6	먹고 도서관으로 갔다.
+regression.retrospective-di.stem	사과하다	verb	exact	0	12	사과하디?
+regression.retrospective-di.honorific-past	오다	verb	exact	0	9	오셨디?
+regression.retrospective-di.future	해내다	verb	exact	0	12	해내겠디?
+regression.retrospective-di.adjective	괜찮다	adjective	exact	0	9	괜찮디?
+regression.retrospective-di.separate	오다	verb	exact	0	6	왔다. 디저트도 먹었다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
