@@ -292,6 +292,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.exclamative-doda"
+category = "final"
+initial = "consonant"
+forms = ["도다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.exclamative-neundoda"
+category = "final"
+initial = "consonant"
+forms = ["는도다"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-njigo"
 category = "final"
 initial = "attach-nieun"
