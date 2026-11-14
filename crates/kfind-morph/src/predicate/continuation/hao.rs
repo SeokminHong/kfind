@@ -40,7 +40,8 @@ const HAO_SO: Suffix = suffix("소", &["ending.hao-final-so"]);
 pub(super) const HAO_U: Suffix = suffix("우", &["ending.hao-final-u"]);
 pub(in crate::predicate) const SOSEO: Suffix = suffix("소서", &["ending.entreaty-soseo"]);
 const SOIDA: Suffix = suffix("소이다", &["ending.hao-final-soida"]);
-const CONSONANT_HAO_FINALS: &[Suffix] = &[HAO_SO, SOIDA];
+const SOEDA: Suffix = suffix("쇠다", &["ending.hao-final-soida"]);
+const CONSONANT_HAO_FINALS: &[Suffix] = &[HAO_SO, SOIDA, SOEDA];
 macro_rules! prefinal_so_endings {
     ($prefix:literal, [$($prior:literal),*] $(, $plain:expr)*) => {
         &[
@@ -49,6 +50,7 @@ macro_rules! prefinal_so_endings {
             suffix(concat!($prefix, "소다"), &[$($prior,)* "ending.hao-final-soda"]),
             suffix(concat!($prefix, "소이까"), &[$($prior,)* "ending.hao-final-soida"]),
             suffix(concat!($prefix, "소이다"), &[$($prior,)* "ending.hao-final-soida"]),
+            suffix(concat!($prefix, "쇠다"), &[$($prior,)* "ending.hao-final-soida"]),
         ]
     };
 }
@@ -85,7 +87,7 @@ pub(super) fn additional_endings(
 ) -> &'static [Suffix] {
     match state {
         ContinuationState::StemEnding
-            if pos != PredicatePos::Copula && following.starts_with('소') =>
+            if pos != PredicatePos::Copula && following.starts_with(['소', '쇠']) =>
         {
             if anchor.chars().next_back().is_some_and(crate::has_final) {
                 CONSONANT_HAO_FINALS
@@ -119,8 +121,8 @@ pub(super) fn additional_endings(
                 HONORIFIC_HAO_ENDINGS
             }
         }
-        ContinuationState::Past if following.starts_with(['소', '우']) => PAST_HAO_FINALS,
-        ContinuationState::Future if following.starts_with('소') => FUTURE_HAO_FINALS,
+        ContinuationState::Past if following.starts_with(['소', '쇠', '우']) => PAST_HAO_FINALS,
+        ContinuationState::Future if following.starts_with(['소', '쇠']) => FUTURE_HAO_FINALS,
         ContinuationState::Eu if following.starts_with("소서") => std::slice::from_ref(&SOSEO),
         ContinuationState::Past | ContinuationState::Future
             if following.starts_with("으오") || following.starts_with("으외") =>
@@ -128,11 +130,19 @@ pub(super) fn additional_endings(
             PREFINAL_HAO_ENDINGS
         }
         ContinuationState::Eu
-            if (following.starts_with("셨소") || following.starts_with("셨우")) =>
+            if following
+                .strip_prefix('셨')
+                .is_some_and(|tail| tail.starts_with(['소', '쇠', '우'])) =>
         {
             HONORIFIC_PAST_HAO_FINALS
         }
-        ContinuationState::Eu if following.starts_with("시겠소") => HONORIFIC_FUTURE_HAO_FINALS,
+        ContinuationState::Eu
+            if following
+                .strip_prefix("시겠")
+                .is_some_and(|tail| tail.starts_with(['소', '쇠'])) =>
+        {
+            HONORIFIC_FUTURE_HAO_FINALS
+        }
         ContinuationState::Eu
             if following.starts_with("셨으오") || following.starts_with("셨으외") =>
         {

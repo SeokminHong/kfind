@@ -1138,6 +1138,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
             suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
             suffix(concat!($prefix, "러니"), &[$($prior,)* "ending.retrospective-rieulreoni"]),
+            suffix(concat!($prefix, "러라"), &[$($prior,)* "ending.conjecture-rieulreora"]),
             suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
             suffix(concat!($prefix, "라고"), &[$($prior,)* "ending.doubt-rieulrago"]),
             suffix(concat!($prefix, "레라"), &[$($prior,)* "ending.conjecture-rieulrera"]),
@@ -1179,6 +1180,7 @@ macro_rules! rieul_endings {
 macro_rules! present_rieul_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         rieul_endings!($prefix, [$($prior),*],
+            suffix(concat!($prefix, "사"), &[$($prior,)* "ending.exclamative-rieulsa"]),
             suffix(concat!($prefix, "데라니"), &[$($prior,)* "ending.exclamative-rieulderani"]),
             suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
             suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
@@ -3496,6 +3498,8 @@ fn verify_simple_continuation(
                         | "ending.causal-jira"
                         | "ending.exclamative-njigo"
                         | "ending.exclamative-numeon"
+                        | "ending.conjecture-rieulreora"
+                        | "ending.exclamative-rieulsa"
                         | "ending.necessity-yaman"
                         | "ending.formal-intention-question"
                         | "ending.conditional-ryeogeodeun"
@@ -3573,6 +3577,11 @@ fn verify_simple_continuation(
                     || (suffix.surface == "지며" && anchor.ends_with('을')))
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulsigo")
                     || !pos.is_action())
+                && (suffix.rules.last() != Some(&"ending.exclamative-rieulsa")
+                    || matches!(
+                        pos,
+                        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+                    ) && state == ContinuationState::RieulFinal)
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulderani")
                     || matches!(
                         pos,
