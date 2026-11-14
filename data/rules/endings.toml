@@ -1712,6 +1712,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.propositive-se"
+category = "final"
+initial = "eu"
+forms = ["세", "으세"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.earnest-request-sisa"
 category = "final"
 initial = "attach-bieup"
