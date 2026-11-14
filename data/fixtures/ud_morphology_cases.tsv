@@ -1893,3 +1893,13 @@ regression.copula-polite-honorific.verb-contracted	이다	adjective	no-match-bot
 regression.copula-polite-honorific.negative-copula	아니다	adjective	only-exact	20	32	저분은 의사가 아니셔요.
 regression.copula-polite-honorific.nominal-coda	은인	noun	smart-only-exact	24	30	이분은 제 생명의 은인이셔요.
 regression.copula-polite-honorific.nominal-open	어머니	noun	smart-only-exact	10	19	저분이 어머니셔요.
+regression.contrastive-ji.dictionary	나다	verb	exact	24	30	콩을 심으면 콩이 나지 팥이 날 수는 없다.
+regression.contrastive-ji.dictionary-adnominal	나다	verb	exact	38	41	콩을 심으면 콩이 나지 팥이 날 수는 없다.
+regression.contrastive-ji.comma	나다	verb	exact	24	30	콩을 심으면 콩이 나지, 팥이 날 수는 없다.
+regression.contrastive-ji.repeated-stem	주다	verb	exact	10	16	동생이 주지 누나가 줄 수는 없었다.
+regression.contrastive-ji.repeated-adnominal	주다	verb	exact	27	30	동생이 주지 누나가 줄 수는 없었다.
+regression.contrastive-ji.positive-possibility	주다	verb	exact	10	16	동생이 주지 누나가 줄 수도 있다.
+regression.contrastive-ji.nominal-title	주다	verb	no-match	0	6	주지 스님이 법회를 열었다.
+regression.contrastive-ji.nominal-complement	주다	verb	no-match	7	13	그가 주지 스님이 되었다.
+regression.contrastive-ji.nominal-possibility	주다	verb	no-match	7	13	그가 주지 스님이 될 수도 있다.
+regression.contrastive-ji.double-subject	주다	verb	no-match	14	20	그 마을이 주지 스님이 유명하다.

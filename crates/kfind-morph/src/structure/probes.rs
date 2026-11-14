@@ -1162,6 +1162,53 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_repeated_predicate_in_possibility_clause(
+        &self,
+        connective: &str,
+        modifier: &str,
+        noun: &str,
+    ) -> bool {
+        let Some(stem) = connective
+            .strip_suffix('지')
+            .filter(|stem| !stem.is_empty())
+        else {
+            return false;
+        };
+        noun.strip_prefix('수').is_some_and(|tail| {
+            (modifier.strip_suffix('을') == Some(stem)
+                || (modifier == stem && stem.ends_with(crate::hangul::has_rieul_final))
+                || crate::hangul::add_final(stem, crate::hangul::JONG_RIEUL).as_deref()
+                    == Some(modifier))
+                && self.has_adnominal_dependent_noun(modifier, "수")
+                && (tail.is_empty()
+                    || complete_suffix(&self.resource, tail, |pos| {
+                        matches!(pos, StructuralPos::JKS | StructuralPos::JX)
+                    }))
+        })
+    }
+
+    #[must_use]
+    pub fn has_existential_final_predicate(&self, text: &str) -> bool {
+        ["있", "없"].into_iter().any(|stem| {
+            text.strip_prefix(stem).is_some_and(|tail| {
+                exact_analysis_starts_with_pos(&self.resource, stem, |pos| {
+                    matches!(
+                        pos,
+                        StructuralPos::VA | StructuralPos::VV | StructuralPos::VX
+                    )
+                }) && !tail.is_empty()
+                    && tail.char_indices().any(|(split, _)| {
+                        has_exact_sequence(&self.resource, &tail[split..], &[StructuralPos::EF])
+                            && (split == 0
+                                || complete_suffix(&self.resource, &tail[..split], |pos| {
+                                    pos == StructuralPos::EP
+                                }))
+                    })
+            })
+        })
+    }
+
+    #[must_use]
     pub fn has_quotative_adnominal_dependent_noun(&self, previous: &str, text: &str) -> bool {
         !self.has_object_marked_nominal(previous)
             && self.has_adnominal_dependent_noun(previous, text)

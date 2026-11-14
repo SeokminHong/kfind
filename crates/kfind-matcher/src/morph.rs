@@ -1260,6 +1260,15 @@ impl MorphMatcher {
                 patterns,
             },
             || context::has_proper_name_subject_frame(haystack, &whole, resolver),
+            || {
+                branch.origins.iter().any(|origin| {
+                    candidate
+                        .suffix_rules
+                        .last()
+                        .or_else(|| origin.rule_path.last())
+                        .is_some_and(|rule| rule.as_str() == "ending.connective-ji")
+                }) && context::has_contrastive_possibility_clause(haystack, &whole, resolver)
+            },
         );
         if decision.as_ref().is_none_or(|decision| {
             matches!(
