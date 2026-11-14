@@ -463,6 +463,7 @@ const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
     suffix("시나요", &["ending.honorific", "ending.interrogative-na"]);
 const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
 const HONORIFIC_COORDINATING_ENDINGS: &[Suffix] = &[
+    suffix("시며", &["ending.honorific", "ending.coordinate-myeo"]),
     suffix("시지만", &["ending.honorific", "ending.connective-jiman"]),
     suffix("시지마는", &["ending.honorific", "ending.connective-jiman"]),
     suffix("시거나", &["ending.honorific", "ending.connective-geona"]),
@@ -548,6 +549,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     EUDOE,
     suffix("으면", &["ending.conditional"]),
     suffix("으며", &["ending.coordinate-myeo"]),
+    suffix("으면서", &["ending.simultaneous-myeonseo"]),
     JIMAN,
     JIMANEUN,
     suffix("는데", &["ending.connective-neunde"]),
@@ -617,6 +619,8 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 );
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    suffix("으며", &["ending.coordinate-myeo"]),
+    suffix("으면서", &["ending.simultaneous-myeonseo"]),
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
     PREFINAL_EUNI,
@@ -2830,6 +2834,7 @@ fn verify_simple_continuation(
             if following.starts_with("시지만")
                 || following.starts_with("시지마는")
                 || following.starts_with("시거나")
+                || following.starts_with("시며")
                 || following.starts_with("시나") =>
         {
             HONORIFIC_COORDINATING_ENDINGS
