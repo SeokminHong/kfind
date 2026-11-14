@@ -1642,6 +1642,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-nama"
+category = "connective"
+initial = "eu"
+forms = ["나마", "으나마"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.simultaneous-myeonseo"
 category = "connective"
 initial = "eu"

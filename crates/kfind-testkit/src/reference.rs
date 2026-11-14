@@ -1779,6 +1779,26 @@ fn reference_simple_continuation(
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::StemEnding
+            if following.starts_with("나마")
+                && pos != PredicatePos::Copula
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[reference_suffix("나마", &["ending.concessive-nama"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으나마") => {
+            &[reference_suffix("으나마", &["ending.concessive-nama"])]
+        }
+        ContinuationState::Eu if following.starts_with("시나마") => &[reference_suffix(
+            "시나마",
+            &["ending.honorific", "ending.concessive-nama"],
+        )],
+        ContinuationState::Eu if anchor.ends_with('으') && following.starts_with("나마") => {
+            &[reference_suffix("나마", &["ending.concessive-nama"])]
+        }
+        ContinuationState::StemEnding
             if following.strip_prefix('나').is_some_and(|tail| {
                 tail.trim_start().starts_with('?')
                     && (pos.is_action() || anchor.ends_with(['있', '없']))
@@ -2458,6 +2478,7 @@ fn reference_simple_continuation(
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
+                            | "ending.concessive-nama"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))

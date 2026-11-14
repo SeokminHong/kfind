@@ -1446,6 +1446,7 @@ impl MorphMatcher {
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
+                    || has_nama_proper_name_frame(haystack, candidate, branch, resolver)
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_possession_argument(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
@@ -3942,6 +3943,39 @@ fn has_comparative_nominal_frame(
         && !context::previous_word(haystack, span.start).is_some_and(|previous| {
             resolver.has_nominal_oblique(&previous) || resolver.has_object_marked_nominal(&previous)
         })
+}
+
+fn has_nama_proper_name_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let whole = &candidate.verified.token;
+    let surface = &haystack[whole.clone()];
+    if candidate.consumed.start != whole.start
+        || !(surface.ends_with("나마".as_bytes()) || surface.ends_with("나마".as_bytes()))
+        || !branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.concessive-nama")
+        }) && !matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                continuation: kfind_morph::ContinuationState::AOrEo,
+                ..
+            }
+        )
+    {
+        return false;
+    }
+    context::normalized_token(haystack, whole.clone())
+        .is_some_and(|name| name.ends_with("나마") && resolver.has_exact_proper_name_surface(&name))
+        && context::next_word(haystack, whole.end)
+            .is_some_and(|head| resolver.has_nominal_with_optional_particles(&head))
+        && !context::previous_word(haystack, whole.start)
+            .is_some_and(|object| resolver.has_object_marked_nominal(&object))
 }
 
 fn has_whole_alternative_conjunction(
