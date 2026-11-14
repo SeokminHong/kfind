@@ -2560,6 +2560,12 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("자느니") => {
             &[reference_suffix("자느니", &["ending.quotative-janeuni"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자나") => {
+            &[reference_suffix("자나", &["ending.propositive-quotation"])]
+        }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자손") => {
+            &[reference_suffix("자손", &["ending.propositive-concessive"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && (following.starts_with("자며")
@@ -3666,6 +3672,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-damyeo"
                             | "ending.concessive-dason"
                             | "ending.propositive-quotation"
+                            | "ending.propositive-concessive"
                             | "ending.propositive-conditional"
                             | "ending.imperative-gena"
                             | "ending.honorific-request-sipsa"

@@ -1968,3 +1968,8 @@ regression.quotative-neuni.adjective	작다	adjective	only-exact	17	29	동생이
 regression.quotative-neuni.propositive	팔다	verb	only-exact	0	12	팔자느니 그냥 두자느니 의견이 분분하다.
 regression.quotative-neuni.past	먹다	verb	only-exact	7	22	이미 먹었다느니 거짓말을 했다.
 regression.quotative-neuni.separate	가다	verb	only-exact	7	13	그는 간다. 느니에 밑줄을 그었다.
+regression.propositive-quoted.vowel	가다	verb	only-exact	31	40	나를 보고 여행을 같이 가자나.
+regression.propositive-quoted.consonant	먹다	verb	only-exact	37	46	갑자기 와서는 같이 밥이나 먹자나.
+regression.propositive-quoted.concessive	가다	verb	exact	10	19	아무리 가자손 치더라도 가지 말았어야 했다.
+regression.propositive-quoted.separate-son	가다	verb	only-exact	14	20	그 사람은 가자. 손을 잡았다.
+regression.propositive-quoted.separate-na	먹다	verb	exact	14	20	그 사람은 먹자. 나도 밥을 먹었다.
