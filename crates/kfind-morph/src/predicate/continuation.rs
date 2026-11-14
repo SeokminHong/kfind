@@ -1728,6 +1728,19 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("다시피") && pos != PredicatePos::Copula =>
+        {
+            &[suffix("다시피", &["ending.connective-dasipi"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다시피") && pos != PredicatePos::Copula =>
+        {
+            &[suffix(
+                "시다시피",
+                &["ending.honorific", "ending.connective-dasipi"],
+            )]
+        }
         ContinuationState::CompletedNieunEnding if following.starts_with('즉') => CAUSAL_NIEUNJUK,
         ContinuationState::NieunEnding
             if following.starts_with('즉') && !anchor.ends_with('는') =>

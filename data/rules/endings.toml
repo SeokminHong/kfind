@@ -1912,6 +1912,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-dasipi"
+category = "connective"
+initial = "consonant"
+forms = ["다시피"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.final-ne"
 category = "final"
 initial = "consonant"
