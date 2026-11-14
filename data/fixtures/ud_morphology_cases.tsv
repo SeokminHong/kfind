@@ -1962,3 +1962,9 @@ regression.exclamative-numeon.go	가다	verb	only-exact	14	23	밤이 깊어 가�
 regression.exclamative-numeon.break	트다	verb	only-exact	14	23	이제 동이 트누먼.
 regression.exclamative-numeon.honorific	오다	verb	only-exact	16	28	선생님께서 오시누먼.
 regression.exclamative-numeon.separate	트다	verb	only-exact	14	20	이제 동이 트니 누먼을 읽었다.
+regression.quotative-neuni.vowel	가다	verb	only-exact	20	32	친구는 중국에 간다느니 일본에 머문다느니 했다.
+regression.quotative-neuni.consonant	찍다	verb	only-exact	20	35	지수는 사진을 찍는다느니 하며 말했다.
+regression.quotative-neuni.adjective	작다	adjective	only-exact	17	29	동생이 키가 작다느니 놀림을 받았다.
+regression.quotative-neuni.propositive	팔다	verb	only-exact	0	12	팔자느니 그냥 두자느니 의견이 분분하다.
+regression.quotative-neuni.past	먹다	verb	only-exact	7	22	이미 먹었다느니 거짓말을 했다.
+regression.quotative-neuni.separate	가다	verb	only-exact	7	13	그는 간다. 느니에 밑줄을 그었다.

@@ -1098,6 +1098,7 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("다느니", &["ending.quotative-daneuni"]),
         reference_suffix("다가는", &["ending.connective-daganeun"]),
         reference_suffix("다간", &["ending.connective-daganeun"]),
         reference_suffix("단", &["ending.connective-daganeun"]),
@@ -1140,6 +1141,7 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("다느니", &["ending.quotative-daneuni"]),
         reference_suffix("으며", &["ending.coordinate-myeo"]),
         reference_suffix("으면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("으니", &["ending.connective-ni"]),
@@ -1164,6 +1166,7 @@ fn reference_simple_continuation(
         reference_suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
+        reference_suffix("느니", &["ending.quotative-daneuni"]),
         reference_suffix("손", &["ending.concessive-dason"]),
         reference_suffix("더라", &["ending.quotative-deora"]),
         reference_suffix(
@@ -2554,6 +2557,9 @@ fn reference_simple_continuation(
                 &["ending.honorific", "ending.imperative-gena"],
             )]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자느니") => {
+            &[reference_suffix("자느니", &["ending.quotative-janeuni"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && (following.starts_with("자며")
@@ -3674,6 +3680,8 @@ fn reference_simple_continuation(
                             | "ending.humble-euwa"
                             | "ending.archaic-honorific-sa"
                             | "ending.quotative-nyaneuni"
+                            | "ending.quotative-daneuni"
+                            | "ending.quotative-janeuni"
                             | "ending.archaic-interrogative-nyo"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
