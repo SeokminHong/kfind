@@ -3044,11 +3044,14 @@ fn reference_simple_continuation(
         }
         ContinuationState::Eu
             if pos.is_action()
-                && (following.starts_with('렴') || following.starts_with("려무나")) =>
+                && (following.starts_with('렴')
+                    || following.starts_with("려무나")
+                    || following.starts_with("려마")) =>
         {
             &[
                 reference_suffix("렴", &["ending.imperative-ryeom"]),
                 reference_suffix("려무나", &["ending.imperative-ryeom"]),
+                reference_suffix("려마", &["ending.imperative-ryeom"]),
             ]
         }
         ContinuationState::Eu | ContinuationState::Prospective
