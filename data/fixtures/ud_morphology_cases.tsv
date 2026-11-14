@@ -715,6 +715,7 @@ regression.causal-nieunjuk.state	맑다	adjective	exact	7	16	물이 맑은즉 �
 regression.causal-nieunjuk.state-neun	없다	adjective	exact	10	19	방법이 없은즉 기다리자.
 regression.causal-nieunjuk.past	읽다	verb	exact	7	22	어제 읽었은즉슨 내용을 기억한다.
 regression.causal-nieunjuk.separate-word	읽다	verb	exact	7	13	일단 읽은 즉흥시를 기억했다.
+regression.causal-nieunjuk.rieul-drop	늘다	verb	exact	10	16	비용이 는즉 예산을 늘렸다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

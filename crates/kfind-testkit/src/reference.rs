@@ -1811,7 +1811,9 @@ fn reference_simple_continuation(
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
-            if following.starts_with('즉') && !anchor.ends_with('는') =>
+            if following.starts_with('즉')
+                && (state == ContinuationState::CompletedNieunEnding
+                    || !anchor.ends_with('는')) =>
         {
             &[
                 reference_suffix("즉", &["ending.causal-nieunjuk"]),

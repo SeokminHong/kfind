@@ -1728,7 +1728,8 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let token_endings: &[Suffix] = match state {
-        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+        ContinuationState::CompletedNieunEnding if following.starts_with('즉') => CAUSAL_NIEUNJUK,
+        ContinuationState::NieunEnding
             if following.starts_with('즉') && !anchor.ends_with('는') =>
         {
             CAUSAL_NIEUNJUK
