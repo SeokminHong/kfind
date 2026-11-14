@@ -58,6 +58,50 @@ pub(super) fn rejects(
         || nominal::has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
         || has_nominal_quotative_rera(haystack, candidate, resolver)
+        || has_competing_wa_analysis(haystack, candidate, branch, resolver)
+}
+
+fn has_competing_wa_analysis(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.humble-wa")
+        && !branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.humble-wa")
+        })
+    {
+        return false;
+    }
+    if !is_boundary_after(haystack, candidate.consumed.end) {
+        return true;
+    }
+    let whole = surrounding_token_span(haystack, candidate.consumed.clone());
+    let inside_token = candidate.consumed.start > whole.start;
+    let start = whole.start;
+    context::normalized_token(haystack, whole).is_some_and(|token| {
+        token.strip_suffix('와').is_some_and(|host| {
+            let derived_stem = !inside_token
+                && host
+                    .strip_suffix('하')
+                    .is_some_and(|root| resolver.has_complete_nominal_surface(root));
+            if derived_stem {
+                return false;
+            }
+            (resolver.has_complete_nominal_surface(host)
+                && !context::previous_word(haystack, start)
+                    .is_some_and(|previous| resolver.has_object_marked_nominal(&previous)))
+                || ((inside_token || resolver.has_vowel_connective_host(&token))
+                    && !resolver.has_exact_non_copula_predicate_surface(host))
+        })
+    })
 }
 
 fn has_nominal_quotative_rera(
