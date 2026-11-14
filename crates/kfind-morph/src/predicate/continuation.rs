@@ -1791,6 +1791,13 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past if following.starts_with("에라") => {
+            &[suffix("에라", &["ending.exclamative-era"])]
+        }
+        ContinuationState::Eu if following.starts_with("셨에라") => &[suffix(
+            "셨에라",
+            &["ending.honorific", "ending.past", "ending.exclamative-era"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다손") => {
             &[suffix("다손", &["ending.concessive-dason"])]
         }
@@ -3291,6 +3298,7 @@ fn verify_simple_continuation(
                         | "ending.retrospective-reo-final"
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
+                        | "ending.exclamative-era"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
                         | "ending.quotative-danda"

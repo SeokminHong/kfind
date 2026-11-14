@@ -999,6 +999,10 @@ regression.formal-depsyo.honorific	가다	verb	only-exact	14	29	말도 없이 �
 regression.formal-depsyo.past	먹다	verb	only-exact	4	19	다 먹었는뎁쇼.
 regression.formal-depsyo.completed	읽다	verb	only-exact	0	6	읽은뎁쇼.
 regression.formal-depsyo.separate	읽다	verb	only-exact	0	6	읽는 ‘뎁쇼’ 예문을 찾았다.
+regression.exclamative-era.past	밝다	verb	only-exact	10	22	새날이 밝았에라.
+regression.exclamative-era.other-stem	묻히다	verb	only-exact	0	12	묻혔에라.
+regression.exclamative-era.honorific	읽다	verb	only-exact	0	15	읽으셨에라.
+regression.exclamative-era.interjection	읽다	verb	only-exact	0	9	읽었다. 에라, 고쳐 쓰자.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
