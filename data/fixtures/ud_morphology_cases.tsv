@@ -1999,4 +1999,5 @@ regression.resultative-ja.separate	가깝다	adjective	only-exact	0	9	가까워.
 regression.completion-naeda.attached	만들다	verb	only-exact	21	36	한국인, 기적을 만들어내다.
 regression.completion-naeda.past	풀다	verb	only-exact	20	32	어려운 문제를 풀어냈다.
 regression.completion-naeda.separate	만들다	verb	only-exact	10	19	기적을 만들어 내다.
-regression.completion-naeda.nominal-prefix	만들다	verb	only-exact	10	19	서류를 만들어 내다음 확인한다.
+regression.completion-naeda.nominal-prefix	만들다	verb	only-exact	10	19	서류를 만들어 내일 제출한다.
+regression.completion-naeda.derived-ha	하다	verb	no-match	16	25	공장이 생산해냈다.
