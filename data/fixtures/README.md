@@ -28,6 +28,9 @@
 양성 사례는 `any`에서도 같은 위치의 검색 여부를 확인합니다.
 `exact` 사례는 두 모드에서 반환한 범위가 표적의 시작·끝 위치와 같아야 합니다.
 `smart-exact`는 생략된 지정사처럼 문맥으로 복원하는 형태의 정확한 범위를 `smart`에서 확인합니다.
+형태·통사 구조가 같은 동형이의의 raw 음성에는 문장 뒤에
+`structurally-indistinguishable-homograph`를 기록합니다. 이 경우
+`verify-gold`는 `smart`에서 표적 범위의 정확한 반환을 확인합니다.
 
 `walk_hang_stress.txt`는 직접 구성한 회귀 fixture입니다. 동형 동사 활용의 합집합,
 생산적 어미, 복합어 안의 용언 명사형, 보조 용언 continuation과 별도 파생 표제어

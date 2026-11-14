@@ -11,6 +11,25 @@
 유지했다. 기존 일정 대조의 `면접·마감·회의` 3건도 남았다. 해당 어휘는
 현재 수록한 동사 문형 용례에 없다.
 
+후속 범위 검토에서는 `한국 내`와 `지역 내`의 raw 음성을 보존하고
+두 건을 계약 양성으로 등록했다. 원문의 `내`는 앞 체언이 정한 범위를
+나타낸다. 앞 체언이 조사가 생략된 장소 부사어로 쓰이면 같은 형태의
+`내`가 뒤 체언을 꾸미는 `나의`의 준말로도 성립한다. 새 대조문은
+`지역 내 발전`에서 발전의 주체가 화자라는 해석을 앞 문장으로 뒷받침한다.
+[범위 의존 명사](https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=9201&mn_id=97&pageIndex=1) ·
+[대명사 활용](https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=60931) ·
+[장소 조사 생략](https://www.korean.go.kr/front/onlineQna/onlineQnaView.do?mn_id=216&pageIndex=1&qna_seq=336218)
+
+검색 기준선 `9366e020`의 full POS `smart`에서 문맥 대조 16건을 재평가했다.
+Raw는 TP 8, FP 2, TN 6, FN 0으로 P/R/F1은 80.00/100.00/88.89%다.
+계약 보정은 TP 10, FP 0, TN 6, FN 0으로 세 비율 모두 100.00%다.
+계약 검토는 2건, 제외는 0건이다. `verify-gold`는 두 위치에서 범위 명사와
+대명사 각각의 정확한 바이트 범위 7..10, 91..94를 확인한다.
+[대조 입력](../../tools/morph-compare/verify-gold-context-cases.jsonl) ·
+[계약 검토](../../tools/morph-compare/verify-gold-contract-reviews.tsv)
+
+검증 도구만 변경해 검색 성능 측정을 생략했다.
+
 행렬은 TP, FP, TN, FN 순서이며 비율은 precision, recall, F1 순서다.
 고정 음성에 기존 계약 검토 3건을 적용했다. 나머지는 검토 0건이다.
 
