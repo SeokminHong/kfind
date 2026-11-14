@@ -42,6 +42,7 @@ const OP_FOLLOWING: &[Suffix] = &[
     JIMAN,
     JIMANEUN,
     suffix("건대", &["ending.connective-geondae"]),
+    suffix("거늘", &["ending.connective-geoneul"]),
     suffix("시고", &[HONORIFIC, "ending.connective-go"]),
     suffix("시니", &[HONORIFIC, "ending.connective-ni"]),
     suffix("시니까", &[HONORIFIC, "ending.connective-ni"]),

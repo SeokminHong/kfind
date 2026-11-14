@@ -832,6 +832,12 @@ regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?
 regression.doubt-rieulrago.past	가다	verb	exact	0	12	갔을라고?
 regression.doubt-rieulrago.honorific	읽다	verb	exact	0	15	읽으실라고?
 regression.doubt-rieulrago.separate	오다	verb	exact	0	3	올 라고 씨를 기다린다.
+regression.connective-geoneul.stem	크다	adjective	exact	0	9	크거늘 어찌 보이지 않는다고 하느냐.
+regression.connective-geoneul.past	가다	verb	exact	0	9	갔거늘 어찌 돌아왔느냐.
+regression.connective-geoneul.honorific	읽다	verb	exact	0	15	읽으시거늘 어찌 말리느냐.
+regression.connective-geoneul.copula	이다	adjective	exact	6	15	사실이거늘 어찌 모르느냐.
+regression.connective-geoneul.humble	하다	verb	exact	0	12	하옵거늘 어찌 모르십니까.
+regression.connective-geoneul.separate	오다	verb	exact	0	6	오고 늘 웃었다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.

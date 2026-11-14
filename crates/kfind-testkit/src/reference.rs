@@ -1858,6 +1858,36 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("거늘") =>
+        {
+            &[reference_suffix("거늘", &["ending.connective-geoneul"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시거늘")
+                || following.starts_with("셨거늘")
+                || following.starts_with("시겠거늘") =>
+        {
+            &[
+                reference_suffix("시거늘", &["ending.honorific", "ending.connective-geoneul"]),
+                reference_suffix(
+                    "셨거늘",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.connective-geoneul",
+                    ],
+                ),
+                reference_suffix(
+                    "시겠거늘",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.connective-geoneul",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("세나")
@@ -2994,6 +3024,7 @@ fn reference_simple_continuation(
                             | "ending.retrospective-de"
                             | "ending.connective-dasipi"
                             | "ending.connective-geoni"
+                            | "ending.connective-geoneul"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

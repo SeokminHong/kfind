@@ -1742,6 +1742,36 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("거늘") =>
+        {
+            &[suffix("거늘", &["ending.connective-geoneul"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시거늘")
+                || following.starts_with("셨거늘")
+                || following.starts_with("시겠거늘") =>
+        {
+            &[
+                suffix("시거늘", &["ending.honorific", "ending.connective-geoneul"]),
+                suffix(
+                    "셨거늘",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.connective-geoneul",
+                    ],
+                ),
+                suffix(
+                    "시겠거늘",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.connective-geoneul",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("세나")
