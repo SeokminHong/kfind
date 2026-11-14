@@ -844,6 +844,14 @@ regression.connective-geoneul.honorific	읽다	verb	exact	0	15	읽으시거늘 �
 regression.connective-geoneul.copula	이다	adjective	exact	6	15	사실이거늘 어찌 모르느냐.
 regression.connective-geoneul.humble	하다	verb	exact	0	12	하옵거늘 어찌 모르십니까.
 regression.connective-geoneul.separate	오다	verb	exact	0	6	오고 늘 웃었다.
+regression.alternative-deunji.rieul	살다	verb	exact	0	9	살든지 떠나든지 정해라.
+regression.alternative-deunji.adjective	좋다	adjective	exact	0	6	좋든 싫든 해야 한다.
+regression.alternative-deunji.past	오다	verb	exact	0	9	왔든지 갔든지 상관없다.
+regression.alternative-deunji.honorific	읽다	verb	exact	0	15	읽으시든지 접어 두시든지 하세요.
+regression.alternative-deunji.copula	이다	adjective	exact	6	15	사실이든지 소문이든지 확인하세요.
+regression.alternative-deunji.retrospective	읽다	verb	exact	0	9	읽던지 말던지 했던 모습이 기억난다.
+regression.alternative-deunji.joined-determiner	모다	verb	no-match	15	21	폐지했으며모든 범죄를 조사했다.
+regression.alternative-deunji.detached-verb	모다	verb	exact	10	16	서류를 모든 찢든 네가 결정해라.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.

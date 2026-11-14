@@ -30,6 +30,22 @@ pub(super) fn has_competing_nominal_with_gu(
         })
 }
 
+pub(super) fn has_determiner_frame_for_alternative(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.alternative-deunji")
+        && !is_boundary_before(haystack, candidate.consumed.start)
+        && context::normalized_token(haystack, candidate.consumed.clone())
+            .is_some_and(|word| resolver.has_whole_determiner(&word))
+        && context::next_word_on_line(haystack, candidate.consumed.end)
+            .is_some_and(|(_, head)| resolver.has_independent_nominal_head(&head))
+}
+
 pub(super) fn has_nominal_interrogative_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,

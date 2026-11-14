@@ -46,6 +46,7 @@ pub(super) fn rejects(
         || quantity::has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
         || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
         || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
+        || nominal::has_determiner_frame_for_alternative(haystack, candidate, resolver)
         || nominal::has_nama_proper_name_frame(haystack, candidate, branch, resolver)
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)

@@ -2312,6 +2312,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.alternative-deunji"
+category = "connective"
+initial = "consonant"
+forms = ["든", "든지"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-geoneul"
 category = "connective"
 initial = "consonant"
