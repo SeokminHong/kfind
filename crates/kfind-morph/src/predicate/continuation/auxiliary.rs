@@ -104,6 +104,20 @@ pub(super) fn verify_resultative(
             {
                 ("지는", NieunEnding, Some("ending.present-adnominal"))
             } else {
+                if let Some(rest) = tail.strip_prefix('자')
+                    && !rest.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_')
+                {
+                    return Some(with_auxiliary(
+                        anchor_len,
+                        "지",
+                        None,
+                        matched(
+                            '지'.len_utf8(),
+                            Some(&suffix("자", &["ending.connective-ja"])),
+                        ),
+                        "ending.auxiliary-jida",
+                    ));
+                }
                 return verify_stem(
                     anchor_len,
                     "지",

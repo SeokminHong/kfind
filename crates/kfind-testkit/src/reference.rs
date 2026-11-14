@@ -4034,6 +4034,19 @@ fn reference_attached_auxiliary(
         path.extend(fixed.rules.iter().copied().map(RuleId::from));
         return Some((stem.len_utf8() + fixed.surface.len(), path));
     }
+    if auxiliary == "ending.auxiliary-jida"
+        && following
+            .strip_prefix("지자")
+            .is_some_and(|rest| !rest.starts_with(is_reference_token_character))
+    {
+        return Some((
+            "지자".len(),
+            [auxiliary, "ending.connective-ja"]
+                .into_iter()
+                .map(RuleId::from)
+                .collect(),
+        ));
+    }
     best
 }
 

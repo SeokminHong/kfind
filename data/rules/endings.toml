@@ -2322,6 +2322,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-ja"
+category = "connective"
+initial = "consonant"
+forms = ["자"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-jamaja"
 category = "connective"
 initial = "consonant"
