@@ -1443,7 +1443,6 @@ impl MorphMatcher {
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
                     || has_nama_proper_name_frame(haystack, candidate, branch, resolver)
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
-                    || has_possession_argument(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
@@ -3650,9 +3649,6 @@ fn has_jiyo_object_frame(
         .start
         .saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
     let mut before = span.start;
-    let scheduled_verb = has_only_lemma(branch, atom, "늦다");
-    let mut has_schedule = false;
-    let mut has_person = false;
     while let Some((start, word)) = context::previous_word_with_start(haystack, before) {
         if start < limit || haystack[start..before].contains(&b'\n') {
             break;
@@ -3660,31 +3656,8 @@ fn has_jiyo_object_frame(
         if resolver.has_object_marked_nominal(&word) {
             return true;
         }
-        if scheduled_verb
-            && !has_schedule
-            && let Some(noun) = word.strip_suffix('에')
-        {
-            has_schedule = resolver.has_scheduled_complement(noun, "에");
-            if !has_schedule
-                && let Some((head_start, head)) = context::previous_word_with_start(haystack, start)
-                && head_start >= limit
-                && !haystack[head_start..start].contains(&b'\n')
-                && resolver.has_scheduled_complement(&format!("{head} {noun}"), "에")
-            {
-                has_schedule = true;
-                before = head_start;
-                continue;
-            }
-        }
-        if scheduled_verb && resolver.has_person_subject(&word) {
-            has_person = true;
-        } else if (!has_schedule && !resolver.has_exact_adverb_surface(&word))
-            || (has_schedule && resolver.has_independent_final_predicate(&word))
-        {
+        if !resolver.has_exact_adverb_surface(&word) {
             break;
-        }
-        if has_schedule && has_person {
-            return true;
         }
         before = start;
     }
@@ -4159,21 +4132,6 @@ fn has_conflicting_honorific(
                     .is_some_and(|prefix| !resolver.has_vowel_connective_host(&prefix))
         });
     }
-    if has_only_lemma(branch, atom, "갈다")
-        && context::normalized_token(haystack, token.clone()).is_some_and(|surface| {
-            surface.strip_prefix('가').is_some_and(|tail| {
-                tail.starts_with("세요") || tail.starts_with("셔") || tail.starts_with("시")
-            })
-        })
-        && context::previous_word_with_start(haystack, start).is_some_and(|(at, previous)| {
-            !haystack[at..start].contains(&b'\n')
-                && resolver.has_place_destination(&previous)
-                && context::previous_word(haystack, at)
-                    .is_none_or(|word| !resolver.has_object_marked_nominal(&word))
-        })
-    {
-        return true;
-    }
     // Auxiliary 주다 takes an -아/-어 connective. Its honorific overlaps with 줄다.
     branch.origins.iter().all(|origin| {
         atom.analyses
@@ -4181,37 +4139,6 @@ fn has_conflicting_honorific(
             .is_some_and(|analysis| analysis.lemma.as_ref() == "줄다")
     }) && context::previous_word(haystack, start)
         .is_some_and(|previous| resolver.has_request_auxiliary_host(&previous))
-}
-
-fn has_only_lemma(branch: &CandidateProgram, atom: &AtomPlan, lemma: &str) -> bool {
-    !branch.origins.is_empty()
-        && branch.origins.iter().all(|origin| {
-            atom.analyses
-                .get(usize::from(origin.analysis_index))
-                .is_some_and(|analysis| analysis.lemma.as_ref() == lemma)
-        })
-}
-
-fn has_possession_argument(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    atom: &AtomPlan,
-    resolver: &ConstraintResolver,
-) -> bool {
-    if !has_only_lemma(branch, atom, "가다") {
-        return false;
-    }
-    let token = surrounding_token_span(haystack, candidate.verified.core.clone());
-    if candidate.verified.core.start != token.start {
-        return false;
-    }
-    context::previous_word_with_start(haystack, token.start).is_some_and(|(at, previous)| {
-        !haystack[at..token.start].contains(&b'\n')
-            && resolver.has_financial_object(&previous)
-            && context::normalized_token(haystack, token)
-                .is_some_and(|surface| resolver.has_possessive_predicate_surface(&surface))
-    })
 }
 
 fn decide_request_dalla(
