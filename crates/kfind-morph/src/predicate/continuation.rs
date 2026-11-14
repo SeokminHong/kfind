@@ -1733,6 +1733,17 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('디') && pos != PredicatePos::Copula =>
+        {
+            &[suffix("디", &["ending.retrospective-direct-question"])]
+        }
+        ContinuationState::Eu if following.starts_with("시디") && pos != PredicatePos::Copula => {
+            &[suffix(
+                "시디",
+                &["ending.honorific", "ending.retrospective-direct-question"],
+            )]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 suffix("으려니", &["ending.conjecture-ryeo"]),
