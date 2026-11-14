@@ -973,6 +973,16 @@ regression.archaic-nora.future	지키다	verb	only-exact	0	15	지키겠노라 �
 regression.archaic-nora.quotative	오다	verb	only-exact	0	12	왔노라고 말했다.
 regression.archaic-nora.effort	하다	verb	only-exact	7	19	나름 하노라고 애썼습니다.
 regression.archaic-nora.separate	오다	verb	only-exact	0	6	왔다. 노라 씨는 먼저 떠났다.
+regression.causal-norani.consonant	걷다	verb	only-exact	0	12	걷노라니 고향 생각이 났다.
+regression.causal-norani.rieul	살다	verb	only-exact	7	19	혼자 사노라니 외롭기 짝이 없다.
+regression.causal-norani.existential	있다	verb	only-exact	7	22	참고 있노라니까 화가 치밀었다.
+regression.conditional-noramyeon.rieul	살다	verb	only-exact	0	12	사노라면 좋은 날도 오겠지.
+regression.conditional-noramyeon.honorific	읽다	verb	only-exact	0	18	읽으시노라면 뜻이 드러납니다.
+regression.conditional-noramyeon.quoted-past	읽다	verb	only-exact	0	12	읽었노라, 면접에서 그렇게 말했다.
+regression.conditional-noramyeon.honorific-rieul	살다	verb	only-exact	0	15	사시노라면 알게 됩니다.
+regression.causal-norani.color	노랗다	adjective	only-exact	7	16	잎이 노라니 가을이 온 모양이다.
+regression.conditional-noramyeon.color	노랗다	adjective	only-exact	7	16	잎이 노라면 가을이 온 겁니다.
+regression.conditional-noramyeon.separate	읽다	verb	only-exact	0	6	읽을 ‘노라면’ 용례를 골랐다.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

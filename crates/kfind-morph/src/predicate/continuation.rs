@@ -822,6 +822,15 @@ const INTENTIVE_RYEOGO: Suffix = suffix("려고", &["ending.intentive-ryeogo"]);
 const HONORIFIC_INTENTIVE_RYEOGO: Suffix =
     suffix("시려고", &["ending.honorific", "ending.intentive-ryeogo"]);
 pub(super) const CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
+pub(super) const NORA_CONNECTIVES: &[Suffix] = &[
+    suffix("노라니", &["ending.causal-norani"]),
+    suffix("노라니까", &["ending.causal-norani"]),
+    suffix("노라면", &["ending.conditional-noramyeon"]),
+];
+pub(super) const HONORIFIC_NORAMYEON: Suffix = suffix(
+    "시노라면",
+    &["ending.honorific", "ending.conditional-noramyeon"],
+);
 pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
 pub(super) const INTENTIVE_CONDITIONAL: Suffix = suffix("려면", &["ending.intentive-ryeomyeon"]);
 pub(super) const INTENTIVE_RYEODEUN: Suffix = suffix("려든", &["ending.intentive-ryeodeun"]);
@@ -1828,6 +1837,20 @@ fn verify_simple_continuation(
                     &["ending.honorific", "ending.future", "ending.archaic-nani"],
                 ),
             ]
+        }
+        ContinuationState::StemEnding
+            if (pos.is_action() || matches!(anchor, "있" | "없" | "계시"))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final)
+                && (following.starts_with("노라니") || following.starts_with("노라면")) =>
+        {
+            NORA_CONNECTIVES
+        }
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if following.starts_with("시노라면")
+                && (state == ContinuationState::Eu
+                    || !anchor.chars().next_back().is_some_and(has_final)) =>
+        {
+            &[HONORIFIC_NORAMYEON]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos.is_action() && following.starts_with("노라") =>
@@ -3162,6 +3185,8 @@ fn verify_simple_continuation(
                         | "ending.conditional-rieuljindaeneun"
                         | "ending.question-rieulkapsyo"
                         | "ending.causal-rieulsae"
+                        | "ending.causal-norani"
+                        | "ending.conditional-noramyeon"
                         | "ending.conditional-rieuljaksimyeon"
                         | "ending.interrogative-rieulgeona"
                         | "ending.final-rieuljira"
