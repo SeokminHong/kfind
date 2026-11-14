@@ -762,6 +762,12 @@ regression.retrospective-de.copula	이다	adjective	exact	6	15	동창이데요.
 regression.retrospective-de.honorific-past	오다	verb	exact	0	12	오셨데요.
 regression.retrospective-de.past	피다	verb	exact	0	9	폈데요.
 regression.retrospective-de.bound-noun	읽다	verb	exact	0	6	읽는 데 시간이 걸렸다.
+regression.connective-go-extension.habit	들르다	verb	exact	0	15	들르시고는 하셨다.
+regression.connective-go-extension.reduced	가다	verb	exact	0	9	가시곤 한다.
+regression.connective-go-extension.contrast	이다	adjective	exact	6	15	학생이고도 모르는 일이 있다.
+regression.connective-go-extension.emphasis	합격하다	verb	exact	0	15	합격하고야 말겠다.
+regression.connective-go-extension.purpose	말씀하다	verb	exact	0	18	말씀하시고자 연락했다.
+regression.connective-go-extension.separate	먹다	verb	exact	0	6	먹고 도서관으로 갔다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
