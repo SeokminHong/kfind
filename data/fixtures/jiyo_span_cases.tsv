@@ -93,6 +93,9 @@ neuj-jyo-adj	늦다	adjective	exact	50	56	지금 다시 출발하기에는 시�
 neuj-jyo-scheduled-time-verb	늦다	verb	exact	31	37	그 학생은 등교 시간에 늦죠.
 neuj-jyo-scheduled-time-adj	늦다	adjective	no-match	31	37	그 학생은 등교 시간에 늦죠.
 neuj-jyo-time-adjunct	늦다	adjective	exact	20	26	겨울에는 해가 늦죠.
+late-scheduled-adjective	늦다	adjective	no-match	34	40	학생은 수업 시간에 자주 늦죠.
+late-scheduled-verb	늦다	verb	smart-exact	34	40	학생은 수업 시간에 자주 늦죠.
+late-clock-adjective	늦다	adjective	smart-exact	27	33	수업 시간에 시계가 늦죠.
 iss-jiyo-verb	있다	verb	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
 iss-jiyo-verb-context	있다	verb	exact	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
 iss-jiyo-adj-context	있다	adjective	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
