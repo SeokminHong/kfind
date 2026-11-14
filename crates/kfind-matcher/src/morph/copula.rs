@@ -167,21 +167,35 @@ impl MorphMatcher {
         if !self.accepts_token_boundary(haystack, &candidate.verified, branch) {
             return false;
         }
+        let final_ending = normalized
+            .strip_suffix('야')
+            .map(|host| (host, "야"))
+            .or_else(|| normalized.strip_suffix("라니").map(|host| (host, "라니")));
         if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
-            && let Some(host) = normalized.strip_suffix('야')
+            && let Some((host, ending)) = final_ending
             && host.chars().next_back().is_some_and(|last| {
                 kfind_morph::decompose_syllable(last)
                     .is_some_and(|syllable| syllable.jongseong == 0)
             })
             && is_sentence_end_after(haystack, candidate.verified.token.end)
-            && resolver.has_exact_nominal_surface(host)
             && !resolver.has_exact_non_copula_predicate_surface(&normalized)
-            && (resolver.has_exact_pronoun_surface(host)
-                && (haystack[candidate.verified.token.end..].starts_with(b"?")
-                    || haystack[candidate.verified.token.end..].starts_with("？".as_bytes()))
-                || context::has_copula_subject(haystack, candidate.verified.token.start, resolver))
         {
-            return true;
+            let pronoun = resolver.has_exact_pronoun_surface(host);
+            let subject =
+                || context::has_copula_subject(haystack, candidate.verified.token.start, resolver);
+            let accepted = if ending == "라니" {
+                pronoun && subject()
+            } else {
+                resolver.has_exact_nominal_surface(host)
+                    && (pronoun
+                        && (haystack[candidate.verified.token.end..].starts_with(b"?")
+                            || haystack[candidate.verified.token.end..]
+                                .starts_with("？".as_bytes()))
+                        || subject())
+            };
+            if accepted {
+                return true;
+            }
         }
         if (normalized.ends_with("더군") || normalized.ends_with("더군요"))
             && context::previous_word(haystack, candidate.verified.token.start)
