@@ -1422,6 +1422,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.final-rieuljinira"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ지니라", "을지니라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-rieulreongo"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ런고", "을런고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-rieulssonga"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ쏜가", "을쏜가"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.final-rieuljinjeo"
 category = "final"
 initial = "attach-rieul"
