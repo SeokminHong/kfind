@@ -282,6 +282,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.exclamative-njigo"
+category = "final"
+initial = "attach-nieun"
+forms = ["ㄴ지고", "은지고", "는지고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.exclamative-aoeora"
 category = "final"
 initial = "other"

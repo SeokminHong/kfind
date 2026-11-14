@@ -2420,6 +2420,15 @@ fn reference_simple_continuation(
                 reference_suffix("로세", &["ending.copula-ro-final"]),
             ]
         }
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with("지고") =>
+        {
+            &[reference_suffix("지고", &["ending.exclamative-njigo"])]
+        }
+        ContinuationState::Eu if following.starts_with("신지고") => &[reference_suffix(
+            "신지고",
+            &["ending.honorific", "ending.exclamative-njigo"],
+        )],
         ContinuationState::NieunEnding if is_question("") => questions!(""),
         ContinuationState::Past | ContinuationState::Future if is_question("는") => {
             questions!("는")
@@ -2645,6 +2654,7 @@ fn reference_simple_continuation(
                             | "ending.concessive-nama"
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
+                            | "ending.exclamative-njigo"
                             | "ending.final-rieuljiroda"
                             | "ending.copula-olsida"
                             | "ending.concessive-geonman"
