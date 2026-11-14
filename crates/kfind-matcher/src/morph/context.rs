@@ -444,6 +444,14 @@ pub(super) fn next_word_with_end(bytes: &[u8], at: usize) -> Option<(usize, Cow<
     normalized_token(bytes, span).map(|word| (end, word))
 }
 
+pub(super) fn next_word_on_line(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
+    let (end, word) = next_word_with_end(bytes, at)?;
+    (!bytes[at..end]
+        .iter()
+        .any(|byte| matches!(byte, b'\r' | b'\n')))
+    .then_some((end, word))
+}
+
 pub(super) fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<Cow<'_, str>> {
     let token = std::str::from_utf8(bytes.get(span)?).ok()?;
     Some(if is_nfc(token) {

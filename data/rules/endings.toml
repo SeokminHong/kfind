@@ -332,6 +332,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.directive-ram"
+category = "final"
+initial = "eu"
+forms = ["람", "으람"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.directive-quotative"
 category = "connective"
 initial = "eu"

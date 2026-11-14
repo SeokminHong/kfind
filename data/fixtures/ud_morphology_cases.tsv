@@ -968,6 +968,17 @@ regression.propositive-se.rieul	만들다	verb	smart-exact	0	9	만드세.
 regression.propositive-se.irregular	걷다	verb	smart-exact	0	9	걸으세.
 regression.propositive-se.adjective	넓다	adjective	no-match	0	9	넓으세.
 regression.propositive-se.attached-auxiliary	보다	verb	smart-exact	6	12	읽어보세.
+regression.directive-ram.closed	먹다	verb	smart-exact	10	19	어떻게 먹으람?
+regression.directive-ram.open	가다	verb	smart-exact	10	16	어디로 가람?
+regression.directive-ram.rieul	살다	verb	smart-exact	10	16	어떻게 사람?
+regression.directive-ram.nominal-numeral	살다	verb	no-match	0	6	사람 셋이 들어왔다.
+regression.directive-ram.nominal-topic	살다	verb	no-match	0	6	사람 뼈는 모두 몇 개냐?
+regression.directive-ram.nominal-adnominal	살다	verb	no-match	0	6	사람 많은 곳은 피했다.
+regression.directive-ram.irregular	걷다	verb	smart-exact	10	19	어떻게 걸으람?
+regression.directive-ram.honorific-open	가다	verb	smart-exact	10	19	어디로 가시람?
+regression.directive-ram.honorific-closed	먹다	verb	smart-exact	10	22	어떻게 먹으시람?
+regression.directive-ram.adjective	좁다	adjective	no-match	0	9	좁으람?
+regression.directive-ram.verb-other-lemma	보다	verb	smart-exact	10	16	어떻게 보람?
 regression.propositive-se.internal-voice	몰다	verb	no-match	76	85	이후 두 번째 아풀리아 및 칼라브리아 왕조를 수립했으며몰리세 및 동쪽 바실리카타의 일부인 삼니움도 포함됐다.
 regression.concessive-damaneun.past	가다	verb	smart-exact	14	26	그는 이미 갔다마는 곧 돌아온다.
 regression.concessive-damaneun.honorific	가다	verb	smart-exact	10	25	그분은 가시다마는 저는 남습니다.
