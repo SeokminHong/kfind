@@ -2338,6 +2338,23 @@ fn verify_simple_continuation(
             &[HONORIFIC_NDAM]
         }
         ContinuationState::Eu if following.starts_with("시담") => &[HONORIFIC_DAM],
+        ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with('나') =>
+        {
+            &[INTERROGATIVE_NA, INTERROGATIVE_NA_YO]
+        }
+        ContinuationState::StemEnding
+            if matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) && following.starts_with('나')
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[INTERROGATIVE_NA, INTERROGATIVE_NA_YO]
+        }
         ContinuationState::StemEnding
             if following.strip_prefix('나').is_some_and(|tail| {
                 tail.trim_start().starts_with('?')
@@ -2864,6 +2881,7 @@ fn verify_simple_continuation(
                     "ending.connective-daganeun"
                         | "ending.interrogative-ryeon"
                         | "ending.interrogative-ngam"
+                        | "ending.interrogative-na"
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
