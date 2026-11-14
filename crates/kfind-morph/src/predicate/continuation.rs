@@ -1760,6 +1760,22 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with("지라") =>
+        {
+            &[suffix("지라", &["ending.causal-jira"])]
+        }
+        ContinuationState::Eu if following.starts_with("신지라") => &[suffix(
+            "신지라",
+            &["ending.honorific", "ending.causal-jira"],
+        )],
+        ContinuationState::Eu if following.starts_with("시는지라") => &[suffix(
+            "시는지라",
+            &["ending.honorific", "ending.causal-jira"],
+        )],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("는지라") => {
+            &[suffix("는지라", &["ending.causal-jira"])]
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with(['세', '람']) => {
             &[PROPOSITIVE_SE, DIRECTIVE_RAM]
         }
@@ -2519,6 +2535,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
                         | "ending.causal-nimankeum"
+                        | "ending.causal-jira"
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"

@@ -1778,6 +1778,22 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
+            if following.starts_with("지라") =>
+        {
+            &[reference_suffix("지라", &["ending.causal-jira"])]
+        }
+        ContinuationState::Eu if following.starts_with("신지라") => &[reference_suffix(
+            "신지라",
+            &["ending.honorific", "ending.causal-jira"],
+        )],
+        ContinuationState::Eu if following.starts_with("시는지라") => &[reference_suffix(
+            "시는지라",
+            &["ending.honorific", "ending.causal-jira"],
+        )],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("는지라") => {
+            &[reference_suffix("는지라", &["ending.causal-jira"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("건마") || following.starts_with("건만") =>
         {
@@ -2575,6 +2591,7 @@ fn reference_simple_continuation(
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
                             | "ending.causal-nimankeum"
+                            | "ending.causal-jira"
                             | "ending.concessive-geonman"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")

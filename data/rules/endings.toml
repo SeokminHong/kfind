@@ -1142,6 +1142,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.causal-jira"
+category = "connective"
+initial = "other"
+forms = ["ㄴ지라", "은지라", "는지라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.causal-nimankeum"
 category = "connective"
 initial = "eu"

@@ -642,6 +642,12 @@ regression.causal-nimankeum.honorific	읽다	verb	smart-exact	13	31	교수님이
 regression.causal-nimankeum.past	늦다	adjective	smart-exact	10	28	시간이 늦었으니만치 택시로 가자.
 regression.causal-nimankeum.action	읽다	verb	smart-exact	17	32	아이가 글을 읽느니만큼 조용히 하자.
 regression.causal-nimankeum.separate-dependent	읽다	verb	smart-exact	10	16	아이가 읽는 만큼 기다리자.
+regression.causal-jira.completed-action	오다	verb	smart-exact	7	16	눈이 온지라 길이 미끄럽다.
+regression.causal-jira.adjective	좋다	adjective	smart-exact	10	22	기분이 좋은지라 웃음이 났다.
+regression.causal-jira.current-action	계시다	verb	smart-exact	13	28	선생님이 계시는지라 조용히 했다.
+regression.causal-jira.copula	이다	adjective	smart-exact	13	22	오랜 친구인지라 마음이 놓였다.
+regression.causal-jira.separate-dependent	오다	verb	smart-exact	7	10	비가 온 지 오래됐다.
+regression.causal-jira.embedded-question	오다	verb	smart-exact	7	16	비가 오는지 확인했다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.
