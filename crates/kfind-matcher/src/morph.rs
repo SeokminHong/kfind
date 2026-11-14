@@ -1270,6 +1270,25 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
+            && candidate
+                .suffix_rules
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.propositive-se")
+            && !is_boundary_before(haystack, candidate.verified.core.start)
+            && !self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                context::normalized_token(
+                    haystack,
+                    surrounding_token_span(haystack, candidate.verified.core.clone()),
+                )
+                .is_some_and(|token| {
+                    resolver
+                        .has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT)
+                })
+            })
+        {
+            return false;
+        }
+        if boundary == BoundaryPolicy::Smart
             && candidate.suffix_rules.iter().any(|rule| {
                 matches!(
                     rule.as_str(),

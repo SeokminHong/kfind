@@ -807,6 +807,7 @@ const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
     &["ending.honorific", "ending.imperative-formal-short"],
 );
 const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
+const PROPOSITIVE_SE: Suffix = suffix("세", &["ending.propositive-se"]);
 const RYEOM_IMPERATIVES: &[Suffix] = &[
     suffix("렴", &["ending.imperative-ryeom"]),
     suffix("려무나", &["ending.imperative-ryeom"]),
@@ -1680,6 +1681,16 @@ fn verify_simple_continuation(
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
         ContinuationState::ReportEnding
+            if pos.is_action()
+                && following.starts_with('세')
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[PROPOSITIVE_SE]
+        }
+        ContinuationState::ReportEnding
             if pos.is_action() && following.starts_with(DANDA.surface) =>
         {
             &[DANDA]
@@ -1704,6 +1715,19 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::Eu if pos.is_action() && following.starts_with('세') => {
+            &[PROPOSITIVE_SE]
+        }
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with('세')
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[PROPOSITIVE_SE]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는단다")
@@ -2343,6 +2367,7 @@ fn verify_simple_continuation(
                         | "ending.quotative-danda"
                         | "ending.quotative-nikka"
                         | "ending.quotative-ni"
+                        | "ending.propositive-se"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
