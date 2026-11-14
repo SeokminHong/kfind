@@ -19,6 +19,11 @@ split에서 생성합니다. URL, SHA-256과 CC BY-SA 4.0 라이선스는 `sourc
 Canonical, Query matrix, Robust와 Human untagged는 기대값과 입력 계약이 다르므로
 점수를 합치지 않습니다.
 
+규칙은 dev에서 선택하고 고정 test와 hard-negative에서 회귀를 확인합니다.
+교정 GSD처럼 개발 중 예문을 반복 검토한 양성 집합의 정확 범위 일치율은 회귀 지표입니다.
+음성이 있거나 문장 중복을 별도로 확인한 평가 결과와 구분해서 보고합니다.
+품질 변경의 판정 기준은 [독립 형태소 벤치마크 사양](../../specs/verification.md#197-독립-형태소-벤치마크)을 따릅니다.
+
 ## Raw와 contract-adjusted
 
 모든 품질 backend에는 raw와 contract-adjusted confusion matrix, precision,
