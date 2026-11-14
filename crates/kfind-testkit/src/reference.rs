@@ -1810,6 +1810,38 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("도다") =>
+        {
+            &[reference_suffix("도다", &["ending.exclamative-doda"])]
+        }
+        ContinuationState::NieunEnding
+            if pos.is_action() && anchor.ends_with('는') && following.starts_with("도다") =>
+        {
+            &[reference_suffix("도다", &["ending.exclamative-neundoda"])]
+        }
+        ContinuationState::Eu if following.starts_with("시도다") => &[reference_suffix(
+            "시도다",
+            &["ending.honorific", "ending.exclamative-doda"],
+        )],
+        ContinuationState::Eu if following.starts_with("셨도다") => &[reference_suffix(
+            "셨도다",
+            &["ending.honorific", "ending.past", "ending.exclamative-doda"],
+        )],
+        ContinuationState::Eu if following.starts_with("시겠도다") => &[reference_suffix(
+            "시겠도다",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.exclamative-doda",
+            ],
+        )],
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시는도다") => {
+            &[reference_suffix(
+                "시는도다",
+                &["ending.honorific", "ending.exclamative-neundoda"],
+            )]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos.is_action() && following.starts_with("려거든") =>
         {
@@ -2652,6 +2684,8 @@ fn reference_simple_continuation(
                             | "ending.formal-intention-question"
                             | "ending.conditional-ryeogeodeun"
                             | "ending.formal-intention-statement"
+                            | "ending.exclamative-doda"
+                            | "ending.exclamative-neundoda"
                             | "ending.final-rieuljiroda"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"

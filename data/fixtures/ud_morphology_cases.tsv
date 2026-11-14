@@ -703,6 +703,12 @@ regression.conditional-ryeogeodeun.irregular	낫다	verb	exact	7	22	병이 나�
 regression.conditional-ryeogeodeun.honorific	읽다	verb	exact	13	31	선생님이 읽으시려거든 책을 준비해라.
 regression.conditional-ryeogeodeun.rieul	살다	verb	exact	10	22	이곳에 살려거든 지도를 익혀라.
 regression.conditional-ryeogeodeun.ordinary	오다	verb	exact	7	16	비가 오거든 우산을 챙겨라.
+regression.exclamative-doda.state	훌륭하다	adjective	exact	10	25	참으로 훌륭하도다!
+regression.exclamative-doda.current	오다	verb	exact	7	19	봄이 오는도다!
+regression.exclamative-doda.honorific	읽다	verb	exact	13	31	선생님이 읽으시는도다.
+regression.exclamative-doda.past	내리다	verb	exact	7	19	비가 내렸도다!
+regression.exclamative-doda.rieul	알다	verb	exact	10	22	참으로 아는도다!
+regression.exclamative-doda.copula-ro	이다	adjective	exact	13	22	그것은 꿈이로다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
