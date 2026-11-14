@@ -1039,6 +1039,10 @@ regression.copula-concessive-eon.jeong	이다	adjective	only-exact	3	12	약이�
 regression.copula-concessive-eon.negative	아니다	adjective	only-exact	0	12	아니언만 어찌 그대로 두겠소.
 regression.copula-concessive-eon.honorific	이다	adjective	only-exact	9	21	선생님이시언정 답은 모르오.
 regression.copula-concessive-eon.separate	이다	adjective	only-exact	6	12	작가이다. ‘언마는’은 따로 읽자.
+regression.copula-honorific-adnominal.closed	이다	adjective	only-exact	9	15	선생님이신 부모님 곁에서 자랐다.
+regression.copula-honorific-adnominal.open	이다	adjective	only-exact	6	12	의사이신 분께 여쭸다.
+regression.copula-honorific-adnominal.background	이다	adjective	only-exact	6	15	의사이신데 무슨 걱정이 있소.
+regression.copula-honorific-adnominal.independent-action	이다	adjective	no-match-both	0	6	마신 물이 차가웠다.
 regression.familiar-short-eui.good	좋다	adjective	only-exact	11	17	그것 참 좋의.
 regression.familiar-short-eui.narrow	좁다	adjective	only-exact	0	6	좁의. 자네가 앉기는 어렵겠네.
 regression.familiar-short-eui.full	좋다	adjective	only-exact	0	9	좋으이. 오래 기다린 보람이 있네.
