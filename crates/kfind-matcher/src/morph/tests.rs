@@ -15,6 +15,7 @@ use kfind_query::{
 };
 use unicode_normalization::UnicodeNormalization;
 
+use super::trailing::licensed_source_ending_surface;
 use super::*;
 
 #[test]
@@ -403,15 +404,19 @@ fn exact_structural_token_graph_is_prepared_without_covering_larger_tokens() {
         Arc::new(component_resource()),
     );
 
-    let entries = &matcher.prepared_exact_tokens.entries[prepared_token_slot(false, false)];
-    let prepared = entries
-        .iter()
-        .find(|entry| entry.text.as_ref() == "매일")
-        .expect("exact structural token must be registered");
-    assert!(prepared.graph.get().is_none());
-    assert!(entries.iter().all(|entry| entry.text.as_ref() != "매일가"));
+    assert_eq!(
+        matcher.prepared_exact_tokens.preparation_state("매일"),
+        Some(None)
+    );
+    assert_eq!(
+        matcher.prepared_exact_tokens.preparation_state("매일가"),
+        None
+    );
     assert_eq!(matcher.find_all_with_meta("매일 매일".as_bytes()).len(), 2);
-    assert!(prepared.graph.get().is_some_and(Option::is_some));
+    assert_eq!(
+        matcher.prepared_exact_tokens.preparation_state("매일"),
+        Some(Some(true))
+    );
     assert!(matcher.find_all_with_meta("매일가".as_bytes()).is_empty());
 }
 
@@ -435,17 +440,15 @@ fn exact_structural_token_graph_is_published_once_for_concurrent_searches() {
         }
     });
 
-    let entries = &matcher.prepared_exact_tokens.entries[prepared_token_slot(false, false)];
-    let prepared = entries
-        .iter()
-        .find(|entry| entry.text.as_ref() == "매일")
-        .expect("exact structural token must be registered");
-    assert!(prepared.graph.get().is_some_and(Option::is_some));
+    assert_eq!(
+        matcher.prepared_exact_tokens.preparation_state("매일"),
+        Some(Some(true))
+    );
 }
 
 #[test]
 fn exact_structural_token_preparation_is_bounded_by_plan_program_count() {
-    let branches = (0..=MAX_PREPARED_EXACT_TOKEN_PROGRAMS)
+    let branches = (0..=super::exact_token_graphs::MAX_PREPARED_EXACT_TOKEN_PROGRAMS)
         .map(|_| {
             let mut branch = exact_branch("공유", true);
             mark_structural(&mut branch);
@@ -454,13 +457,7 @@ fn exact_structural_token_preparation_is_bounded_by_plan_program_count() {
         .collect();
     let matcher = contextual_matcher(branches, Arc::new(component_resource()));
 
-    assert!(
-        matcher
-            .prepared_exact_tokens
-            .entries
-            .iter()
-            .all(|entries| entries.is_empty())
-    );
+    assert!(matcher.prepared_exact_tokens.is_empty());
 }
 
 #[test]
