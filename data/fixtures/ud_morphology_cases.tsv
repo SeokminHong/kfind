@@ -827,6 +827,9 @@ regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기�
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
 regression.concessive-giroseoni.honorific-past	읽다	verb	exact	0	21	읽으셨기로서니 내용을 모두 아시겠느냐.
 regression.concessive-giroseoni.nominalized	읽다	verb	exact	0	9	읽기로 했다.
+regression.concessive-gironi.rieul	벌다	verb	exact	0	12	벌기로니 당장 부자가 되겠느냐.
+regression.concessive-gironi.honorific-past	읽다	verb	exact	0	18	읽으셨기로니 다 기억하실까.
+regression.concessive-gironi.copula	이다	adjective	exact	6	18	학생이기로니 책임이 없겠느냐.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

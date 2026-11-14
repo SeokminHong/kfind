@@ -1848,19 +1848,39 @@ fn reference_simple_continuation(
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
-            if following.starts_with("기로서니") =>
-        {
-            &[reference_suffix(
-                "기로서니",
-                &["ending.concessive-giroseoni"],
-            )]
-        }
-        ContinuationState::Eu
-            if following.starts_with("시기로서니")
-                || following.starts_with("셨기로서니")
-                || following.starts_with("시겠기로서니") =>
+            if following.starts_with("기로") =>
         {
             &[
+                reference_suffix("기로니", &["ending.concessive-giroseoni"]),
+                reference_suffix("기로서니", &["ending.concessive-giroseoni"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시기로")
+                || following.starts_with("셨기로")
+                || following.starts_with("시겠기로") =>
+        {
+            &[
+                reference_suffix(
+                    "시기로니",
+                    &["ending.honorific", "ending.concessive-giroseoni"],
+                ),
+                reference_suffix(
+                    "셨기로니",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.concessive-giroseoni",
+                    ],
+                ),
+                reference_suffix(
+                    "시겠기로니",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.concessive-giroseoni",
+                    ],
+                ),
                 reference_suffix(
                     "시기로서니",
                     &["ending.honorific", "ending.concessive-giroseoni"],
