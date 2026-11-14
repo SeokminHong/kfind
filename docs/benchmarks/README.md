@@ -355,6 +355,9 @@ identity로 사용한다.
 기본 명령은 fixture·schema 불일치에서 자동 실행하거나 오래된 결과를 쓰지 않고 실패한다.
 기본 benchmark 이미지는 `kfind` runner만 빌드하고, 외부 분석기와 전용 runner는 별도 refresh
 이미지에서만 빌드한다.
+기본 이미지 빌드에서 같은 full POS 사전과 component resource로 `verify-gold`를 실행한다.
+PR의 morphology smoke에서도 고정 회귀의 실제 검색 결과를 검사하며, 검사는 benchmark
+측정 구간 밖에서 실행한다.
 
 ```console
 scripts/benchmark-morphology.sh

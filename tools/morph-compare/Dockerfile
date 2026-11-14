@@ -103,6 +103,10 @@ RUN scripts/build-full-pos.sh /benchmark/full-pos \
     --bin kfind \
     -p kfind-testkit \
     --bin generate-corpus \
+    --bin verify-gold \
+    && target/release/verify-gold \
+    /benchmark/full-pos/lexicon.bin \
+    /benchmark/component/morphology-component-compact.kfc \
     && cargo build \
     --locked \
     --release \
