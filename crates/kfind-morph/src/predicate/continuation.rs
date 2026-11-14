@@ -667,6 +667,7 @@ const DECLARATIVE_NEUN_GUN_YO: Suffix = suffix(
     ],
 );
 const DECLARATIVE_RETROSPECTIVE: Suffix = suffix("던", &["ending.quotative-retrospective"]);
+const DECLARATIVE_DEORA: Suffix = suffix("더라", &["ending.quotative-deora"]);
 const DECLARATIVE_DEONI: Suffix = suffix("더니", &["ending.retrospective-connective"]);
 const DECLARATIVE_DEONIMAN: Suffix = suffix("더니만", &["ending.retrospective-contrast"]);
 const DECLARATIVE_DEONIMANEUN: Suffix = suffix("더니마는", &["ending.retrospective-contrast"]);
@@ -1743,6 +1744,12 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
+            &[suffix(
+                "다더라",
+                &["ending.final-da", "ending.quotative-deora"],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past if following.starts_with('든') => {
             &[
                 suffix("든", &["ending.alternative-deunji"]),
@@ -3133,6 +3140,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         }
         '더' if following.starts_with(DECLARATIVE_DEONIMAN.surface) => Some(&DECLARATIVE_DEONIMAN),
         '더' if following.starts_with(DECLARATIVE_DEONI.surface) => Some(&DECLARATIVE_DEONI),
+        '더' if ends_at_boundary(DECLARATIVE_DEORA.surface) => Some(&DECLARATIVE_DEORA),
         '나' if ends_at_boundary(DECLARATIVE_NA.surface) => Some(&DECLARATIVE_NA),
         '니' if ends_at_boundary(DECLARATIVE_NIKKANEUN.surface) => Some(&DECLARATIVE_NIKKANEUN),
         '니' if ends_at_boundary(DECLARATIVE_NIKKAYO.surface) => Some(&DECLARATIVE_NIKKAYO),

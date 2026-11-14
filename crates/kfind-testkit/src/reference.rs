@@ -1116,6 +1116,7 @@ fn reference_simple_continuation(
         reference_suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
+        reference_suffix("더라", &["ending.quotative-deora"]),
         reference_suffix(
             "는군요",
             &[
@@ -1859,6 +1860,12 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
+            &[reference_suffix(
+                "다더라",
+                &["ending.final-da", "ending.quotative-deora"],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past if following.starts_with('든') => {
             &[
                 reference_suffix("든", &["ending.alternative-deunji"]),
@@ -3071,6 +3078,7 @@ fn reference_simple_continuation(
                             | "ending.connective-geoni"
                             | "ending.connective-geoneul"
                             | "ending.alternative-deunji"
+                            | "ending.quotative-deora"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

@@ -852,6 +852,12 @@ regression.alternative-deunji.copula	이다	adjective	exact	6	15	사실이든지
 regression.alternative-deunji.retrospective	읽다	verb	exact	0	9	읽던지 말던지 했던 모습이 기억난다.
 regression.alternative-deunji.joined-determiner	모다	verb	no-match	15	21	폐지했으며모든 범죄를 조사했다.
 regression.alternative-deunji.detached-verb	모다	verb	exact	10	16	서류를 모든 찢든 네가 결정해라.
+regression.quotative-deora.vowel	오다	verb	exact	0	12	온다더라.
+regression.quotative-deora.consonant	먹다	verb	exact	0	15	먹는다더라.
+regression.quotative-deora.adjective	곱다	adjective	exact	0	12	곱다더라.
+regression.quotative-deora.past	읽다	verb	exact	0	15	읽었다더라.
+regression.quotative-deora.honorific	좋다	adjective	exact	0	18	좋으시다더라.
+regression.quotative-deora.separate	오다	verb	exact	0	6	온다. 더라 씨를 기다린다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
