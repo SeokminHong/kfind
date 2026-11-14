@@ -203,6 +203,20 @@ impl MorphMatcher {
         {
             return false;
         }
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && let Some(host) = normalized.strip_suffix("라느니")
+            && host.chars().next_back().is_some_and(|last| {
+                kfind_morph::decompose_syllable(last)
+                    .is_some_and(|syllable| syllable.jongseong == 0)
+            })
+            && resolver.has_exact_nominal_surface(host)
+            && context::next_word_on_line(haystack, candidate.verified.token.end)
+                .is_some_and(|(_, next)| next == "아니라느니")
+            && context::previous_word(haystack, candidate.verified.token.start)
+                .is_some_and(|previous| resolver.has_surname_title(&previous, host))
+        {
+            return true;
+        }
         if let Some(stem) = normalized
             .strip_suffix("렷다")
             .or_else(|| normalized.strip_suffix('랴'))
