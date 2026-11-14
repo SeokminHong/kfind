@@ -621,6 +621,16 @@ regression.exclamative.gu-action-current	날리다	verb	smart-exact	17	32	철수
 regression.exclamative.gu-action-not-copula	이다	adjective	no-match	17	32	철수는 연을 날리는구려.
 regression.exclamative.gu-particle-not-predicate	당기다	verb	no-match	7	16	저는 당구나 칩니다.
 regression.exclamative.gu-invalid-consonant-omission	이다	adjective	no-match	0	12	학생구려.
+regression.concessive-nama.vowel	조촐하다	adjective	smart-exact	0	15	조촐하나마 정성껏 차렸습니다.
+regression.concessive-nama.consonant	적다	adjective	smart-exact	0	12	적으나마 보태겠습니다.
+regression.concessive-nama.past	늦다	adjective	smart-exact	0	15	늦었으나마 인사드립니다.
+regression.concessive-nama.future	어렵다	adjective	smart-exact	0	18	어렵겠으나마 맡아 주세요.
+regression.concessive-nama.rieul	살다	verb	smart-exact	7	16	멀리 사나마 종종 뵙겠습니다.
+regression.concessive-nama.honorific	바쁘다	adjective	smart-exact	0	15	바쁘시나마 잠깐 들러 주세요.
+regression.concessive-nama.nominal-particle	초안	noun	smart-exact	0	15	초안이나마 참고해 주세요.
+regression.concessive-nama.nominal-not-copula	이다	adjective	no-match	0	15	초안이나마 참고해 주세요.
+regression.concessive-nama.proper-name	팔다	verb	no-match	0	9	파나마 지협의 남쪽을 지났다.
+regression.concessive-nama.action	팔다	verb	smart-exact	7	16	옷을 파나마 수익은 많지 않다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.

@@ -482,6 +482,9 @@ const HONORIFIC_NEGATIVE_PARTICLES: &[Suffix] = &[
     ),
 ];
 const CONCESSIVE_NA: Suffix = suffix("나", &["ending.connective-na"]);
+const NAMA: Suffix = suffix("나마", &["ending.concessive-nama"]);
+const EUNAMA: Suffix = suffix("으나마", &["ending.concessive-nama"]);
+const HONORIFIC_NAMA: Suffix = suffix("시나마", &["ending.honorific", "ending.concessive-nama"]);
 const INTERROGATIVE_NA_YO: Suffix = suffix("나요", &["ending.interrogative-na"]);
 const INTERROGATIVE_NA: Suffix = suffix("나", &["ending.interrogative-na"]);
 const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
@@ -2046,6 +2049,23 @@ fn verify_simple_continuation(
             &[JIMAN, JIMANEUN]
         }
         ContinuationState::StemEnding if following.starts_with("거나") => &[GEONA],
+        ContinuationState::StemEnding
+            if following.starts_with("나마")
+                && pos != PredicatePos::Copula
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[NAMA]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으나마") => {
+            &[EUNAMA]
+        }
+        ContinuationState::Eu if following.starts_with("시나마") => &[HONORIFIC_NAMA],
+        ContinuationState::Eu if anchor.ends_with('으') && following.starts_with("나마") => {
+            &[NAMA]
+        }
         ContinuationState::StemEnding if anchor.ends_with('시') && following.starts_with('나') => {
             &[CONCESSIVE_NA]
         }
@@ -2410,6 +2430,7 @@ fn verify_simple_continuation(
                         | "ending.interrogative-ngam"
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
+                        | "ending.concessive-nama"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
