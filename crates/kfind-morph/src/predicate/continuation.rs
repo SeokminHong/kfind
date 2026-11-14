@@ -1744,6 +1744,14 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        // The dictionary lists this ending specifically after the adjective 같다.
+        ContinuationState::Eu
+            if pos == PredicatePos::Adjective
+                && anchor == "같으"
+                && following.starts_with("니라고") =>
+        {
+            &[suffix("니라고", &["ending.reproach-eunirago"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with("나니") =>
         {

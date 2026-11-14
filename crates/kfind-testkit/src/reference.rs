@@ -1860,6 +1860,13 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu
+            if pos == PredicatePos::Adjective
+                && anchor == "같으"
+                && following.starts_with("니라고") =>
+        {
+            &[reference_suffix("니라고", &["ending.reproach-eunirago"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with("나니") =>
         {
@@ -3173,6 +3180,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
                             | "ending.archaic-nani"
+                            | "ending.reproach-eunirago"
                             | "ending.quotative-damyeo"
                             | "ending.propositive-quotation"
                             | "ending.propositive-conditional"

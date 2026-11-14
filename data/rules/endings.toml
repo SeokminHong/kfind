@@ -2362,6 +2362,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.reproach-eunirago"
+category = "final"
+initial = "eu"
+forms = ["으니라고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.archaic-nani"
 category = "connective"
 initial = "consonant"
