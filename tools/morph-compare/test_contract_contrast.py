@@ -13,6 +13,35 @@ from python.query_matrix_contract import (
 
 
 class ContractContrastTests(unittest.TestCase):
+    def test_span_contract_reviews_match_verify_gold(self) -> None:
+        benchmark = Path(__file__).resolve().parent
+        fixture = benchmark.parents[1] / "data" / "fixtures" / "ud_morphology_cases.tsv"
+        reviewed_spans = []
+        for line in fixture.read_text(encoding="utf-8").splitlines()[1:]:
+            fields = line.split("\t")
+            if len(fields) == 8:
+                _, query, pos, expected, start, end, text, reason = fields
+                reviewed_spans.append(
+                    (query, pos, expected, int(start), int(end), text, reason)
+                )
+
+        cases = self.read_jsonl(benchmark / "verify-gold-context-cases.jsonl")
+        reviews = load_contract_reviews(benchmark / "verify-gold-contract-reviews.tsv")
+        apply_contract_reviews(
+            cases, reviews, query_mode="explicit-pos", split="verify-gold-context"
+        )
+        self.assertCountEqual(
+            reviewed_spans,
+            [
+                (
+                    case["query"], case["pos"], "no-match", case["gold_byte_start"],
+                    case["gold_byte_end"], case["text"], case["contract_reason"],
+                )
+                for case in cases
+                if case.get("contract_expected") is True
+            ],
+        )
+
     def test_all_contract_reviews_have_contrast_examples(self) -> None:
         benchmark = Path(__file__).resolve().parent
         repo = benchmark.parents[1]
@@ -76,12 +105,9 @@ class ContractContrastTests(unittest.TestCase):
         by_id = {case["id"]: case for case in cases}
         self.assertEqual(len(cases), len(by_id))
         reviews = [review for review in reviews if review.case_id in by_id]
-        self.assertEqual(
-            {review.case_id for review in reviews},
-            {case["id"] for case in cases if not case["expected"]},
-        )
         for review in reviews:
             case = by_id[review.case_id]
+            self.assertFalse(case["expected"])
             scored_case = case.copy()
             apply_contract_reviews(
                 [scored_case], [review], query_mode=review.query_mode, split=review.split

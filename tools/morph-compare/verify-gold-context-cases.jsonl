@@ -3,7 +3,7 @@
 {"id":"genitive-locative:source","query":"나","pos":"pronoun","text":"한국 내 개신교 선교사들이 방문했다.","expected":false,"gold_byte_start":7,"gold_byte_end":10,"paired_case_id":"genitive-locative:contrast"}
 {"id":"genitive-locative:contrast","query":"나","pos":"pronoun","text":"제가 맡은 개신교 선교사들은 지금 한국에 있습니다. 한국 내 개신교 선교사들이 방문했다.","expected":true,"gold_byte_start":78,"gold_byte_end":81,"paired_case_id":"genitive-locative:source"}
 {"id":"genitive-pud-locative:source","query":"나","pos":"pronoun","text":"반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.","expected":false,"gold_byte_start":91,"gold_byte_end":94,"paired_case_id":"genitive-pud-locative:contrast"}
-{"id":"genitive-pud-locative:contrast","query":"나","pos":"pronoun","text":"작년에 내 발전이 두드러졌다고 동료가 말했다.","expected":true,"gold_byte_start":10,"gold_byte_end":13,"paired_case_id":"genitive-pud-locative:source"}
+{"id":"genitive-pud-locative:contrast","query":"나","pos":"pronoun","text":"나는 그 지역에서 일하며 실력을 키웠다. 그 지역 내 발전이 눈에 띄었다.","expected":true,"gold_byte_start":66,"gold_byte_end":69,"paired_case_id":"genitive-pud-locative:source"}
 {"id":"resultative-asset:source","query":"가다","pos":"verb","text":"그는 재산을 가지지 않았다.","expected":false,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"resultative-asset:contrast"}
 {"id":"resultative-asset:contrast","query":"가다","pos":"verb","text":"그는 산길을 가지지 않았다.","expected":true,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"resultative-asset:source"}
 {"id":"resultative-stock:source","query":"가다","pos":"verb","text":"그 회사는 주식을 가지지 않았다.","expected":false,"gold_byte_start":24,"gold_byte_end":33,"paired_case_id":"resultative-stock:contrast"}

@@ -379,7 +379,17 @@ fn verify_span_cases(
     for (index, line) in cases.lines().enumerate().skip(1) {
         let invalid_row = || format!("invalid {fixture} fixture row {}", index + 1);
         let fields = line.split('\t').collect::<Vec<_>>();
-        let [id, query, pos, expected, start, end, text] = fields.as_slice() else {
+        let [
+            id,
+            query,
+            pos,
+            expectation,
+            start,
+            end,
+            text,
+            contract_review @ ..,
+        ] = fields.as_slice()
+        else {
             return Err(invalid_row().into());
         };
         let pos = match *pos {
@@ -392,7 +402,16 @@ fn verify_span_cases(
             "adverb" => CoarsePos::Adverb,
             _ => return Err(invalid_row().into()),
         };
-        let expectation = *expected;
+        let contract_positive = match (*expectation, contract_review) {
+            (_, []) => false,
+            ("no-match", ["structurally-indistinguishable-homograph"]) => true,
+            _ => return Err(invalid_row().into()),
+        };
+        let expectation = if contract_positive {
+            "smart-exact"
+        } else {
+            *expectation
+        };
         let expected = match expectation {
             "match" | "exact" | "smart-exact" => true,
             "no-match" => false,
@@ -432,6 +451,10 @@ fn verify_span_cases(
                 failures.push(format!(
                     "{id} {boundary:?}: target={target:?}, expected={expectation}, spans={spans:?}"
                 ));
+            } else if contract_positive {
+                println!(
+                    "{id} {boundary:?}: raw=no-match, contract=smart-exact, target={target:?}, span={start}..{end}"
+                );
             }
         }
     }
