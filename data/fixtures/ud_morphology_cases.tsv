@@ -878,6 +878,13 @@ regression.conjecture-rieulrera.copula	이다	adjective	exact	27	36	그것도 �
 regression.conjecture-rieulrera.separate	읽다	verb	only-exact	0	6	읽을 레라 씨의 편지를 꺼냈다.
 regression.conjecture-rieulrera.nominal-quote	오다	verb	no-match	7	16	제주 올레라 불리는 길이다.
 regression.conjecture-rieulrera.nominal	올레	noun	smart-exact	7	13	제주 올레라 불리는 길이다.
+regression.final-merya.rieul	살다	verb	only-exact	18	27	어쩌랴, 아직 삶에랴.
+regression.final-merya.honorific	읽다	verb	exact	7	22	이미 읽으심에랴.
+regression.final-merya.honorific-rieul	살다	verb	exact	10	22	그분도 사심에랴.
+regression.final-merya.future	먹다	verb	exact	7	22	이미 먹겠음에랴.
+regression.final-merya.copula	이다	adjective	exact	16	28	그분이 스승이심에랴.
+regression.final-merya.nominalizer	좋다	adjective	only-exact	0	9	좋음에 기대어 살았다.
+regression.final-merya.separate	먹다	verb	only-exact	0	6	먹음. 에랴 씨가 기록했다.
 regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
 regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
 regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?

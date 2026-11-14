@@ -206,6 +206,16 @@ fn compile_stem(
             vec![rule("ending.nominalizer-gi")],
         );
         let nominalizer = nominalizer_surface(entry, stem)?;
+        let mut merya_rules = nominalizer.rules.clone();
+        *merya_rules.last_mut().expect("nominalizer ending") = rule("ending.final-merya");
+        push_branch(
+            branches,
+            entry,
+            format!("{}에랴", nominalizer.surface),
+            nominalizer.core_len,
+            ContinuationState::Terminal,
+            merya_rules,
+        );
         if entry.pos.is_action() {
             let mut rules = nominalizer.rules.clone();
             *rules.last_mut().expect("nominalizer ending") = rule("ending.volitional-mse");
@@ -885,6 +895,14 @@ fn compile_rieul_honorific(
         core_len,
         ContinuationState::RieulFinal,
         vec![rule("ending.honorific")],
+    );
+    push_branch(
+        branches,
+        entry,
+        format!("{base}심에랴"),
+        core_len,
+        ContinuationState::Terminal,
+        vec![rule("ending.honorific"), rule("ending.final-merya")],
     );
     for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS
         .iter()

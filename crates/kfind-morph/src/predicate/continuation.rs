@@ -523,6 +523,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("제", &["ending.dialect-past-je"]),
     NAM,
     NOMINALIZER_EUM,
+    suffix("음에랴", &["ending.final-merya"]),
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
     NEGATIVE_OBJECT,
@@ -625,6 +626,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     NAM,
     JI,
     NOMINALIZER_EUM,
+    suffix("음에랴", &["ending.final-merya"]),
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
     NEGATIVE_OBJECT,
@@ -2129,6 +2131,18 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시걸랑") => {
             &[suffix("시걸랑", &["ending.honorific", "ending.geodeun"])]
         }
+        ContinuationState::Eu if following.starts_with("심에랴") => &[suffix(
+            "심에랴",
+            &["ending.honorific", "ending.final-merya"],
+        )],
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula && anchor == "이" && following.starts_with("심에랴") =>
+        {
+            &[suffix(
+                "심에랴",
+                &["ending.honorific", "ending.final-merya"],
+            )]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
             &[suffix("으려나", &["ending.conjecture-ryeo"])]
         }
@@ -3125,6 +3139,7 @@ fn verify_simple_continuation(
                         | "ending.final-rieuljiroda"
                         | "ending.doubt-rieulrago"
                         | "ending.conjecture-rieulrera"
+                        | "ending.final-merya"
                         | "ending.interrogative-rieulgeona"
                         | "ending.final-rieuljira"
                         | "ending.final-rieuljinira"
