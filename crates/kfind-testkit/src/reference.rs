@@ -2248,6 +2248,19 @@ fn reference_simple_continuation(
             "시걸랑",
             &["ending.honorific", "ending.geodeun"],
         )],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("음에랴") => {
+            &[reference_suffix("음에랴", &["ending.final-merya"])]
+        }
+        ContinuationState::Eu | ContinuationState::StemEnding
+            if (state == ContinuationState::Eu
+                || (pos == PredicatePos::Copula && anchor == "이"))
+                && following.starts_with("심에랴") =>
+        {
+            &[reference_suffix(
+                "심에랴",
+                &["ending.honorific", "ending.final-merya"],
+            )]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
             &[reference_suffix("으려나", &["ending.conjecture-ryeo"])]
         }
@@ -3254,6 +3267,7 @@ fn reference_simple_continuation(
                             | "ending.final-rieuljiroda"
                             | "ending.doubt-rieulrago"
                             | "ending.conjecture-rieulrera"
+                            | "ending.final-merya"
                             | "ending.interrogative-rieulgeona"
                             | "ending.final-rieuljira"
                             | "ending.final-rieuljinira"

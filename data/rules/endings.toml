@@ -2322,6 +2322,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.final-merya"
+category = "final"
+initial = "attach-mieum"
+forms = ["ㅁ에랴", "음에랴"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.volitional-mse"
 category = "final"
 initial = "attach-mieum"
