@@ -952,6 +952,7 @@ fn compile_rieul_honorific(
         .chain(continuation::POLITE_HONORIFIC_ENDINGS)
         .chain(continuation::HONORIFIC_VOWEL_CONNECTIVES)
         .chain(continuation::HONORIFIC_NIRA)
+        .chain(continuation::HONORIFIC_CAUSAL_NI)
         .chain([&continuation::HONORIFIC_NORAMYEON])
         .chain([&continuation::SINEUNDEPSYO])
         .chain([&continuation::HONORIFIC_DAM])
