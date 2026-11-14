@@ -1133,6 +1133,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
             suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
             suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
+            suffix(concat!($prefix, "러니"), &[$($prior,)* "ending.retrospective-rieulreoni"]),
             suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
             suffix(concat!($prefix, "라고"), &[$($prior,)* "ending.doubt-rieulrago"]),
             suffix(concat!($prefix, "레라"), &[$($prior,)* "ending.conjecture-rieulrera"]),
@@ -3504,6 +3505,7 @@ fn verify_simple_continuation(
                         | "ending.copula-olsida"
                         | "ending.copula-concessive-eon"
                         | "ending.retrospective-reoni"
+                        | "ending.retrospective-rieulreoni"
                         | "ending.retrospective-reo-final"
                         | "ending.retrospective-reondeul"
                         | "ending.concessive-geonman"

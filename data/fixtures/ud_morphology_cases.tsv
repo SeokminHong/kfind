@@ -726,6 +726,12 @@ regression.retrospective-reon.recalled	보다	verb	only-exact	0	12	보더런가?
 regression.retrospective-reon.prospective	가다	verb	only-exact	0	12	가리런들 어찌 막겠소.
 regression.retrospective-reon.action	이다	adjective	no-match-both	0	15	읽으시런가?
 regression.retrospective-reon.separate	아니다	adjective	only-exact	0	9	아니다. ‘런가’는 따로 읽자.
+regression.retrospective-rieul-reoni.copula	이다	adjective	exact	6	15	범인일러니 사실은 누명이었소.
+regression.retrospective-rieul-reoni.vowel	가다	verb	only-exact	0	9	갈러니 비라도 올 듯하오.
+regression.retrospective-rieul-reoni.consonant	참다	verb	only-exact	0	12	참을러니 도무지 견딜 수 없소.
+regression.retrospective-rieul-reoni.past	참다	verb	only-exact	0	15	참았을러니 사정이 달라졌소.
+regression.retrospective-rieul-reoni.honorific	읽다	verb	only-exact	0	15	읽으실러니 책을 찾지 못하셨소.
+regression.retrospective-rieul-reoni.separate	가다	verb	only-exact	0	3	갈 ‘러니’ 표기는 따로 확인했다.
 regression.exclamative-njigo.copula	이다	adjective	exact	13	22	과연 영웅인지고.
 regression.exclamative-njigo.vowel-state	훌륭하다	adjective	exact	7	22	정말 훌륭한지고!
 regression.exclamative-njigo.consonant-state	가엾다	adjective	exact	10	25	참으로 가엾은지고!
