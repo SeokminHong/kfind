@@ -1264,6 +1264,12 @@ const HONORIFIC_PAST_PROSPECTIVE: &[Suffix] =
 const HONORIFIC_FUTURE_PROSPECTIVE: &[Suffix] =
     prospective_suffixes!("시겠으", "ending.honorific", "ending.future");
 
+const RYAMANEUN: Suffix = suffix("랴마는", &["ending.concessive-ryamaneun"]);
+const HONORIFIC_RYAMANEUN: Suffix = suffix(
+    "시랴마는",
+    &["ending.honorific", "ending.concessive-ryamaneun"],
+);
+
 fn starts_prospective(following: &str, prefix: &str) -> bool {
     following.strip_prefix(prefix).is_some_and(|tail| {
         tail.starts_with(['리', '랴', '렷'])
@@ -1798,6 +1804,14 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if following.starts_with(RYAMANEUN.surface) =>
+        {
+            &[RYAMANEUN]
+        }
+        ContinuationState::Eu if following.starts_with(HONORIFIC_RYAMANEUN.surface) => {
+            &[HONORIFIC_RYAMANEUN]
+        }
         ContinuationState::StemEnding
             if pos != PredicatePos::Copula
                 && following.starts_with('와')

@@ -1029,6 +1029,11 @@ regression.imperative-ryeoma.rieul	살다	verb	only-exact	0	9	살려마. 어떤 
 regression.imperative-ryeoma.irregular	듣다	verb	only-exact	0	12	들으려마. 꼭 필요한 이야기다.
 regression.imperative-ryeoma.uncontracted	먹다	verb	only-exact	0	15	먹으려무나. 곧 식겠다.
 regression.imperative-ryeoma.separate	가다	verb	only-exact	0	3	가. ‘려마’는 나중에 보자.
+regression.concessive-ryamaneun.consonant	잊다	verb	only-exact	0	15	잊으랴마는 용서할 수는 있다.
+regression.concessive-ryamaneun.rieul	벌다	verb	only-exact	0	12	벌랴마는 그 돈으로는 부족하다.
+regression.concessive-ryamaneun.irregular	두렵다	adjective	only-exact	0	18	두려우랴마는 오늘은 피하자.
+regression.concessive-ryamaneun.honorific	읽다	verb	only-exact	0	18	읽으시랴마는 뜻은 짐작하시겠지.
+regression.concessive-ryamaneun.separate	잊다	verb	only-exact	0	9	잊으랴? ‘마는’이 빠졌다.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

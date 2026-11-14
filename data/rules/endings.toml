@@ -1392,6 +1392,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-ryamaneun"
+category = "connective"
+initial = "eu"
+forms = ["랴마는", "으랴마는"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.ryeotda"
 category = "final"
 initial = "eu"

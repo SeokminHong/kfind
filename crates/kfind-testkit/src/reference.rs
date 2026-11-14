@@ -1893,6 +1893,15 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if following.starts_with("랴마는") =>
+        {
+            &[reference_suffix("랴마는", &["ending.concessive-ryamaneun"])]
+        }
+        ContinuationState::Eu if following.starts_with("시랴마는") => &[reference_suffix(
+            "시랴마는",
+            &["ending.honorific", "ending.concessive-ryamaneun"],
+        )],
         ContinuationState::StemEnding
             if pos != PredicatePos::Copula
                 && following.starts_with('와')
@@ -3434,6 +3443,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-nyaneuni"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
+                            | "ending.concessive-ryamaneun"
                             | "ending.alternating-rak"
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
