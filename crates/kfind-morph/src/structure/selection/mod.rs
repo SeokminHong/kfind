@@ -41,6 +41,7 @@ pub(in crate::structure) enum StructureSelection {
         preserves_counted_noun: bool,
     },
     NominalWhole,
+    NominalOrContinuedPredicate,
     RelativeLocationNoun,
     NominalOrAdverbWhole,
     BeforeHonorificSsi {
@@ -173,6 +174,14 @@ impl StructureSelection {
                     && (pattern.fine_pos.is_nominal()
                         || (matches!(self, Self::NominalOrAdverbWhole)
                             && pattern.fine_pos == DataFinePos::Mag))
+            }
+            Self::NominalOrContinuedPredicate => {
+                (support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal())
+                    || (matches!(pattern.continuation, MorphContinuation::Predicate { .. })
+                        && spans.core.start == spans.token.start
+                        && spans.core.end < spans.anchor.end
+                        && spans.anchor.end < spans.consumed.end
+                        && spans.consumed == spans.token)
             }
             Self::RelativeLocationNoun => {
                 support.evidence == StructuralEvidence::Whole
@@ -701,20 +710,30 @@ pub(in crate::structure) fn select_structure(
     let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
     if has_whole_nominal
         && evidence.adnominal_ends.contains(&context.current.len())
-        && context.next.is_some_and(|next| {
-            (!evidence.has_whole_predicate()
-                && has_exact_fine_pos(resource, next, |pos| {
-                    matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
-                })
-                && has_auxiliary_adnominal_split(resource, context.current))
-                || (evidence.has_whole(DataFinePos::Nng)
-                    && context
-                        .previous
-                        .is_some_and(|previous| has_unambiguous_proper_name(resource, previous))
-                    && has_verb_nominalization(resource, next))
-        })
+        && let Some(next) = context.next
     {
-        return StructureSelection::NominalWhole;
+        if evidence.has_whole(DataFinePos::Nng)
+            && context
+                .previous
+                .is_some_and(|previous| has_unambiguous_proper_name(resource, previous))
+            && has_verb_nominalization(resource, next)
+        {
+            return StructureSelection::NominalWhole;
+        }
+        if !evidence.has_whole_predicate()
+            && has_exact_fine_pos(resource, next, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
+            && has_auxiliary_adnominal_split(resource, context.current)
+        {
+            return if has_exact_fine_pos(resource, next, |pos| {
+                pos.is_nominal() || pos == DataFinePos::Mm
+            }) {
+                StructureSelection::NominalOrContinuedPredicate
+            } else {
+                StructureSelection::NominalWhole
+            };
+        }
     }
     if has_whole_nominal
         && evidence.has_whole(DataFinePos::Mag)
