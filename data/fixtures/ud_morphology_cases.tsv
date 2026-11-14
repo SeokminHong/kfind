@@ -1043,6 +1043,7 @@ regression.copula-honorific-adnominal.closed	이다	adjective	only-exact	9	15	�
 regression.copula-honorific-adnominal.open	이다	adjective	only-exact	6	12	의사이신 분께 여쭸다.
 regression.copula-honorific-adnominal.background	이다	adjective	only-exact	6	15	의사이신데 무슨 걱정이 있소.
 regression.copula-honorific-adnominal.independent-action	이다	adjective	no-match-both	0	6	마신 물이 차가웠다.
+regression.copula-honorific-adnominal.proper-name	이다	adjective	no-match-both	0	6	이신 씨가 왔다.
 regression.fused-copula-ngeol.contracted	이다	adjective	smart-only-exact	10	25	우리도 마찬가진걸.
 regression.fused-copula-ngeol.nominal	이다	adjective	smart-only-exact	10	19	저분은 의산걸.
 regression.fused-copula-ngeol.explicit	이다	adjective	only-exact	19	25	아직 어린아이인걸.
