@@ -1572,6 +1572,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.conditional-rieuljindaeneun"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ진대는", "을진대는", "ㄹ진댄", "을진댄"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.contrast-rieulse-maliji"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ세말이지", "을세말이지"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.exclamative-rieulderani"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ데라니", "을데라니"]
+required = []
+forbidden = ["action-verb"]
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.final-rieuljiroda"
 category = "final"
 initial = "eu"
