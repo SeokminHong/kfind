@@ -684,6 +684,8 @@ const MAN: Suffix = suffix("만", &["ending.concessive-damaneun"]);
 const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
 const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
+const DECLARATIVE_NA: Suffix = suffix("나", &["ending.quotative-na"]);
+const DANA: Suffix = suffix("다나", &["ending.quotative-na"]);
 const DECLARATIVE_NIKKA: Suffix = suffix("니까", &["ending.quotative-nikka"]);
 const DECLARATIVE_NIKKANEUN: Suffix =
     suffix("니까는", &["ending.quotative-nikka", "particle.topic"]);
@@ -1697,6 +1699,16 @@ fn verify_simple_continuation(
     let additional_endings: &[Suffix] = match state {
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if (state != ContinuationState::StemEnding || !pos.is_action())
+                && following.starts_with(DANA.surface) =>
+        {
+            &[DANA]
+        }
+        ContinuationState::Eu if following.starts_with("시다나") => &[suffix(
+            "시다나",
+            &["ending.honorific", "ending.quotative-na"],
+        )],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if (state != ContinuationState::StemEnding || !pos.is_action())
                 && following.starts_with("다니까") =>
         {
             DANIKKA_ENDINGS
@@ -2285,6 +2297,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.exclamative-aoeora"
+                        | "ending.quotative-na"
                         | "ending.quotative-nikka"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
@@ -2387,6 +2400,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         }
         '더' if following.starts_with(DECLARATIVE_DEONIMAN.surface) => Some(&DECLARATIVE_DEONIMAN),
         '더' if following.starts_with(DECLARATIVE_DEONI.surface) => Some(&DECLARATIVE_DEONI),
+        '나' if ends_at_boundary(DECLARATIVE_NA.surface) => Some(&DECLARATIVE_NA),
         '니' if ends_at_boundary(DECLARATIVE_NIKKANEUN.surface) => Some(&DECLARATIVE_NIKKANEUN),
         '니' if ends_at_boundary(DECLARATIVE_NIKKAYO.surface) => Some(&DECLARATIVE_NIKKAYO),
         '니' if ends_at_boundary(DECLARATIVE_NIKKA.surface) => Some(&DECLARATIVE_NIKKA),
@@ -2418,6 +2432,17 @@ const fn suffix(surface: &'static str, rules: &'static [&'static str]) -> Suffix
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bare_dana_does_not_extend_an_action_verb_stem() {
+        let continuation = verify_predicate_continuation(
+            ContinuationState::StemEnding,
+            PredicatePos::Verb,
+            "읽",
+            "다나?",
+        );
+        assert!(continuation.is_none_or(|matched| matched.consumed_bytes == 0));
+    }
 
     #[test]
     fn daganeun_continuation_requires_the_end_of_the_token() {
