@@ -2352,6 +2352,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.formal-depsyo"
+category = "final"
+initial = "other"
+forms = ["ㄴ뎁쇼", "은뎁쇼", "는뎁쇼"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.formal-report-dap"
 category = "final"
 initial = "other"

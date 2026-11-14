@@ -555,6 +555,16 @@ fn compile_productive(
                 ContinuationState::ReportEnding,
             );
             if entry.pos.is_action() {
+                let formal = add_final(&base.surface, JONG_NIEUN).expect("vowel stem");
+                let ending = continuation::DEPSYO;
+                push_branch(
+                    branches,
+                    entry,
+                    format!("{formal}{}", ending.surface),
+                    base.core_len,
+                    ContinuationState::Terminal,
+                    ending.rules.iter().map(|id| rule(id)).collect(),
+                );
                 for ending in continuation::NORA_CONNECTIVES {
                     push_branch(
                         branches,
@@ -923,6 +933,7 @@ fn compile_rieul_honorific(
         .chain(continuation::HONORIFIC_VOWEL_CONNECTIVES)
         .chain(continuation::HONORIFIC_NIRA)
         .chain([&continuation::HONORIFIC_NORAMYEON])
+        .chain([&continuation::SINEUNDEPSYO])
         .chain([&continuation::HONORIFIC_DAM])
         .chain(&continuation::HONORIFIC_NE_ENDINGS)
         .chain(if entry.pos.is_action() {
