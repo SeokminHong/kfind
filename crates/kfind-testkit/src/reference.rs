@@ -2318,7 +2318,7 @@ fn reference_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
                     '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷',
+                    '죠', '지', '랴', '렷', '올',
                 ]) =>
         {
             &[
@@ -2349,6 +2349,7 @@ fn reference_simple_continuation(
                 reference_suffix("자", &["ending.copula-common-connective"]),
                 reference_suffix("죠", &["ending.copula-common-final"]),
                 reference_suffix("지요", &["ending.copula-common-final"]),
+                reference_suffix("올시다", &["ending.copula-olsida"]),
             ]
         }
         ContinuationState::StemEnding
@@ -2605,6 +2606,7 @@ fn reference_simple_continuation(
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
                             | "ending.final-rieuljiroda"
+                            | "ending.copula-olsida"
                             | "ending.concessive-geonman"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
