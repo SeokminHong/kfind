@@ -110,29 +110,6 @@ const DURATION_UNITS: &[&str] = &[
     "초",
 ];
 
-// Approximate quantities attested in the NIKL dictionary and Saegugeosaenghwal.
-const INDEFINITE_COUNTER_QUANTITIES: &[&str] = &[
-    "한두",
-    "두어",
-    "두세",
-    "두서너",
-    "서너",
-    "수삼",
-    "네다섯",
-    "네댓",
-    "너덧",
-    "너더댓",
-    "댓",
-    "대여섯",
-    "대엿",
-    "예닐곱",
-    "일고여덟",
-    "일여덟",
-    "여덟아홉",
-    "엳아홉",
-    "여남은",
-];
-
 // Numeric senses attested by the pinned Korean Basic Dictionary and licensed
 // in digit-led unit constructions.
 const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
@@ -1521,6 +1498,11 @@ impl ConstraintResolver {
             && second.is_some_and(|unit| self.has_object_counter(first, unit))
     }
 
+    #[must_use]
+    pub fn is_quantity_modifier(text: &str) -> bool {
+        QUANTITY_MODIFIERS.contains(&text)
+    }
+
     pub fn split_counter_quantity(first: &str, second: &str) -> Option<&'static str> {
         INDEFINITE_COUNTER_QUANTITIES
             .iter()
@@ -1538,9 +1520,9 @@ impl ConstraintResolver {
             .common_prefix_positions(text.as_bytes(), |len, positions| {
                 if positions == [StructuralPos::NNBC] && {
                     let tail = &text[len..];
-                    let particles = tail
-                        .strip_prefix("쯤")
-                        .or_else(|| tail.strip_prefix("가량"))
+                    let particles = QUANTITY_APPROXIMATION_SUFFIXES
+                        .iter()
+                        .find_map(|suffix| tail.strip_prefix(suffix))
                         .unwrap_or(tail);
                     particles.is_empty()
                         || complete_suffix(&self.resource, particles, StructuralPos::is_particle)
@@ -1549,8 +1531,7 @@ impl ConstraintResolver {
                 }
             });
         host.is_some_and(|unit| {
-            !matches!(unit, "월" | "원" | "달러" | "엔" | "유로" | "위안")
-                && !self.has_elapsed_measure(unit, Some(count))
+            !DATE_AND_PRICE_UNITS.contains(&unit) && !self.has_elapsed_measure(unit, Some(count))
         })
     }
 
