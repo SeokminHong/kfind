@@ -1392,6 +1392,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
                 reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
                 reference_suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
+                reference_suffix(concat!($prefix, "락"), &[$($prior,)* "ending.near-rieulrak"]),
                 reference_suffix(concat!($prefix, "까요"), &[$($prior,)* "ending.interrogative-rieulkka", "ending.polite-yo"]),
             ]
         };
@@ -2579,6 +2580,12 @@ fn reference_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.near-rieulrak")
+                    || (pos.is_action()
+                        && following[suffix.surface.len()..]
+                            .strip_prefix(char::is_whitespace)
+                            .and_then(|tail| tail.trim_start().strip_prefix("말락"))
+                            .is_some_and(|tail| !tail.starts_with(is_reference_token_character))))
                 && ((!matches!(
                     suffix.rules.last().copied(),
                     Some(

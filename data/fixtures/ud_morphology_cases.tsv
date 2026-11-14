@@ -686,6 +686,9 @@ regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 �
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
 regression.alternating-rak.rieul	울다	verb	exact	10	16	아이는 울락 웃으락 했다.
+regression.near-rieulrak.vowel	들리다	verb	exact	10	19	파도가 들릴락 말락 했다.
+regression.near-rieulrak.consonant	녹다	verb	exact	10	19	얼음이 녹을락 말락 했다.
+regression.near-rieulrak.future-adnominal	들리다	verb	exact	10	16	파도가 들릴 때까지 기다렸다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.

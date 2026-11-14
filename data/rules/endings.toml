@@ -1382,6 +1382,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.near-rieulrak"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ락", "을락"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-rieuljini"
 category = "connective"
 initial = "attach-rieul"
