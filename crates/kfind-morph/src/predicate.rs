@@ -795,7 +795,10 @@ fn compile_rieul_eu_endings(
     }
     let question = continuation::FAMILIAR_QUESTION;
     if entry.pos.is_action() {
-        for ending in [continuation::NEUNI, continuation::NEUNIMAN] {
+        for ending in [continuation::NEUNI, continuation::NEUNIMAN]
+            .into_iter()
+            .chain(continuation::NEURAGO_ENDINGS.iter().copied())
+        {
             push_branch(
                 branches,
                 entry,
