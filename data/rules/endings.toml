@@ -2078,7 +2078,7 @@ initial = "consonant"
 forms = ["자", "자꾸나"]
 required = ["action-verb"]
 forbidden = []
-next = ["ending.quotative-go"]
+next = ["ending.quotative-go", "ending.interrogative-nu"]
 terminal = true
 
 [[ending]]
@@ -2676,6 +2676,16 @@ id = "ending.conditional-noramyeon"
 category = "connective"
 initial = "consonant"
 forms = ["노라면"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-nu"
+category = "final"
+initial = "consonant"
+forms = ["누"]
 required = []
 forbidden = []
 next = []

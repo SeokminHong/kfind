@@ -1097,6 +1097,13 @@ regression.past-rieulse.adjective	좋다	adjective	only-exact	0	12	좋았을세.
 regression.past-rieulse.honorific	오다	verb	only-exact	0	12	오셨을세. 현관에 신발이 있네.
 regression.past-rieulse.present	먹다	verb	only-exact	0	9	먹을세. 먼저들 가게.
 regression.past-rieulse.separate	가다	verb	only-exact	0	6	갔을 ‘세’ 글자를 찾아라.
+regression.interrogative-nu.stem	하다	verb	only-exact	0	6	하누? 여기서 뭐.
+regression.interrogative-nu.past	있다	verb	only-exact	0	9	있었누? 아까는.
+regression.interrogative-nu.future	되다	verb	only-exact	0	9	되겠누? 시간이 얼마 없는데.
+regression.interrogative-nu.proposal	보다	verb	only-exact	14	23	누가 나를 보자누.
+regression.interrogative-nu.proposal-consonant	먹다	verb	only-exact	0	9	먹자누? 벌써 저녁이라니.
+regression.interrogative-nu.separate	보다	verb	only-exact	0	6	보자 누나가 손을 흔들었다.
+regression.interrogative-nu.exclamative	먹다	verb	only-exact	0	9	먹누나!
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
