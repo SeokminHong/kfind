@@ -1299,8 +1299,8 @@ fn push_branch(
     });
 }
 
-fn rule(id: &str) -> RuleId {
-    RuleId::from(id)
+fn rule(id: &'static str) -> RuleId {
+    RuleId::from_static(id)
 }
 
 #[cfg(test)]
