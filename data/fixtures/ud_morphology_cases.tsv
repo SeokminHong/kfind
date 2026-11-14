@@ -1926,3 +1926,6 @@ regression.copula-rani.enumerated-noun	이다	adjective	no-match	0	9	나라니 �
 regression.copula-raneuni.title	이다	adjective	smart-only-exact	21	33	도둑이 결국 김 씨라느니 아니라느니 하는 소문만 무성했다.
 regression.copula-raneuni.other-title	이다	adjective	smart-only-exact	21	33	범인이 결국 이 씨라느니 아니라느니 얘기가 많았다.
 regression.copula-raneuni.directive-control	이다	adjective	no-match-both	10	22	편지를 쓰라느니 아니라느니 말이 많았다.
+regression.copula-final-ra.genitive-head	이다	adjective	smart-only-exact	81	90	백성을 소중히 여기고 나라를 잘 다스리는 것이 군주의 기본 도리라.
+regression.copula-final-ra.other-genitive-head	이다	adjective	smart-only-exact	27	36	그것이 도시의 안전 관리라.
+regression.copula-final-ra.directive	이다	adjective	no-match-both	18	27	기계를 좀 더 돌리라.

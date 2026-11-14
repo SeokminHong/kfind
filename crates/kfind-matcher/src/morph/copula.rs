@@ -204,6 +204,24 @@ impl MorphMatcher {
             return false;
         }
         if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && let Some(host) = normalized.strip_suffix('라')
+            && host.chars().next_back().is_some_and(|last| {
+                kfind_morph::decompose_syllable(last)
+                    .is_some_and(|syllable| syllable.jongseong == 0)
+            })
+            && is_sentence_end_after(haystack, candidate.verified.token.end)
+            && resolver.has_exact_nominal_surface(host)
+            && !resolver.has_exact_non_copula_predicate_surface(&normalized)
+            && context::previous_word_with_start(haystack, candidate.verified.token.start)
+                .is_some_and(|(start, modifier)| {
+                    resolver.has_exact_nominal_surface(&modifier)
+                        && context::previous_word(haystack, start)
+                            .is_some_and(|word| resolver.has_nominal_genitive_surface(&word))
+                })
+        {
+            return true;
+        }
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
             && let Some(host) = normalized.strip_suffix("라느니")
             && host.chars().next_back().is_some_and(|last| {
                 kfind_morph::decompose_syllable(last)
