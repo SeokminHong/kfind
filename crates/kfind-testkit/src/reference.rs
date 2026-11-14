@@ -1860,6 +1860,14 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos.is_action() && following.starts_with("노라") =>
+        {
+            &[
+                reference_suffix("노라", &["ending.archaic-nora"]),
+                reference_suffix("노라고", &["ending.archaic-nora", "ending.quotative-go"]),
+            ]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[reference_suffix("누나", &["ending.exclamative-nuna"])]
         }
@@ -3191,6 +3199,8 @@ fn reference_simple_continuation(
                             | "길래"
                             | "시길래"
                             | "셨길래"
+                            | "노라"
+                            | "노라고"
                             | "자꾸나"
                     )
                     || !following[suffix.surface.len()..]
