@@ -35,7 +35,8 @@
   payload 구조 검증을 시작하기 전에 이 상한을 검사한다.
   Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수 있고,
   같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다. Thread를
-  만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나 payload
+  만들 수 없으면 순차 검증으로 돌아간다. WASM은 section을 순차로 검증하며, 같은 section의
+  SHA-256 상태를 나눠 읽는 입력 사이에 이어 쓴다. 어느 경로도 digest나 payload
   구조 검증을 생략하거나 두 검증이 모두 끝나기 전 resource를 engine 상태에 설치하지 않는다.
   병렬 경로에서 두 검증이 모두 실패하면 section digest 오류를 먼저 반환한다.
 - section SHA-256은 지원 CPU에서 runtime detection으로 hardware backend를 사용하고, 사용할 수
