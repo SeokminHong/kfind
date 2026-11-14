@@ -1741,6 +1741,18 @@ fn verify_simple_continuation(
                 &["ending.honorific", "ending.connective-dasipi"],
             )]
         }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("거니") =>
+        {
+            &[
+                suffix("거니", &["ending.connective-geoni"]),
+                suffix("거니와", &["ending.connective-geoni"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시거니") => &[
+            suffix("시거니", &["ending.honorific", "ending.connective-geoni"]),
+            suffix("시거니와", &["ending.honorific", "ending.connective-geoni"]),
+        ],
         ContinuationState::CompletedNieunEnding if following.starts_with('즉') => CAUSAL_NIEUNJUK,
         ContinuationState::NieunEnding
             if following.starts_with('즉') && !anchor.ends_with('는') =>
