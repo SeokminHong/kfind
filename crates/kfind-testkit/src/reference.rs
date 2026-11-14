@@ -827,7 +827,7 @@ fn reference_retrospective_reo(
     let token = following
         .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
         .next()?;
-    let (prefix, ending) = token.split_at(token.find('러')?);
+    let (prefix, ending) = token.split_at(token.find(['러', '런'])?);
     let prior: &[&str] = match (state, prefix) {
         (StemEnding, "") if pos == PredicatePos::Copula || anchor == "아니" => &[],
         (Prospective, "") if anchor.ends_with('시') => &[],
@@ -840,7 +840,8 @@ fn reference_retrospective_reo(
     };
     let rule = match ending {
         "러니" => "ending.retrospective-reoni",
-        "러니라" | "러니이까" | "러니이다" | "러라" | "러이까" | "러이다" => {
+        "런들" => "ending.retrospective-reondeul",
+        "러니라" | "러니이까" | "러니이다" | "러라" | "러이까" | "러이다" | "런가" => {
             "ending.retrospective-reo-final"
         }
         _ => return None,

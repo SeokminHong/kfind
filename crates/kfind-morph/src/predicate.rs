@@ -308,7 +308,19 @@ pub fn is_omitted_copula_ending(surface: &str) -> bool {
 pub fn starts_omitted_copula_ending(character: char) -> bool {
     matches!(
         character,
-        '라' | '란' | '람' | '랍' | '래' | '로' | '더' | '냐' | '지' | '예' | '여' | '시' | '러'
+        '라' | '란'
+            | '람'
+            | '랍'
+            | '래'
+            | '로'
+            | '더'
+            | '냐'
+            | '지'
+            | '예'
+            | '여'
+            | '시'
+            | '러'
+            | '런'
     ) || continuation::starts_common_omitted_copula_ending(character)
 }
 

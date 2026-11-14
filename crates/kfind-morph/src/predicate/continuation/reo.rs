@@ -10,6 +10,8 @@ macro_rules! reo_endings {
             suffix(concat!($prefix, "러라"), &[$($prior,)* "ending.retrospective-reo-final"]),
             suffix(concat!($prefix, "러이까"), &[$($prior,)* "ending.retrospective-reo-final"]),
             suffix(concat!($prefix, "러이다"), &[$($prior,)* "ending.retrospective-reo-final"]),
+            suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.retrospective-reo-final"]),
+            suffix(concat!($prefix, "런들"), &[$($prior,)* "ending.retrospective-reondeul"]),
         ]
     };
 }
@@ -27,7 +29,7 @@ pub(super) const PREFINAL_PROSPECTIVE_REO: &[Suffix] =
     reo_endings!("으리", "ending.prospective-prefinal");
 
 pub(in crate::predicate) fn is_copula_reo_ending(surface: &str) -> bool {
-    surface.starts_with('러')
+    surface.starts_with(['러', '런'])
         && COPULA_REO_ENDINGS
             .iter()
             .any(|ending| ending.surface == surface)

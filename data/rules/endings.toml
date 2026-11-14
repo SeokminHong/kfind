@@ -725,7 +725,17 @@ terminal = true
 id = "ending.retrospective-reo-final"
 category = "final"
 initial = "consonant"
-forms = ["러니라", "러니이까", "러니이다", "러라", "러이까", "러이다"]
+forms = ["러니라", "러니이까", "러니이다", "러라", "러이까", "러이다", "런가"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-reondeul"
+category = "connective"
+initial = "consonant"
+forms = ["런들"]
 required = []
 forbidden = []
 next = []
