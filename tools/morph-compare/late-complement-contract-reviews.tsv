@@ -1,0 +1,4 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	late-complement	interview:adjective	늦다	adjective	false	b4f14a95ed52b31d8171a7daa14ea094273c9f43f65ce00a84062cec93a57193	contract-positive	structurally-indistinguishable-homograph	사람 주제와 시간 조사 에가 두 품사와 결합할 수 있고, 일정에 늦는다는 해석은 체언의 뜻에 의존한다.
+explicit-pos	late-complement	deadline:adjective	늦다	adjective	false	d369c4d8df937cf66ddd84b01289099b7dccc9fdd0a5917dc4b61b51106780f1	contract-positive	structurally-indistinguishable-homograph	사람 주제와 시간 조사 에가 두 품사와 결합할 수 있고, 일정에 늦는다는 해석은 체언의 뜻에 의존한다.
+explicit-pos	late-complement	intervening-adverb:adjective	늦다	adjective	false	0037be09c1db1020fe4f6514fc934ab8adbbbc9a8106f305b7ca9a092f335d32	contract-positive	structurally-indistinguishable-homograph	사람 주제와 시간 조사 에가 두 품사와 결합할 수 있고, 일정에 늦는다는 해석은 체언의 뜻에 의존한다.

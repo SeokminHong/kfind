@@ -15,15 +15,16 @@ from python.query_matrix_contract import (
 class ContractContrastTests(unittest.TestCase):
     def test_span_contract_reviews_match_verify_gold(self) -> None:
         benchmark = Path(__file__).resolve().parent
-        fixture = benchmark.parents[1] / "data" / "fixtures" / "ud_morphology_cases.tsv"
+        fixtures = benchmark.parents[1] / "data" / "fixtures"
         reviewed_spans = []
-        for line in fixture.read_text(encoding="utf-8").splitlines()[1:]:
-            fields = line.split("\t")
-            if len(fields) == 8:
-                _, query, pos, expected, start, end, text, reason = fields
-                reviewed_spans.append(
-                    (query, pos, expected, int(start), int(end), text, reason)
-                )
+        for name in ("ud_morphology_cases.tsv", "jiyo_span_cases.tsv"):
+            for line in (fixtures / name).read_text(encoding="utf-8").splitlines()[1:]:
+                fields = line.split("\t")
+                if len(fields) == 8:
+                    _, query, pos, expected, start, end, text, reason = fields
+                    reviewed_spans.append(
+                        (query, pos, expected, int(start), int(end), text, reason)
+                    )
 
         cases = self.read_jsonl(benchmark / "verify-gold-context-cases.jsonl")
         reviews = load_contract_reviews(benchmark / "verify-gold-contract-reviews.tsv")

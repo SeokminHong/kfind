@@ -22,7 +22,6 @@ const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
 
 include!("../../../../data/rules/krdict-nominal-frames.rs");
 include!("../../../../data/rules/krdict-auxiliary-frames.rs");
-include!("../../../../data/rules/krdict-argument-nouns.rs");
 
 struct AuxiliaryInflections {
     future: Vec<crate::SurfaceBranchSpec>,
@@ -339,54 +338,6 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_object_marked_nominal(&self, text: &str) -> bool {
         has_complete_object_phrase(&self.resource, text)
-    }
-
-    #[must_use]
-    pub fn has_place_destination(&self, text: &str) -> bool {
-        text.strip_suffix("으로")
-            .or_else(|| text.strip_suffix('로'))
-            .is_some_and(|noun| {
-                PLACE_NOUNS.binary_search(&noun).is_ok() && self.has_nominal_oblique(text)
-            })
-    }
-
-    #[must_use]
-    pub fn has_financial_object(&self, text: &str) -> bool {
-        text.strip_suffix(['을', '를']).is_some_and(|noun| {
-            FINANCIAL_NOUNS.binary_search(&noun).is_ok() && self.has_object_marked_nominal(text)
-        })
-    }
-
-    #[must_use]
-    pub fn has_possessive_predicate_surface(&self, text: &str) -> bool {
-        text.strip_prefix("가지").is_some_and(|suffix| {
-            !suffix.is_empty()
-                && self.has_exact_action_predicate_surface("가지")
-                && complete_suffix(&self.resource, suffix, StructuralPos::is_ending)
-        })
-    }
-
-    #[must_use]
-    pub fn has_person_subject(&self, text: &str) -> bool {
-        text.strip_suffix(['이', '가', '은', '는'])
-            .is_some_and(|noun| {
-                (PERSON_NOUNS.binary_search(&noun).is_ok()
-                    || self.has_exact_proper_name_surface(noun)
-                        && PLACE_NOUNS.binary_search(&noun).is_err()
-                    || has_exact_sequence(&self.resource, noun, &[StructuralPos::NP]))
-                    && (self.has_subject_marked_nominal(text)
-                        || has_exact_sequence(
-                            &self.resource,
-                            &text[noun.len()..],
-                            &[StructuralPos::JX],
-                        ) && self.has_complete_nominal_surface(noun))
-            })
-    }
-
-    #[must_use]
-    pub fn has_scheduled_complement(&self, noun: &str, suffix: &str) -> bool {
-        SCHEDULED_COMPLEMENTS.binary_search(&noun).is_ok()
-            && has_exact_sequence(&self.resource, suffix, &[StructuralPos::JKB])
     }
 
     #[must_use]

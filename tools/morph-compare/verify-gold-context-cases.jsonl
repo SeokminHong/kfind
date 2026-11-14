@@ -14,3 +14,9 @@
 {"id":"jyo-appointment:contrast","query":"늦다","pos":"adjective","text":"민수의 시계는 모임이 있을 때마다 실제 시각보다 늦죠.","expected":true,"gold_byte_start":67,"gold_byte_end":73,"paired_case_id":"jyo-appointment:source"}
 {"id":"jyo-scheduled-time:source","query":"늦다","pos":"adjective","text":"그 학생은 등교 시간에 늦죠.","expected":false,"gold_byte_start":31,"gold_byte_end":37,"paired_case_id":"jyo-scheduled-time:contrast"}
 {"id":"jyo-scheduled-time:contrast","query":"늦다","pos":"adjective","text":"그 시계는 아침에 늦죠.","expected":true,"gold_byte_start":24,"gold_byte_end":30,"paired_case_id":"jyo-scheduled-time:source"}
+{"id":"polite-honorific-station:source","query":"갈다","pos":"verb","text":"기차역으로 가세요.","expected":false,"gold_byte_start":16,"gold_byte_end":25,"paired_case_id":"polite-honorific-station:contrast"}
+{"id":"polite-honorific-station:contrast","query":"갈다","pos":"verb","text":"새것으로 가세요.","expected":true,"gold_byte_start":13,"gold_byte_end":22,"paired_case_id":"polite-honorific-station:source"}
+{"id":"resultative-currency:source","query":"가다","pos":"verb","text":"그는 현금을 가지지 않았다.","expected":false,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"resultative-currency:contrast"}
+{"id":"resultative-currency:contrast","query":"가다","pos":"verb","text":"그는 오솔길을 가지지 않았다.","expected":true,"gold_byte_start":20,"gold_byte_end":29,"paired_case_id":"resultative-currency:source"}
+{"id":"jyo-class-time:source","query":"늦다","pos":"adjective","text":"학생은 수업 시간에 자주 늦죠.","expected":false,"gold_byte_start":34,"gold_byte_end":40,"paired_case_id":"jyo-class-time:contrast"}
+{"id":"jyo-class-time:contrast","query":"늦다","pos":"adjective","text":"시계는 수업 시간에 자주 늦죠.","expected":true,"gold_byte_start":34,"gold_byte_end":40,"paired_case_id":"jyo-class-time:source"}
