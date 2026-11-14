@@ -862,6 +862,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-olsida"
+category = "final"
+initial = "other"
+forms = ["올시다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.copula-ro-final"
 category = "final"
 initial = "other"

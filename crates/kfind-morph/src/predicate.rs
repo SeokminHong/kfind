@@ -287,8 +287,10 @@ pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bo
 /// Tests the ending after a vowel-final nominal when `이-` is omitted.
 #[must_use]
 pub fn is_omitted_copula_ending(surface: &str) -> bool {
-    matches!(surface, "시던고" | "시던걸" | "시던걸요" | "시던바")
-        || continuation::is_copula_omission_ending(surface.strip_prefix('시').unwrap_or(surface))
+    matches!(
+        surface,
+        "시던고" | "시던걸" | "시던걸요" | "시던바" | "올시다"
+    ) || continuation::is_copula_omission_ending(surface.strip_prefix('시').unwrap_or(surface))
 }
 
 /// Tests whether a syllable can begin a registered ending with an omitted copula stem.
@@ -316,6 +318,7 @@ pub fn starts_omitted_copula_ending(character: char) -> bool {
             | '예'
             | '여'
             | '시'
+            | '올'
     )
 }
 

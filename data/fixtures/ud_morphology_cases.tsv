@@ -663,6 +663,11 @@ regression.final-jiroda.copula	이다	adjective	smart-exact	16	28	그것은 선�
 regression.final-jiroda.short-question	이다	adjective	smart-exact	13	19	무슨 선물일지 모르겠다.
 regression.final-jiroda.honorific	읽다	verb	smart-exact	16	34	선생님께서 읽으실지로다.
 regression.final-jiroda.irregular	걷다	verb	smart-exact	14	29	우리 모두 걸을지로다.
+regression.copula-olsida.omitted	이다	adjective	smart-exact	13	31	지나가는 나그네올시다.
+regression.copula-olsida.explicit	이다	adjective	exact	7	19	제 것이올시다.
+regression.copula-olsida.negative-copula	아니다	adjective	exact	11	26	제 것이 아니올시다.
+regression.copula-olsida.consonant-host	이다	adjective	no-match	10	13	그것은 책올시다.
+regression.copula-olsida.verb-host	이다	adjective	no-match	14	17	나는 일찍 가올시다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.

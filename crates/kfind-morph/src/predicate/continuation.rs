@@ -137,6 +137,7 @@ const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("자", &["ending.copula-common-connective"]),
     suffix("죠", &["ending.copula-common-final"]),
     suffix("지요", &["ending.copula-common-final"]),
+    suffix("올시다", &["ending.copula-olsida"]),
 ];
 
 fn copula_common_omission(surface: &str) -> bool {
@@ -2376,7 +2377,7 @@ fn verify_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
                     '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷',
+                    '죠', '지', '랴', '렷', '올',
                 ]) =>
         {
             COPULA_COMMON_ENDINGS
@@ -2538,6 +2539,7 @@ fn verify_simple_continuation(
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
                         | "ending.final-rieuljiroda"
+                        | "ending.copula-olsida"
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"
