@@ -1950,3 +1950,11 @@ regression.copula-ramyeonseo.competing-directive	배우다	verb	exact	31	46	승�
 regression.copula-ramyeonseo.object	이다	adjective	no-match-both	27	42	네가 나한테 영화를 배우라면서?
 regression.copula-ramyeonseo.object-directive	배우다	verb	exact	27	42	네가 나한테 영화를 배우라면서?
 regression.copula-ramyeonseo.unmarked-object	배우다	verb	exact	34	49	동생이 새로 개봉한 영화 배우라면서?
+regression.directive-report.prohibitive	말다	verb	exact	37	52	엄마가 오늘은 밖에 나가지 말라셨거든.
+regression.directive-report.vowel	오다	verb	exact	23	38	선생님이 안으로 오라셨어요.
+regression.directive-report.consonant	먹다	verb	exact	31	46	아침마다 꼭 한 숟갈씩 먹으라셨다.
+regression.directive-report.connective	오다	verb	exact	20	32	선생님이 일찍 오라셔서 먼저 왔다.
+regression.directive-report.separate-verb	오다	verb	exact	20	29	선생님이 일찍 오라고 하셨다.
+regression.directive-report.independent-action	놀라다	verb	exact	20	32	어르신이 많이 놀라셨다.
+regression.directive-report.invalid-allomorph	먹다	verb	no-match-both	20	32	선생님이 밥을 먹라셨다.
+regression.directive-report.independent-action-hada	하다	verb	no-match-both	20	32	어르신이 많이 놀라셨다.
