@@ -899,6 +899,14 @@ regression.rieulsae.copula	이다	adjective	only-exact	6	12	친구일새 믿는�
 regression.rieulsae.determiner	읽다	verb	only-exact	0	6	읽을 새 책을 샀다.
 regression.rieuljaksimyeon.irregular	듣다	verb	only-exact	7	22	말을 들을작시면 안타깝다.
 regression.rieuljaksimyeon.separate	듣다	verb	only-exact	0	6	들을 작시면 씨의 말을 기다렸다.
+regression.rieuljindaeneun.past	타다	verb	only-exact	0	15	탔을진대는 서로 도와야지.
+regression.rieuljindaen.adjective	싶다	adjective	only-exact	0	12	싶을진댄 말해 보아라.
+regression.rieuljindae.separate	읽다	verb	only-exact	0	6	읽을 진대법 자료를 골랐다.
+regression.rieulsemaliji.honorific	하다	verb	only-exact	0	18	하실세말이지.
+regression.rieulsemaliji.irregular	듣다	verb	only-exact	0	18	들을세말이지.
+regression.rieulderani.adjective	기쁘다	adjective	only-exact	0	15	기쁠데라니!
+regression.rieulderani.bound-noun	좋다	adjective	only-exact	0	6	좋을 데라니 어디를 말하는 거야?
+regression.rieulderani.action	읽다	verb	only-exact	0	6	읽을데라니!
 regression.rieulsi.clausal-subject	읽다	verb	only-exact	7	16	그가 읽을시 분명하다.
 regression.rieulsi.separate	읽다	verb	only-exact	0	6	읽을 시 목록을 정리했다.
 regression.rieulsigo.adjective	곱다	adjective	only-exact	15	27	아, 마음도 고울시고.

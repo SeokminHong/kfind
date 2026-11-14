@@ -1461,6 +1461,9 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "새"), &[$($prior,)* "ending.causal-rieulsae"]),
                 reference_suffix(concat!($prefix, "작시면"), &[$($prior,)* "ending.conditional-rieuljaksimyeon"]),
                 reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
+                reference_suffix(concat!($prefix, "진대는"), &[$($prior,)* "ending.conditional-rieuljindaeneun"]),
+                reference_suffix(concat!($prefix, "진댄"), &[$($prior,)* "ending.conditional-rieuljindaeneun"]),
+                reference_suffix(concat!($prefix, "세말이지"), &[$($prior,)* "ending.contrast-rieulse-maliji"]),
                 reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
                 reference_suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
                 reference_suffix(concat!($prefix, "지라"), &[$($prior,)* "ending.final-rieuljira"]),
@@ -1477,6 +1480,7 @@ fn reference_simple_continuation(
         ($prefix:literal $(, $prior:literal)*) => {
             rieul_endings!($prefix, [$($prior),*],
                 reference_suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
+                reference_suffix(concat!($prefix, "데라니"), &[$($prior,)* "ending.exclamative-rieulderani"]),
                 reference_suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
                 reference_suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
                 reference_suffix(concat!($prefix, "라치면"), &[$($prior,)* "ending.conditional-rieulrachimyeon"]),
@@ -3222,6 +3226,11 @@ fn reference_simple_continuation(
                     || (suffix.surface == "지며" && anchor.ends_with('을')))
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulsigo")
                     || !pos.is_action())
+                && (suffix.rules.last() != Some(&"ending.exclamative-rieulderani")
+                    || matches!(
+                        pos,
+                        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+                    ))
                 && (suffix.rules.last() != Some(&"ending.imperative-rieuljieoda")
                     || pos.is_action()
                     || pos == PredicatePos::Copula)
@@ -3290,6 +3299,9 @@ fn reference_simple_continuation(
                             | "ending.connective-rieulsi"
                             | "ending.exclamative-rieulsigo"
                             | "ending.imperative-rieuljieoda"
+                            | "ending.contrast-rieulse-maliji"
+                            | "ending.exclamative-rieulderani"
+                            | "ending.conditional-rieuljindaeneun"
                             | "ending.question-rieulkapsyo"
                             | "ending.causal-rieulsae"
                             | "ending.conditional-rieuljaksimyeon"
