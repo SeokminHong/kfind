@@ -1860,6 +1860,17 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu if pos.is_action() && following.starts_with("십사") => {
+            &[reference_suffix(
+                "십사",
+                &["ending.honorific", "ending.honorific-request-sipsa"],
+            )]
+        }
+        ContinuationState::BieupFinal
+            if pos.is_action() && anchor.ends_with('십') && following.starts_with('사') =>
+        {
+            &[reference_suffix("사", &["ending.honorific-request-sipsa"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past
             if following.starts_with("길래") =>
         {
@@ -3121,6 +3132,7 @@ fn reference_simple_continuation(
                             | "ending.propositive-quotation"
                             | "ending.propositive-conditional"
                             | "ending.imperative-gena"
+                            | "ending.honorific-request-sipsa"
                             | "ending.aoeo-daga"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"

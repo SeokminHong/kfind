@@ -2122,6 +2122,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.honorific-request-sipsa"
+category = "final"
+initial = "eu"
+forms = ["십사", "으십사"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.earnest-request-sisa"
 category = "final"
 initial = "attach-bieup"

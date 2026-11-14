@@ -822,6 +822,10 @@ regression.causal-gillae.honorific	읽다	verb	exact	0	15	읽으시길래 기다
 regression.causal-gillae.past	오다	verb	exact	0	9	왔길래 문을 열었다.
 regression.causal-gillae.copula	이다	adjective	exact	6	15	사실이길래 인정했다.
 regression.causal-gillae.nominal	읽다	verb	exact	0	6	읽길 바란다.
+regression.honorific-request-sipsa.vowel	오다	verb	exact	0	9	오십사 부탁했다.
+regression.honorific-request-sipsa.consonant	읽다	verb	exact	0	12	읽으십사 부탁했다.
+regression.honorific-request-sipsa.rieul	열다	verb	exact	0	9	여십사 청했다.
+regression.honorific-request-sipsa.bieup-proposal	참다	verb	exact	0	12	참읍시사.
 regression.connective-deusi.short	보다	verb	exact	0	6	보듯 결과는 뻔하다.
 regression.connective-deusi.long	오다	verb	exact	0	9	오듯이 갈 것이다.
 regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 없다.
