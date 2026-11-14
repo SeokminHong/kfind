@@ -1823,6 +1823,18 @@ fn reference_simple_continuation(
                 &["ending.honorific", "ending.connective-dasipi"],
             )]
         }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("거니") =>
+        {
+            &[
+                reference_suffix("거니", &["ending.connective-geoni"]),
+                reference_suffix("거니와", &["ending.connective-geoni"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시거니") => &[
+            reference_suffix("시거니", &["ending.honorific", "ending.connective-geoni"]),
+            reference_suffix("시거니와", &["ending.honorific", "ending.connective-geoni"]),
+        ],
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with('즉')
                 && (state == ContinuationState::CompletedNieunEnding
@@ -2704,6 +2716,7 @@ fn reference_simple_continuation(
                     Some(
                         "ending.connective-daganeun"
                             | "ending.connective-dasipi"
+                            | "ending.connective-geoni"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

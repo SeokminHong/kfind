@@ -748,6 +748,11 @@ regression.connective-dasipi.stem	주지하다	verb	exact	0	18	주지하다시�
 regression.connective-dasipi.past	먹다	verb	exact	0	15	먹었다시피 했지만 배가 고프다.
 regression.connective-dasipi.state	없다	adjective	exact	10	22	방법이 없다시피 하다.
 regression.connective-dasipi.separate-word	보다	verb	exact	0	6	보다 다시 확인했다.
+regression.connective-geoni.stacked-past	먹다	verb	exact	0	15	먹었겠거니 하고 기다렸다.
+regression.connective-geoniwa.stem	정리하다	verb	exact	0	18	정리하거니와 다시 확인해야 한다.
+regression.connective-geoniwa.honorific	살다	verb	exact	0	15	사시거니와 생활에도 익숙하시다.
+regression.connective-geoniwa.copula	이다	adjective	exact	6	18	학생이거니와 연구에도 참여한다.
+regression.connective-geoni.separate	그렇다	adjective	exact	0	9	그렇다. 거니는 이름이다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
