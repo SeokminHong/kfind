@@ -57,6 +57,28 @@ pub(super) fn rejects(
         || nominal::has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
         || nominal::has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
+        || has_nominal_quotative_rera(haystack, candidate, resolver)
+}
+
+fn has_nominal_quotative_rera(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.conjecture-rieulrera")
+    {
+        return false;
+    }
+    context::normalized_token(haystack, candidate.consumed.clone()).is_some_and(|token| {
+        token.strip_suffix('라').is_some_and(|host| {
+            resolver.has_exact_nominal_surface(host)
+                && context::next_word(haystack, candidate.consumed.end)
+                    .is_some_and(|next| resolver.has_predicate_adnominal_surface(&next))
+        })
+    })
 }
 
 fn lacks_contracted_quotative_head(
