@@ -872,6 +872,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.quotative-nikka"
+category = "final"
+initial = "other"
+forms = ["다니까", "ㄴ다니까", "는다니까"]
+required = []
+forbidden = []
+next = ["ending.polite-yo"]
+terminal = true
+
+[[ending]]
 id = "ending.quotative-ni"
 category = "connective"
 initial = "attach-nieun"

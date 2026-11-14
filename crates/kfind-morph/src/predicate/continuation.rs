@@ -684,6 +684,16 @@ const MAN: Suffix = suffix("만", &["ending.concessive-damaneun"]);
 const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
 const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
+const DECLARATIVE_NIKKA: Suffix = suffix("니까", &["ending.quotative-nikka"]);
+const DECLARATIVE_NIKKANEUN: Suffix =
+    suffix("니까는", &["ending.quotative-nikka", "particle.topic"]);
+const DECLARATIVE_NIKKAYO: Suffix =
+    suffix("니까요", &["ending.quotative-nikka", "ending.polite-yo"]);
+const DANIKKA_ENDINGS: &[Suffix] = &[
+    suffix("다니까", &["ending.quotative-nikka"]),
+    suffix("다니까는", &["ending.quotative-nikka", "particle.topic"]),
+    suffix("다니까요", &["ending.quotative-nikka", "ending.polite-yo"]),
+];
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 const DECLARATIVE_NE: Suffix = suffix("네", &["ending.final-ne"]);
@@ -1685,6 +1695,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if (state != ContinuationState::StemEnding || !pos.is_action())
+                && following.starts_with("다니까") =>
+        {
+            DANIKKA_ENDINGS
+        }
         ContinuationState::AOrEo
             if matches!(
                 pos,
@@ -2269,6 +2285,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.exclamative-aoeora"
+                        | "ending.quotative-nikka"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
@@ -2370,6 +2387,9 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         }
         '더' if following.starts_with(DECLARATIVE_DEONIMAN.surface) => Some(&DECLARATIVE_DEONIMAN),
         '더' if following.starts_with(DECLARATIVE_DEONI.surface) => Some(&DECLARATIVE_DEONI),
+        '니' if ends_at_boundary(DECLARATIVE_NIKKANEUN.surface) => Some(&DECLARATIVE_NIKKANEUN),
+        '니' if ends_at_boundary(DECLARATIVE_NIKKAYO.surface) => Some(&DECLARATIVE_NIKKAYO),
+        '니' if ends_at_boundary(DECLARATIVE_NIKKA.surface) => Some(&DECLARATIVE_NIKKA),
         '니' => Some(&DECLARATIVE_NI),
         '며' => Some(&DECLARATIVE_MYEO),
         '지' => Some(&DECLARATIVE_JI),

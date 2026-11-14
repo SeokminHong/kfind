@@ -931,6 +931,12 @@ regression.concessive-damaneun.possessive-next	알다	verb	smart-exact	31	40	다
 regression.exclamative-aoeora.bright	맑다	adjective	smart-exact	33	42	바람도 시원하고 강물도 맑아라.
 regression.exclamative-aoeora.ha	하다	adjective	smart-exact	13	22	딱하기도 하여라.
 regression.exclamative-aoeora.contracted	불쌍하다	adjective	smart-exact	0	12	불쌍해라.
+regression.quotative-nikka.present	사다	verb	smart-exact	32	44	아니, 오늘 점심은 내가 산다니까.
+regression.quotative-nikka.honorific	오다	verb	smart-exact	27	42	어머니가 오늘은 꼭 오신다니까.
+regression.quotative-nikka.past	읽다	verb	smart-exact	15	30	그 책 내가 읽었다니까.
+regression.quotative-nikka.topic	읽다	verb	smart-exact	18	36	나는 그 책을 읽는다니까는.
+regression.quotative-nikka.polite	오다	verb	smart-exact	14	32	그분은 곧 오신다니까요.
+regression.quotative-nikka.auxiliary-adjective	않다	adjective	smart-exact	84	96	그래도 착한 사람들이 성공하는 걸 보면 옛말이 하나도 틀리지 않다니까.
 regression.concessive-damaneun.past	가다	verb	smart-exact	14	26	그는 이미 갔다마는 곧 돌아온다.
 regression.concessive-damaneun.honorific	가다	verb	smart-exact	10	25	그분은 가시다마는 저는 남습니다.
 regression.concessive-damaneun.copula	이다	adjective	smart-exact	16	28	오늘은 휴일이다마는 나가야 한다.
