@@ -1846,6 +1846,18 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('듯') =>
+        {
+            &[
+                reference_suffix("듯", &["ending.connective-deusi"]),
+                reference_suffix("듯이", &["ending.connective-deusi"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시듯") => &[
+            reference_suffix("시듯", &["ending.honorific", "ending.connective-deusi"]),
+            reference_suffix("시듯이", &["ending.honorific", "ending.connective-deusi"]),
+        ],
         ContinuationState::RieulFinal if following.starts_with('게') && pos.is_action() => &[
             reference_suffix("게", &["ending.promise-rieulge"]),
             reference_suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
@@ -2828,6 +2840,7 @@ fn reference_simple_continuation(
                     suffix.rules.last().copied(),
                     Some(
                         "ending.connective-daganeun"
+                            | "ending.connective-deusi"
                             | "ending.neuni"
                             | "ending.comparative-neuniman"
                             | "ending.retrospective-de"

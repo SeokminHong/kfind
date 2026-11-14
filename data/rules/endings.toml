@@ -2242,6 +2242,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-deusi"
+category = "connective"
+initial = "consonant"
+forms = ["듯", "듯이"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-geondae"
 category = "connective"
 initial = "consonant"
