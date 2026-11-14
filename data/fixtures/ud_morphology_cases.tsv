@@ -816,6 +816,12 @@ regression.affirmative-gomalgo.state	좋다	adjective	exact	0	12	좋고말고.
 regression.affirmative-gomalgo.copula	이다	adjective	exact	3	15	일이고말고.
 regression.affirmative-gomalgo.honorific	오다	verb	exact	0	15	오시고말고.
 regression.affirmative-gomalgo.separate	읽다	verb	exact	0	6	읽고 말고는 각자 정해라.
+regression.final-rieuljira.rieul	살다	verb	exact	10	19	마땅히 살지라.
+regression.final-rieuljira.consonant	많다	adjective	exact	0	12	많을지라.
+regression.final-rieuljira.honorific	읽다	verb	exact	0	15	읽으실지라.
+regression.final-rieuljira.past	오다	verb	exact	0	12	왔을지라.
+regression.final-rieuljira.copula	이다	adjective	exact	6	15	사실일지라.
+regression.final-rieuljira.separate	찾다	verb	exact	0	6	찾을 지라의 위치를 표시했다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
