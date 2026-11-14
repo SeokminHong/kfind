@@ -2348,6 +2348,14 @@ fn reference_simple_continuation(
                 &["ending.honorific", "ending.propositive-se"],
             )]
         }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("기로선들") =>
+        {
+            &[reference_suffix(
+                "기로선들",
+                &["ending.concessive-giroseoni"],
+            )]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("기로") =>
         {

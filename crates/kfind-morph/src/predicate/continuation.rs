@@ -2228,6 +2228,11 @@ fn verify_simple_continuation(
         {
             &[PROPOSITIVE_SENA]
         }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("기로선들") =>
+        {
+            &[suffix("기로선들", &["ending.concessive-giroseoni"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with("기로") =>
         {
