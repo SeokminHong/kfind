@@ -1184,6 +1184,18 @@ fn compile_copula(
             rules,
         );
     }
+    push_branch(
+        branches,
+        entry,
+        "이신".to_owned(),
+        stem.len(),
+        ContinuationState::Terminal,
+        vec![
+            rule("lexical.copula"),
+            rule("ending.honorific"),
+            rule("ending.past-adnominal"),
+        ],
+    );
     for (surface, ending) in [
         ("이냐", "ending.interrogative-nya"),
         ("이시냐", "ending.interrogative-nya"),
