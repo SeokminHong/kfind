@@ -1760,6 +1760,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_pronoun_surface(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::NP])
+    }
+
+    #[must_use]
+    pub fn has_topic_marked_nominal(&self, text: &str) -> bool {
+        text.strip_suffix(['은', '는']).is_some_and(|host| {
+            host.chars()
+                .next_back()
+                .is_some_and(|last| crate::hangul::has_final(last) == text.ends_with('은'))
+                && self.has_complete_nominal_surface(host)
+                && has_exact_sequence(&self.resource, &text[host.len()..], &[StructuralPos::JX])
+        }) || self.has_pronoun_topic_contraction(text)
+    }
+
+    #[must_use]
     pub fn has_unambiguous_proper_name_surface(&self, text: &str) -> bool {
         self.has_exact_proper_name_surface(text)
             && !exact_analysis_starts_with_pos(&self.resource, text, |pos| {
