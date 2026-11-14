@@ -648,6 +648,12 @@ regression.causal-jira.current-action	계시다	verb	smart-exact	13	28	선생님
 regression.causal-jira.copula	이다	adjective	smart-exact	13	22	오랜 친구인지라 마음이 놓였다.
 regression.causal-jira.separate-dependent	오다	verb	smart-exact	7	10	비가 온 지 오래됐다.
 regression.causal-jira.embedded-question	오다	verb	smart-exact	7	16	비가 오는지 확인했다.
+regression.final-jiroda.vowel	공부하다	verb	smart-exact	10	28	학생은 공부할지로다.
+regression.final-jiroda.consonant	좋다	adjective	smart-exact	10	25	성품이 좋을지로다.
+regression.final-jiroda.copula	이다	adjective	smart-exact	16	28	그것은 선물일지로다.
+regression.final-jiroda.short-question	이다	adjective	smart-exact	13	19	무슨 선물일지 모르겠다.
+regression.final-jiroda.honorific	읽다	verb	smart-exact	16	34	선생님께서 읽으실지로다.
+regression.final-jiroda.irregular	걷다	verb	smart-exact	14	29	우리 모두 걸을지로다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.

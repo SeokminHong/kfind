@@ -1353,6 +1353,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
                 reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
                 reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
+                reference_suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
                 reference_suffix(concat!($prefix, "까요"), &[$($prior,)* "ending.interrogative-rieulkka", "ending.polite-yo"]),
             ]
         };
@@ -2592,6 +2593,7 @@ fn reference_simple_continuation(
                             | "ending.concessive-nama"
                             | "ending.causal-nimankeum"
                             | "ending.causal-jira"
+                            | "ending.final-rieuljiroda"
                             | "ending.concessive-geonman"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
