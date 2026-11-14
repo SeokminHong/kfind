@@ -2786,10 +2786,16 @@ impl MorphMatcher {
                                 })
                         },
                         |noun| {
-                            context::previous_word(haystack, candidate.verified.token.start)
-                                .is_some_and(|previous| {
-                                    resolver.has_quotative_adnominal_dependent_noun(&previous, noun)
-                                })
+                            context::previous_word_with_start(
+                                haystack,
+                                candidate.verified.token.start,
+                            )
+                            .is_some_and(|(start, previous)| {
+                                resolver.has_quotative_adnominal_dependent_noun(&previous, noun)
+                                    || (context::previous_word(haystack, start).is_some_and(
+                                        |object| resolver.has_object_marked_nominal(&object),
+                                    ) && resolver.has_adnominal_dependent_noun(&previous, noun))
+                            })
                         },
                     )))
     }

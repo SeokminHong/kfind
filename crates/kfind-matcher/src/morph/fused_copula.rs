@@ -186,7 +186,7 @@ pub(super) fn accepts_omitted_copula(
                 && (resolver.has_exact_nominal_surface(host)
                     || (suffix == "라면" && resolver.has_copula_conditional_adverbial_host(host)));
         }
-        if matches!(suffix, "라고" | "라고요" | "라는")
+        if matches!(suffix, "라고" | "라고요" | "라는" | "라나")
             && !host
                 .strip_suffix('이')
                 .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
