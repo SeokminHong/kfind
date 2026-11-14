@@ -1438,6 +1438,13 @@ pub fn verify_predicate_continuation_with_prefinal_context(
         }
     }
     if state == ContinuationState::AOrEo
+        && following.starts_with("지이다")
+        && let Some(ending) = verify_simple_continuation(state, pos, anchor, following)
+        && ending.consumed_bytes == "지이다".len()
+    {
+        return Some(ending);
+    }
+    if state == ContinuationState::AOrEo
         && let Some(auxiliary) = match following.chars().next() {
             Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
                 trial::verify(anchor.len(), following)
@@ -1856,6 +1863,9 @@ fn verify_simple_continuation(
             suffix("다", &["ending.aoeo-daga"]),
             suffix("다가", &["ending.aoeo-daga"]),
         ],
+        ContinuationState::AOrEo if following.starts_with("지이다") => {
+            &[suffix("지이다", &["ending.desiderative-jida"])]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
             &[suffix(
                 "다더라",
@@ -2118,6 +2128,13 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시걸랑") => {
             &[suffix("시걸랑", &["ending.honorific", "ending.geodeun"])]
         }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
+            &[suffix("으려나", &["ending.conjecture-ryeo"])]
+        }
+        ContinuationState::Eu if following.starts_with("시려나") => &[suffix(
+            "시려나",
+            &["ending.honorific", "ending.conjecture-ryeo"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -3125,13 +3142,21 @@ fn verify_simple_continuation(
                         | "ending.directive-ram"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
+                        | "ending.desiderative-jida"
+                        | "ending.copula-enumerative-yo"
                         | "ending.colloquial-rieulramyeon"
                 )
             ) || dapsigo
                 || (suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))
-                || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'));
+                || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'))
+                || matches!(suffix.surface, "으려나" | "시려나");
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.copula-enumerative-yo")
+                    || following[suffix.surface.len()..]
+                        .strip_prefix(',')
+                        .unwrap_or(&following[suffix.surface.len()..])
+                        .starts_with(|ch: char| ch.is_whitespace() && ch != '\r' && ch != '\n'))
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action() && has_separate_malrak(&following[suffix.surface.len()..])))
                 && !(dapsigo

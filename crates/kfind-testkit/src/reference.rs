@@ -739,6 +739,13 @@ fn reference_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
+    if state == ContinuationState::AOrEo
+        && following.starts_with("지이다")
+        && let Some(ending) = reference_simple_continuation(state, pos, anchor, following)
+        && ending.0 == "지이다".len()
+    {
+        return Some(ending);
+    }
     if pos.is_action()
         && matches!(state, ContinuationState::StemEnding | ContinuationState::Eu)
         && let Some(auxiliary) = reference_gopeuda(state, following)
@@ -2240,6 +2247,13 @@ fn reference_simple_continuation(
             "시걸랑",
             &["ending.honorific", "ending.geodeun"],
         )],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으려나") => {
+            &[reference_suffix("으려나", &["ending.conjecture-ryeo"])]
+        }
+        ContinuationState::Eu if following.starts_with("시려나") => &[reference_suffix(
+            "시려나",
+            &["ending.honorific", "ending.conjecture-ryeo"],
+        )],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 reference_suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -2515,6 +2529,9 @@ fn reference_simple_continuation(
             reference_suffix("다", &["ending.aoeo-daga"]),
             reference_suffix("다가", &["ending.aoeo-daga"]),
         ],
+        ContinuationState::AOrEo if following.starts_with("지이다") => {
+            &[reference_suffix("지이다", &["ending.desiderative-jida"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
@@ -3177,6 +3194,11 @@ fn reference_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.copula-enumerative-yo")
+                    || following[suffix.surface.len()..]
+                        .strip_prefix(',')
+                        .unwrap_or(&following[suffix.surface.len()..])
+                        .starts_with(|ch: char| ch.is_whitespace() && ch != '\r' && ch != '\n'))
                 && (suffix.rules.last() != Some(&"ending.near-rieulrak")
                     || (pos.is_action()
                         && following[suffix.surface.len()..]
@@ -3211,6 +3233,8 @@ fn reference_simple_continuation(
                             | "ending.imperative-gena"
                             | "ending.honorific-request-sipsa"
                             | "ending.aoeo-daga"
+                            | "ending.desiderative-jida"
+                            | "ending.copula-enumerative-yo"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
@@ -3243,7 +3267,9 @@ fn reference_simple_continuation(
                     && !suffix.rules.contains(&"ending.promise-rieulge")
                     && !matches!(
                         suffix.surface,
-                        "으려니"
+                        "으려나"
+                            | "시려나"
+                            | "으려니"
                             | "으려니와"
                             | "디"
                             | "시디"
@@ -3407,9 +3433,39 @@ fn reference_attached_auxiliary(
         let Some(rest) = following.strip_prefix(form) else {
             continue;
         };
-        let (consumed, suffix) =
+        let ordinary =
             reference_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, rest)
                 .unwrap_or_default();
+        let (consumed, suffix) = if state == Past {
+            let after_past = rest.strip_prefix('었');
+            let tail = after_past.unwrap_or(rest);
+            let after_future = tail.strip_prefix('겠');
+            let tail = after_future.unwrap_or(tail);
+            let prefinal_len = rest.len() - tail.len();
+            let next_state = if after_future.is_some() { Future } else { Past };
+            if prefinal_len > 0
+                && let Some((length, suffix)) = reference_simple_continuation(
+                    next_state,
+                    PredicatePos::AuxiliaryVerb,
+                    &rest[..prefinal_len],
+                    tail,
+                )
+                && length > 0
+                && prefinal_len + length > ordinary.0
+            {
+                let path = after_past
+                    .map(|_| RuleId::from("ending.past"))
+                    .into_iter()
+                    .chain(after_future.map(|_| RuleId::from("ending.future")))
+                    .chain(suffix)
+                    .collect();
+                (prefinal_len + length, path)
+            } else {
+                ordinary
+            }
+        } else {
+            ordinary
+        };
         if consumed == 0 && !standalone {
             continue;
         }
@@ -3690,6 +3746,8 @@ mod tests {
         "사용자는은 오류다. 사용자도만 오류다.\n",
         "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
         "꽃이 예쁘군요. 집까지 걸으시는군요.\n",
+        "꽃이 예뻐졌겠다. 아이는 먹어봤겠다. 아이는 먹어 봤겠다.\n",
+        "꽃이 예뻐지이다. 꽃이 예뻐지기를 바란다.\n",
     );
 
     #[test]

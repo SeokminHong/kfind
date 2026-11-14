@@ -6,6 +6,7 @@ pub const COPULA_STEM_ENDINGS: &[CopulaStemEnding] = &[
     ending("게", &["ending.copula-ge"], BareOrHonorific),
     ending("고말고", &["ending.copula-common-final"], Never),
     ending("고요", &["ending.connective-go", "ending.polite-yo"], Never),
+    ending("요", &["ending.copula-enumerative-yo"], Bare),
     ending("구나", &["ending.copula-common-final"], BareOrHonorific),
     ending("구려", &["ending.copula-common-final"], BareOrHonorific),
     ending("구먼", &["ending.copula-common-final"], BareOrHonorific),

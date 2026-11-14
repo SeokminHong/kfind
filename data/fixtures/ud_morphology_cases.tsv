@@ -469,6 +469,13 @@ regression.honorific-present-declarative.consonant	먹다	verb	exact	0	12	먹으
 regression.honorific-present-declarative.rieul	살다	verb	exact	0	9	사신다.
 regression.honorific-present-declarative.adjective	좋다	adjective	exact	0	12	좋으시다.
 regression.honorific-present-declarative.separate	쓰다	verb	only-exact	0	6	쓰신 다짐을 읽었다.
+regression.copula-enumerative-yo.explicit	이다	adjective	exact	19	25	그분은 선생님이요, 또 제 은인이다.
+regression.copula-enumerative-yo.negative-copula	아니다	adjective	only-exact	20	29	여기는 고향이 아니요 잠시 머무는 곳이다.
+regression.copula-enumerative-yo.omitted	이다	adjective	smart-exact	41	53	오늘 강연은 이 시대의 훌륭한 소설가요 지성인이신 김 교수님을 모셨습니다.
+regression.copula-enumerative-yo.polite	이다	adjective	no-match-both	10	22	메뉴는 냉면이요?
+regression.copula-enumerative-yo.polite-continued	이다	adjective	no-match-both	0	9	사과요, 사과를 주세요.
+regression.copula-enumerative-yo.lexical	이다	adjective	no-match-both	10	16	준비에 소요 시간이 길다.
+regression.copula-enumerative-yo.predictive	이다	adjective	no-match-both	7	13	못할 거요. 나중에 합시다.
 corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
 regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
 regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.
@@ -766,6 +773,12 @@ regression.prefinal-ryeoni.past	먹다	verb	exact	0	15	먹었으려니 생각했
 regression.prefinal-ryeoniwa.future	주다	verb	exact	0	18	주겠으려니와 시상식도 준비하겠다.
 regression.prefinal-ryeoniwa.honorific-past	읽다	verb	exact	0	21	읽으셨으려니와 내용도 기억하시겠지.
 regression.prefinal-ryeoni.separate	먹다	verb	only-exact	0	9	먹었다. 추측일 뿐이다.
+regression.prefinal-ryeona.honorific	오다	verb	exact	0	12	오시려나?
+regression.prefinal-ryeona.past	모이다	verb	exact	0	15	모였으려나?
+regression.prefinal-ryeona.future	읽다	verb	exact	4	19	또 읽겠으려나?
+regression.prefinal-ryeona.honorific-past	읽다	verb	exact	7	25	벌써 읽으셨으려나?
+regression.prefinal-ryeona.adjective	맑다	adjective	exact	10	22	내일은 맑으려나?
+regression.prefinal-ryeona.separate	오다	verb	only-exact	0	6	왔다. 으려나 씨는 기다렸다.
 regression.retrospective-de.state	똑똑하다	adjective	exact	0	15	똑똑하데요.
 regression.retrospective-de.copula	이다	adjective	exact	6	15	동창이데요.
 regression.retrospective-de.honorific-past	오다	verb	exact	0	12	오셨데요.
@@ -1248,6 +1261,16 @@ regression.familiar-direct-question.honorific-uncontracted	읽다	verb	smart-exa
 regression.familiar-direct-question.auxiliary-resultative	이루다	verb	smart-exact	24	36	그 계획은 어떻게 이뤄지니?
 regression.familiar-direct-question.auxiliary-resultative-parallel	다루다	verb	smart-exact	27	39	이 안건은 어디에서 다뤄지니?
 regression.familiar-direct-question.auxiliary-resultative-past	다루다	verb	smart-exact	21	33	그 안건은 어제 다뤄졌니?
+regression.auxiliary-stacked-prefinals.resultative	씩씩하다	adjective	exact	0	18	씩씩해졌겠다.
+regression.auxiliary-stacked-prefinals.trial	먹다	verb	exact	0	15	먹어봤겠지?
+regression.auxiliary-stacked-prefinals.repeated-past	좋다	adjective	exact	0	15	좋아졌었다.
+regression.auxiliary-stacked-prefinals.separate	먹다	verb	only-exact	10	16	아이가 먹어 봤겠지.
+regression.auxiliary-stacked-prefinals.other-ending	좋다	adjective	only-exact	10	25	날씨가 좋아졌으나 금방 어두워졌다.
+regression.desiderative-jida.a	맑다	adjective	exact	7	22	날이 맑아지이다.
+regression.desiderative-jida.eo	낫다	verb	exact	7	22	병이 나아지이다.
+regression.desiderative-jida.yeo	성공하다	verb	exact	4	25	꼭 성공하여지이다.
+regression.desiderative-jida.auxiliary	좋다	adjective	only-exact	10	22	날씨가 좋아진다.
+regression.desiderative-jida.separate	좋다	adjective	only-exact	0	6	좋아. 지이다 씨는 귀가했다.
 regression.familiar-direct-question.auxiliary-trial-past	읽다	verb	smart-exact	18	30	너는 그 책을 읽어봤니?
 regression.familiar-direct-question.rieul-retained	만들다	verb	no-match	17	26	너는 무엇을 만들니?
 regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44	53	대전까지 길이 막히면 얼마 만에 가겠니?

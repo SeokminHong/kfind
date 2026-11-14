@@ -155,17 +155,30 @@ fn vowel_final(host: &str) -> bool {
         .is_some_and(|syllable| syllable.jongseong == 0)
 }
 
+pub(super) struct OmittedCopulaFollowing<SentenceEnd, QuotationHead, Enumeration> {
+    pub is_sentence_end: SentenceEnd,
+    pub has_quotative_head: QuotationHead,
+    pub continues_enumeration: Enumeration,
+}
+
 pub(super) fn accepts_omitted_copula(
     token: &str,
     resolver: &ConstraintResolver,
-    is_sentence_end: impl Fn() -> bool,
+    following: OmittedCopulaFollowing<impl Fn() -> bool, impl Fn() -> bool, impl Fn(&str) -> bool>,
     follows_adnominal: impl Fn() -> bool,
-    has_quotative_head: impl Fn() -> bool,
     supports_counted_unit: impl Fn(&str) -> bool,
     supports_adnominal_dependent_noun: impl Fn(&str) -> bool,
 ) -> bool {
+    let OmittedCopulaFollowing {
+        is_sentence_end,
+        has_quotative_head,
+        continues_enumeration,
+    } = following;
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
+        if suffix == "요" && !continues_enumeration(host) {
+            return false;
+        }
         if suffix == "시던고" && !is_sentence_end() {
             return false;
         }

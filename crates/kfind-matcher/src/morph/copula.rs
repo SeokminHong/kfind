@@ -195,13 +195,42 @@ impl MorphMatcher {
                     |previous| resolver.has_adnominal_dependent_noun(&previous, "것"),
                 );
         }
-        resolver.has_exact_lost_span_copula_ending_path(&normalized)
+        let continues_enumeration = |host: &str| {
+            let end = candidate.verified.token.end;
+            let next = if haystack.get(end) == Some(&b',') {
+                end + 1
+            } else {
+                end
+            };
+            context::next_word_on_line(haystack, next).is_some_and(|(_, word)| {
+                word != host
+                    && !resolver.has_object_marked_nominal(&word)
+                    && (resolver.has_nominal_with_optional_particles(&word)
+                        || resolver.has_predicate_adnominal_surface(&word))
+            })
+        };
+        (normalized
+            .strip_suffix('요')
+            .is_none_or(continues_enumeration)
+            && resolver.has_exact_lost_span_copula_ending_path(&normalized))
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
                     || fused_copula::accepts_omitted_copula(
                         &normalized,
                         resolver,
-                        || is_sentence_end_after(haystack, candidate.verified.token.end),
+                        fused_copula::OmittedCopulaFollowing {
+                            is_sentence_end: || {
+                                is_sentence_end_after(haystack, candidate.verified.token.end)
+                            },
+                            has_quotative_head: || {
+                                has_quotative_adnominal_head(
+                                    haystack,
+                                    candidate.consumed.end,
+                                    resolver,
+                                )
+                            },
+                            continues_enumeration,
+                        },
                         || {
                             follows_predicate_adnominal(
                                 haystack,
@@ -209,7 +238,6 @@ impl MorphMatcher {
                                 resolver,
                             )
                         },
-                        || has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver),
                         |unit| {
                             context::previous_word(haystack, candidate.verified.token.start)
                                 .is_some_and(|previous| {

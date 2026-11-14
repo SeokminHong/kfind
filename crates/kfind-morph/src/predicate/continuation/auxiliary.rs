@@ -2,7 +2,7 @@ use crate::{ContinuationState, PredicatePos, RuleId};
 
 use super::{
     JIMAN, JIMANEUN, JIYO, JYO, MAE, PredicateContinuationMatch, STEM_FIXED_ENDINGS, Suffix,
-    matched, suffix, verify_simple_continuation,
+    matched, suffix, verify_prefinal_chain, verify_simple_continuation,
 };
 
 const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
@@ -135,13 +135,20 @@ pub(super) fn verify_form(
 ) -> Option<PredicateContinuationMatch> {
     use ContinuationState::{CompletedNieunEnding, Future, NieunEnding, Past, RieulFinal};
     let tail = &following[form.len()..];
-    let mut continuation =
-        verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, tail).or_else(
-            || {
-                matches!(state, CompletedNieunEnding | NieunEnding | RieulFinal)
-                    .then(|| matched(form.len(), None))
-            },
-        )?;
+    let ordinary = verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, tail);
+    let stacked = if state == Past && tail.starts_with(['었', '겠']) {
+        verify_prefinal_chain(state, PredicatePos::AuxiliaryVerb, form.len(), tail)
+    } else {
+        None
+    };
+    let mut continuation = ordinary
+        .into_iter()
+        .chain(stacked)
+        .max_by_key(|matched| matched.consumed_bytes)
+        .or_else(|| {
+            matches!(state, CompletedNieunEnding | NieunEnding | RieulFinal)
+                .then(|| matched(form.len(), None))
+        })?;
     if matches!(state, Past | Future) && continuation.consumed_bytes == 0 {
         return None;
     }

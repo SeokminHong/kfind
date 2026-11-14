@@ -41,6 +41,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
 const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.copula-common-final",
     "ending.copula-common-connective",
+    "ending.copula-enumerative-yo",
     "ending.copula-ya",
     "ending.copula-polite",
     "ending.copula-reporting-final",

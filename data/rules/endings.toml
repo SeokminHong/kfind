@@ -138,7 +138,17 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-oda", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.aoeo-daga"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-oda", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.aoeo-daga", "ending.desiderative-jida"]
+terminal = true
+
+[[ending]]
+id = "ending.desiderative-jida"
+category = "final"
+initial = "other"
+forms = ["지이다"]
+required = []
+forbidden = []
+next = []
 terminal = true
 
 [[ending]]
@@ -916,6 +926,16 @@ id = "ending.copula-common-connective"
 category = "connective"
 initial = "other"
 forms = ["길래", "니", "니까", "니까는", "니깐", "면", "면서", "자"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-enumerative-yo"
+category = "connective"
+initial = "other"
+forms = ["요"]
 required = []
 forbidden = []
 next = []
