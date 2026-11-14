@@ -1123,6 +1123,15 @@ regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어�
 regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
 regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개신교 선교사들이 방문했다.
 regression.scope-nominal.common	내	noun	smart-exact	7	10	학교 내 시설을 확인했다.
+regression.comparative.level	기대다	verb	no-match	10	16	결과는 기대 수준이었다.
+regression.comparative.level-nominal	기대	noun	smart-exact	10	16	결과는 기대 수준이었다.
+regression.comparative.level-verb	기대다	verb	smart-exact	7	13	벽에 기대 수준 높은 시를 읽었다.
+regression.comparative.approximation	기대다	verb	no-match	10	16	결과는 기대 정도였다.
+regression.scope-genitive.possessive	나	pronoun	smart-exact	11	14	교실 안 내 가방이 있다.
+regression.scope-genitive.marked-host	나	pronoun	smart-exact	10	13	한국의 내 친구가 방문했다.
+regression.adnominal-auxiliary.past-contracted	오다	verb	smart-exact	14	17	밤에 비가 온듯했다.
+regression.dictionary-neun.background	재미없다	adjective	smart-exact	10	25	영화가 재미없는데 계속 봤다.
+regression.dictionary-neun.question	맛있다	adjective	smart-exact	7	19	국이 맛있느냐?
 regression.relative-location.picture	속	noun	smart-exact	7	10	화보 속 박하선은 웃었다.
 regression.relative-location.object	속	noun	smart-exact	4	7	책 속 이야기를 읽었다.
 regression.relative-location.lexical-reference	사이	determiner	no-match	7	13	나무 사이 통로를 걸었다.

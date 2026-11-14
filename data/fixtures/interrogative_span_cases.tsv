@@ -81,6 +81,10 @@ stdict.은지:12	옳다	adjective	exact	54	63	마을 사람들은 어느 말을 
 changa-predicate-positive	차다	adjective	exact	7	13	물이 찬가 보다.
 changa-predicate-context	차다	adjective	no-match	13	19	합창단이 찬가 한 곡을 불렀다.
 changa-noun-context	찬가	noun	no-match	7	13	물이 찬가 보다.
+changa-sipda-noun	찬가	noun	no-match	7	13	물이 찬가 싶다.
+changa-boda-polite-noun	찬가	noun	no-match	7	13	물이 찬가 봐요.
+changa-sipda-past-noun	찬가	noun	no-match	7	13	물이 찬가 싶었다.
+changa-sipda-predicate	차다	adjective	smart-exact	7	13	물이 찬가 싶었다.
 changa-noun-positive	찬가	noun	exact	13	19	합창단이 찬가 한 곡을 불렀다.
 changa-noun-object	찬가	noun	exact	13	22	합창단이 찬가를 본다.
 danga-predicate-positive	달다	adjective	exact	11	17	이 차가 단가?

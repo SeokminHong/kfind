@@ -11,12 +11,71 @@ use crate::structure::lexical::{
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
 };
-use crate::{PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal};
+use crate::{
+    LexicalAlternation, PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal,
+};
 use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
 
 const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
     include!("../../../../data/rules/krdict-non-accusative-predicate-anchors.rs");
+
+include!("../../../../data/rules/krdict-nominal-frames.rs");
+include!("../../../../data/rules/krdict-auxiliary-frames.rs");
+
+struct AuxiliaryInflections {
+    future: Vec<crate::SurfaceBranchSpec>,
+    present_or_past: Vec<crate::SurfaceBranchSpec>,
+    interrogative: Vec<crate::SurfaceBranchSpec>,
+}
+
+fn auxiliary_inflections() -> &'static AuxiliaryInflections {
+    static INFLECTIONS: std::sync::OnceLock<AuxiliaryInflections> = std::sync::OnceLock::new();
+    INFLECTIONS.get_or_init(|| {
+        let branches = |lemma: &str, pos, alternation| {
+            let entry = crate::PredicateEntry::new(lemma, pos, alternation);
+            crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
+        };
+        let mut future = Vec::new();
+        let mut present_or_past = Vec::new();
+        for &(lemma, pos, alternation, takes_future, takes_present_or_past) in ADNOMINAL_AUXILIARIES
+        {
+            let forms = branches(lemma, pos, alternation);
+            if takes_future {
+                future.extend(forms.iter().cloned());
+            }
+            if takes_present_or_past {
+                present_or_past.extend(forms);
+            }
+        }
+        AuxiliaryInflections {
+            future,
+            present_or_past,
+            interrogative: INTERROGATIVE_AUXILIARIES
+                .iter()
+                .flat_map(|lemma| {
+                    branches(
+                        lemma,
+                        PredicatePos::AuxiliaryAdjective,
+                        LexicalAlternation::Regular,
+                    )
+                })
+                .collect(),
+        }
+    })
+}
+
+fn matches_auxiliary_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) -> bool {
+    forms.iter().any(|form| {
+        text.strip_prefix(form.anchor.as_ref()).is_some_and(|tail| {
+            if tail.is_empty() {
+                return !form.rule_path.is_empty() || form.anchor.ends_with('다');
+            }
+            crate::verify_predicate_continuation(form.continuation, form.pos, &form.anchor, tail)
+                .is_some_and(|matched| matched.token_end == text.len())
+        })
+    })
+}
 
 const DURATION_NOUNS: &[&str] = &[
     "하루",
@@ -803,28 +862,20 @@ impl ConstraintResolver {
         future: bool,
         present_or_past: bool,
     ) -> bool {
-        let Some(head) = text.chars().next() else {
+        if !ADNOMINAL_AUXILIARIES
+            .iter()
+            .any(|(lemma, _, _, _, _)| text.chars().next() == lemma.chars().next())
+        {
             return false;
-        };
-        let tail = &text[head.len_utf8()..];
-        let ha = tail.starts_with(['하', '해', '했', '한', '할', '합', '함']);
-        let predicate = match head {
-            '만' | '법' | '뻔' if future && ha => tail,
-            '척' | '체' | '양' if present_or_past && ha => tail,
-            '듯' | '성' if ha || tail.starts_with('싶') => tail,
-            '성' if ["부르", "부른", "부를", "부름", "부릅", "불러", "불렀"]
-                .iter()
-                .any(|form| tail.starts_with(form)) =>
-            {
-                text
-            }
-            _ => return false,
-        };
-        self.has_exact_predicate_ending_path_matching(
-            predicate,
-            StructuralPos::is_predicate_tag,
-            |_| true,
-        ) || complete_predicate_ending_path(&self.resource, predicate)
+        }
+        let forms = auxiliary_inflections();
+        (future && matches_auxiliary_inflection(text, &forms.future))
+            || (present_or_past && matches_auxiliary_inflection(text, &forms.present_or_past))
+    }
+
+    #[must_use]
+    pub fn has_interrogative_auxiliary_surface(&self, text: &str) -> bool {
+        matches_auxiliary_inflection(text, &auxiliary_inflections().interrogative)
     }
 
     #[must_use]
@@ -1189,7 +1240,7 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_comparative_nominal_surface(&self, text: &str) -> bool {
-        ["이상", "이하", "미만", "초과"].iter().any(|&noun| {
+        COMPARATIVE_NOMINALS.iter().any(|&noun| {
             text.strip_prefix(noun).is_some_and(|tail| {
                 has_exact_sequence(&self.resource, noun, &[StructuralPos::NNG])
                     && noun
@@ -1197,6 +1248,15 @@ impl ConstraintResolver {
                         .next_back()
                         .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
             })
+        })
+    }
+
+    #[must_use]
+    pub fn has_causal_nominal_surface(&self, text: &str) -> bool {
+        CAUSAL_NOMINALS.iter().any(|&(noun, particle)| {
+            text.strip_prefix(noun) == Some(particle)
+                && has_exact_fine_pos(&self.resource, noun, DataFinePos::is_nominal)
+                && has_exact_sequence(&self.resource, particle, &[StructuralPos::JKB])
         })
     }
 
@@ -1278,6 +1338,12 @@ impl ConstraintResolver {
                     })
             })
             && (self.has_unambiguous_proper_name_surface(text) || !self.has_nominal_oblique(text))
+    }
+
+    #[must_use]
+    pub fn has_scope_dependent_noun(&self, text: &str) -> bool {
+        SCOPE_DEPENDENT_NOUNS.contains(&text)
+            && has_exact_sequence(&self.resource, text, &[StructuralPos::NNB])
     }
 
     pub fn has_scope_competing_connective(&self, text: &str) -> bool {
@@ -1442,16 +1508,20 @@ impl ConstraintResolver {
             "걸음",
         ];
         DURATION_NOUNS.contains(&measure)
-            || DURATION_UNITS.iter().chain(OTHER_MEASURES).any(|unit| {
-                measure.strip_suffix(unit).is_some_and(|attached| {
-                    let count = if attached.is_empty() {
-                        previous.unwrap_or_default()
-                    } else {
-                        attached
-                    };
-                    self.has_measure_count(count)
+            || DURATION_UNITS
+                .iter()
+                .chain(OTHER_MEASURES)
+                .chain(COUNTABLE_PERIODS)
+                .any(|unit| {
+                    measure.strip_suffix(unit).is_some_and(|attached| {
+                        let count = if attached.is_empty() {
+                            previous.unwrap_or_default()
+                        } else {
+                            attached
+                        };
+                        self.has_measure_count(count)
+                    })
                 })
-            })
     }
 
     fn has_measure_count(&self, text: &str) -> bool {
