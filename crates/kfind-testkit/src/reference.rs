@@ -1810,6 +1810,19 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("다시피") && pos != PredicatePos::Copula =>
+        {
+            &[reference_suffix("다시피", &["ending.connective-dasipi"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다시피") && pos != PredicatePos::Copula =>
+        {
+            &[reference_suffix(
+                "시다시피",
+                &["ending.honorific", "ending.connective-dasipi"],
+            )]
+        }
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with('즉')
                 && (state == ContinuationState::CompletedNieunEnding
@@ -2690,6 +2703,7 @@ fn reference_simple_continuation(
                     suffix.rules.last().copied(),
                     Some(
                         "ending.connective-daganeun"
+                            | "ending.connective-dasipi"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"

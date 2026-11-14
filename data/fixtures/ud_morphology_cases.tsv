@@ -743,6 +743,11 @@ regression.causal-nieunjuk.state-neun	없다	adjective	exact	10	19	방법이 없
 regression.causal-nieunjuk.past	읽다	verb	exact	7	22	어제 읽었은즉슨 내용을 기억한다.
 regression.causal-nieunjuk.separate-word	읽다	verb	exact	7	13	일단 읽은 즉흥시를 기억했다.
 regression.causal-nieunjuk.rieul-drop	늘다	verb	exact	10	16	비용이 는즉 예산을 늘렸다.
+regression.connective-dasipi.honorific	보다	verb	exact	0	15	보시다시피 제 손에는 아무것도 없습니다.
+regression.connective-dasipi.stem	주지하다	verb	exact	0	18	주지하다시피 문학은 언어를 표현 수단으로 삼는다.
+regression.connective-dasipi.past	먹다	verb	exact	0	15	먹었다시피 했지만 배가 고프다.
+regression.connective-dasipi.state	없다	adjective	exact	10	22	방법이 없다시피 하다.
+regression.connective-dasipi.separate-word	보다	verb	exact	0	6	보다 다시 확인했다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
