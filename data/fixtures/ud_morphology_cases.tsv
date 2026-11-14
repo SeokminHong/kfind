@@ -687,6 +687,12 @@ regression.rieul-sentence-endings.copula	이다	adjective	exact	20	32	그것은 
 regression.rieul-sentence-endings.reongo-honorific	돌아오다	verb	exact	7	25	언제 돌아오실런고?
 regression.rieul-sentence-endings.ssonga	높다	adjective	exact	13	25	하늘보다 높을쏜가.
 regression.rieul-sentence-endings.separate-question	있다	adjective	exact	14	23	무슨 일이 있을지 모르겠다.
+regression.necessity-yaman.contracted	가다	verb	exact	10	19	반드시 가야만 알 수 있다.
+regression.necessity-yaman.consonant	밝다	adjective	exact	7	19	날이 밝아야만 길이 보인다.
+regression.necessity-yaman.copula	이다	adjective	exact	16	28	이름은 철수이어야만 한다.
+regression.necessity-yaman.honorific	오다	verb	exact	13	25	선생님이 오셔야만 시작한다.
+regression.necessity-yaman.separate-word	가다	verb	exact	10	16	반드시 가야 만날 수 있다.
+regression.necessity-yaman.irregular	걷다	verb	exact	11	23	먼 길을 걸어야만 도착한다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
