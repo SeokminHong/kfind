@@ -1072,6 +1072,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.quotative-damyeo"
+category = "connective"
+initial = "consonant"
+forms = ["다며"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-myeo"
 category = "connective"
 initial = "attach-nieun"

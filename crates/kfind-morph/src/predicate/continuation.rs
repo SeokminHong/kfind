@@ -1744,6 +1744,9 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다며") => {
+            &[suffix("다며", &["ending.quotative-damyeo"])]
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with("십사") => &[suffix(
             "십사",
             &["ending.honorific", "ending.honorific-request-sipsa"],
