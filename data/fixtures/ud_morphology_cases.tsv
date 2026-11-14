@@ -1920,3 +1920,6 @@ regression.copula-rason.derived-host	이다	adjective	smart-only-exact	7	22	내�
 regression.copula-rason.other-host	이다	adjective	smart-only-exact	7	22	내가 초보자라손 치더라도 기회는 있다.
 regression.copula-rason.directive-control	이다	adjective	no-match-both	11	20	너 먼저 가라손 치더라도 나는 남겠다.
 regression.copula-rason.directive-verb	가다	verb	only-exact	11	20	너 먼저 가라손 치더라도 나는 남겠다.
+regression.copula-rani.pronoun	이다	adjective	smart-only-exact	46	55	네가 몇 년 동안 찾던 사람이 바로 나라니!
+regression.copula-rani.other-pronoun	이다	adjective	smart-only-exact	31	40	그가 찾는 사람이 바로 너라니!
+regression.copula-rani.enumerated-noun	이다	adjective	no-match	0	9	나라니 지역이니 그런 구분은 중요하지 않다.
