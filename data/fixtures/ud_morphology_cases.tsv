@@ -881,6 +881,10 @@ regression.quotative-deora.adjective	곱다	adjective	exact	0	12	곱다더라.
 regression.quotative-deora.past	읽다	verb	exact	0	15	읽었다더라.
 regression.quotative-deora.honorific	좋다	adjective	exact	0	18	좋으시다더라.
 regression.quotative-deora.separate	오다	verb	exact	0	6	온다. 더라 씨를 기다린다.
+regression.quotative-damyeo.past	오르다	verb	exact	0	12	올랐다며?
+regression.quotative-damyeo.future	읽다	verb	exact	0	12	읽겠다며?
+regression.quotative-damyeo.longer	오다	verb	exact	0	12	왔다면서?
+regression.quotative-damyeo.separate	오르다	verb	exact	0	9	올랐다. 며칠 뒤에 내려갔다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
