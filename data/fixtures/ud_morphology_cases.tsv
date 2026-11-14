@@ -1063,6 +1063,11 @@ regression.archaic-honorific-sa.nominal-with-particle	조다	verb	no-match	0	6	�
 regression.archaic-honorific-sa.adverb-derivation	물다	verb	no-match	0	6	무사히 귀국했다.
 regression.archaic-honorific-sa.nominal-derivation	길다	adjective	no-match	0	6	기사화되었다.
 regression.archaic-honorific-sa.nominal-apposition	길다	adjective	no-match	0	6	기사 라이벳이 풀려났다.
+regression.conjecture-rieulre.copula	이다	adjective	only-exact	20	26	우리 집의 자랑일레.
+regression.conjecture-rieulre.past	좋다	adjective	only-exact	0	12	좋았을레. 함께 갈 수 있었다면.
+regression.conjecture-rieulre.action	읽다	verb	only-exact	0	9	읽을레, 그 양반이라면.
+regression.conjecture-rieulre.honorific	읽다	verb	only-exact	0	12	읽으실레, 그 양반이라면.
+regression.conjecture-rieulre.separate	오다	verb	only-exact	0	3	올 ‘레’는 어떻게 쓰지?
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
