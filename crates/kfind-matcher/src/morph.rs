@@ -1273,6 +1273,26 @@ impl MorphMatcher {
             && candidate
                 .suffix_rules
                 .last()
+                .is_some_and(|rule| rule.as_str() == "ending.directive-ram")
+            && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                let token = &candidate.consumed;
+                context::normalized_token(haystack, token.clone())
+                    .is_some_and(|word| resolver.has_exact_nominal_surface(&word))
+                    && context::next_word_on_line(haystack, token.end).is_some_and(|(end, next)| {
+                        resolver.has_nominal_with_optional_particles(&next)
+                            || (resolver.has_predicate_adnominal_surface(&next)
+                                && context::next_word_on_line(haystack, end).is_some_and(
+                                    |(_, head)| resolver.has_nominal_with_optional_particles(&head),
+                                ))
+                    })
+            })
+        {
+            return false;
+        }
+        if boundary == BoundaryPolicy::Smart
+            && candidate
+                .suffix_rules
+                .last()
                 .is_some_and(|rule| rule.as_str() == "ending.propositive-se")
             && !is_boundary_before(haystack, candidate.verified.core.start)
             && !self.constraint_resolver.as_ref().is_some_and(|resolver| {
