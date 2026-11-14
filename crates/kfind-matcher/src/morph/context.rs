@@ -251,6 +251,7 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
         &self,
         request: StructuralRequest<'_>,
         has_proper_name_subject_frame: impl FnOnce() -> bool,
+        preserves_connective_ji: impl FnOnce() -> bool,
     ) -> Option<ConstraintDecision> {
         let core = self
             .current
@@ -264,10 +265,11 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             consumed,
             token,
         };
-        Some(self.prepared.resolve_candidate_with_adnominal_context(
+        Some(self.prepared.resolve_candidate_with_clause_context(
             spans,
             request.patterns,
             has_proper_name_subject_frame,
+            preserves_connective_ji,
         ))
     }
 
@@ -485,6 +487,35 @@ pub(super) fn has_proper_name_subject_frame(
             crate::boundary::is_sentence_end_after(haystack, end)
                 && resolver.has_independent_final_predicate(&predicate)
         })
+}
+
+pub(super) fn has_contrastive_possibility_clause(
+    haystack: &[u8],
+    token: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !previous_word(haystack, token.start)
+        .is_some_and(|word| resolver.has_subject_marked_nominal(&word))
+    {
+        return false;
+    }
+    let next_start = token.end + usize::from(haystack.get(token.end) == Some(&b','));
+    let Some((subject_end, subject)) = next_word_on_line(haystack, next_start) else {
+        return false;
+    };
+    if !resolver.has_subject_marked_nominal(&subject) {
+        return false;
+    }
+    let Some((modifier_end, modifier)) = next_word_on_line(haystack, subject_end) else {
+        return false;
+    };
+    let Some((noun_end, noun)) = next_word_on_line(haystack, modifier_end) else {
+        return false;
+    };
+    normalized_token(haystack, token.clone()).is_some_and(|connective| {
+        resolver.has_repeated_predicate_in_possibility_clause(&connective, &modifier, &noun)
+    }) && next_word_on_line(haystack, noun_end)
+        .is_some_and(|(_, predicate)| resolver.has_existential_final_predicate(&predicate))
 }
 
 pub(super) fn next_word_with_end(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {

@@ -363,16 +363,39 @@ impl PreparedStructuralContext {
         patterns: &[QueryMorphPattern],
         has_proper_name_subject_frame: impl FnOnce() -> bool,
     ) -> ConstraintDecision {
-        let selection = if matches!(
-            self.selection,
-            StructureSelection::ProperNameOrAdnominal { .. }
-        ) && has_proper_name_subject_frame()
-        {
-            &StructureSelection::ProperNameOrAdnominal {
-                only_adnominal: true,
+        self.resolve_candidate_with_clause_context(
+            spans,
+            patterns,
+            has_proper_name_subject_frame,
+            || false,
+        )
+    }
+
+    #[must_use]
+    pub fn resolve_candidate_with_clause_context(
+        &self,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        has_proper_name_subject_frame: impl FnOnce() -> bool,
+        has_contrastive_possibility_clause: impl FnOnce() -> bool,
+    ) -> ConstraintDecision {
+        let selection = match &self.selection {
+            StructureSelection::ProperNameOrAdnominal { .. } if has_proper_name_subject_frame() => {
+                &StructureSelection::ProperNameOrAdnominal {
+                    only_adnominal: true,
+                }
             }
-        } else {
-            &self.selection
+            StructureSelection::ConnectiveJiNominalFrame { fallback }
+                if spans.core.start == 0
+                    && spans.consumed == spans.token
+                    && patterns
+                        .iter()
+                        .any(|pattern| pattern.fine_pos.is_predicate())
+                    && has_contrastive_possibility_clause() =>
+            {
+                fallback
+            }
+            selection => selection,
         };
         self.resolve_with_selection(spans, patterns, selection)
     }
