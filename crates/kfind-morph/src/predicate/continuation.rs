@@ -433,6 +433,17 @@ pub(super) const HONORIFIC_NIRA: &[Suffix] = &[
 const JIMAN: Suffix = suffix("지만", &["ending.connective-jiman"]);
 const JIMANEUN: Suffix = suffix("지마는", &["ending.connective-jiman"]);
 const GEONA: Suffix = suffix("거나", &["ending.connective-geona"]);
+const GEONMAN_ENDINGS: &[Suffix] = &[
+    suffix("건마는", &["ending.concessive-geonman"]),
+    suffix("건만", &["ending.concessive-geonman"]),
+];
+const HONORIFIC_GEONMAN_ENDINGS: &[Suffix] = &[
+    suffix(
+        "시건마는",
+        &["ending.honorific", "ending.concessive-geonman"],
+    ),
+    suffix("시건만", &["ending.honorific", "ending.concessive-geonman"]),
+];
 const IMMEDIATE: Suffix = suffix("자마자", &["ending.connective-jamaja"]);
 const HONORIFIC_IMMEDIATE: Suffix = suffix(
     "시자마자",
@@ -2049,6 +2060,16 @@ fn verify_simple_continuation(
             &[JIMAN, JIMANEUN]
         }
         ContinuationState::StemEnding if following.starts_with("거나") => &[GEONA],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("건마") || following.starts_with("건만") =>
+        {
+            GEONMAN_ENDINGS
+        }
+        ContinuationState::Eu
+            if following.starts_with("시건마") || following.starts_with("시건만") =>
+        {
+            HONORIFIC_GEONMAN_ENDINGS
+        }
         ContinuationState::StemEnding
             if following.starts_with("나마")
                 && pos != PredicatePos::Copula
@@ -2483,6 +2504,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
                         | "ending.causal-nimankeum"
+                        | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"

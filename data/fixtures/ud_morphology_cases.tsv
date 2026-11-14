@@ -638,6 +638,13 @@ regression.causal-nimankeum.honorific	읽다	verb	smart-exact	13	31	교수님이
 regression.causal-nimankeum.past	늦다	adjective	smart-exact	10	28	시간이 늦었으니만치 택시로 가자.
 regression.causal-nimankeum.action	읽다	verb	smart-exact	17	32	아이가 글을 읽느니만큼 조용히 하자.
 regression.causal-nimankeum.separate-dependent	읽다	verb	smart-exact	10	16	아이가 읽는 만큼 기다리자.
+regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
+regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
+regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.
+regression.concessive-geonman.future	힘들다	adjective	smart-exact	0	15	힘들겠건만 모두 웃고 있다.
+regression.concessive-geonman.copula	이다	adjective	smart-exact	16	25	오늘은 휴일이건만 출근했다.
+regression.concessive-geonman.nominal-particle	건	noun	smart-exact	4	10	이 건만 확인해 주세요.
+regression.concessive-geonman.nominal-not-copula	이다	adjective	no-match	4	10	이 건만 확인해 주세요.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
