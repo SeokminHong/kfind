@@ -1582,6 +1582,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.contrast-rieuljina"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ지나", "을지나"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.coordinate-rieuljimyeo"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ지며", "을지며"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.conjecture-rieulrera"
 category = "final"
 initial = "attach-rieul"
