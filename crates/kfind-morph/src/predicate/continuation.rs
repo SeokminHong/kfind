@@ -1948,6 +1948,19 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
             &[suffix("자꾸나", &["ending.propositive-ja"])]
         }
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && (following.starts_with("자며")
+                    || following.starts_with("자면")
+                    || following.starts_with("자니까")) =>
+        {
+            &[
+                suffix("자며", &["ending.propositive-quotation"]),
+                suffix("자면서", &["ending.propositive-quotation"]),
+                suffix("자니까", &["ending.propositive-quotation"]),
+                suffix("자면", &["ending.propositive-conditional"]),
+            ]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {

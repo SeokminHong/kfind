@@ -2076,6 +2076,19 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
             &[reference_suffix("자꾸나", &["ending.propositive-ja"])]
         }
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && (following.starts_with("자며")
+                    || following.starts_with("자면")
+                    || following.starts_with("자니까")) =>
+        {
+            &[
+                reference_suffix("자며", &["ending.propositive-quotation"]),
+                reference_suffix("자면서", &["ending.propositive-quotation"]),
+                reference_suffix("자니까", &["ending.propositive-quotation"]),
+                reference_suffix("자면", &["ending.propositive-conditional"]),
+            ]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {
@@ -3079,6 +3092,8 @@ fn reference_simple_continuation(
                             | "ending.connective-geoneul"
                             | "ending.alternative-deunji"
                             | "ending.quotative-deora"
+                            | "ending.propositive-quotation"
+                            | "ending.propositive-conditional"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
