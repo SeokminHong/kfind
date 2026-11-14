@@ -610,6 +610,10 @@ regression.exclamative.retrospective-action	주다	verb	smart-exact	24	36	동생
 regression.exclamative.retrospective-action-not-copula	이다	adjective	no-match	24	36	동생이 꽃에 물을 주더군요.
 regression.exclamative.action-rieul-guna	살다	verb	smart-exact	10	22	여기에 사는구나.
 regression.exclamative.action-honorific-plain	읽다	verb	smart-exact	20	35	선생님이 책을 읽으시는군.
+regression.honorific-deon.adnominal	읽다	verb	smart-exact	16	28	선생님께서 읽으시던 책이다.
+regression.honorific-deon.recollection	오다	verb	smart-exact	26	35	아버지께서도 직접 오시던?
+regression.honorific-deon.longer-question	살다	verb	smart-exact	23	35	부모님이 어디에 사시던가?
+regression.honorific-deon.copula	이다	adjective	smart-exact	6	15	학생이시던 때를 떠올렸다.
 regression.exclamative.gu-copula	이다	adjective	smart-exact	19	28	그분은 대학생이구나.
 regression.exclamative.gu-copula-honorific	이다	adjective	smart-exact	16	28	그분은 학생이시구나.
 regression.exclamative.gu-adjective-honorific	밝다	adjective	smart-exact	14	29	표정이 참 밝으시구려.
