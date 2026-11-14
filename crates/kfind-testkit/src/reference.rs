@@ -1787,11 +1787,6 @@ fn reference_simple_continuation(
         {
             &[reference_suffix("나", &["ending.interrogative-na"])]
         }
-        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
-            if following.starts_with('구') =>
-        {
-            &[reference_suffix("구", &["ending.connective-go"])]
-        }
         ContinuationState::AOrEo
             if matches!(
                 pos,
@@ -1922,12 +1917,14 @@ fn reference_simple_continuation(
             reference_suffix("단", &["ending.connective-daganeun"]),
         ],
         ContinuationState::NieunEnding
-            if (following.starts_with('군') || following.starts_with("구나"))
+            if following.starts_with(['군', '구'])
                 && anchor.ends_with('는')
                 && (pos.is_action() || anchor.ends_with("있는") || anchor.ends_with("없는")) =>
         {
             &[
                 reference_suffix("구나", &["ending.final-neun-exclamative"]),
+                reference_suffix("구려", &["ending.final-neun-exclamative"]),
+                reference_suffix("구먼", &["ending.final-neun-exclamative"]),
                 reference_suffix("군", &["ending.final-neun-exclamative"]),
                 reference_suffix(
                     "군요",
@@ -1953,12 +1950,24 @@ fn reference_simple_continuation(
             ]
         }
         ContinuationState::Eu
-            if following.starts_with("시는군")
+            if (following.starts_with("시는군") || following.starts_with("시는구"))
                 && (pos.is_action() || anchor.ends_with(['있', '없'])) =>
         {
             &[
                 reference_suffix(
                     "시는군",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                reference_suffix(
+                    "시는구나",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                reference_suffix(
+                    "시는구려",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                reference_suffix(
+                    "시는구먼",
                     &["ending.honorific", "ending.final-neun-exclamative"],
                 ),
                 reference_suffix(
@@ -1969,6 +1978,27 @@ fn reference_simple_continuation(
                         "ending.polite-yo",
                     ],
                 ),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시구") => &[
+            reference_suffix(
+                "시구나",
+                &["ending.honorific", "ending.final-gu-exclamative"],
+            ),
+            reference_suffix(
+                "시구려",
+                &["ending.honorific", "ending.final-gu-exclamative"],
+            ),
+            reference_suffix(
+                "시구먼",
+                &["ending.honorific", "ending.final-gu-exclamative"],
+            ),
+        ],
+        ContinuationState::Prospective if following.starts_with('구') && anchor.ends_with('시') => {
+            &[
+                reference_suffix("구나", &["ending.final-gu-exclamative"]),
+                reference_suffix("구려", &["ending.final-gu-exclamative"]),
+                reference_suffix("구먼", &["ending.final-gu-exclamative"]),
             ]
         }
         ContinuationState::Eu
@@ -2400,6 +2430,20 @@ fn reference_simple_continuation(
         ContinuationState::Eu if following.starts_with("시겠으오") => {
             HONORIFIC_FUTURE_HAO_ENDINGS
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with('구') => &[
+            reference_suffix("구려", &["ending.final-gu-exclamative"]),
+            reference_suffix("구", &["ending.connective-go"]),
+        ],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('구') =>
+        {
+            &[
+                reference_suffix("구나", &["ending.final-gu-exclamative"]),
+                reference_suffix("구려", &["ending.final-gu-exclamative"]),
+                reference_suffix("구먼", &["ending.final-gu-exclamative"]),
+                reference_suffix("구", &["ending.connective-go"]),
+            ]
+        }
         _ => &[],
     };
     let matched = candidates
@@ -2413,6 +2457,7 @@ fn reference_simple_continuation(
                         "ending.connective-daganeun"
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
+                            | "ending.final-gu-exclamative"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))

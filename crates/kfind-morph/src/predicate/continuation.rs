@@ -256,6 +256,25 @@ const NEUN_GUN_YO: Suffix = suffix(
     &["ending.final-neun-exclamative", "ending.polite-yo"],
 );
 const NEUN_GUNA: Suffix = suffix("구나", &["ending.final-neun-exclamative"]);
+const NEUN_GURYO: Suffix = suffix("구려", &["ending.final-neun-exclamative"]);
+const NEUN_GUMEON: Suffix = suffix("구먼", &["ending.final-neun-exclamative"]);
+const GUNA: Suffix = suffix("구나", &["ending.final-gu-exclamative"]);
+const GURYO: Suffix = suffix("구려", &["ending.final-gu-exclamative"]);
+const GUMEON: Suffix = suffix("구먼", &["ending.final-gu-exclamative"]);
+const HONORIFIC_GU_EXCLAMATIVES: &[Suffix] = &[
+    suffix(
+        "시구나",
+        &["ending.honorific", "ending.final-gu-exclamative"],
+    ),
+    suffix(
+        "시구려",
+        &["ending.honorific", "ending.final-gu-exclamative"],
+    ),
+    suffix(
+        "시구먼",
+        &["ending.honorific", "ending.final-gu-exclamative"],
+    ),
+];
 const HONORIFIC_NEUN_GUN: Suffix = suffix(
     "시는군",
     &["ending.honorific", "ending.final-neun-exclamative"],
@@ -1838,11 +1857,6 @@ fn verify_simple_continuation(
             "시되",
             &["ending.honorific", "ending.connective-doe"],
         )],
-        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
-            if following.starts_with('구') =>
-        {
-            &[COLLOQUIAL_GU]
-        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
@@ -2050,11 +2064,11 @@ fn verify_simple_continuation(
             HONORIFIC_PREFINAL_NE_ENDINGS
         }
         ContinuationState::NieunEnding
-            if (following.starts_with('군') || following.starts_with("구나"))
+            if following.starts_with(['군', '구'])
                 && anchor.ends_with('는')
                 && (pos.is_action() || anchor.ends_with("있는") || anchor.ends_with("없는")) =>
         {
-            &[NEUN_GUN, NEUN_GUN_YO, NEUN_GUNA]
+            &[NEUN_GUN, NEUN_GUN_YO, NEUN_GUNA, NEUN_GURYO, NEUN_GUMEON]
         }
         ContinuationState::StemEnding
             if following.starts_with('군')
@@ -2068,10 +2082,29 @@ fn verify_simple_continuation(
             &[GUN, GUN_YO]
         }
         ContinuationState::Eu
-            if following.starts_with("시는군")
+            if (following.starts_with("시는군") || following.starts_with("시는구"))
                 && (pos.is_action() || anchor.ends_with(['있', '없'])) =>
         {
-            &[HONORIFIC_NEUN_GUN, HONORIFIC_NEUN_GUN_YO]
+            &[
+                HONORIFIC_NEUN_GUN,
+                HONORIFIC_NEUN_GUN_YO,
+                suffix(
+                    "시는구나",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                suffix(
+                    "시는구려",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                suffix(
+                    "시는구먼",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시구") => HONORIFIC_GU_EXCLAMATIVES,
+        ContinuationState::Prospective if following.starts_with('구') && anchor.ends_with('시') => {
+            &[GUNA, GURYO, GUMEON]
         }
         ContinuationState::Eu
             if following.starts_with("시군")
@@ -2228,6 +2261,16 @@ fn verify_simple_continuation(
         {
             COPULA_COMMON_ENDINGS
         }
+        ContinuationState::StemEnding if following.starts_with('구') => {
+            if !pos.is_action() {
+                &[GUNA, GURYO, GUMEON, COLLOQUIAL_GU]
+            } else {
+                &[GURYO, COLLOQUIAL_GU]
+            }
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('구') => {
+            &[GUNA, GURYO, GUMEON, COLLOQUIAL_GU]
+        }
         ContinuationState::StemEnding
             if following.starts_with('니')
                 && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
@@ -2368,6 +2411,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.exclamative-aoeora"
+                        | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
                         | "ending.quotative-danda"
                         | "ending.quotative-nikka"

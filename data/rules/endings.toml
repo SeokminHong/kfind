@@ -495,8 +495,18 @@ terminal = true
 id = "ending.final-neun-exclamative"
 category = "final"
 initial = "consonant"
-forms = ["는구나", "는군", "는군요"]
+forms = ["는구나", "는구려", "는구먼", "는군", "는군요"]
 required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-gu-exclamative"
+category = "final"
+initial = "consonant"
+forms = ["구나", "구려", "구먼"]
+required = []
 forbidden = []
 next = []
 terminal = true

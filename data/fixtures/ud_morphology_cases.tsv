@@ -610,6 +610,17 @@ regression.exclamative.retrospective-action	주다	verb	smart-exact	24	36	동생
 regression.exclamative.retrospective-action-not-copula	이다	adjective	no-match	24	36	동생이 꽃에 물을 주더군요.
 regression.exclamative.action-rieul-guna	살다	verb	smart-exact	10	22	여기에 사는구나.
 regression.exclamative.action-honorific-plain	읽다	verb	smart-exact	20	35	선생님이 책을 읽으시는군.
+regression.exclamative.gu-copula	이다	adjective	smart-exact	19	28	그분은 대학생이구나.
+regression.exclamative.gu-copula-honorific	이다	adjective	smart-exact	16	28	그분은 학생이시구나.
+regression.exclamative.gu-adjective-honorific	밝다	adjective	smart-exact	14	29	표정이 참 밝으시구려.
+regression.exclamative.gu-action-honorific	들다	verb	smart-exact	24	39	형님이 지금 밥을 드시는구먼.
+regression.exclamative.gu-future	오다	verb	smart-exact	14	26	아이도 곧 오겠구려.
+regression.exclamative.gu-stacked-prefinals	놀라다	verb	smart-exact	20	38	어르신이 많이 놀라셨겠구나.
+regression.exclamative.gu-directive	오다	verb	smart-exact	14	23	어서 이리 오구려.
+regression.exclamative.gu-action-current	날리다	verb	smart-exact	17	32	철수는 연을 날리는구려.
+regression.exclamative.gu-action-not-copula	이다	adjective	no-match	17	32	철수는 연을 날리는구려.
+regression.exclamative.gu-particle-not-predicate	당기다	verb	no-match	7	16	저는 당구나 칩니다.
+regression.exclamative.gu-invalid-consonant-omission	이다	adjective	no-match	0	12	학생구려.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
