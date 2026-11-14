@@ -801,6 +801,7 @@ fn compile_rieul_eu_endings(
                 (stem, "려던", "ending.intentive-adnominal"),
                 (stem, "렴", "ending.imperative-ryeom"),
                 (stem, "려무나", "ending.imperative-ryeom"),
+                (stem, "려마", "ending.imperative-ryeom"),
                 (&dropped, "시오", "ending.imperative-sio"),
                 (&dropped, "쇼", "ending.imperative-sio-short"),
             ])

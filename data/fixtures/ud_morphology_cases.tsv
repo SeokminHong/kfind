@@ -1023,6 +1023,12 @@ regression.prefinal-myeonseo.past	배우다	verb	only-exact	0	15	배웠으면서
 regression.prefinal-myeonseo.future	춥다	adjective	only-exact	0	15	춥겠으면서 난방도 끄겠다고?
 regression.prefinal-myeonseo.honorific-past-additive	알다	verb	only-exact	0	18	아셨으면서도 밝히지 않았다.
 regression.prefinal-myeonseo.separate	배우다	verb	only-exact	0	9	배웠다. ‘으면서’는 연결 어미다.
+regression.imperative-ryeoma.vowel	가다	verb	only-exact	7	16	어서 가려마.
+regression.imperative-ryeoma.consonant	먹다	verb	only-exact	7	19	어서 먹으려마.
+regression.imperative-ryeoma.rieul	살다	verb	only-exact	0	9	살려마. 어떤 일이 있어도.
+regression.imperative-ryeoma.irregular	듣다	verb	only-exact	0	12	들으려마. 꼭 필요한 이야기다.
+regression.imperative-ryeoma.uncontracted	먹다	verb	only-exact	0	15	먹으려무나. 곧 식겠다.
+regression.imperative-ryeoma.separate	가다	verb	only-exact	0	3	가. ‘려마’는 나중에 보자.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

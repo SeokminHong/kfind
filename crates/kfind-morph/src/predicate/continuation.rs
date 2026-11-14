@@ -815,6 +815,7 @@ const DIRECTIVE_RAM: Suffix = suffix("람", &["ending.directive-ram"]);
 const RYEOM_IMPERATIVES: &[Suffix] = &[
     suffix("렴", &["ending.imperative-ryeom"]),
     suffix("려무나", &["ending.imperative-ryeom"]),
+    suffix("려마", &["ending.imperative-ryeom"]),
 ];
 const RYEON_QUESTION: Suffix = suffix("련", &["ending.interrogative-ryeon"]);
 const HONORIFIC_EARNEST_REQUEST: Suffix = suffix(
@@ -2967,7 +2968,9 @@ fn verify_simple_continuation(
         }
         ContinuationState::Eu
             if pos.is_action()
-                && (following.starts_with('렴') || following.starts_with("려무나")) =>
+                && (following.starts_with('렴')
+                    || following.starts_with("려무나")
+                    || following.starts_with("려마")) =>
         {
             RYEOM_IMPERATIVES
         }
