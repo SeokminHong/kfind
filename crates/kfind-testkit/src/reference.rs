@@ -1860,6 +1860,22 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("길래") =>
+        {
+            &[reference_suffix("길래", &["ending.connective-gie"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시길래") || following.starts_with("셨길래") =>
+        {
+            &[
+                reference_suffix("시길래", &["ending.honorific", "ending.connective-gie"]),
+                reference_suffix(
+                    "셨길래",
+                    &["ending.honorific", "ending.past", "ending.connective-gie"],
+                ),
+            ]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다더라") => {
             &[reference_suffix(
                 "다더라",
@@ -3146,6 +3162,9 @@ fn reference_simple_continuation(
                             | "시걸랑"
                             | "게끔"
                             | "시게끔"
+                            | "길래"
+                            | "시길래"
+                            | "셨길래"
                             | "자꾸나"
                     )
                     || !following[suffix.surface.len()..]

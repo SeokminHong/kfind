@@ -1744,6 +1744,22 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("길래") =>
+        {
+            &[suffix("길래", &["ending.connective-gie"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시길래") || following.starts_with("셨길래") =>
+        {
+            &[
+                suffix("시길래", &["ending.honorific", "ending.connective-gie"]),
+                suffix(
+                    "셨길래",
+                    &["ending.honorific", "ending.past", "ending.connective-gie"],
+                ),
+            ]
+        }
         ContinuationState::AOrEo if pos.is_action() && following.starts_with('다') => &[
             suffix("다", &["ending.aoeo-daga"]),
             suffix("다가", &["ending.aoeo-daga"]),
