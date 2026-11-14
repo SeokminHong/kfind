@@ -1779,6 +1779,57 @@ fn reference_simple_continuation(
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::StemEnding
+            if following.starts_with("니만")
+                && (!pos.is_action() || anchor.ends_with('시'))
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last)) =>
+        {
+            &[
+                reference_suffix("니만큼", &["ending.causal-nimankeum"]),
+                reference_suffix("니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("니만") && (anchor.ends_with('으') || !pos.is_action()) =>
+        {
+            &[
+                reference_suffix("니만큼", &["ending.causal-nimankeum"]),
+                reference_suffix("니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시니만") => &[
+            reference_suffix("시니만큼", &["ending.honorific", "ending.causal-nimankeum"]),
+            reference_suffix("시니만치", &["ending.honorific", "ending.causal-nimankeum"]),
+        ],
+        ContinuationState::StemEnding
+            if following.starts_with("느니만")
+                && (pos.is_action() || anchor.ends_with(['있', '없']))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[
+                reference_suffix("느니만큼", &["ending.causal-nimankeum"]),
+                reference_suffix("느니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시느니만") => &[
+            reference_suffix(
+                "시느니만큼",
+                &["ending.honorific", "ending.causal-nimankeum"],
+            ),
+            reference_suffix(
+                "시느니만치",
+                &["ending.honorific", "ending.causal-nimankeum"],
+            ),
+        ],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으니만") => {
+            &[
+                reference_suffix("으니만큼", &["ending.causal-nimankeum"]),
+                reference_suffix("으니만치", &["ending.causal-nimankeum"]),
+            ]
+        }
+        ContinuationState::StemEnding
             if following.starts_with("나마")
                 && pos != PredicatePos::Copula
                 && anchor
@@ -2479,6 +2530,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-aoeora"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
+                            | "ending.causal-nimankeum"
                     )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))
