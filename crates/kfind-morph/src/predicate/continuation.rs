@@ -1745,6 +1745,28 @@ fn verify_simple_continuation(
     }
     let token_endings: &[Suffix] = match state {
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with("나니") =>
+        {
+            &[suffix("나니", &["ending.archaic-nani"])]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시나니")
+                || following.starts_with("셨나니")
+                || following.starts_with("시겠나니") =>
+        {
+            &[
+                suffix("시나니", &["ending.honorific", "ending.archaic-nani"]),
+                suffix(
+                    "셨나니",
+                    &["ending.honorific", "ending.past", "ending.archaic-nani"],
+                ),
+                suffix(
+                    "시겠나니",
+                    &["ending.honorific", "ending.future", "ending.archaic-nani"],
+                ),
+            ]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos.is_action() && following.starts_with("노라") =>
         {
             &[

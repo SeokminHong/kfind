@@ -897,6 +897,12 @@ regression.archaic-nora.future	지키다	verb	exact	0	15	지키겠노라 맹세�
 regression.archaic-nora.quotative	오다	verb	exact	0	12	왔노라고 말했다.
 regression.archaic-nora.effort	하다	verb	exact	0	12	하노라고 했습니다.
 regression.archaic-nora.separate	오다	verb	only-exact	0	6	왔다. 노라 씨는 먼저 떠났다.
+regression.archaic-nani.verb	믿다	verb	exact	0	9	믿나니 나를 실망시키지 말게.
+regression.archaic-nani.state	없다	adjective	exact	0	9	없나니 더 기다리지 마라.
+regression.archaic-nani.past	오다	verb	exact	0	9	왔나니 이제 말하라.
+regression.archaic-nani.honorific	읽다	verb	exact	0	15	읽으시나니 이제 말하라.
+regression.archaic-nani.humble	되다	verb	exact	0	12	되옵나니 말씀을 들어 주십시오.
+regression.archaic-nani.separate	읽다	verb	only-exact	0	6	읽는 나니 씨를 기다렸다.
 regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 내용을 모두 알겠느냐.
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
