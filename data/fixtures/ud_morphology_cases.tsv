@@ -892,6 +892,13 @@ regression.rieuljina.doubt	오다	verb	only-exact	7	13	언제 올지, 나는 묻
 regression.rieuljimyeo.honorific	읽다	verb	exact	10	25	스승이 읽으실지며 제자도 따를 것이다.
 regression.rieuljimyeo.state-consonant	높다	adjective	exact	7	19	산은 높을지며 골은 깊으리라.
 regression.rieuljimyeo.state-vowel	예쁘다	adjective	smart-only-exact	7	13	꽃은 예쁠지며 향도 좋으리라.
+regression.rieulkapsyo.honorific	읽다	verb	exact	7	22	직접 읽으실깝쇼?
+regression.rieulkapsyo.separate	오다	verb	only-exact	0	3	올 깝쇼 씨를 기다린다.
+regression.rieulsae.past	가다	verb	exact	0	9	갔을새 길이 비었다.
+regression.rieulsae.copula	이다	adjective	exact	6	12	친구일새 믿는다.
+regression.rieulsae.determiner	읽다	verb	only-exact	0	6	읽을 새 책을 샀다.
+regression.rieuljaksimyeon.irregular	듣다	verb	exact	7	22	듣고 들을작시면 안타깝다.
+regression.rieuljaksimyeon.separate	듣다	verb	only-exact	0	6	들을 작시면 씨의 말을 기다렸다.
 regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
 regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
 regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?

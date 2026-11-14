@@ -1582,6 +1582,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.question-rieulkapsyo"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ깝쇼", "을깝쇼"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.causal-rieulsae"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ새", "을새"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.conditional-rieuljaksimyeon"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ작시면", "을작시면"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.contrast-rieuljina"
 category = "connective"
 initial = "attach-rieul"

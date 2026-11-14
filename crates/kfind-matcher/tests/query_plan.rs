@@ -245,16 +245,21 @@ fn nikl_attested_endings_require_complete_source_paths() {
             .find_at_with_meta("섬나라므로".as_bytes(), 0)
             .is_none()
     );
-    assert!(
-        negative_copula
-            .find_at_with_meta("아닐세".as_bytes(), 0)
-            .is_some()
-    );
-    assert!(
-        negative_copula
-            .find_at_with_meta("아닐새".as_bytes(), 0)
-            .is_none()
-    );
+    for (text, expected) in [
+        ("이건 내 것이 아닐세.", "아닐세"),
+        ("약속한 날이 아닐새 문을 닫았다.", "아닐새"),
+        ("참새가 아닐 새를 골랐다.", "아닐"),
+    ] {
+        let matches = negative_copula.find_all_with_meta(text.as_bytes());
+        assert_eq!(
+            matches
+                .iter()
+                .map(|matched| &text[matched.span.clone()])
+                .collect::<Vec<_>>(),
+            [expected],
+            "{text}"
+        );
+    }
 }
 
 #[test]
