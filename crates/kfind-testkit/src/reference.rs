@@ -1897,6 +1897,15 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu
+            if following.starts_with("시니까") || following.starts_with("시니깐") =>
+        {
+            &[
+                reference_suffix("시니까는", &["ending.honorific", "ending.connective-ni"]),
+                reference_suffix("시니까", &["ending.honorific", "ending.connective-ni"]),
+                reference_suffix("시니깐", &["ending.honorific", "ending.connective-ni"]),
+            ]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos == PredicatePos::Adjective && following.starts_with("려고") =>
         {

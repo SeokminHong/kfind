@@ -659,6 +659,11 @@ const PREFINAL_EUNI: Suffix = suffix("으니", &["ending.connective-ni"]);
 const PREFINAL_EUNIKKA: Suffix = suffix("으니까", &["ending.connective-ni"]);
 const PREFINAL_EUNIKKANEUN: Suffix = suffix("으니까는", &["ending.connective-ni"]);
 const PREFINAL_EUNIKKAN: Suffix = suffix("으니깐", &["ending.connective-ni"]);
+pub(super) const HONORIFIC_CAUSAL_NI: &[Suffix] = &[
+    suffix("시니까는", &["ending.honorific", "ending.connective-ni"]),
+    suffix("시니까", &["ending.honorific", "ending.connective-ni"]),
+    suffix("시니깐", &["ending.honorific", "ending.connective-ni"]),
+];
 const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
@@ -1808,6 +1813,11 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu
+            if following.starts_with("시니까") || following.starts_with("시니깐") =>
+        {
+            HONORIFIC_CAUSAL_NI
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos == PredicatePos::Adjective && following.starts_with("려고") =>
         {
