@@ -1804,6 +1804,9 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with('사') => {
+            &[suffix("사", &["ending.archaic-honorific-sa"])]
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with("시압") => {
             &[suffix("시압", &["ending.formal-directive-siap"])]
         }

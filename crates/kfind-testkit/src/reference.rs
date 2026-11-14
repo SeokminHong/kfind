@@ -1893,6 +1893,9 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with('사') => {
+            &[reference_suffix("사", &["ending.archaic-honorific-sa"])]
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with("시압") => {
             &[reference_suffix("시압", &["ending.formal-directive-siap"])]
         }
@@ -3495,6 +3498,7 @@ fn reference_simple_continuation(
                             | "ending.exclamative-aoeora"
                             | "ending.exclamative-era"
                             | "ending.humble-wa"
+                            | "ending.archaic-honorific-sa"
                             | "ending.quotative-nyaneuni"
                             | "ending.archaic-interrogative-nyo"
                             | "ending.final-gu-exclamative"

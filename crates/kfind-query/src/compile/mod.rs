@@ -107,6 +107,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.declarative",
     "ending.connective-go",
     "ending.honorific",
+    "ending.archaic-honorific-sa",
     "ending.polite-imperative",
     "ending.past",
     "ending.future",

@@ -798,6 +798,7 @@ fn compile_rieul_eu_endings(
         (&dropped, "나이다", "ending.archaic-naida"),
         (&dropped, "나이까", "ending.archaic-naida"),
         (&dropped, "와", "ending.humble-wa"),
+        (&dropped, "사", "ending.archaic-honorific-sa"),
     ]
     .into_iter()
     .chain(
