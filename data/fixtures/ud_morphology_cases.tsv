@@ -157,6 +157,10 @@ regression.interrogative-nayo.honorific-past	먹다	verb	smart-exact	30	45	할�
 regression.interrogative-nayo.future	오다	verb	smart-exact	14	26	내일 비가 오겠나요?
 regression.interrogative-nayo.connective	가다	verb	smart-exact	13	19	학교에는 가나 수업에는 들어가지 않는다.
 regression.interrogative-nayo.invalid-eu	먹다	verb	no-match	7	19	밥을 먹으나요?
+regression.interrogative-na.adjective	많다	adjective	exact	0	6	많나?
+regression.interrogative-na.embedded-past	먹다	verb	exact	0	9	먹었나 싶었다.
+regression.interrogative-na.future	돕다	verb	exact	0	9	돕겠나?
+regression.interrogative-na.concessive	많다	adjective	exact	0	9	많으나 부족한 부분이 있다.
 regression.nominalizer-gil.consonant	읽다	verb	smart-exact	7	13	책을 읽길 바란다.
 regression.nominalizer-gil.honorific-consonant	읽다	verb	smart-exact	7	19	책을 읽으시길 바랍니다.
 regression.nominalizer-gil.honorific-vowel	삼가다	verb	smart-exact	10	22	외출을 삼가시길 바랍니다.

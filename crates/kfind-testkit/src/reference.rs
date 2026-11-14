@@ -2267,6 +2267,29 @@ fn reference_simple_continuation(
         ContinuationState::Eu if anchor.ends_with('으') && following.starts_with("나마") => {
             &[reference_suffix("나마", &["ending.concessive-nama"])]
         }
+        ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with('나') =>
+        {
+            &[
+                reference_suffix("나", &["ending.interrogative-na"]),
+                reference_suffix("나요", &["ending.interrogative-na"]),
+            ]
+        }
+        ContinuationState::StemEnding
+            if matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) && following.starts_with('나')
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[
+                reference_suffix("나", &["ending.interrogative-na"]),
+                reference_suffix("나요", &["ending.interrogative-na"]),
+            ]
+        }
         ContinuationState::StemEnding
             if following.strip_prefix('나').is_some_and(|tail| {
                 tail.trim_start().starts_with('?')
@@ -2964,6 +2987,7 @@ fn reference_simple_continuation(
                             | "ending.affirmative-emphasis"
                             | "ending.concessive-giroseoni"
                             | "ending.propositive-se"
+                            | "ending.interrogative-na"
                             | "ending.neuni"
                             | "ending.comparative-neuniman"
                             | "ending.retrospective-de"
