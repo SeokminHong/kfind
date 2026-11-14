@@ -1897,6 +1897,13 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu if following.starts_with("시지") => &[
+            reference_suffix("시지", &["ending.honorific", "ending.confirmation-jiyo"]),
+            reference_suffix("시지요", &["ending.honorific", "ending.confirmation-jiyo"]),
+        ],
+        ContinuationState::Prospective if anchor.ends_with('시') && following.starts_with('지') => {
+            &[reference_suffix("지", &["ending.confirmation-jiyo"]), JIYO]
+        }
         ContinuationState::Eu
             if following.starts_with("시니까") || following.starts_with("시니깐") =>
         {
