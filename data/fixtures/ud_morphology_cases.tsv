@@ -913,6 +913,12 @@ regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44
 regression.familiar-direct-question.raw-gsd-future-become	되다	verb	smart-exact	44	53	서울 시내에 차를 가지고 나가도 되겠니?
 regression.familiar-direct-question.formal-copula	입다	verb	no-match	29	35	아빠는 이탈리아 사람입니다.
 regression.familiar-direct-question.wear-question	입다	verb	smart-exact	24	30	오늘은 어떤 옷을 입니?
+regression.interrogative-gam.irregular	덥다	adjective	smart-exact	27	36	무슨 날씨가 이리도 더운감.
+regression.interrogative-gam.consonant	넓다	adjective	smart-exact	17	26	방이 얼마나 넓은감.
+regression.interrogative-gam.future	가다	verb	smart-exact	55	67	어릴 때부터 천재 소리 듣던 사람이 어디 가겠는감?
+regression.interrogative-gam.honorific-copula	이다	adjective	smart-exact	16	25	이건 선생님이신감?
+regression.interrogative-gam.retrospective-honorific	읽다	verb	smart-exact	7	22	어제 읽으시던감?
+regression.interrogative-gam.nominal	자다	verb	no-match	0	9	장난감이 사라졌다.
 regression.adnominal-proper-name.object-relative-group.verb	알리다	verb	smart-exact	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
 regression.adnominal-proper-name.object-relative-group.noun	알린	noun	no-match	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
 regression.adnominal-proper-name.object-relative-person.verb	알리다	verb	smart-exact	14	20	그 소식을 알린 로페스가 자리를 떴다.

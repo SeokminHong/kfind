@@ -341,6 +341,17 @@ const DEON_RECOLLECTION: &[Suffix] = &[
     suffix("던지", &["ending.retrospective-connective-deon"]),
 ];
 
+const SI_DEON_QUESTIONS: &[Suffix] = &[
+    suffix(
+        "시던가",
+        &["ending.honorific", "ending.retrospective-question-deon"],
+    ),
+    suffix(
+        "시던감",
+        &["ending.honorific", "ending.retrospective-question-deon"],
+    ),
+];
+
 macro_rules! retrospective_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         &[
@@ -1298,6 +1309,7 @@ macro_rules! nieun_questions {
         &[
             suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
             suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
+            suffix(concat!($prefix, "감"), &[$($prior,)* "ending.interrogative-ngam"]),
             suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
             suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.interrogative-nji", "particle.topic"]),
             suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.interrogative-nji", "ending.polite-yo"]),
@@ -1316,7 +1328,7 @@ const SIGETNEUN_QUESTIONS: &[Suffix] =
 fn nieun_question_tail(following: &str, prefix: &str) -> bool {
     following
         .strip_prefix(prefix)
-        .is_some_and(|tail| tail.starts_with(['가', '지']))
+        .is_some_and(|tail| tail.starts_with(['가', '감', '지']))
 }
 
 fn nieun_tail(following: &str, prefix: &str) -> bool {
@@ -2153,6 +2165,7 @@ fn verify_simple_continuation(
         {
             DEON_RECOLLECTION
         }
+        ContinuationState::Eu if following.starts_with("시던") => SI_DEON_QUESTIONS,
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('더') =>
         {
@@ -2213,6 +2226,7 @@ fn verify_simple_continuation(
                 Some(
                     "ending.connective-daganeun"
                         | "ending.interrogative-ryeon"
+                        | "ending.interrogative-ngam"
                         | "ending.concessive-nieundeul"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
