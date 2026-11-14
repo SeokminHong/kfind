@@ -383,6 +383,10 @@ pub(super) const NIRA: Suffix = suffix("니라", &["ending.archaic-nira"]);
 pub(super) const NEUNIRA: Suffix = suffix("느니라", &["ending.archaic-nira"]);
 pub(super) const NEUNI: Suffix = suffix("느니", &["ending.neuni"]);
 pub(super) const NEUNIMAN: Suffix = suffix("느니만", &["ending.comparative-neuniman"]);
+pub(super) const NEURAGO_ENDINGS: &[Suffix] = &[
+    suffix("느라", &["ending.causal-neurago"]),
+    suffix("느라고", &["ending.causal-neurago"]),
+];
 pub(super) const HONORIFIC_NIRA: &[Suffix] = &[
     suffix("시니라", &["ending.honorific", "ending.archaic-nira"]),
     suffix("시느니라", &["ending.honorific", "ending.archaic-nira"]),
@@ -1746,6 +1750,17 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시듯") => &[
             suffix("시듯", &["ending.honorific", "ending.connective-deusi"]),
             suffix("시듯이", &["ending.honorific", "ending.connective-deusi"]),
+        ],
+        ContinuationState::StemEnding
+            if following.starts_with("느라")
+                && pos.is_action()
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            NEURAGO_ENDINGS
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시느라") => &[
+            suffix("시느라", &["ending.honorific", "ending.causal-neurago"]),
+            suffix("시느라고", &["ending.honorific", "ending.causal-neurago"]),
         ],
         ContinuationState::RieulFinal if following.starts_with('게') && pos.is_action() => &[
             suffix("게", &["ending.promise-rieulge"]),

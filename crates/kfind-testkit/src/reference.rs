@@ -1858,6 +1858,20 @@ fn reference_simple_continuation(
             reference_suffix("시듯", &["ending.honorific", "ending.connective-deusi"]),
             reference_suffix("시듯이", &["ending.honorific", "ending.connective-deusi"]),
         ],
+        ContinuationState::StemEnding
+            if following.starts_with("느라")
+                && pos.is_action()
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[
+                reference_suffix("느라", &["ending.causal-neurago"]),
+                reference_suffix("느라고", &["ending.causal-neurago"]),
+            ]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시느라") => &[
+            reference_suffix("시느라", &["ending.honorific", "ending.causal-neurago"]),
+            reference_suffix("시느라고", &["ending.honorific", "ending.causal-neurago"]),
+        ],
         ContinuationState::RieulFinal if following.starts_with('게') && pos.is_action() => &[
             reference_suffix("게", &["ending.promise-rieulge"]),
             reference_suffix("게요", &["ending.promise-rieulge", "ending.polite-yo"]),
@@ -2841,6 +2855,7 @@ fn reference_simple_continuation(
                     Some(
                         "ending.connective-daganeun"
                             | "ending.connective-deusi"
+                            | "ending.causal-neurago"
                             | "ending.neuni"
                             | "ending.comparative-neuniman"
                             | "ending.retrospective-de"

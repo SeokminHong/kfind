@@ -805,6 +805,11 @@ regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 �
 regression.connective-deusi.honorific	읽다	verb	exact	0	15	읽으시듯이 발음했다.
 regression.connective-deusi.copula	이다	adjective	exact	6	15	사실이듯이 전해졌다.
 regression.connective-deusi.bound-noun	읽다	verb	exact	0	6	읽은 듯 고개를 끄덕였다.
+regression.causal-neurago.stem	읽다	verb	exact	0	12	읽느라고 밤을 새웠다.
+regression.causal-neurago.honorific	듣다	verb	exact	0	18	들으시느라고 답을 놓치셨다.
+regression.causal-neurago.rieul	살다	verb	exact	0	12	사느라고 고생했다.
+regression.causal-neurago.short	먹다	verb	exact	0	9	먹느라 누가 오는 줄도 몰랐다.
+regression.causal-neurago.separate	읽다	verb	exact	0	6	읽고 라디오를 켰다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
