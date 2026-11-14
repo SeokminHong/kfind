@@ -1068,6 +1068,13 @@ regression.conjecture-rieulre.past	좋다	adjective	only-exact	0	12	좋았을레
 regression.conjecture-rieulre.action	읽다	verb	only-exact	0	9	읽을레, 그 양반이라면.
 regression.conjecture-rieulre.honorific	읽다	verb	only-exact	0	12	읽으실레, 그 양반이라면.
 regression.conjecture-rieulre.separate	오다	verb	only-exact	0	3	올 ‘레’는 어떻게 쓰지?
+regression.archaic-noni.action	허락하다	verb	only-exact	0	15	허락하노니 이제 마음껏 즐겨라.
+regression.archaic-noni.rieul	알다	verb	only-exact	0	9	아노니 그 마음을 숨기지 말라.
+regression.archaic-noni.past	읽다	verb	only-exact	0	12	읽었노니 이제 뜻을 일러 주마.
+regression.archaic-noni.future	살다	verb	only-exact	0	12	살겠노니 나를 걱정하지 마라.
+regression.archaic-noni.honorific	읽다	verb	only-exact	0	15	읽으시노니 귀를 기울여라.
+regression.archaic-noni.humble	받다	verb	only-exact	0	15	받자옵노니 은혜를 잊지 않겠나이다.
+regression.archaic-noni.separate	읽다	verb	only-exact	0	6	읽을 ‘노니’ 예문을 골랐다.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.
