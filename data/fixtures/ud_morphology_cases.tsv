@@ -1034,6 +1034,18 @@ regression.concessive-ryamaneun.rieul	벌다	verb	only-exact	0	12	벌랴마는 �
 regression.concessive-ryamaneun.irregular	두렵다	adjective	only-exact	0	18	두려우랴마는 오늘은 피하자.
 regression.concessive-ryamaneun.honorific	읽다	verb	only-exact	0	18	읽으시랴마는 뜻은 짐작하시겠지.
 regression.concessive-ryamaneun.separate	잊다	verb	only-exact	0	9	잊으랴? ‘마는’이 빠졌다.
+regression.archaic-nyo.copula	이다	adjective	only-exact	17	23	그가 어찌 왕이뇨?
+regression.archaic-nyo.copula-honorific	이다	adjective	only-exact	17	26	그가 어찌 왕이시뇨?
+regression.archaic-nyo.vowel	푸르다	adjective	only-exact	0	9	푸르뇨, 저 하늘은?
+regression.archaic-nyo.consonant	높다	adjective	only-exact	0	9	높으뇨, 저 산은?
+regression.archaic-nyo.action	살다	verb	only-exact	0	9	사느뇨, 그대는 어디에?
+regression.archaic-nyo.honorific	읽다	verb	only-exact	0	12	읽으시뇨, 선생은?
+regression.archaic-nyo.honorific-rieul	살다	verb	only-exact	0	12	사시느뇨, 그곳에?
+regression.archaic-nyo.past	먹다	verb	only-exact	0	12	먹었느뇨, 그대는?
+regression.archaic-nyo.future	좋다	adjective	only-exact	0	12	좋겠느뇨, 그대에겐?
+regression.archaic-nyo.existential	있다	adjective	only-exact	0	9	있느뇨, 그곳에 길이?
+regression.archaic-nyo.nominal-competitor	하다	verb	no-match	0	6	한뇨는 이 가면의 이름이다.
+regression.archaic-nyo.separate	먹다	verb	only-exact	0	9	먹었다. ‘느뇨’는 따로 적어라.
 regression.archaic-nani.verb	믿다	verb	only-exact	0	9	믿나니 나를 실망시키지 말게.
 regression.archaic-nani.state	없다	adjective	only-exact	0	9	없나니 더 기다리지 마라.
 regression.archaic-nani.past	오다	verb	only-exact	0	9	왔나니 이제 말하라.

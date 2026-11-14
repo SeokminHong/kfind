@@ -1212,6 +1212,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.archaic-interrogative-nyo"
+category = "final"
+initial = "other"
+forms = ["뇨", "으뇨", "느뇨"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.auxiliary-gada"
 category = "prefinal"
 initial = "other"
