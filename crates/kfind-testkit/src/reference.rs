@@ -769,7 +769,47 @@ fn reference_predicate_continuation(
         return Some(auxiliary);
     }
     reference_report_contraction(state, pos, anchor, following)
+        .or_else(|| reference_retrospective_reo(state, pos, anchor, following))
         .or_else(|| reference_simple_continuation(state, pos, anchor, following))
+}
+
+fn reference_retrospective_reo(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
+    use ContinuationState::{Eu, Future, Past, Prospective, StemEnding};
+    let token = following
+        .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+        .next()?;
+    let (prefix, ending) = token.split_at(token.find('러')?);
+    let prior: &[&str] = match (state, prefix) {
+        (StemEnding, "") if pos == PredicatePos::Copula || anchor == "아니" => &[],
+        (Prospective, "") if anchor.ends_with('시') => &[],
+        (Eu, "시") => &["ending.honorific"],
+        (StemEnding | Past | Future, "더") => &["ending.retrospective-prefinal"],
+        (Eu, "시더") => &["ending.honorific", "ending.retrospective-prefinal"],
+        (Eu | Prospective, "리") | (Past | Future, "으리") => &["ending.prospective-prefinal"],
+        (Eu, "시리") => &["ending.honorific", "ending.prospective-prefinal"],
+        _ => return None,
+    };
+    let rule = match ending {
+        "러니" => "ending.retrospective-reoni",
+        "러니라" | "러니이까" | "러니이다" | "러라" | "러이까" | "러이다" => {
+            "ending.retrospective-reo-final"
+        }
+        _ => return None,
+    };
+    Some((
+        token.len(),
+        prior
+            .iter()
+            .copied()
+            .chain([rule])
+            .map(RuleId::from)
+            .collect(),
+    ))
 }
 
 fn reference_gopeuda(state: ContinuationState, following: &str) -> Option<(usize, Vec<RuleId>)> {

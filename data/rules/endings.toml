@@ -582,6 +582,46 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.retrospective-prefinal"
+category = "prefinal"
+initial = "consonant"
+forms = ["더"]
+required = []
+forbidden = []
+next = ["ending.retrospective-reoni", "ending.retrospective-reo-final"]
+terminal = false
+
+[[ending]]
+id = "ending.prospective-prefinal"
+category = "prefinal"
+initial = "eu"
+forms = ["리", "으리"]
+required = []
+forbidden = []
+next = ["ending.retrospective-reoni", "ending.retrospective-reo-final"]
+terminal = false
+
+[[ending]]
+id = "ending.retrospective-reoni"
+category = "connective"
+initial = "consonant"
+forms = ["러니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-reo-final"
+category = "final"
+initial = "consonant"
+forms = ["러니라", "러니이까", "러니이다", "러라", "러이까", "러이다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.retrospective-exclamatory"
 category = "final"
 initial = "other"
