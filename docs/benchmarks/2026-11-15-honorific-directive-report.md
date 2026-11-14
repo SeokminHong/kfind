@@ -69,7 +69,7 @@ scripts/benchmark-run.sh run --name honorific-directive-report -- \
   /usr/bin/time -l "$runner" boundary full-pos "$boundary" "$input" "$output"
 ```
 
-보정 입력 SHA-256은 `8cacf7375485a8504450a518121121d905e03ca26ae985a1d32be66dd5a2e`다.
+보정 입력 SHA-256은 `8cacf7375485a8504450a518121221121d905e03ca26ae985a1d32be66dd5a2e`다.
 [이전 보정 입력](2026-11-15-dictionary-mothada-and-hasio-review.md#재현) ·
 [사전 원본](2026-11-14-connective-go-extensions.md#재현) ·
 [고정 입력과 리소스](2026-11-14-gu-exclamative.md#재현)
