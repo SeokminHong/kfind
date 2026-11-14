@@ -1099,6 +1099,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
             suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
             suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
+            suffix(concat!($prefix, "락"), &[$($prior,)* "ending.near-rieulrak"]),
             suffix(concat!($prefix, "까요"), &[$($prior,)* "ending.interrogative-rieulkka", "ending.polite-yo"]),
         ]
     };
@@ -2556,6 +2557,8 @@ fn verify_simple_continuation(
                     && suffix.surface.ends_with('구'))
                 || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'));
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.near-rieulrak")
+                    || (pos.is_action() && has_separate_malrak(&following[suffix.surface.len()..])))
                 && !(dapsigo
                     && state == ContinuationState::StemEnding
                     && pos.is_action()
@@ -2661,6 +2664,14 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
     }
 }
 
+fn has_separate_malrak(tail: &str) -> bool {
+    tail.starts_with(char::is_whitespace)
+        && tail
+            .trim_start()
+            .strip_prefix("말락")
+            .is_some_and(|rest| !rest.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
+}
+
 fn matched(anchor_len: usize, suffix: Option<&Suffix>) -> PredicateContinuationMatch {
     let consumed_bytes = suffix.map_or(0, |suffix| suffix.surface.len());
     let rule_path = suffix.map_or_else(Vec::new, |suffix| {
@@ -2701,6 +2712,26 @@ mod tests {
             )
             .is_none()
         );
+    }
+
+    #[test]
+    fn near_rieulrak_requires_a_verb_and_a_separate_malrak() {
+        for (pos, following) in [
+            (PredicatePos::Verb, "락 그쳤다."),
+            (PredicatePos::Verb, "락말락 했다."),
+            (PredicatePos::Verb, "락 말락하는 소리."),
+            (PredicatePos::Adjective, "락 말락 했다."),
+        ] {
+            assert!(
+                verify_predicate_continuation(
+                    ContinuationState::RieulFinal,
+                    pos,
+                    "들릴",
+                    following
+                )
+                .is_none()
+            );
+        }
     }
 
     #[test]
