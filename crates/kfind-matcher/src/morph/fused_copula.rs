@@ -174,6 +174,13 @@ pub(super) fn accepts_omitted_copula(
         has_quotative_head,
         continues_enumeration,
     } = following;
+    if let Some(host) = token.strip_suffix("면")
+        && vowel_final(host)
+        && supports_counted_unit(host)
+        && !resolver.has_whole_modifier(token)
+    {
+        return true;
+    }
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
         if suffix == "요" && !continues_enumeration(host) {

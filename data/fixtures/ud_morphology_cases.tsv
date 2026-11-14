@@ -1903,3 +1903,9 @@ regression.contrastive-ji.nominal-title	주다	verb	no-match	0	6	주지 스님�
 regression.contrastive-ji.nominal-complement	주다	verb	no-match	7	13	그가 주지 스님이 되었다.
 regression.contrastive-ji.nominal-possibility	주다	verb	no-match	7	13	그가 주지 스님이 될 수도 있다.
 regression.contrastive-ji.double-subject	주다	verb	no-match	14	20	그 마을이 주지 스님이 유명하다.
+regression.counted-conditional.dictionary	이다	adjective	smart-only-exact	35	41	이렇게 바쁠 때는 몸이 두 개면 좋겠어.
+regression.counted-conditional.other-unit	이다	adjective	smart-only-exact	14	20	회차는 두 회면 충분해.
+regression.counted-conditional.attached-digit	이다	adjective	smart-only-exact	8	14	팔이 4개면 동시에 들 수 있다.
+regression.counted-conditional.independent-predicate	이다	adjective	no-match-both	17	23	이불을 지금 개면 방이 깨끗해진다.
+regression.counted-conditional.independent-verb	개다	verb	exact	17	23	이불을 지금 개면 방이 깨끗해진다.
+regression.counted-conditional.verb-competitor	개다	verb	no-match	35	41	이렇게 바쁠 때는 몸이 두 개면 좋겠어.
