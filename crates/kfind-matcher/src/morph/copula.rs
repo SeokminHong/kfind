@@ -218,7 +218,19 @@ impl MorphMatcher {
                     || fused_copula::accepts_omitted_copula(
                         &normalized,
                         resolver,
-                        || is_sentence_end_after(haystack, candidate.verified.token.end),
+                        fused_copula::OmittedCopulaFollowing {
+                            is_sentence_end: || {
+                                is_sentence_end_after(haystack, candidate.verified.token.end)
+                            },
+                            has_quotative_head: || {
+                                has_quotative_adnominal_head(
+                                    haystack,
+                                    candidate.consumed.end,
+                                    resolver,
+                                )
+                            },
+                            continues_enumeration,
+                        },
                         || {
                             follows_predicate_adnominal(
                                 haystack,
@@ -226,7 +238,6 @@ impl MorphMatcher {
                                 resolver,
                             )
                         },
-                        || has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver),
                         |unit| {
                             context::previous_word(haystack, candidate.verified.token.start)
                                 .is_some_and(|previous| {
@@ -245,7 +256,6 @@ impl MorphMatcher {
                                     ) && resolver.has_adnominal_dependent_noun(&previous, noun))
                             })
                         },
-                        continues_enumeration,
                     )))
     }
 
