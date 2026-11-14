@@ -2108,6 +2108,9 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[suffix("누나", &["ending.exclamative-nuna"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("누먼") => {
+            &[suffix("누먼", &["ending.exclamative-numeon"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('누') =>
         {
@@ -2117,6 +2120,12 @@ fn verify_simple_continuation(
             &[suffix(
                 "시누나",
                 &["ending.honorific", "ending.exclamative-nuna"],
+            )]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시누먼") => {
+            &[suffix(
+                "시누먼",
+                &["ending.honorific", "ending.exclamative-numeon"],
             )]
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다며") => {
@@ -3473,6 +3482,7 @@ fn verify_simple_continuation(
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
                         | "ending.exclamative-njigo"
+                        | "ending.exclamative-numeon"
                         | "ending.necessity-yaman"
                         | "ending.formal-intention-question"
                         | "ending.conditional-ryeogeodeun"

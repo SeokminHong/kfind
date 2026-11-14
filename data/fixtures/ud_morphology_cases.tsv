@@ -1958,3 +1958,7 @@ regression.directive-report.separate-verb	오다	verb	exact	20	29	선생님이 �
 regression.directive-report.independent-action	놀라다	verb	exact	20	32	어르신이 많이 놀라셨다.
 regression.directive-report.invalid-allomorph	먹다	verb	no-match-both	20	32	선생님이 밥을 먹라셨다.
 regression.directive-report.independent-action-hada	하다	verb	no-match-both	20	32	어르신이 많이 놀라셨다.
+regression.exclamative-numeon.go	가다	verb	only-exact	14	23	밤이 깊어 가누먼.
+regression.exclamative-numeon.break	트다	verb	only-exact	14	23	이제 동이 트누먼.
+regression.exclamative-numeon.honorific	오다	verb	only-exact	16	28	선생님께서 오시누먼.
+regression.exclamative-numeon.separate	트다	verb	only-exact	14	20	이제 동이 트니 누먼을 읽었다.
