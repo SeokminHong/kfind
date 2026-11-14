@@ -1712,6 +1712,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-dapsigo"
+category = "connective"
+initial = "other"
+forms = ["답시고", "ㄴ답시고", "는답시고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.formal-interrogative"
 category = "final"
 initial = "attach-bieup"

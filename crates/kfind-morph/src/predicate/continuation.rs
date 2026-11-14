@@ -86,21 +86,22 @@ const COLLOQUIAL_GU: Suffix = suffix("구", &["ending.connective-go"]);
 const DAM: Suffix = suffix("담", &["ending.self-question-dam"]);
 const NAM: Suffix = suffix("남", &["ending.self-question-nam"]);
 const NEUNDAM: Suffix = suffix("는담", &["ending.self-question-dam"]);
-macro_rules! formal_dap_endings {
+macro_rules! dap_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         &[
             suffix(concat!($prefix, "답니다"), &[$($prior,)* "ending.formal-report-dap"]),
             suffix(concat!($prefix, "답니까"), &[$($prior,)* "ending.formal-report-dap"]),
+            suffix(concat!($prefix, "답시고"), &[$($prior,)* "ending.connective-dapsigo"]),
         ]
     };
 }
 
-const FORMAL_DAP: &[Suffix] = formal_dap_endings!("");
-const FORMAL_NEUNDAP: &[Suffix] = formal_dap_endings!("는");
-const FORMAL_SIDAP: &[Suffix] = formal_dap_endings!("시", "ending.honorific");
-const FORMAL_SINDAP: &[Suffix] = formal_dap_endings!("신", "ending.honorific");
-const FORMAL_SYEOTDAP: &[Suffix] = formal_dap_endings!("셨", "ending.honorific", "ending.past");
-const FORMAL_SIGETDAP: &[Suffix] = formal_dap_endings!("시겠", "ending.honorific", "ending.future");
+const DAP_ENDINGS: &[Suffix] = dap_endings!("");
+const NEUNDAP_ENDINGS: &[Suffix] = dap_endings!("는");
+const SIDAP_ENDINGS: &[Suffix] = dap_endings!("시", "ending.honorific");
+const SINDAP_ENDINGS: &[Suffix] = dap_endings!("신", "ending.honorific");
+const SYEOTDAP_ENDINGS: &[Suffix] = dap_endings!("셨", "ending.honorific", "ending.past");
+const SIGETDAP_ENDINGS: &[Suffix] = dap_endings!("시겠", "ending.honorific", "ending.future");
 pub(super) const HONORIFIC_DAM: Suffix =
     suffix("시담", &["ending.honorific", "ending.self-question-dam"]);
 const HONORIFIC_NDAM: Suffix = suffix("신담", &["ending.honorific", "ending.self-question-dam"]);
@@ -1660,7 +1661,11 @@ fn verify_simple_continuation(
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
         ContinuationState::ReportEnding if pos.is_action() && following.starts_with('답') => {
-            FORMAL_DAP
+            if following.starts_with("답시고") && !anchor.chars().next_back().is_some_and(has_final)
+            {
+                return None;
+            }
+            DAP_ENDINGS
         }
         ContinuationState::ReportEnding
             if pos.is_action()
@@ -1714,7 +1719,7 @@ fn verify_simple_continuation(
                     .next_back()
                     .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
         {
-            FORMAL_NEUNDAP
+            NEUNDAP_ENDINGS
         }
         ContinuationState::StemEnding
             if (matches!(
@@ -1723,17 +1728,17 @@ fn verify_simple_continuation(
             ) || (pos.is_action() && anchor == "있"))
                 && following.starts_with('답') =>
         {
-            FORMAL_DAP
+            DAP_ENDINGS
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with('답') => {
-            FORMAL_DAP
+            DAP_ENDINGS
         }
         ContinuationState::Eu if pos.is_action() && following.starts_with("신답") => {
-            FORMAL_SINDAP
+            SINDAP_ENDINGS
         }
-        ContinuationState::Eu if following.starts_with("시답") => FORMAL_SIDAP,
-        ContinuationState::Eu if following.starts_with("셨답") => FORMAL_SYEOTDAP,
-        ContinuationState::Eu if following.starts_with("시겠답") => FORMAL_SIGETDAP,
+        ContinuationState::Eu if following.starts_with("시답") => SIDAP_ENDINGS,
+        ContinuationState::Eu if following.starts_with("셨답") => SYEOTDAP_ENDINGS,
+        ContinuationState::Eu if following.starts_with("시겠답") => SIGETDAP_ENDINGS,
         ContinuationState::StemEnding | ContinuationState::Eu
             if pos == PredicatePos::Adjective
                 && anchor
@@ -2221,6 +2226,7 @@ fn verify_simple_continuation(
             },
         )
         .filter(|suffix| {
+            let dapsigo = suffix.rules.last() == Some(&"ending.connective-dapsigo");
             let requires_token_end = matches!(
                 suffix.rules.last().copied(),
                 Some(
@@ -2232,10 +2238,15 @@ fn verify_simple_continuation(
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
                 )
-            ) || (suffix.rules.last() == Some(&"ending.connective-go")
-                && suffix.surface.ends_with('구'))
+            ) || dapsigo
+                || (suffix.rules.last() == Some(&"ending.connective-go")
+                    && suffix.surface.ends_with('구'))
                 || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'));
             following.starts_with(suffix.surface)
+                && !(dapsigo
+                    && state == ContinuationState::StemEnding
+                    && pos.is_action()
+                    && suffix.surface == "답시고")
                 && (!requires_token_end
                     || !following[suffix.surface.len()..]
                         .chars()

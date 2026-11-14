@@ -919,6 +919,12 @@ regression.interrogative-gam.future	가다	verb	smart-exact	55	67	어릴 때부�
 regression.interrogative-gam.honorific-copula	이다	adjective	smart-exact	16	25	이건 선생님이신감?
 regression.interrogative-gam.retrospective-honorific	읽다	verb	smart-exact	7	22	어제 읽으시던감?
 regression.interrogative-gam.nominal	자다	verb	no-match	0	9	장난감이 사라졌다.
+regression.connective-dapsigo.vowel	쉬다	verb	smart-exact	7	19	그는 쉰답시고 누웠다.
+regression.connective-dapsigo.rieul	살다	verb	smart-exact	7	19	그는 산답시고 고향을 떠났다.
+regression.connective-dapsigo.consonant	읽다	verb	smart-exact	24	39	아들 녀석은 책을 읽는답시고 앉아서 꾸벅꾸벅 졸고 있다.
+regression.connective-dapsigo.honorific	읽다	verb	smart-exact	7	25	그는 읽으시답시고 불을 켰다.
+regression.connective-dapsigo.bare-action	쉬다	verb	no-match	7	19	나는 쉬답시고 갔다.
+regression.connective-dapsigo.rieul-retained	살다	verb	no-match	7	22	그는 살는답시고 고향을 떠났다.
 regression.adnominal-proper-name.object-relative-group.verb	알리다	verb	smart-exact	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
 regression.adnominal-proper-name.object-relative-group.noun	알린	noun	no-match	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
 regression.adnominal-proper-name.object-relative-person.verb	알리다	verb	smart-exact	14	20	그 소식을 알린 로페스가 자리를 떴다.
