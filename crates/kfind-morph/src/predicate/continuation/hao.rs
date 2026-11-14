@@ -8,6 +8,7 @@ macro_rules! hao_endings {
             suffix(concat!($prefix, "오니까"), &[$($prior,)* "ending.hao-respectful-final"]),
             suffix(concat!($prefix, "오리다"), &[$($prior,)* "ending.hao-respectful-final"]),
             suffix(concat!($prefix, "오리까"), &[$($prior,)* "ending.hao-respectful-final"]),
+            suffix(concat!($prefix, "오리오"), &[$($prior,)* "ending.hao-respectful-final"]),
             suffix(concat!($prefix, "오리이까"), &[$($prior,)* "ending.hao-respectful-final"]),
             suffix(concat!($prefix, "오리이다"), &[$($prior,)* "ending.hao-respectful-final"]),
             suffix(concat!($prefix, "오이다"), &[$($prior,)* "ending.hao-respectful-final"]),
