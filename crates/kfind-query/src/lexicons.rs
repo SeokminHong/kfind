@@ -436,12 +436,10 @@ fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSour
         .map(|entry| SurfaceOverride {
             surface: entry.surface.clone().into_boxed_str(),
             core_len: entry.surface.len(),
-            continuation: if record.pos == DataFinePos::Vcn
-                && entry.rule_id == "ending.connective-ra"
-            {
-                ContinuationState::CopulaRa
-            } else {
-                ContinuationState::Terminal
+            continuation: match (record.pos, entry.rule_id.as_str()) {
+                (DataFinePos::Vcn, "ending.connective-ra") => ContinuationState::CopulaRa,
+                (_, "ending.past") => ContinuationState::Past,
+                _ => ContinuationState::Terminal,
             },
             rule_id: RuleId::from(entry.rule_id.clone()),
         })
