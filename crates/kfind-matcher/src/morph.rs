@@ -3786,6 +3786,13 @@ fn has_postnominal_count_frame(
         (next_end, first) = next;
     }
     let second = context::next_word_on_line(haystack, next_end);
+    let complete_aoeo = span == candidate.consumed
+        && branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.aoeo")
+        });
     (resolver.has_postnominal_object_count(&first, second.as_ref().map(|(_, word)| word.as_ref()))
         || second.is_some_and(|(end, second)| {
             ConstraintResolver::split_counter_quantity(&first, &second).is_some_and(|count| {
@@ -3799,7 +3806,8 @@ fn has_postnominal_count_frame(
                 && !resolver.has_predicate_adnominal_surface(&token)
         })
         && !context::previous_word(haystack, candidate.consumed.start).is_some_and(|word| {
-            resolver.has_nominal_oblique(&word) || resolver.has_object_marked_nominal(&word)
+            resolver.has_object_marked_nominal(&word)
+                || (complete_aoeo && resolver.has_nominal_oblique(&word))
         })
 }
 
