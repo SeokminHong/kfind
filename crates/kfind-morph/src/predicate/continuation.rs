@@ -1132,6 +1132,9 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "새"), &[$($prior,)* "ending.causal-rieulsae"]),
             suffix(concat!($prefix, "작시면"), &[$($prior,)* "ending.conditional-rieuljaksimyeon"]),
             suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
+            suffix(concat!($prefix, "진대는"), &[$($prior,)* "ending.conditional-rieuljindaeneun"]),
+            suffix(concat!($prefix, "진댄"), &[$($prior,)* "ending.conditional-rieuljindaeneun"]),
+            suffix(concat!($prefix, "세말이지"), &[$($prior,)* "ending.contrast-rieulse-maliji"]),
             suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
             suffix(concat!($prefix, "지로다"), &[$($prior,)* "ending.final-rieuljiroda"]),
             suffix(concat!($prefix, "지라"), &[$($prior,)* "ending.final-rieuljira"]),
@@ -1148,6 +1151,7 @@ macro_rules! present_rieul_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         rieul_endings!($prefix, [$($prior),*],
             suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
+            suffix(concat!($prefix, "데라니"), &[$($prior,)* "ending.exclamative-rieulderani"]),
             suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
             suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
             suffix(concat!($prefix, "라치면"), &[$($prior,)* "ending.conditional-rieulrachimyeon"]),
@@ -3153,6 +3157,9 @@ fn verify_simple_continuation(
                         | "ending.connective-rieulsi"
                         | "ending.exclamative-rieulsigo"
                         | "ending.imperative-rieuljieoda"
+                        | "ending.contrast-rieulse-maliji"
+                        | "ending.exclamative-rieulderani"
+                        | "ending.conditional-rieuljindaeneun"
                         | "ending.question-rieulkapsyo"
                         | "ending.causal-rieulsae"
                         | "ending.conditional-rieuljaksimyeon"
@@ -3198,6 +3205,11 @@ fn verify_simple_continuation(
                     || (suffix.surface == "지며" && anchor.ends_with('을')))
                 && (suffix.rules.last() != Some(&"ending.exclamative-rieulsigo")
                     || !pos.is_action())
+                && (suffix.rules.last() != Some(&"ending.exclamative-rieulderani")
+                    || matches!(
+                        pos,
+                        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+                    ))
                 && (suffix.rules.last() != Some(&"ending.imperative-rieuljieoda")
                     || pos.is_action()
                     || pos == PredicatePos::Copula)
