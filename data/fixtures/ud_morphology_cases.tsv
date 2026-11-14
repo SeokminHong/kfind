@@ -891,7 +891,7 @@ regression.quotative-damyeo.separate	오르다	verb	only-exact	0	9	올랐다. �
 regression.prefinal-quotatives.report	사다	verb	exact	0	12	사겠다고 말했다.
 regression.prefinal-quotatives.ne	듣다	verb	exact	0	15	들었다네요.
 regression.prefinal-quotatives.ji	읽다	verb	exact	0	12	읽었다지?
-regression.prefinal-quotatives.separate	오다	verb	exact	0	6	왔다. 네가 불렀지?
+regression.prefinal-quotatives.separate	오다	verb	only-exact	0	6	왔다. 네가 불렀지?
 regression.exclamative-nuna.vowel	뜨다	verb	exact	0	9	뜨누나!
 regression.exclamative-nuna.consonant	먹다	verb	exact	0	9	먹누나!
 regression.exclamative-nuna.honorific	읽다	verb	exact	0	15	읽으시누나!
