@@ -1312,6 +1312,16 @@ next = ["ending.past", "ending.past-adnominal"]
 terminal = false
 
 [[ending]]
+id = "ending.auxiliary-naeda"
+category = "connective"
+initial = "consonant"
+forms = ["내", "냈"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.final-da", "ending.past"]
+terminal = false
+
+[[ending]]
 id = "ending.auxiliary-boda"
 category = "prefinal"
 initial = "other"

@@ -1519,6 +1519,9 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             }
             Some('온' | '왔') => auxiliary::verify_progression_oda(anchor.len(), following),
             Some('갈' | '갔') => auxiliary::verify_progression_gada(anchor.len(), following),
+            Some('내' | '냈') if pos.is_action() => {
+                auxiliary::verify_completion_naeda(anchor.len(), following)
+            }
             _ => auxiliary::verify_resultative(anchor.len(), following),
         }
     {

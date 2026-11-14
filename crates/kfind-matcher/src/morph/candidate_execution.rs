@@ -118,6 +118,14 @@ impl MorphMatcher {
                             })
                     },
                 )?;
+                if matched
+                    .rule_path
+                    .first()
+                    .is_some_and(|rule| rule.as_str() == "ending.auxiliary-naeda")
+                    && !is_boundary_before(haystack, core.start)
+                {
+                    return None;
+                }
                 if *pos == kfind_morph::PredicatePos::Copula
                     && *continuation == kfind_morph::ContinuationState::StemEnding
                     && matched.rule_path.iter().any(|rule| {

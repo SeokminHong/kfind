@@ -3922,6 +3922,24 @@ fn reference_attached_auxiliary(
         ("보", Eu, false, &[]),
     ];
     let (forms, stem, auxiliary) = match following.chars().next()? {
+        '내' if pos.is_action()
+            && following
+                .strip_prefix("내다")
+                .is_some_and(|tail| !tail.starts_with(is_reference_token_character)) =>
+        {
+            return Some((
+                "내다".len(),
+                ["ending.auxiliary-naeda", "ending.final-da"]
+                    .into_iter()
+                    .map(RuleId::from)
+                    .collect(),
+            ));
+        }
+        '냈' if pos.is_action() => (
+            &[("냈", Past, false, &["ending.past"][..])][..],
+            '냈',
+            "ending.auxiliary-naeda",
+        ),
         '온' | '왔' => (
             &[
                 (
@@ -4046,6 +4064,10 @@ fn reference_attached_auxiliary(
                 .map(RuleId::from)
                 .collect(),
         ));
+    }
+    if auxiliary == "ending.auxiliary-naeda" {
+        return best
+            .filter(|(length, _)| !following[*length..].starts_with(is_reference_token_character));
     }
     best
 }
