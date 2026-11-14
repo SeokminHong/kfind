@@ -4,6 +4,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 use std::sync::Arc;
 
+use kfind_data::{COPULA_STEM_ENDINGS, EndingSurface as ReferenceSuffix};
 use kfind_morph::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
 use kfind_query::{
     CandidateConsumption, CandidateLeftContext, CandidateProgram, CoreMapping, Origin,
@@ -721,12 +722,6 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Vowel,
     ),
 ];
-
-#[derive(Clone, Copy)]
-struct ReferenceSuffix {
-    surface: &'static str,
-    rules: &'static [&'static str],
-}
 
 const fn reference_suffix(
     surface: &'static str,
@@ -1819,6 +1814,7 @@ fn reference_simple_continuation(
         reference_suffix("겠지요", &["ending.future", "ending.confirmation-jiyo"]),
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
+    let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with("지라") =>
@@ -2192,10 +2188,8 @@ fn reference_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && (following.starts_with('죠') || following.starts_with("지요")) =>
         {
-            &[
-                reference_suffix("죠", &["ending.copula-common-final"]),
-                reference_suffix("지요", &["ending.copula-common-final"]),
-            ]
+            common_copula = true;
+            &[]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('죠') || following.starts_with("지요") =>
@@ -2356,41 +2350,12 @@ fn reference_simple_continuation(
         }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
-                && following.starts_with([
-                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷', '올',
-                ]) =>
+                && COPULA_STEM_ENDINGS.iter().any(|entry| {
+                    entry.suffix.surface.chars().next() == following.chars().next()
+                }) =>
         {
-            &[
-                reference_suffix("게", &["ending.copula-ge"]),
-                reference_suffix("랴", &["ending.rya"]),
-                reference_suffix("렷다", &["ending.ryeotda"]),
-                reference_suffix("고말고", &["ending.copula-common-final"]),
-                reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
-                reference_suffix("구나", &["ending.copula-common-final"]),
-                reference_suffix("구려", &["ending.copula-common-final"]),
-                reference_suffix("구먼", &["ending.copula-common-final"]),
-                reference_suffix("군", &["ending.copula-common-final"]),
-                reference_suffix("군요", &["ending.copula-common-final", "ending.polite-yo"]),
-                reference_suffix("길래", &["ending.copula-common-connective"]),
-                reference_suffix("네", &["ending.copula-common-final"]),
-                reference_suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
-                reference_suffix("니", &["ending.copula-common-connective"]),
-                reference_suffix("니까", &["ending.copula-common-connective"]),
-                reference_suffix("니까는", &["ending.copula-common-connective"]),
-                reference_suffix("니깐", &["ending.copula-common-connective"]),
-                reference_suffix("니라", &["ending.copula-common-final"]),
-                reference_suffix("면", &["ending.copula-common-connective"]),
-                reference_suffix("면서", &["ending.copula-common-connective"]),
-                reference_suffix("세요", &["ending.honorific", "ending.copula-polite"]),
-                reference_suffix("야", &["ending.copula-ya"]),
-                reference_suffix("어요", &["ending.copula-polite"]),
-                reference_suffix("에요", &["ending.copula-polite"]),
-                reference_suffix("자", &["ending.copula-common-connective"]),
-                reference_suffix("죠", &["ending.copula-common-final"]),
-                reference_suffix("지요", &["ending.copula-common-final"]),
-                reference_suffix("올시다", &["ending.copula-olsida"]),
-            ]
+            common_copula = true;
+            &[]
         }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
@@ -2642,6 +2607,13 @@ fn reference_simple_continuation(
     let matched = candidates
         .iter()
         .chain(additional_endings)
+        .chain(
+            common_copula
+                .then_some(COPULA_STEM_ENDINGS)
+                .into_iter()
+                .flatten()
+                .map(|entry| &entry.suffix),
+        )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && ((!matches!(
@@ -3090,6 +3062,41 @@ mod tests {
         "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
         "꽃이 예쁘군요. 집까지 걸으시는군요.\n",
     );
+
+    #[test]
+    fn copula_continuation_preserves_the_span_and_politeness_path() {
+        for (pos, stem, following, consumed, expected) in [
+            (
+                PredicatePos::Copula,
+                "이",
+                "군요.",
+                "군요",
+                &["ending.copula-common-final", "ending.polite-yo"][..],
+            ),
+            (
+                PredicatePos::Adjective,
+                "아니",
+                "올시다.",
+                "올시다",
+                &["ending.copula-olsida"][..],
+            ),
+            (PredicatePos::Copula, "이", "올시다말", "", &[][..]),
+            (PredicatePos::Verb, "먹", "올시다.", "", &[][..]),
+        ] {
+            let state = ContinuationState::StemEnding;
+            let optimized = kfind_morph::verify_predicate_continuation(state, pos, stem, following)
+                .map(|matched| (matched.consumed_bytes, matched.rule_path));
+            let reference = reference_predicate_continuation(state, pos, stem, following);
+            let expected = (!consumed.is_empty()).then(|| {
+                (
+                    consumed.len(),
+                    expected.iter().copied().map(RuleId::from).collect(),
+                )
+            });
+            assert_eq!(optimized, expected, "{stem}{following}");
+            assert_eq!(reference, expected, "{stem}{following}");
+        }
+    }
 
     #[test]
     fn reference_backend_matches_optimized_results() {

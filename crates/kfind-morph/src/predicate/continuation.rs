@@ -1,4 +1,5 @@
 use crate::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
+use kfind_data::{COPULA_STEM_ENDINGS, CopulaOmission, EndingSurface as Suffix};
 
 mod auxiliary;
 mod hao;
@@ -16,12 +17,6 @@ pub struct PredicateContinuationMatch {
     /// Number of bytes consumed from `following`.
     pub consumed_bytes: usize,
     pub rule_path: Vec<RuleId>,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(super) struct Suffix {
-    pub(super) surface: &'static str,
-    pub(super) rules: &'static [&'static str],
 }
 
 const YAJI: Suffix = suffix("야지", &["ending.necessity-yaji"]);
@@ -111,76 +106,70 @@ const PURPOSE_REO: Suffix = suffix("러", &["ending.purpose-reo"]);
 const PROMISE_MA: Suffix = suffix("마", &["ending.promise-ma"]);
 const HONORIFIC_PURPOSE_REO: Suffix = suffix("시러", &["ending.honorific", "ending.purpose-reo"]);
 
-const COPULA_COMMON_ENDINGS: &[Suffix] = &[
-    suffix("랴", &["ending.rya"]),
-    suffix("렷다", &["ending.ryeotda"]),
-    suffix("게", &["ending.copula-ge"]),
-    suffix("고말고", &["ending.copula-common-final"]),
-    suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
-    suffix("구나", &["ending.copula-common-final"]),
-    suffix("구려", &["ending.copula-common-final"]),
-    suffix("구먼", &["ending.copula-common-final"]),
-    suffix("군", &["ending.copula-common-final"]),
-    suffix("군요", &["ending.copula-common-final", "ending.polite-yo"]),
-    suffix("길래", &["ending.copula-common-connective"]),
-    suffix("네", &["ending.copula-common-final"]),
-    suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
-    suffix("니", &["ending.copula-common-connective"]),
-    suffix("니까", &["ending.copula-common-connective"]),
-    suffix("니까는", &["ending.copula-common-connective"]),
-    suffix("니깐", &["ending.copula-common-connective"]),
-    suffix("니라", &["ending.copula-common-final"]),
-    suffix("면", &["ending.copula-common-connective"]),
-    suffix("면서", &["ending.copula-common-connective"]),
-    suffix("세요", &["ending.honorific", "ending.copula-polite"]),
-    suffix("야", &["ending.copula-ya"]),
-    suffix("어요", &["ending.copula-polite"]),
-    suffix("에요", &["ending.copula-polite"]),
-    suffix("자", &["ending.copula-common-connective"]),
-    suffix("죠", &["ending.copula-common-final"]),
-    suffix("지요", &["ending.copula-common-final"]),
-    suffix("올시다", &["ending.copula-olsida"]),
-];
+const COPULA_COMMON_ENDINGS: [Suffix; COPULA_STEM_ENDINGS.len()] = {
+    let mut suffixes = [COPULA_STEM_ENDINGS[0].suffix; COPULA_STEM_ENDINGS.len()];
+    let mut index = 1;
+    while index < suffixes.len() {
+        suffixes[index] = COPULA_STEM_ENDINGS[index].suffix;
+        index += 1;
+    }
+    suffixes
+};
 
-fn copula_common_omission(surface: &str) -> bool {
-    matches!(
-        surface,
-        "게" | "랴"
-            | "렷다"
-            | "구나"
-            | "구려"
-            | "구먼"
-            | "군"
-            | "군요"
-            | "더군"
-            | "더군요"
-            | "네"
-            | "네요"
-            | "니"
-            | "니까"
-            | "니까는"
-            | "니깐"
-            | "냐"
-            | "면"
-            | "면서"
-            | "죠"
-            | "지요"
-            | "지만"
-            | "지마는"
-            | "예요"
-            | "여요"
-    )
+const HANGUL_FIRST: u32 = '가' as u32;
+const HANGUL_COUNT: usize = ('힣' as u32 - HANGUL_FIRST + 1) as usize;
+const HANGUL_BIT_WORDS: usize = HANGUL_COUNT.div_ceil(u64::BITS as usize);
+const COPULA_INITIALS: [u64; HANGUL_BIT_WORDS] = copula_initials(false);
+const OMITTED_COPULA_INITIALS: [u64; HANGUL_BIT_WORDS] = copula_initials(true);
+
+const fn copula_initials(omitted: bool) -> [u64; HANGUL_BIT_WORDS] {
+    let mut initials = [0; HANGUL_BIT_WORDS];
+    let mut index = 0;
+    while index < COPULA_STEM_ENDINGS.len() {
+        let entry = COPULA_STEM_ENDINGS[index];
+        if !omitted || !matches!(entry.omission, CopulaOmission::Never) {
+            let bytes = entry.suffix.surface.as_bytes();
+            // The table uses NFC Hangul syllables as suffix initials.
+            let point = ((bytes[0] as u32 & 0x0f) << 12)
+                | ((bytes[1] as u32 & 0x3f) << 6)
+                | (bytes[2] as u32 & 0x3f);
+            let offset = (point - HANGUL_FIRST) as usize;
+            assert!(offset < HANGUL_COUNT);
+            initials[offset / 64] |= 1 << (offset % 64);
+        }
+        index += 1;
+    }
+    initials
+}
+
+fn contains_initial(initials: &[u64; HANGUL_BIT_WORDS], character: char) -> bool {
+    let offset = (character as u32).wrapping_sub(HANGUL_FIRST) as usize;
+    offset < HANGUL_COUNT && initials[offset / 64] & (1 << (offset % 64)) != 0
 }
 
 pub(super) fn is_copula_omission_ending(surface: &str) -> bool {
-    surface.strip_prefix('라').is_some_and(|tail| {
+    let bare = surface.strip_prefix('시').unwrap_or(surface);
+    bare.strip_prefix('라').is_some_and(|tail| {
         COPULA_RA_SUFFIXES
             .iter()
             .any(|ending| ending.surface == tail)
-    }) || copula_common_omission(surface)
+    }) || matches!(
+        bare,
+        "더군" | "더군요" | "냐" | "지만" | "지마는" | "예요" | "여요"
+    ) || COPULA_STEM_ENDINGS
+        .iter()
+        .any(|entry| match entry.omission {
+            CopulaOmission::Never => false,
+            CopulaOmission::Bare => entry.suffix.surface == surface,
+            CopulaOmission::BareOrHonorific => entry.suffix.surface == bare,
+        })
         || COPULA_REPORTING_AND_RO_ENDINGS
             .iter()
-            .any(|ending| ending.surface == surface)
+            .any(|ending| ending.surface == bare)
+}
+
+pub(super) fn starts_common_omitted_copula_ending(character: char) -> bool {
+    contains_initial(&OMITTED_COPULA_INITIALS, character)
 }
 const HONORIFIC_RO_ENDINGS: &[Suffix] = &[
     suffix("시로구나", &["ending.honorific", "ending.copula-ro-final"]),
@@ -2411,12 +2400,12 @@ fn verify_simple_continuation(
         }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
-                && following.starts_with([
-                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷', '올',
-                ]) =>
+                && following
+                    .chars()
+                    .next()
+                    .is_some_and(|initial| contains_initial(&COPULA_INITIALS, initial)) =>
         {
-            COPULA_COMMON_ENDINGS
+            &COPULA_COMMON_ENDINGS
         }
         ContinuationState::StemEnding if following.starts_with('구') => {
             if !pos.is_action() {

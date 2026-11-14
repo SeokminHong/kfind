@@ -288,11 +288,9 @@ pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bo
 #[must_use]
 pub fn is_omitted_copula_ending(surface: &str) -> bool {
     let ending = surface.strip_prefix('시').unwrap_or(surface);
-    matches!(
-        surface,
-        "시던고" | "시던걸" | "시던걸요" | "시던바" | "올시다"
-    ) || continuation::is_copula_reo_ending(ending)
-        || continuation::is_copula_omission_ending(ending)
+    matches!(surface, "시던고" | "시던걸" | "시던걸요" | "시던바")
+        || continuation::is_copula_reo_ending(ending)
+        || continuation::is_copula_omission_ending(surface)
 }
 
 /// Tests whether a syllable can begin a registered ending with an omitted copula stem.
@@ -300,29 +298,8 @@ pub fn is_omitted_copula_ending(surface: &str) -> bool {
 pub fn starts_omitted_copula_ending(character: char) -> bool {
     matches!(
         character,
-        '라' | '란'
-            | '랴'
-            | '렷'
-            | '게'
-            | '람'
-            | '랍'
-            | '래'
-            | '로'
-            | '구'
-            | '군'
-            | '더'
-            | '네'
-            | '니'
-            | '냐'
-            | '면'
-            | '죠'
-            | '지'
-            | '예'
-            | '여'
-            | '시'
-            | '올'
-            | '러'
-    )
+        '라' | '란' | '람' | '랍' | '래' | '로' | '더' | '냐' | '지' | '예' | '여' | '시' | '러'
+    ) || continuation::starts_common_omitted_copula_ending(character)
 }
 
 fn preceding_allows_copula_contraction(preceding: char) -> bool {
