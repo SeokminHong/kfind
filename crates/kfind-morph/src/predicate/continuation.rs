@@ -836,6 +836,9 @@ pub(super) const HONORIFIC_NORAMYEON: Suffix = suffix(
     "시노라면",
     &["ending.honorific", "ending.conditional-noramyeon"],
 );
+pub(super) const NONI: Suffix = suffix("노니", &["ending.archaic-noni"]);
+pub(super) const HONORIFIC_NONI: Suffix =
+    suffix("시노니", &["ending.honorific", "ending.archaic-noni"]);
 pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
 pub(super) const INTENTIVE_CONDITIONAL: Suffix = suffix("려면", &["ending.intentive-ryeomyeon"]);
 pub(super) const INTENTIVE_RYEODEUN: Suffix = suffix("려든", &["ending.intentive-ryeodeun"]);
@@ -1805,6 +1808,19 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with(NONI.surface)
+                && (pos.is_action() || anchor.ends_with('시'))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[NONI]
+        }
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with(NONI.surface) =>
+        {
+            &[NONI]
+        }
+        ContinuationState::Eu if following.starts_with(HONORIFIC_NONI.surface) => &[HONORIFIC_NONI],
         ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with('사') => {
             &[suffix("사", &["ending.archaic-honorific-sa"])]
         }

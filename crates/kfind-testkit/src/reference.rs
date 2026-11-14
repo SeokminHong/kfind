@@ -1894,6 +1894,20 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with("노니")
+                && (pos.is_action() || anchor.ends_with('시'))
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[reference_suffix("노니", &["ending.archaic-noni"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("노니") => {
+            &[reference_suffix("노니", &["ending.archaic-noni"])]
+        }
+        ContinuationState::Eu if following.starts_with("시노니") => &[reference_suffix(
+            "시노니",
+            &["ending.honorific", "ending.archaic-noni"],
+        )],
         ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with('사') => {
             &[reference_suffix("사", &["ending.archaic-honorific-sa"])]
         }
@@ -3484,6 +3498,7 @@ fn reference_simple_continuation(
                             | "ending.quotative-deora"
                             | "ending.exclamative-nuna"
                             | "ending.archaic-nani"
+                            | "ending.archaic-noni"
                             | "ending.reproach-eunirago"
                             | "ending.quotative-damyeo"
                             | "ending.concessive-dason"

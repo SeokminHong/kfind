@@ -575,6 +575,15 @@ fn compile_productive(
                         ending.rules.iter().map(|id| rule(id)).collect(),
                     );
                 }
+                let ending = continuation::NONI;
+                push_branch(
+                    branches,
+                    entry,
+                    format!("{}{}", base.surface, ending.surface),
+                    base.core_len,
+                    ContinuationState::Terminal,
+                    ending.rules.iter().map(|id| rule(id)).collect(),
+                );
             }
             if !uses_neunya {
                 push_adjective_question(branches, entry, base);

@@ -2632,6 +2632,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.archaic-noni"
+category = "connective"
+initial = "consonant"
+forms = ["노니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.archaic-nora"
 category = "final"
 initial = "consonant"
