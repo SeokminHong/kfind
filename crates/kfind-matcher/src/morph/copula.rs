@@ -245,6 +245,23 @@ impl MorphMatcher {
         {
             return true;
         }
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && let Some(host) = normalized.strip_suffix("려니")
+            && host.chars().next_back().is_some_and(|last| {
+                kfind_morph::decompose_syllable(last)
+                    .is_some_and(|syllable| syllable.jongseong == 0)
+            })
+            && resolver.has_complete_nominal_surface(host)
+            && !host
+                .strip_suffix('이')
+                .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
+            && !resolver.has_exact_non_copula_predicate_surface(host)
+            && !resolver.has_exact_non_copula_predicate_surface(&normalized)
+            && context::next_word_on_line(haystack, candidate.verified.token.end)
+                .is_some_and(|(_, next)| resolver.has_conjecture_complement_predicate(&next))
+        {
+            return true;
+        }
         if let Some(stem) = normalized
             .strip_suffix("렷다")
             .or_else(|| normalized.strip_suffix('랴'))
