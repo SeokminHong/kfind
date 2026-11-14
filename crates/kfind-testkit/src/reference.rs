@@ -1859,6 +1859,9 @@ fn reference_simple_continuation(
             "시게끔",
             &["ending.honorific", "ending.adverbial-ge"],
         )],
+        ContinuationState::StemEnding if following.starts_with("자꾸나") && pos.is_action() => {
+            &[reference_suffix("자꾸나", &["ending.propositive-ja"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('디') && pos != PredicatePos::Copula =>
         {
@@ -2867,6 +2870,7 @@ fn reference_simple_continuation(
                             | "시걸랑"
                             | "게끔"
                             | "시게끔"
+                            | "자꾸나"
                     )
                     || !following[suffix.surface.len()..]
                         .chars()
