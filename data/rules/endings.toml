@@ -1272,6 +1272,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.neuni"
+category = "connective"
+initial = "consonant"
+forms = ["느니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.comparative-neuniman"
+category = "connective"
+initial = "consonant"
+forms = ["느니만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.causal-nimankeum"
 category = "connective"
 initial = "eu"

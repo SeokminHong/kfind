@@ -794,6 +794,18 @@ fn compile_rieul_eu_endings(
         );
     }
     let question = continuation::FAMILIAR_QUESTION;
+    if entry.pos.is_action() {
+        for ending in [continuation::NEUNI, continuation::NEUNIMAN] {
+            push_branch(
+                branches,
+                entry,
+                format!("{dropped}{}", ending.surface),
+                dropped.len(),
+                ContinuationState::Terminal,
+                ending.rules.iter().map(|id| rule(id)).collect(),
+            );
+        }
+    }
     let declarative = if entry.pos.is_action() {
         continuation::NEUNIRA
     } else {
