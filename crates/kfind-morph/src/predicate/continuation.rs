@@ -686,6 +686,7 @@ const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeo
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_NA: Suffix = suffix("나", &["ending.quotative-na"]);
 const DANA: Suffix = suffix("다나", &["ending.quotative-na"]);
+const DANDA: Suffix = suffix("단다", &["ending.quotative-danda"]);
 const DECLARATIVE_NIKKA: Suffix = suffix("니까", &["ending.quotative-nikka"]);
 const DECLARATIVE_NIKKANEUN: Suffix =
     suffix("니까는", &["ending.quotative-nikka", "particle.topic"]);
@@ -1677,6 +1678,11 @@ fn verify_simple_continuation(
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
+        ContinuationState::ReportEnding
+            if pos.is_action() && following.starts_with(DANDA.surface) =>
+        {
+            &[DANDA]
+        }
         ContinuationState::ReportEnding if pos.is_action() && following.starts_with('답') => {
             if following.starts_with("답시고") && !anchor.chars().next_back().is_some_and(has_final)
             {
@@ -1697,6 +1703,32 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("는단다")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[suffix("는단다", &["ending.quotative-danda"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if (state != ContinuationState::StemEnding || !pos.is_action())
+                && following.starts_with(DANDA.surface) =>
+        {
+            &[DANDA]
+        }
+        ContinuationState::Eu if following.starts_with("신단다") && pos.is_action() => {
+            &[suffix(
+                "신단다",
+                &["ending.honorific", "ending.quotative-danda"],
+            )]
+        }
+        ContinuationState::Eu if following.starts_with("시단다") => &[suffix(
+            "시단다",
+            &["ending.honorific", "ending.quotative-danda"],
+        )],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if (state != ContinuationState::StemEnding || !pos.is_action())
                 && following.starts_with(DANA.surface) =>
@@ -2298,6 +2330,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-damaneun"
                         | "ending.exclamative-aoeora"
                         | "ending.quotative-na"
+                        | "ending.quotative-danda"
                         | "ending.quotative-nikka"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"

@@ -882,6 +882,16 @@ next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
+id = "ending.quotative-danda"
+category = "final"
+initial = "other"
+forms = ["단다", "ㄴ단다", "는단다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-na"
 category = "final"
 initial = "other"

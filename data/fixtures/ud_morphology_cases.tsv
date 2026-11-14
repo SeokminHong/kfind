@@ -949,6 +949,14 @@ regression.quotative-na.future	가다	verb	smart-exact	0	12	가겠다나?
 regression.quotative-na.honorific-declarative	가다	verb	smart-exact	0	12	가신다나?
 regression.quotative-na.honorific	읽다	verb	smart-exact	0	15	읽으시다나?
 regression.quotative-na.embedded	가다	verb	no-match	0	9	간다나무.
+regression.quotative-danda.vowel	가다	verb	smart-exact	0	9	간단다.
+regression.quotative-danda.rieul	살다	verb	smart-exact	0	9	산단다.
+regression.quotative-danda.consonant	읽다	verb	smart-exact	0	12	읽는단다.
+regression.quotative-danda.honorific	주다	verb	smart-exact	0	12	주신단다.
+regression.quotative-danda.adjective	기쁘다	adjective	smart-exact	0	12	기쁘단다.
+regression.quotative-danda.past	가다	verb	smart-exact	0	9	갔단다.
+regression.quotative-danda.future	가다	verb	smart-exact	0	12	가겠단다.
+regression.quotative-danda.embedded	가다	verb	no-match	0	9	간단다음.
 regression.concessive-damaneun.past	가다	verb	smart-exact	14	26	그는 이미 갔다마는 곧 돌아온다.
 regression.concessive-damaneun.honorific	가다	verb	smart-exact	10	25	그분은 가시다마는 저는 남습니다.
 regression.concessive-damaneun.copula	이다	adjective	smart-exact	16	28	오늘은 휴일이다마는 나가야 한다.
