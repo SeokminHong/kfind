@@ -1487,10 +1487,6 @@ fn compiled_predicate_plan_applies_ending_pos_requirements() {
             .rule_path
             .iter()
             .any(|rule| rule.as_str() == "ending.imperative-ra")
-            || origin
-                .rule_path
-                .iter()
-                .any(|rule| rule.as_str() == "ending.imperative")
     }));
     assert!(exclamative.atoms[0].origins.iter().any(|origin| {
         origin
