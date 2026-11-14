@@ -168,6 +168,31 @@ pub(super) fn verify_completion_naeda(
         .then_some(result)
 }
 
+pub(super) fn verify_stative_hada(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    use ContinuationState::{AOrEo, Past};
+    let (form, state, rule) = [
+        ("하였", Past, "ending.past"),
+        ("했", Past, "ending.past"),
+        ("하여", AOrEo, "ending.aoeo"),
+        ("해", AOrEo, "ending.aoeo"),
+    ]
+    .into_iter()
+    .find(|(form, _, _)| following.starts_with(form))?;
+    let result = verify_form(
+        anchor_len,
+        following,
+        form,
+        state,
+        Some(rule),
+        "ending.auxiliary-stative-hada",
+    )?;
+    (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
+        .then_some(result)
+}
+
 pub(super) fn verify_form(
     anchor_len: usize,
     following: &str,

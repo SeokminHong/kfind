@@ -2001,3 +2001,7 @@ regression.completion-naeda.past	풀다	verb	only-exact	20	32	어려운 문제�
 regression.completion-naeda.separate	만들다	verb	only-exact	10	19	기적을 만들어 내다.
 regression.completion-naeda.nominal-prefix	만들다	verb	only-exact	10	19	서류를 만들어 내일 제출한다.
 regression.completion-naeda.derived-ha	하다	verb	no-match	16	25	공장이 생산해냈다.
+regression.stative-auxiliary-hada.full	힘들다	adjective	only-exact	7	22	너무 힘들어하여 일을 줄여 주었다.
+regression.stative-auxiliary-hada.past	가엽다	adjective	only-exact	0	18	가여워하였다.
+regression.stative-auxiliary-hada.contracted-past	힘들다	adjective	only-exact	17	32	그때는 몹시 힘들어했다.
+regression.stative-auxiliary-hada.separate	힘들다	adjective	only-exact	0	9	힘들어. 하여튼 먼저 해 보자.
