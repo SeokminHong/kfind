@@ -55,6 +55,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.interrogative-nga",
     "ending.interrogative-nji",
     "ending.rya",
+    "ending.concessive-ryamaneun",
     "ending.ryeotda",
     "ending.geotda",
     "ending.aoeo-seo",
