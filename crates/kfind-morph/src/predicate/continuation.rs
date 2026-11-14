@@ -2749,8 +2749,12 @@ mod tests {
             "예뻐",
             "라",
         )
-        .expect("completed vowel anchor remains valid");
-        assert_eq!(adjective.consumed_bytes, 0);
+        .expect("adjective exclamative");
+        assert_eq!(adjective.token_end, "예뻐라".len());
+        assert_eq!(
+            adjective.rule_path,
+            [RuleId::from("ending.exclamative-aoeora")]
+        );
     }
 
     #[test]

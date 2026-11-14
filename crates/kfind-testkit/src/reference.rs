@@ -1792,6 +1792,14 @@ fn reference_simple_continuation(
         {
             &[reference_suffix("구", &["ending.connective-go"])]
         }
+        ContinuationState::AOrEo
+            if matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) && following.starts_with('라') =>
+        {
+            &[reference_suffix("라", &["ending.exclamative-aoeora"])]
+        }
         ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
             &[reference_suffix("다가", &["ending.aoeo-daga"])]
         }
@@ -2401,7 +2409,11 @@ fn reference_simple_continuation(
             following.starts_with(suffix.surface)
                 && ((!matches!(
                     suffix.rules.last().copied(),
-                    Some("ending.connective-daganeun" | "ending.dialect-past-je")
+                    Some(
+                        "ending.connective-daganeun"
+                            | "ending.dialect-past-je"
+                            | "ending.exclamative-aoeora"
+                    )
                 ) && !(suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))
                     && (suffix.rules != ["ending.connective-ni"]
@@ -2411,6 +2423,7 @@ fn reference_simple_continuation(
                         .next()
                         .is_some_and(|next| next.is_alphanumeric() || next == '_'))
                 && (pos.is_action()
+                    || suffix.rules == ["ending.exclamative-aoeora"]
                     || (!suffix.rules.contains(&"ending.intent-rieulrae")
                         && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
                         && !matches!(
