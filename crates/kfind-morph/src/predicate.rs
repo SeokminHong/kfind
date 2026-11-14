@@ -410,7 +410,8 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
-    let uses_neun = entry.pos.is_action() || takes_present_neun(entry, stem);
+    let uses_neunya = entry.pos.is_action() || stem.ends_with(['있', '없']);
+    let uses_neun = uses_neunya || takes_present_neun(entry, stem);
     push_branch(
         branches,
         entry,
@@ -518,7 +519,7 @@ fn compile_productive(
     }
 
     if let Some(eu) = eu_anchor(entry, stem)? {
-        if !uses_neun {
+        if !uses_neunya {
             push_adjective_question(branches, entry, eu.clone());
         }
         push_derived(branches, entry, eu, ContinuationState::Eu);
@@ -560,13 +561,13 @@ fn compile_productive(
                 base.clone(),
                 ContinuationState::ReportEnding,
             );
-            if !uses_neun {
+            if !uses_neunya {
                 push_adjective_question(branches, entry, base);
             }
             compile_rieul_eu_endings(entry, stem, branches);
             compile_rieul_honorific(entry, stem, branches);
         } else {
-            if !uses_neun && base.surface != stem {
+            if !uses_neunya && base.surface != stem {
                 push_adjective_question(branches, entry, base.clone());
             }
             push_derived(branches, entry, base, ContinuationState::Eu);
@@ -658,18 +659,20 @@ fn compile_productive(
     }
     let mut background = if uses_neun {
         let present = present_adnominal(stem)?;
-        let question_stem = present
-            .surface
-            .strip_suffix('는')
-            .expect("present adnominal ends in 는");
-        push_branch(
-            branches,
-            entry,
-            format!("{question_stem}느냐"),
-            present.core_len,
-            ContinuationState::Interrogative,
-            vec![rule("ending.interrogative-neunya")],
-        );
+        if uses_neunya {
+            let question_stem = present
+                .surface
+                .strip_suffix('는')
+                .expect("present adnominal ends in 는");
+            push_branch(
+                branches,
+                entry,
+                format!("{question_stem}느냐"),
+                present.core_len,
+                ContinuationState::Interrogative,
+                vec![rule("ending.interrogative-neunya")],
+            );
+        }
         if entry.pos.is_action() {
             push_derived(
                 branches,
