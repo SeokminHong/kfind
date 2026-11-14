@@ -1804,6 +1804,14 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시압") => {
+            &[suffix("시압", &["ending.formal-directive-siap"])]
+        }
+        ContinuationState::Prospective
+            if pos.is_action() && anchor.ends_with('시') && following.starts_with('압') =>
+        {
+            &[suffix("압", &["ending.formal-directive-siap"])]
+        }
         ContinuationState::Eu
             if following.starts_with('뇨')
                 && !pos.is_action()
