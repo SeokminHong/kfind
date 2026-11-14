@@ -2352,6 +2352,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.formal-directive-siap"
+category = "final"
+initial = "eu"
+forms = ["시압", "으시압"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.earnest-request-sisa"
 category = "final"
 initial = "attach-bieup"

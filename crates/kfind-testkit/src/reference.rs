@@ -1893,6 +1893,14 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시압") => {
+            &[reference_suffix("시압", &["ending.formal-directive-siap"])]
+        }
+        ContinuationState::Prospective
+            if pos.is_action() && anchor.ends_with('시') && following.starts_with('압') =>
+        {
+            &[reference_suffix("압", &["ending.formal-directive-siap"])]
+        }
         ContinuationState::Eu
             if following.starts_with('뇨')
                 && !pos.is_action()
@@ -3479,6 +3487,7 @@ fn reference_simple_continuation(
                             | "ending.propositive-conditional"
                             | "ending.imperative-gena"
                             | "ending.honorific-request-sipsa"
+                            | "ending.formal-directive-siap"
                             | "ending.aoeo-daga"
                             | "ending.desiderative-jida"
                             | "ending.copula-enumerative-yo"
