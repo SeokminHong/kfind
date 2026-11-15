@@ -4,14 +4,74 @@ use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, RuleId};
 use kfind_query::{CandidateConsumption, CandidateProgram};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
-use crate::boundary::{is_sentence_end_after, surrounding_token_span};
+use crate::boundary::{
+    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+};
 
 use super::{
-    ADNOMINAL_RULE_IDS, ExecutedCandidate, MorphMatcher, context, is_short_source_particle,
-    source_aligned_compound_predicate_position,
+    ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, MorphMatcher, context,
+    is_short_source_particle, source_aligned_compound_predicate_position,
 };
 
 impl MorphMatcher {
+    pub(super) fn verified_any_auxiliary_end(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+    ) -> Option<usize> {
+        let resolver = self.constraint_resolver.as_ref()?;
+        let CandidateConsumption::PredicateContinuation {
+            pos,
+            source_positions,
+            ..
+        } = branch.consumption
+        else {
+            return None;
+        };
+        let core = &candidate.verified.core;
+        let split = candidate.consumed.end;
+        if !candidate.suffix_rules.is_empty()
+            || !is_boundary_before(haystack, core.start)
+            || is_boundary_after(haystack, split)
+        {
+            return None;
+        }
+        let whole = surrounding_token_span(haystack, core.clone());
+        if whole.start != core.start || split >= whole.end || whole.len() > MAX_CONSUMPTION_BYTES {
+            return None;
+        }
+        let token = context::normalized_token(haystack, whole.clone())?;
+        let host_len = context::normalized_token(haystack, whole.start..split)?.len();
+        let (host, trailing) = token.split_at_checked(host_len)?;
+        if !resolver.has_vowel_auxiliary_inflection(trailing, pos)
+            || resolver.has_exact_nominal_surface(host)
+            || resolver.has_competing_nominal_after_connective(&token, host_len)
+            || resolver.has_subject_or_topic_marked_proper_name(&token)
+        {
+            return None;
+        }
+
+        if resolver.has_unambiguous_attached_auxiliary_whole_path(&token) {
+            return Some(whole.end);
+        }
+        let core_len = context::normalized_token(haystack, core.clone())?.len();
+        if resolver.has_extended_predicate_prefix_path(
+            &token,
+            host_len,
+            source_positions,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        ) || resolver.whole_predicate_conflicts(&token, core_len, pos)
+        {
+            return None;
+        }
+        let aligned = resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT)
+            && resolver.has_exact_predicate_connective_path(host, source_positions);
+        (aligned
+            || resolver.has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT))
+        .then_some(whole.end)
+    }
+
     pub(super) fn licensed_structural_trailing(
         &self,
         haystack: &[u8],

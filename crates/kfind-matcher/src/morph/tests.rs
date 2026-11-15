@@ -219,6 +219,46 @@ fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence
 }
 
 #[test]
+fn any_attached_auxiliary_extends_only_a_verified_host() {
+    let entries = [
+        component_entry("찾아", "VV+EC", 0),
+        component_entry("줘", "VX+EF", 0),
+        component_entry("거", "NNB", 0),
+        component_entry("거", "VV+EC", 0),
+        component_entry("뒀기", "VX+EP+ETN", 0),
+    ];
+    let bytes = encode_component_resource([8; 32], &entries).unwrap();
+    let resource = Arc::new(decode_component_resource("fixture", bytes, &[8; 32]).unwrap());
+    for (host, word, expected_with_resource) in [
+        ("찾아", "찾아줘", "찾아줘"),
+        ("찾아", "찾아 줘", "찾아"),
+        ("거", "거뒀기", "거"),
+    ] {
+        let mut branch = predicate_branch(
+            host,
+            host.len(),
+            ContinuationState::AOrEo,
+            Arc::from([]),
+            vec![origin(0, &["ending.aoeo"])],
+        );
+        branch.set_boundary(proof(false, false, false));
+        let embedded = matcher(vec![atom(BoundaryPolicy::Any, vec![branch])], 24);
+        let full = MorphMatcher::with_component_resource(
+            Arc::clone(embedded.plan()),
+            Arc::clone(&resource),
+        )
+        .unwrap();
+        assert_eq!(
+            embedded.find_span_at(word.as_bytes(), 0),
+            Some(0..host.len())
+        );
+        let matched = full.find_at_with_meta(word.as_bytes(), 0).unwrap();
+        assert_eq!(matched.span, 0..expected_with_resource.len());
+        assert_eq!(matched.atoms[0].core, 0..host.len());
+    }
+}
+
+#[test]
 fn generated_auxiliary_does_not_reclassify_a_different_whole_predicate() {
     let entries = [
         component_entry("가", "VV", 0),

@@ -356,6 +356,13 @@ impl MorphMatcher {
                 self.accepts_structural(haystack, candidate, branch, structural_cache)
             }
         };
+        if accepted
+            && boundary == BoundaryPolicy::Any
+            && branch.can_extend_attached_auxiliary()
+            && let Some(end) = self.verified_any_auxiliary_end(haystack, candidate, branch)
+        {
+            candidate.verified.token.end = end;
+        }
         accepted
             || (boundary == BoundaryPolicy::Smart
                 && matches!(
