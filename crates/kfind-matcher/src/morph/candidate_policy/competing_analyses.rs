@@ -44,6 +44,11 @@ pub(super) fn rejects(
             .any(|rule| rule.as_str() == "particle.comitative.hago")
             && has_hago_predicate_frame(haystack, &candidate.verified.token, resolver))
         || has_competing_iran_particle_analysis(haystack, candidate, resolver)
+        || (candidate
+            .suffix_rules
+            .last()
+            .is_some_and(|rule| rule.as_str() == "ending.prospective-final")
+            && !is_boundary_after(haystack, candidate.consumed.end))
         || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
