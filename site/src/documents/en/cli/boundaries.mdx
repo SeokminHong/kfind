@@ -21,6 +21,7 @@ The matcher checks the boundary after consuming permitted particles or endings. 
 When `이` after a word-initial noun is part of a complete copula form, `any` leaves it out of the noun match. For example, `n:일품` returns `일품` in `일품이었다`.
 
 With a compact resource, searches for `이다` also verify word forms with an omitted or fused copula, such as `너라면`. Searches for `우리` can also match the contraction `울` when it modifies a following noun.
+Searches for `저`, `나`, and `너` can match `전`, `난`, and `넌` when the whole token is verified as a pronoun with a topic particle.
 
 The same resource verifies auxiliaries attached after an `-아/-어` connective and returns the entire word form. For example, `v:고치다` returns `고쳐주신다`.
 
