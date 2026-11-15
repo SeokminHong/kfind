@@ -63,6 +63,7 @@ pub(super) fn rejects(
         || nominal::has_nama_proper_name_frame(haystack, candidate, branch, resolver)
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
+        || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || crosses_concessive_connective(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_inferred_adnominal(
@@ -76,6 +77,35 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_nominal_head_instead_of_resultative_adnominal(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let [prefix @ .., last] = candidate.suffix_rules.as_slice() else {
+        return false;
+    };
+    if !ADNOMINAL_RULE_IDS.contains(&last.as_str())
+        || !prefix
+            .iter()
+            .any(|rule| rule.as_str() == "ending.auxiliary-jida")
+    {
+        return false;
+    }
+    let span = &candidate.consumed;
+    is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|token| resolver.has_exact_nominal_surface(&token))
+        && follows_predicate_adnominal(haystack, span.start, resolver)
+        && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+            is_sentence_end_after(haystack, end)
+                && (resolver.has_independent_final_predicate(&next)
+                    || resolver
+                        .has_attached_auxiliary_final_predicate(&next, DEFAULT_LATTICE_NODE_LIMIT))
+        })
 }
 
 fn crosses_concessive_connective(

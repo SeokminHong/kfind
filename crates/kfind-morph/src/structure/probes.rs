@@ -2190,6 +2190,18 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_auxiliary_final_predicate(&self, text: &str, node_limit: usize) -> bool {
+        !self.has_exact_nominal_surface(text)
+            && EdgeGraph::collect(&self.resource, text, node_limit).is_ok_and(|graph| {
+                crate::structure::paths::predicate::has_attached_auxiliary_path_ending_in(
+                    text.len(),
+                    &graph,
+                    |pos| pos == StructuralPos::EF,
+                )
+            })
+    }
+
+    #[must_use]
     pub fn has_conjecture_complement_predicate(&self, text: &str) -> bool {
         // 한국어기초사전 -려니¹의 결합 용언.
         [

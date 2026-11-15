@@ -446,6 +446,9 @@ corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	121	133	5월, 체코 
 corpus.ud-pud.test.w01084102.verb.세워지다	세워지다	verb	match	72	87	16세기 서양과의 조우를 통해 노다지와 같은 교역로가 세워지면서 상당한 경제 성장이 계속되는 시기를 맞이하였다.
 corpus.ud-pud.test.w02009025.verb.알려지다	알려지다	verb	match	24	39	그 일이 파리에서 알려지면서 지속적으로 비싼 빵 가격과 생활 물자 부족으로 이미 팽배해 있던 사회적 동요가 더욱 가중되었다.
 corpus.ud-gsd.test.test-s12.verb.사다	사다	verb	no-match	13	19	갤럭시 S3 사진 좀 보여줘
+corpus.ud-gsd.test.test-s466.verb.사다	사다	verb	no-match	17	23	원빈이 나온 사진 보여줘
+regression.resultative-adnominal.nominal-head	사다	verb	no-match	17	23	창가를 찍은 사진 보내줘.
+regression.resultative-adnominal.overt-head	꾸미다	verb	smart-exact	14	23	그가 찾은 꾸며진 정원을 지나갔다.
 corpus.ud-gsd.test.test-s40.verb.가다	가다	verb	no-match	36	42	고깃집치고는 반찬도 여러 가지 나와요.
 corpus.ud-gsd.test.test-s218.adjective.길다	길다	adjective	no-match	13	16	맥도날드 길 찾기
 corpus.ud-gsd.test.test-s53.pronoun.그	그	pronoun	no-match	106	109	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요
