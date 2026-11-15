@@ -465,6 +465,10 @@ fn has_humble_object_frame(
             && previous.strip_suffix(['을', '를']).is_some_and(|host| {
                 let count = context::previous_word(haystack, start);
                 !resolver.has_elapsed_measure(host, count.as_deref())
+                    && !resolver.has_quantity_expression(host, None)
+                    && count
+                        .as_deref()
+                        .is_none_or(|count| !resolver.has_quantity_expression(count, Some(host)))
             })
     }) && context::normalized_token(haystack, whole).is_some_and(|word| {
         has_competitor_inflection(contrast, &word, |base, tail| {
