@@ -1,4 +1,10 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	23	26	그녀는 경험담을 이야기했다.
+regression.pronoun-prefix.adnominal-predicate	이	pronoun	no-match	26	29	친중국 입법자들이 이끄는 홍콩 정부다.
+regression.pronoun-prefix.finite-predicate	나	pronoun	no-match	21	24	또 다른 업체가 나왔다.
+regression.pronoun-prefix.nominal-tail	우리	pronoun	smart-only-exact	7	13	최근 우리사회는 빠르게 변해 왔다.
+regression.pronoun-prefix.omitted-copula	누구	pronoun	smart-only-exact	27	33	오늘 발표할 사람은 누구지?
+regression.pronoun-prefix.particle	이	pronoun	only-exact	0	6	이를 정리했다.
 regression.concessive-connective.adjective	마다	verb	no-match	13	16	키가 크지만 감기에 걸렸다.
 regression.concessive-connective.past	말다	verb	no-match	13	16	꼭 받았지만 답장을 보낼 수 없었다.
 regression.concessive-connective.copula	말다	verb	no-match	19	22	그게 사실이건만 아무도 믿지 않았다.
