@@ -1,4 +1,6 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.copula-subject-span.any-noun	일품	noun	only-exact	10	16	국물은 일품이었다.
+regression.copula-subject-span.real-subject	일품	noun	only-exact	0	9	일품이 첫째로 뽑혔다.
 regression.prospective-final-boundary.conjunction	그다	verb	no-match	0	6	그리고 소식을 알렸다.
 regression.prospective-final-boundary.compound-noun	오다	verb	no-match	0	6	오리구이를 먹었다.
 regression.prospective-final-boundary.lexical-connective	그리다	verb	only-exact	7	16	선을 그리고 나서 자른다.
