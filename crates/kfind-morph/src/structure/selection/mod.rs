@@ -860,9 +860,14 @@ pub(in crate::structure) fn select_structure(
                 ),
         }
     } else {
-        StructureSelection::RuntimeCompatible {
-            graph_nominal_host: evidence.complete_nominal_particle_host.clone(),
-        }
+        let graph_nominal_host = evidence.complete_nominal_particle_host.clone().or_else(|| {
+            (evidence.has_whole(DataFinePos::Nnp)
+                && !evidence.units.all().iter().any(|unit| {
+                    unit.evidence == StructuralEvidence::Whole && unit.pos != DataFinePos::Nnp
+                }))
+            .then_some(0..context.current.len())
+        });
+        StructureSelection::RuntimeCompatible { graph_nominal_host }
     };
     let fallback = if next_starts_nominal && !evidence.adnominal_derivation_suffix_starts.is_empty()
     {

@@ -199,6 +199,22 @@ pub(in crate::structure) fn runtime_nominal_component_is_supported(
     if attached_nominal_suffix_is_supported(pattern, spans, evidence) {
         return true;
     }
+    if *host == spans.token
+        && spans.core.end == host.end
+        && matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
+        && evidence.units.all().iter().any(|unit| {
+            unit.evidence == StructuralEvidence::RuntimeComponent
+                && unit.span == (host.start..spans.core.start)
+                && matches!(unit.pos, DataFinePos::Nng | DataFinePos::Nnp)
+        })
+        && evidence.units.all().iter().any(|unit| {
+            unit.evidence == StructuralEvidence::RuntimeComponent
+                && unit.span == spans.core
+                && unit.pos == pattern.fine_pos
+        })
+    {
+        return true;
+    }
     if spans.core.start == host.start && pattern.lexical_form.chars().count() > 1 {
         return true;
     }

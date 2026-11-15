@@ -494,6 +494,9 @@
   predicate prefix node만 함께 존재하는 경우에는 완성된 `MM + 명사` 경로를 폐기하지 않는다.
   `매일/MAG` 안의 `일`, `아무/MM + 나/NP`의 대명사 `나`, `소/MM + 년/NNB`로도
   분해되는 `소년` 안의 `년`과 component 경계를 가로지르는 span은 계속 거부한다.
+- 어절 전체의 독립 품사가 고유명사뿐이면 그 범위를 체언 host로 삼는다.
+  사전이 정렬한 성분을 유지한다. 한 음절의 runtime 명사 tail은 바로 앞부분 전체를
+  덮는 독립 명사 node가 있어 두 명사가 어절을 완성하는 경우에도 유지한다.
 - 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
   core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
   구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
