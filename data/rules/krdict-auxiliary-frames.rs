@@ -90,6 +90,7 @@ const PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES: &[(&str, PredicatePos)] = &[
 ];
 // 한국어기초사전의 '-어' 결합 주석 중 활용 전체가 허용되는 구성.
 // 일부 선행 용언 또는 특정 후행 어미로 범위가 제한된 뜻풀이는 포함하지 않는다.
+const ATTACHED_RESULTATIVE_LEMMA: &str = "지다";
 const VOWEL_AUXILIARIES: &[(&str, LexicalAlternation, VowelAuxiliaryHost)] = &[
     ("가다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
     ("계시다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
@@ -112,7 +113,7 @@ const VOWEL_AUXILIARIES: &[(&str, LexicalAlternation, VowelAuxiliaryHost)] = &[
     ("젖히다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
     ("주다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
     ("죽다", LexicalAlternation::Regular, VowelAuxiliaryHost::Adjective),
-    ("지다", LexicalAlternation::Regular, VowelAuxiliaryHost::VerbOrAdjective),
+    (ATTACHED_RESULTATIVE_LEMMA, LexicalAlternation::Regular, VowelAuxiliaryHost::VerbOrAdjective),
     ("치우다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
     ("하다", LexicalAlternation::Ha, VowelAuxiliaryHost::Adjective),
 ];

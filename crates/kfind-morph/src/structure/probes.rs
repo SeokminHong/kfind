@@ -46,9 +46,14 @@ impl VowelAuxiliaryHost {
     }
 }
 
-fn vowel_auxiliary_inflections() -> &'static [(VowelAuxiliaryHost, crate::SurfaceBranchSpec)] {
-    static FORMS: std::sync::OnceLock<Vec<(VowelAuxiliaryHost, crate::SurfaceBranchSpec)>> =
-        std::sync::OnceLock::new();
+struct VowelAuxiliaryInflection {
+    lemma: &'static str,
+    host: VowelAuxiliaryHost,
+    form: crate::SurfaceBranchSpec,
+}
+
+fn vowel_auxiliary_inflections() -> &'static [VowelAuxiliaryInflection] {
+    static FORMS: std::sync::OnceLock<Vec<VowelAuxiliaryInflection>> = std::sync::OnceLock::new();
     FORMS.get_or_init(|| {
         let mut forms: Vec<_> = VOWEL_AUXILIARIES
             .iter()
@@ -58,10 +63,10 @@ fn vowel_auxiliary_inflections() -> &'static [(VowelAuxiliaryHost, crate::Surfac
                 crate::generate_predicate_branches(&entry)
                     .expect("valid dictionary auxiliary")
                     .into_iter()
-                    .map(move |form| (host, form))
+                    .map(move |form| VowelAuxiliaryInflection { lemma, host, form })
             })
             .collect();
-        forms.sort_unstable_by(|(_, left), (_, right)| left.anchor.cmp(&right.anchor));
+        forms.sort_unstable_by(|left, right| left.form.anchor.cmp(&right.form.anchor));
         forms
     })
 }
@@ -919,7 +924,17 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_vowel_auxiliary_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
-        self.has_vowel_auxiliary_inflection_with_ending(text, host_pos, |_| true)
+        self.has_matching_vowel_auxiliary_inflection(text, host_pos, |_| true, |_| true)
+    }
+
+    #[must_use]
+    pub fn has_attached_resultative_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
+        self.has_matching_vowel_auxiliary_inflection(
+            text,
+            host_pos,
+            |lemma| lemma == ATTACHED_RESULTATIVE_LEMMA,
+            |_| true,
+        )
     }
 
     #[must_use]
@@ -928,9 +943,10 @@ impl ConstraintResolver {
         connective: &str,
         auxiliary: &str,
     ) -> bool {
-        if !self.has_vowel_auxiliary_inflection_with_ending(
+        if !self.has_matching_vowel_auxiliary_inflection(
             connective,
             PredicatePos::Verb,
+            |_| true,
             |ending| ending.is_some_and(|rule| rule.as_str() == "ending.connective-go"),
         ) {
             return false;
@@ -955,28 +971,30 @@ impl ConstraintResolver {
             )
     }
 
-    fn has_vowel_auxiliary_inflection_with_ending(
+    fn has_matching_vowel_auxiliary_inflection(
         &self,
         text: &str,
         host_pos: PredicatePos,
-        accepts: impl Fn(Option<&crate::RuleId>) -> bool,
+        accepts_lemma: impl Fn(&str) -> bool,
+        accepts_ending: impl Fn(Option<&crate::RuleId>) -> bool,
     ) -> bool {
         let Some(initial) = text.chars().next() else {
             return false;
         };
         let forms = vowel_auxiliary_inflections();
-        let start = forms.partition_point(|(_, form)| form.anchor.chars().next() < Some(initial));
+        let start = forms.partition_point(|entry| entry.form.anchor.chars().next() < Some(initial));
         forms[start..]
             .iter()
-            .take_while(|(_, form)| form.anchor.starts_with(initial))
-            .any(|(host, form)| {
-                host.accepts(host_pos)
+            .take_while(|entry| entry.form.anchor.starts_with(initial))
+            .any(|VowelAuxiliaryInflection { lemma, host, form }| {
+                accepts_lemma(lemma)
+                    && host.accepts(host_pos)
                     && (form.anchor.as_ref() != text
                         || !matches!(
                             form.continuation,
                             crate::ContinuationState::Past | crate::ContinuationState::Future
                         ))
-                    && matches_predicate_branch_with_ending(text, form, &accepts)
+                    && matches_predicate_branch_with_ending(text, form, &accepts_ending)
             })
     }
 

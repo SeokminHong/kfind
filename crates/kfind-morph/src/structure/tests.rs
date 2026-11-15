@@ -2452,6 +2452,17 @@ fn vowel_auxiliary_frame_checks_host_pos_and_complete_inflection() {
 }
 
 #[test]
+fn attached_resultative_requires_a_complete_inflection() {
+    use crate::PredicatePos::{Adjective, Verb};
+
+    let resolver = resolver();
+    assert!(resolver.has_attached_resultative_inflection("졌지만", Adjective));
+    assert!(resolver.has_attached_resultative_inflection("지겠습니다", Verb));
+    assert!(!resolver.has_attached_resultative_inflection("졌", Verb));
+    assert!(!resolver.has_attached_resultative_inflection("지내다", Adjective));
+}
+
+#[test]
 fn appearance_predicate_checks_inflection_instead_of_surface_prefix() {
     let resolver = resolver_from_entries(vec![
         atomic("보인다", "VV+EF"),

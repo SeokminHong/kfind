@@ -90,7 +90,9 @@ impl MorphMatcher {
                     let unambiguous_whole_path = token.is_some_and(|token| {
                         resolver.has_unambiguous_attached_auxiliary_whole_path(token)
                     });
-                    let resultative_contraction = starts_with_resultative_auxiliary(trailing);
+                    let resultative_contraction = (complete_attached_path
+                        || source_auxiliary_suffix)
+                        && resolver.has_attached_resultative_inflection(trailing, pos);
                     let aligned_auxiliary = complete_attached_path
                         && resolver.supports_auxiliary_with_fused_prefinal(
                             trailing,
@@ -653,11 +655,4 @@ fn is_structural_suffix_particle(
                 branch.consumption,
                 CandidateConsumption::PredicateContinuation { .. }
             ))
-}
-
-fn starts_with_resultative_auxiliary(surface: &str) -> bool {
-    surface
-        .chars()
-        .next()
-        .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질' | '져' | '집' | '짐'))
 }
