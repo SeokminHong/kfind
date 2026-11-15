@@ -116,6 +116,22 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
         .any(|form| matches_predicate_branch(text, form))
 }
 
+pub fn matches_negative_auxiliary_inflection(text: &str, pos: PredicatePos) -> bool {
+    static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
+    let forms = FORMS.get_or_init(|| {
+        NEGATIVE_AUXILIARIES
+            .iter()
+            .flat_map(|&(lemma, pos, alternation)| {
+                let entry = crate::PredicateEntry::new(lemma, pos, alternation);
+                crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
+            })
+            .collect()
+    });
+    forms
+        .iter()
+        .any(|form| form.pos == pos && matches_predicate_branch(text, form))
+}
+
 fn matches_predicate_branch(text: &str, form: &crate::SurfaceBranchSpec) -> bool {
     matches_predicate_branch_with_ending(text, form, |_| true)
 }

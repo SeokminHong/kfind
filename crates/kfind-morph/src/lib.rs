@@ -42,5 +42,5 @@ pub use predicate::{
 pub use structure::{
     BoundedTokenContext, ConstraintDecision, ConstraintOutcome, ConstraintResolver,
     ConstraintUnavailable, PreparedStructuralContext, PreparedTokenGraph, ProductPolicy,
-    StructuralEvidence,
+    StructuralEvidence, matches_negative_auxiliary_inflection,
 };

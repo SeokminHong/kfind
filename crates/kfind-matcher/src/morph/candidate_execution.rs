@@ -4,7 +4,7 @@ use std::ops::Range;
 use kfind_data::DataFinePos;
 use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleVerifier, PredicateStemClass, RuleId,
-    verify_copula_surface_after_nominal, verify_predicate_continuation,
+    matches_negative_auxiliary_inflection, verify_copula_surface_after_nominal,
     verify_predicate_continuation_with_prefinal_context,
 };
 use kfind_query::{
@@ -769,9 +769,13 @@ fn has_negative_auxiliary(
         ),
         _ => (anchor, suffix, state),
     };
+    let auxiliary_pos = if host.is_action() {
+        PredicatePos::AuxiliaryVerb
+    } else {
+        PredicatePos::AuxiliaryAdjective
+    };
     (state == ContinuationState::AOrEo || !suffix.is_empty())
-        && (verify_predicate_continuation(state, PredicatePos::AuxiliaryVerb, anchor, suffix)
-            .is_some_and(|matched| matched.token_end == word.len())
+        && (matches_negative_auxiliary_inflection(word, auxiliary_pos)
             || resolver.is_some_and(|resolver| {
                 !resolver.has_subject_marked_nominal(word)
                     && resolver.supports_ending_suffix_path(

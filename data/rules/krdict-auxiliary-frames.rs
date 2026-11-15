@@ -82,6 +82,15 @@ const ADNOMINAL_AUXILIARIES: &[(&str, PredicatePos, LexicalAlternation, bool, bo
 // 한국어기초사전에서 -(으)ㄴ가를 받는 추측 보조 용언.
 const INTERROGATIVE_AUXILIARIES: &[&str] = &["보다", "싶다"];
 
+// 한국어기초사전에서 '-지'를 받는 부정 보조 용언의 품사와 활용.
+const NEGATIVE_AUXILIARIES: &[(&str, PredicatePos, LexicalAlternation)] = &[
+    ("않다", PredicatePos::AuxiliaryVerb, LexicalAlternation::Regular),
+    ("않다", PredicatePos::AuxiliaryAdjective, LexicalAlternation::Regular),
+    ("못하다", PredicatePos::AuxiliaryVerb, LexicalAlternation::Ha),
+    ("못하다", PredicatePos::AuxiliaryAdjective, LexicalAlternation::Ha),
+    ("말다", PredicatePos::AuxiliaryVerb, LexicalAlternation::Regular),
+];
+
 // 한국어기초사전에서 동사의 '-고'를 받는 진행·희망 보조 용언.
 const PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES: &[(&str, PredicatePos)] = &[
     ("있다", PredicatePos::AuxiliaryVerb),

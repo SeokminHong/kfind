@@ -286,7 +286,7 @@ corpus.ud-gsd.test.test-s488.noun.이상	이상	noun	smart-exact	51	57	동네 �
 corpus.ud-gsd.test.test-s280.adjective.약하다	약하다	adjective	match	59	71	그러자 일시적으로 기압이 상승하며 파도가 약해졌고, 이에 완전히 태풍이 북동쪽에 있다고 확신한 홀시 제독은 경로를 남서쪽으로 완전히 바꾸어 이동하였다.
 corpus.ud-gsd.test.test-s336.adjective.많다	많다	adjective	smart-exact	17	23	종류가 그리 많진 않지만 부담 없이 먹을 수 있겠네요.
 corpus.ud-gsd.test.test-s162.verb.대다	대다	verb	no-match	109	112	연초부터 중동•북아프리카 사태가 터지면서 유가가 폭등했고, 3월에는 일본에서 대지진이 발생, 세계 경제가 큰 타격을 받으면서부터다.
-corpus.ud-gsd.test.test-s353.adjective.같다	같다	adjective	smart-exact	59	65	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
+corpus.ud-gsd.test.test-s353.adjective.같다	같다	adjective	exact	59	65	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s353.verb.않다	않다	verb	match	66	75	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시는 목소리가 매우 친절합니다.
 corpus.ud-gsd.test.test-s366.verb.전하다	전하다	verb	exact	120	132	같은 날 후쿠시마현 재해대책본부를 방문하여 보도진에게 「방사능의 리스크가 정확하게 전해지지 않고 있으나, 지금의 수준이라면 요드제의 투여는 불필요하다」라고 강조했다.
@@ -1763,8 +1763,8 @@ regression.negative-object.honorific	먹다	verb	smart-exact	0	12	먹으시질 �
 regression.negative-object.adjective	좋다	adjective	smart-exact	0	6	좋질 않아요.
 regression.negative-object.lexical-future	가다	verb	no-match	0	6	가질 물건을 골랐다.
 regression.negative-object.nominal-subject	먹다	verb	no-match	0	6	먹질 말이 안 된다.
-corpus.ud-gsd.test.test-s53.adjective.negative-additive	아무렇다	adjective	smart-exact	129	144	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
-corpus.ud-gsd.test.test-s638.adjective.negative-additive	맵다	adjective	smart-exact	0	9	맵지도 않고 얘들도 잘 먹었고 다른 말이 필요 없어요
+corpus.ud-gsd.test.test-s53.adjective.negative-additive	아무렇다	adjective	exact	129	144	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
+corpus.ud-gsd.test.test-s638.adjective.negative-additive	맵다	adjective	exact	0	9	맵지도 않고 얘들도 잘 먹었고 다른 말이 필요 없어요
 corpus.ud-gsd.test.test-s930.verb.negative-topic	거주하다	verb	smart-exact	17	32	저는 서동에 거주하지는 않지만 업무차 자주 방문합니다
 regression.negative-particle.past-additive	먹다	verb	smart-exact	0	12	먹었지도 않아요.
 regression.negative-particle.honorific-additive	먹다	verb	smart-exact	0	15	먹으시지도 않았어요.
