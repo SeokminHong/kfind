@@ -772,14 +772,12 @@ fn compile_productive(
                 vec![rule("ending.archaic-interrogative-nyo")],
             );
         }
-        if entry.pos.is_action() {
-            push_derived(
-                branches,
-                entry,
-                present.clone(),
-                ContinuationState::Terminal,
-            );
-        }
+        push_derived(
+            branches,
+            entry,
+            present.clone(),
+            ContinuationState::Terminal,
+        );
         present
     } else {
         past.clone()
