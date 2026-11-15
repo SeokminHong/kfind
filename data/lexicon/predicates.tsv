@@ -41,6 +41,7 @@ lemma	pos	alternation	flags	overrides
 아름답다	VA	BToWo		
 아쉽다	VA	BToWo		
 알다	VV	Regular	RIEUL_DROP	
+앞다투다	VV	Regular		
 예쁘다	VA	Regular	EU_DROP	
 이다	VCP	Copula		
 이르다	VA	ReuDoubleL		
