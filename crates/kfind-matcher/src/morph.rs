@@ -847,6 +847,25 @@ impl MorphMatcher {
         let core = &candidate.verified.core;
         if matches!(
             branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start > whole.start
+            && candidate.consumed.end == whole.end
+            && nominal_copula_surface_at(haystack, core.start, whole.end)
+            && context::normalized_token(haystack, whole.start..core.start).is_some_and(|host| {
+                resolver.has_complete_nominal_surface(&host)
+                    && host.chars().next_back().is_some_and(|preceding| {
+                        context::normalized_token(haystack, core.start..whole.end).is_some_and(
+                            |ending| verify_copula_surface_after_nominal(preceding, &ending),
+                        )
+                    })
+            })
+            && context::normalized_token(haystack, whole.clone())
+                .is_some_and(|token| !resolver.has_exact_nominal_surface(&token))
+        {
+            return false;
+        }
+        if matches!(
+            branch.consumption,
             CandidateConsumption::PredicateContinuation { .. }
         ) && candidate.consumed.end < whole.end
             && haystack
@@ -1728,6 +1747,19 @@ fn has_conflicting_whole_predicate(
         return true;
     }
     if extends_non_internal_core && resolver.has_attached_auxiliary_whole_path(&normalized_token) {
+        return false;
+    }
+    if extends_non_internal_core
+        && candidate.consumed == whole
+        && candidate
+            .suffix_rules
+            .iter()
+            .any(|rule| rule.as_str() == "ending.auxiliary-gada")
+        && resolver
+            .has_exact_predicate_ending_path(&normalized_token, kfind_morph::PredicatePos::Verb)
+        && resolver
+            .has_exact_predicate_connective_path(&core.nfc().collect::<String>(), source_positions)
+    {
         return false;
     }
     if extends_non_internal_core

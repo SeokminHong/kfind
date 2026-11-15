@@ -4,6 +4,7 @@ use kfind_query::{
     AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateProgram,
     QueryComposition,
 };
+use unicode_general_category::{GeneralCategory, get_general_category};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
@@ -35,7 +36,19 @@ impl MorphMatcher {
                 }
             )
             && branch.anchor.as_ref() == "다".as_bytes()
-            && previous_character(haystack, candidate.anchor.start).is_none_or(char::is_whitespace)
+            && previous_character(haystack, candidate.anchor.start).is_none_or(|previous| {
+                previous.is_whitespace()
+                    || matches!(
+                        get_general_category(previous),
+                        GeneralCategory::OpenPunctuation | GeneralCategory::InitialPunctuation
+                    )
+                    || (matches!(previous, '\'' | '"')
+                        && previous_character(
+                            haystack,
+                            candidate.anchor.start - previous.len_utf8(),
+                        )
+                        .is_none_or(char::is_whitespace))
+            })
         {
             return false;
         }
