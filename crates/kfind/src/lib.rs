@@ -557,6 +557,38 @@ mod tests {
     }
 
     #[test]
+    fn any_verifies_attributive_pronoun_contraction_with_an_installed_component_resource() {
+        let options = CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        };
+        let engine = Engine::with_component_resource(component_resource()).unwrap();
+        let resource_free = Engine::new().unwrap();
+        let matcher = engine.compile("pro:우리", &options).unwrap();
+        let without_resource = resource_free.compile("pro:우리", &options).unwrap();
+        for (input, expected) in [
+            ("울 아이가 먼저 나왔어요.", Some("울")),
+            ("울 것 같다.", None),
+            ("울타리를 고쳤다.", None),
+        ] {
+            let spans = matcher.find_all(input.as_bytes());
+            let surfaces = spans
+                .iter()
+                .map(|hit| &input[hit.span.clone()])
+                .collect::<Vec<_>>();
+            assert_eq!(
+                surfaces,
+                expected.into_iter().collect::<Vec<_>>(),
+                "{input}"
+            );
+            assert!(
+                without_resource.find_all(input.as_bytes()).is_empty(),
+                "{input}"
+            );
+        }
+    }
+
+    #[test]
     fn smart_context_selects_maeil_by_structural_arrangement() {
         let engine = contextual_engine();
         let copular = "독수리가 아니라 매일 수도 있어";
@@ -706,6 +738,8 @@ mod tests {
                 component_entry("의사", "NNG"),
                 component_entry("그", "NP"),
                 component_entry("는", "JX"),
+                component_entry("아이", "NNG"),
+                component_entry("가", "JKS"),
                 component_expression_entry("학생일", "NNG+VCP+ETM", "학생/NNG/*+이/VCP/*+ᆯ/ETM/*"),
             ],
         )

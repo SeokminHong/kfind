@@ -47,7 +47,7 @@ impl QueryPlan {
                 && atom
                     .programs
                     .iter()
-                    .any(|program| program.consumption.composes_copula_host())
+                    .any(CandidateProgram::uses_optional_component)
         })
     }
 }
@@ -279,6 +279,22 @@ pub struct CandidateProgram {
 }
 
 impl CandidateProgram {
+    #[must_use]
+    pub fn uses_optional_component(&self) -> bool {
+        self.consumption.composes_copula_host() || self.is_attributive_pronoun_contraction()
+    }
+
+    #[must_use]
+    pub fn is_attributive_pronoun_contraction(&self) -> bool {
+        matches!(self.consumption, CandidateConsumption::Anchor)
+            && self.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == "contraction.uri-attributive-ul")
+            })
+    }
+
     #[must_use]
     pub fn structural_patterns(&self) -> &[QueryMorphPattern] {
         match &self.decision {

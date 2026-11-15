@@ -44,7 +44,7 @@
 
 ## 리소스 초기화 [#resource-initialization]
 
-후보 프로그램의 판정은 `Boundary` 또는 `Structural`입니다. 컴파일된 계획에 structural 프로그램이 있으면 [구성 요소 리소스](/reference/glossary#component-resource)가 필요합니다. `any`의 지정사 검색은 리소스가 있을 때 융합·생략된 활용을 추가로 확인합니다.
+후보 프로그램의 판정은 `Boundary` 또는 `Structural`입니다. 컴파일된 계획에 structural 프로그램이 있으면 [구성 요소 리소스](/reference/glossary#component-resource)가 필요합니다. `any`는 리소스가 있을 때 융합·생략 지정사와 명사를 수식하는 대명사 축약형을 추가로 확인합니다.
 
 리소스 byte 배열은 schema, 릴리스 버전, source SHA-256, section digest, offset과 구성 요소 span 검증을 모두 통과한 뒤 engine에 설치됩니다. 검증된 리소스는 engine 수명 동안 공유합니다. 수동 교체가 실패하면 사용 중인 리소스를 유지합니다.
 

@@ -654,18 +654,12 @@ impl MorphMatcher {
         {
             return true;
         }
-        if matches!(branch.consumption, CandidateConsumption::Anchor)
-            && branch.origins.iter().any(|origin| {
-                origin
-                    .rule_path
-                    .last()
-                    .is_some_and(|rule| rule.as_str() == "contraction.uri-attributive-ul")
-            })
-        {
-            let span = &candidate.verified.token;
-            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
-                && context::next_word(haystack, span.end)
-                    .is_some_and(|next| resolver.has_independent_nominal_head(&next));
+        if branch.is_attributive_pronoun_contraction() {
+            return context::accepts_attributive_pronoun(
+                haystack,
+                &candidate.verified.token,
+                resolver,
+            );
         }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && branch.origins.iter().any(|origin| {
@@ -2025,7 +2019,7 @@ fn unique_anchors(
     let mut fused_count = 0;
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
-            if !has_component && branch.consumption.composes_copula_host() {
+            if !has_component && branch.uses_optional_component() {
                 continue;
             }
             let program = ProgramRef {

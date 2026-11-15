@@ -463,6 +463,17 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn accepts_attributive_pronoun(
+    haystack: &[u8],
+    span: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    crate::boundary::is_boundary_before(haystack, span.start)
+        && crate::boundary::is_boundary_after(haystack, span.end)
+        && next_word(haystack, span.end)
+            .is_some_and(|next| resolver.has_independent_nominal_head(&next))
+}
+
 pub(super) fn has_proper_name_subject_frame(
     haystack: &[u8],
     token: &Range<usize>,

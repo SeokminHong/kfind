@@ -28,6 +28,11 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Any && branch.is_attributive_pronoun_contraction() {
+            return self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                context::accepts_attributive_pronoun(haystack, &candidate.verified.token, resolver)
+            });
+        }
         if boundary == BoundaryPolicy::Any && branch.consumption.composes_copula_host() {
             return is_boundary_before(haystack, candidate.consumed.start)
                 && is_boundary_after(haystack, candidate.consumed.end)
