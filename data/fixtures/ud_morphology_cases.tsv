@@ -2080,3 +2080,6 @@ regression.joined-adverb.lexical-verb	보다	verb	no-match	20	26	그는 아이�
 regression.bare-nominal.whole-adverb	그	noun	no-match	16	19	해협에서는 그래도 상당히 흔들렸다.
 regression.bare-nominal.adjective-connective	저	pronoun	no-match	0	3	저래도 다 이유가 있다.
 regression.bare-nominal.consumed-particle	저	pronoun	smart-exact	0	9	저라도 먼저 가겠습니다.
+regression.derived-ha.connective-go.final	보다	verb	no-match	20	26	경찰은 상황을 보고했다.
+regression.derived-ha.connective-go.joined-head	보다	verb	no-match	20	26	경찰은 상황을 보고한것을 확인했다.
+regression.derived-ha.connective-go.independent	보다	verb	smart-exact	20	26	경찰은 사진을 보고 판단했다.
