@@ -23,7 +23,10 @@ impl CommonPathFacts {
     pub(in crate::structure) fn collect(text: &str, graph: &EdgeGraph<'_>) -> Self {
         let mut nominal_prefix = vec![[false; 2]; text.len() + 1];
         nominal_prefix[0][0] = true;
-        let mut predicate_path = vec![false; text.len() + 1];
+        const PREDICATE: u8 = 1;
+        const DERIVATION_ROOT: u8 = 2;
+        const DERIVED_PREDICATE: u8 = 4;
+        let mut predicate_path = vec![0; text.len() + 1];
         let mut predicate_connective_boundaries = vec![false; text.len() + 1];
         let mut exact_nominal_end = vec![false; text.len() + 1];
         for start in 0..text.len() {
@@ -53,10 +56,28 @@ impl CommonPathFacts {
                 if start == 0 {
                     exact_nominal_end[edge.span.end] |=
                         matches!(positions, [pos] if pos.is_nominal());
+                    if matches!(positions, [StructuralPos::NNG | StructuralPos::XR]) {
+                        predicate_path[edge.span.end] |= DERIVATION_ROOT;
+                    }
+                } else if predicate_path[start] & DERIVATION_ROOT != 0
+                    && matches!(positions, [StructuralPos::XSV | StructuralPos::XSA])
+                {
+                    predicate_path[edge.span.end] |= DERIVED_PREDICATE;
+                } else if predicate_path[start] & DERIVED_PREDICATE != 0
+                    && positions == [StructuralPos::EC]
+                    && &text[edge.span.clone()] == "게"
+                    && text[edge.span.end..].chars().next().is_some_and(|initial| {
+                        matches!(
+                            crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
+                            Some('되' | '돼' | '하' | '해')
+                        )
+                    })
+                {
+                    predicate_connective_boundaries[edge.span.end] = true;
                 }
                 let ends_in_connective = if start == 0 {
                     predicate_path_ends_in_connective(positions)
-                } else if predicate_path[start] {
+                } else if predicate_path[start] & PREDICATE != 0 {
                     ending_path_ends_in_connective(positions)
                 } else {
                     None
@@ -65,7 +86,7 @@ impl CommonPathFacts {
                     if ends_in_connective {
                         predicate_connective_boundaries[edge.span.end] = true;
                     } else {
-                        predicate_path[edge.span.end] = true;
+                        predicate_path[edge.span.end] |= PREDICATE;
                     }
                 }
             }

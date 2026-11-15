@@ -2057,3 +2057,7 @@ regression.derived-ha.attached-adnominal	차다	verb	no-match	14	35	그 면적�
 regression.derived-ha.attached-nominal-particle	지다	verb	no-match	7	25	그를 지지한이유는 분명했다.
 regression.derived-ha.attached-dependent-noun	감다	verb	no-match	13	25	움직임을 감지할수 있었다.
 regression.derived-ha.negative-imperative	감다	verb	smart-exact	7	13	눈을 감지 말고 계속 걸으세요.
+regression.derived-ge.attached	되다	verb	smart-exact	22	25	난관에 봉착하게될 것이다.
+regression.derived-ge.separate	되다	verb	smart-exact	23	26	난관에 봉착하게 될 것이다.
+regression.derived-ge.causative	하다	verb	smart-exact	22	28	관객을 입장하게했다.
+regression.derived-ge.nominal-particle	말다	verb	no-match	12	15	박달대게만 전문적으로 팔아요.

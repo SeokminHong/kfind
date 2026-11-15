@@ -451,6 +451,7 @@
 - token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가
   있고, 두 번째 용언 edge 또는 source component가 query core와 같은 span·세부 품사이며 query
   program도 그 위치부터 token 끝까지 continuation을 소비하면 내부 용언 component를 유지한다.
+  `-게 되다`와 `-게 하다`에서는 체언·어근과 용언 파생 접미사가 결합한 첫 용언도 확인한다.
   첫 용언의 connective 경로는 `EP` 뒤의 단일 `EC`로만 끝나며 `ETM`·`ETN`·`EF` 뒤에 다른
   `EC`를 이어 붙이지 않는다. 따라서 완성 체언+주격 조사 `친구/NNG + 가/JKS`를
   `친/VV+ETM + 구/EC + 가/VV`로 다시 조합하지 않는다.
