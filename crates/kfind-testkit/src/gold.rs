@@ -176,7 +176,9 @@ impl GoldHarness {
         options: &CompileOptions,
     ) -> Result<MorphMatcher, GoldCaseError> {
         let plan = compile_query(query, options, &self.analyzer).map_err(GoldCaseError::Compile)?;
-        if let Some(resource) = &self.component_resource {
+        if let Some(resource) = &self.component_resource
+            && (options.boundary == BoundaryPolicy::Smart || plan.has_optional_component_programs())
+        {
             MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
         } else {
             MorphMatcher::new(Arc::new(plan))

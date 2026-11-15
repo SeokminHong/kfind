@@ -1145,7 +1145,7 @@ fn pronoun_copula_ending_contraction_is_source_structural_and_pos_scoped() {
 }
 
 #[test]
-fn lost_copula_span_uses_a_smart_only_grammar_anchor() {
+fn lost_copula_span_uses_a_component_grammar_anchor() {
     let smart = compile_query(
         "이다",
         &CompileOptions {
@@ -1183,11 +1183,17 @@ fn lost_copula_span_uses_a_smart_only_grammar_anchor() {
             &analyzer(),
         )
         .unwrap();
-        assert!(
+        assert!(!plan.requires_component_resource());
+        assert_eq!(
+            plan.has_optional_component_programs(),
+            boundary == BoundaryPolicy::Any
+        );
+        assert_eq!(
             plan.atoms[0]
                 .programs
                 .iter()
-                .all(|branch| branch.anchor.as_ref() != "걸까".as_bytes())
+                .any(|branch| branch.anchor.as_ref() == "걸까".as_bytes()),
+            boundary == BoundaryPolicy::Any
         );
     }
 }

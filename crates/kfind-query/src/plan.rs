@@ -39,6 +39,17 @@ impl QueryPlan {
                 .any(|program| program.decision.is_structural())
         })
     }
+
+    #[must_use]
+    pub fn has_optional_component_programs(&self) -> bool {
+        self.atoms.iter().any(|atom| {
+            atom.boundary == BoundaryPolicy::Any
+                && atom
+                    .programs
+                    .iter()
+                    .any(|program| program.consumption.composes_copula_host())
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -92,6 +103,14 @@ pub enum CandidateLeftContext {
 }
 
 impl CandidateConsumption {
+    #[must_use]
+    pub const fn composes_copula_host(&self) -> bool {
+        matches!(
+            self,
+            Self::CopulaHostEndingCompose | Self::FusedCopulaEnding
+        )
+    }
+
     pub(crate) fn merge_compatible(&self, other: &Self) -> bool {
         match (self, other) {
             (

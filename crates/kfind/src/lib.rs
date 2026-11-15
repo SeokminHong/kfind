@@ -147,14 +147,13 @@ impl Engine {
         options: &CompileOptions,
     ) -> Result<Matcher, CompileMatcherError> {
         let plan = Arc::new(compile_query(query, options, &self.analyzer)?);
-        let matcher = if plan.requires_component_resource() {
-            let resource = self
-                .component_resource
-                .as_ref()
-                .ok_or(CompileMatcherError::ComponentResourceRequired)?;
-            MorphMatcher::with_component_resource(plan, Arc::clone(resource))
-        } else {
-            MorphMatcher::new(plan)
+        let requires_component = plan.requires_component_resource();
+        let matcher = match &self.component_resource {
+            Some(resource) if requires_component || plan.has_optional_component_programs() => {
+                MorphMatcher::with_component_resource(plan, Arc::clone(resource))
+            }
+            _ if requires_component => return Err(CompileMatcherError::ComponentResourceRequired),
+            _ => MorphMatcher::new(plan),
         }?;
         Ok(Matcher::from(matcher))
     }
@@ -533,6 +532,31 @@ mod tests {
     }
 
     #[test]
+    fn any_matches_omitted_copula_when_a_component_resource_is_installed() {
+        let options = CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        };
+        let input = "그는 의사야.".as_bytes();
+        for (engine, expect_whole) in [
+            (Engine::new().unwrap(), false),
+            (
+                Engine::with_component_resource(component_resource()).unwrap(),
+                true,
+            ),
+        ] {
+            let matcher = engine.compile("이다", &options).unwrap();
+            assert_eq!(
+                matcher
+                    .find_all(input)
+                    .iter()
+                    .any(|hit| &input[hit.span.clone()] == "의사야".as_bytes()),
+                expect_whole,
+            );
+        }
+    }
+
+    #[test]
     fn smart_context_selects_maeil_by_structural_arrangement() {
         let engine = contextual_engine();
         let copular = "독수리가 아니라 매일 수도 있어";
@@ -679,6 +703,9 @@ mod tests {
                 component_entry("수도", "NNB+JX"),
                 component_entry("을", "JKO"),
                 component_entry("학생", "NNG"),
+                component_entry("의사", "NNG"),
+                component_entry("그", "NP"),
+                component_entry("는", "JX"),
                 component_expression_entry("학생일", "NNG+VCP+ETM", "학생/NNG/*+이/VCP/*+ᆯ/ETM/*"),
             ],
         )

@@ -28,6 +28,13 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Any && branch.consumption.composes_copula_host() {
+            return is_boundary_before(haystack, candidate.consumed.start)
+                && is_boundary_after(haystack, candidate.consumed.end)
+                && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                    self.accepts_lost_span_copula_ending(haystack, candidate, branch, resolver)
+                });
+        }
         if boundary == BoundaryPolicy::Smart
             && let CandidateConsumption::PredicateContinuation {
                 source_positions, ..

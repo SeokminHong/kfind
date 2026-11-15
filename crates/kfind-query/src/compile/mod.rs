@@ -784,7 +784,7 @@ fn compile_copula_host_ending_contractions(
     analyzer: &LexiconQueryAnalyzer,
     output: &mut Vec<DraftBranch>,
 ) {
-    if options.boundary != crate::BoundaryPolicy::Smart
+    if options.boundary == crate::BoundaryPolicy::Token
         || options.expand == ExpandMode::Literal
         || analysis.fine_pos != FinePos::Copula
     {

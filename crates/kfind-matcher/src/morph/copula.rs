@@ -153,14 +153,7 @@ impl MorphMatcher {
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
         resolver: &ConstraintResolver,
-        patterns: &[kfind_morph::QueryMorphPattern],
     ) -> bool {
-        if !patterns
-            .iter()
-            .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
-        {
-            return false;
-        }
         let Some(token) = haystack
             .get(candidate.verified.core.clone())
             .and_then(|bytes| std::str::from_utf8(bytes).ok())
