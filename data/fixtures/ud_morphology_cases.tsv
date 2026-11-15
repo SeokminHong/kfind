@@ -12,6 +12,9 @@ regression.concessive-connective.full-form	마다	verb	no-match	20	26	그는 집
 regression.concessive-connective.adnominal-past	말다	verb	smart-only-exact	10	13	김밥을 만 사람이 나왔다.
 regression.concessive-connective.adnominal-present	말다	verb	smart-only-exact	10	16	김밥을 마는 사람을 불렀다.
 regression.any-attached-auxiliary.contracted	알리다	verb	only-exact	0	9	알려줘.
+regression.any-attached-auxiliary.homograph-prefinal	하다	verb	only-exact	7	19	일을 해줬으면 좋겠다.
+regression.any-attached-auxiliary.homograph-intention	보이다	verb	only-exact	11	23	이걸 좀 보여줄래?
+regression.any-attached-auxiliary.homograph-subject	타다	verb	only-exact	10	22	판자가 타버렸고 재만 남았다.
 regression.any-attached-auxiliary.honorific	고치다	verb	only-exact	0	15	고쳐주신다.
 regression.any-attached-auxiliary.state	열리다	verb	only-exact	0	12	열려있다.
 regression.copula-subject-span.any-noun	일품	noun	only-exact	10	16	국물은 일품이었다.

@@ -226,6 +226,15 @@ fn any_attached_auxiliary_extends_only_a_verified_host() {
         component_entry("거", "NNB", 0),
         component_entry("거", "VV+EC", 0),
         component_entry("뒀기", "VX+EP+ETN", 0),
+        component_entry("해", "NNG", 0),
+        component_entry("해", "VV+EC", 0),
+        component_entry("줬으면", "VX+EP+EC", 0),
+        component_entry("해줬으면", "VV+EC+VX+EP+EC", 0),
+        component_entry("해줬으면", "XSV+EC+VX+EP+EC", 0),
+        component_entry("따라", "VV+EC", 0),
+        component_entry("간", "VX+ETM", 0),
+        component_entry("따라간", "VV+ETM", 0),
+        component_entry("따라간", "VV+EC+VX+ETM", 0),
     ];
     let bytes = encode_component_resource([8; 32], &entries).unwrap();
     let resource = Arc::new(decode_component_resource("fixture", bytes, &[8; 32]).unwrap());
@@ -233,6 +242,8 @@ fn any_attached_auxiliary_extends_only_a_verified_host() {
         ("찾아", "찾아줘", "찾아줘"),
         ("찾아", "찾아 줘", "찾아"),
         ("거", "거뒀기", "거"),
+        ("해", "해줬으면", "해줬으면"),
+        ("따라", "따라간", "따라"),
     ] {
         let mut branch = predicate_branch(
             host,
