@@ -2019,7 +2019,10 @@ fn unique_anchors(
     let mut fused_count = 0;
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
-            if !has_component && branch.uses_optional_component() {
+            if !has_component
+                && (branch.consumption.composes_copula_host()
+                    || branch.is_attributive_pronoun_contraction())
+            {
                 continue;
             }
             let program = ProgramRef {

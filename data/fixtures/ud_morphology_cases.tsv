@@ -1,4 +1,7 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.any-attached-auxiliary.contracted	알리다	verb	only-exact	0	9	알려줘.
+regression.any-attached-auxiliary.honorific	고치다	verb	only-exact	0	15	고쳐주신다.
+regression.any-attached-auxiliary.state	열리다	verb	only-exact	0	12	열려있다.
 regression.copula-subject-span.any-noun	일품	noun	only-exact	10	16	국물은 일품이었다.
 regression.copula-subject-span.real-subject	일품	noun	only-exact	0	9	일품이 첫째로 뽑혔다.
 regression.prospective-final-boundary.conjunction	그다	verb	no-match	0	6	그리고 소식을 알렸다.

@@ -161,7 +161,8 @@ impl MorphMatcher {
                     return None;
                 }
                 let remaining = &consumption_following[normalized_consumed..];
-                if let Some(resolver) = self.constraint_resolver.as_ref()
+                if branch.decision.is_structural()
+                    && let Some(resolver) = self.constraint_resolver.as_ref()
                     && matches!(
                         rule_path.as_slice(),
                         [.., connective, particle]
@@ -245,7 +246,11 @@ impl MorphMatcher {
                 ) {
                     let end = hit.span.end + consumed_bytes;
                     if !context::next_word(haystack, end).is_some_and(|next| {
-                        has_negative_auxiliary(&next, *pos, self.constraint_resolver.as_ref())
+                        let resolver = self
+                            .constraint_resolver
+                            .as_ref()
+                            .filter(|_| branch.decision.is_structural());
+                        has_negative_auxiliary(&next, *pos, resolver)
                     }) {
                         return None;
                     }

@@ -281,7 +281,24 @@ pub struct CandidateProgram {
 impl CandidateProgram {
     #[must_use]
     pub fn uses_optional_component(&self) -> bool {
-        self.consumption.composes_copula_host() || self.is_attributive_pronoun_contraction()
+        self.consumption.composes_copula_host()
+            || self.is_attributive_pronoun_contraction()
+            || self.can_extend_attached_auxiliary()
+    }
+
+    #[must_use]
+    pub fn can_extend_attached_auxiliary(&self) -> bool {
+        matches!(
+            self.consumption,
+            CandidateConsumption::PredicateContinuation {
+                continuation: ContinuationState::AOrEo,
+                pos: PredicatePos::Verb
+                    | PredicatePos::Adjective
+                    | PredicatePos::AuxiliaryVerb
+                    | PredicatePos::AuxiliaryAdjective,
+                ..
+            }
+        )
     }
 
     #[must_use]
