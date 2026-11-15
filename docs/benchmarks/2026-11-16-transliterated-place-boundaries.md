@@ -13,7 +13,7 @@ MeCab-ko-dic 2.1.1-20180720의 `Place.csv`에서 `NNP` 복합어 중
 | 아리시 | Arish | [대외경제정책연구원](https://www.kiep.re.kr/galleryDownload.es?bid=0001&list_no=10992&seq=1) |
 | 아카시 | 明石 / Akashi | [일본정부관광국](https://www.japan.travel/ko/spot/2350/) |
 | 인구시 | Ingush | [Unicode CLDR](https://www.unicode.org/cldr/cldr-aux/charts/32/subdivisionNames/cjk.html) |
-| 칼리시 | Kalisz | [칼리시 시청](https://www.kalisz.pl/en/city/about-kalisz/the-history-of-kalisz) · [국립국어원 폴란드어 어말 표기](https://www.korean.go.kr/front/onlineQna/onlineQnaView.do?mn_id=261&pageIndex=1&qna_seq=327451) |
+| 칼리시 | Kalisz | [칼리시 시청](https://www.kalisz.pl/en/city/about-kalisz/the-history-of-kalisz) · [외래어 표기법 제8절 폴란드어](https://www.korean.go.kr/kornorms/regltn/regltnView.do?regltn_code=0003) |
 | 콜로라도 | Colorado | [국립국어원 외래어 심의 자료](https://www.korean.go.kr/nkview/foreign/gxfor15_12.html) |
 
 ## 품질
