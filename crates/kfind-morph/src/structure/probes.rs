@@ -2,11 +2,11 @@ use crate::structure::ConstraintResolver;
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
-    complete_dependent_noun_particle_suffix, complete_ha_predicate_path, complete_nominal_host,
-    complete_nominal_particle_host, complete_predicate_ending_path, complete_suffix,
-    exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
-    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
-    structural_predicate_pos_matches,
+    complete_dependent_noun_particle_suffix, complete_ha_predicate_path, complete_inflected_ending,
+    complete_nominal_host, complete_nominal_particle_host, complete_predicate_ending_path,
+    complete_suffix, exact_analysis_starts_with_pos, has_adnominal_result_complement,
+    has_complete_object_phrase, has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at,
+    predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -1077,6 +1077,73 @@ impl ConstraintResolver {
                             tail,
                             &[StructuralPos::XSA, StructuralPos::EC],
                         ));
+            });
+        found
+    }
+
+    #[must_use]
+    pub fn has_derived_ha_predicate_crossing(&self, text: &str, prefix_end: usize) -> bool {
+        let mut found = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |root_end, root| {
+                if found
+                    || root_end <= prefix_end
+                    || root_end == text.len()
+                    || !matches!(root, [StructuralPos::NNG | StructuralPos::XR])
+                {
+                    return;
+                }
+                let tail = &text[root_end..];
+                if !tail.chars().next().is_some_and(|initial| {
+                    matches!(
+                        crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
+                        Some('하' | '해')
+                    )
+                }) {
+                    return;
+                }
+                self.resource
+                    .common_prefix_positions(tail.as_bytes(), |end, positions| {
+                        let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions
+                        else {
+                            return;
+                        };
+                        if endings.is_empty() && !matches!(&tail[..end], "하" | "해") {
+                            return;
+                        }
+                        if found {
+                            return;
+                        }
+                        let remaining = &tail[end..];
+                        found =
+                            complete_inflected_ending(&self.resource, endings, remaining, |pos| {
+                                matches!(
+                                    pos,
+                                    StructuralPos::EF
+                                        | StructuralPos::EC
+                                        | StructuralPos::ETM
+                                        | StructuralPos::ETN
+                                )
+                            }) || remaining.char_indices().any(|(split, _)| {
+                                let (predicate, noun) = tail.split_at(end + split);
+                                predicate.chars().next_back().is_some_and(|last| {
+                                    crate::hangul::decompose_syllable(last).is_some_and(
+                                        |syllable| {
+                                            matches!(
+                                                syllable.jongseong,
+                                                crate::hangul::JONG_NIEUN
+                                                    | crate::hangul::JONG_RIEUL
+                                            )
+                                        },
+                                    )
+                                }) && complete_inflected_ending(
+                                    &self.resource,
+                                    endings,
+                                    &remaining[..split],
+                                    |pos| pos == StructuralPos::ETM,
+                                ) && self.has_nominal_with_optional_particles(noun)
+                            });
+                    });
             });
         found
     }
