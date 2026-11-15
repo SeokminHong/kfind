@@ -11,9 +11,9 @@ use crate::structure::lexical::{
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
-    compound_predicate_component_is_supported, modifier_led_nominal_component_is_on_preferred_path,
-    nominal_component_is_supported, proper_noun_dependent_noun_frame,
-    runtime_nominal_component_is_supported,
+    compound_predicate_component_is_supported, has_grammatical_particle_component,
+    modifier_led_nominal_component_is_on_preferred_path, nominal_component_is_supported,
+    proper_noun_dependent_noun_frame, runtime_nominal_component_is_supported,
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, is_predicate_nominalization, nominal_derivation_before_predicate,
@@ -253,6 +253,12 @@ impl StructureSelection {
                                     && modifier_led_nominal_component_is_on_preferred_path(
                                         &spans.core,
                                         &spans.token,
+                                        text,
+                                        evidence,
+                                    )
+                                    && !has_grammatical_particle_component(
+                                        &spans.core,
+                                        selected,
                                         text,
                                         evidence,
                                     ))))

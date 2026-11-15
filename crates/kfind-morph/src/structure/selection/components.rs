@@ -2,10 +2,10 @@ use crate::structure::StructuralEvidence;
 use crate::structure::evidence::{TokenEvidence, minimum_unit_path};
 use crate::structure::graph::Unit;
 use crate::structure::paths::predicate::PredicateComponent;
-use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
+use crate::{CandidateSpans, MorphContinuation, ParticleVerifier, QueryMorphPattern};
 use kfind_data::DataFinePos;
 use std::ops::Range;
-use std::sync::OnceLock;
+use std::sync::{LazyLock, OnceLock};
 
 const NIKL_ATTACHED_NOMINAL_SUFFIXES: &str =
     include_str!("../../../../../data/rules/nikl-attached-nominal-suffixes.tsv");
@@ -110,6 +110,24 @@ fn nominal_source_component_is_on_preferred_path(
     evidence: &TokenEvidence,
 ) -> bool {
     component_is_on_preferred_path(core, selected, evidence, |unit| unit.pos.is_nominal())
+}
+
+pub(in crate::structure) fn has_grammatical_particle_component(
+    core: &Range<usize>,
+    host: &Range<usize>,
+    text: &str,
+    evidence: &TokenEvidence,
+) -> bool {
+    static VERIFIER: LazyLock<ParticleVerifier> = LazyLock::new(ParticleVerifier::default);
+
+    evidence
+        .units
+        .starting_at(core.start)
+        .iter()
+        .any(|unit| unit.span == *core && unit.pos.is_particle())
+        && VERIFIER
+            .verify_exact(&text[host.clone()], &text[core.clone()])
+            .is_some()
 }
 
 pub(in crate::structure) fn modifier_led_nominal_component_is_on_preferred_path(
