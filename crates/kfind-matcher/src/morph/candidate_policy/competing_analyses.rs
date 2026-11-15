@@ -73,10 +73,12 @@ fn has_competing_derived_predicate(
         || is_boundary_after(haystack, candidate.consumed.end)
         || branch.origins.is_empty()
         || !branch.origins.iter().all(|origin| {
-            origin
-                .rule_path
-                .last()
-                .is_some_and(|rule| matches!(rule.as_str(), "ending.aoeo" | "ending.connective-ji"))
+            origin.rule_path.last().is_some_and(|rule| {
+                matches!(
+                    rule.as_str(),
+                    "ending.aoeo" | "ending.connective-ji" | "ending.connective-go"
+                )
+            })
         })
     {
         return false;
