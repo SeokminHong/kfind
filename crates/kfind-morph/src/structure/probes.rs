@@ -1894,6 +1894,12 @@ impl ConstraintResolver {
         positions == PredicatePosSet::one(PredicatePos::Adjective) || excludes_object
     }
 
+    #[must_use]
+    pub fn has_independent_final_verb_with_object(&self, text: &str) -> bool {
+        let (positions, excludes_object) = self.independent_final_predicate::<true>(text);
+        positions.contains(PredicatePos::Verb) && !excludes_object
+    }
+
     fn independent_final_predicate<const CHECK_OBJECT: bool>(
         &self,
         text: &str,

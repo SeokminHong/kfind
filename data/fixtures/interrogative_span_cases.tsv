@@ -1,4 +1,8 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.fused-question.object	이다	adjective	no-match	17	23	벽에 그림을 걸까?
+regression.fused-question.object-polite	이다	adjective	no-match	20	29	여기에 액자를 걸까요?
+regression.fused-question.adnominal-polite	이다	adjective	smart-exact	21	30	상자 안에 넣은 걸까요?
+regression.fused-question.aligned-verb	걸다	verb	exact	17	23	벽에 그림을 걸까?
 krdict.ㄴ가:1	바쁘다	adjective	exact	17	26	요즘도 많이 바쁜가?
 krdict.ㄴ가:2	아프다	adjective	exact	20	29	자네는 어디가 아픈가?
 krdict.ㄴ가:3	이다	adjective	exact	39	45	회사를 그만둔다는 것이 사실인가?
