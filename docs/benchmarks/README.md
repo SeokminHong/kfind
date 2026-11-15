@@ -277,6 +277,8 @@ full-POS 프로필은 제품 기본 CLI와 같은 enriched 용언 metadata를 �
 프로필은 두 외부 어휘 resource를 모두 읽지 않는다.
 기본 실행은 kfind만 다시 측정하고 외부 결과는 저장된 스냅샷에서 읽는다. dev의 VCP/VCN
 분석 slice는 성능 측정에서 제외한다.
+`any`의 지정사 구조 회수는 `KFIND_COMPONENT_RESOURCE`에 검증할 리소스를 지정한 실행에서
+측정한다. 리소스 사용 여부가 서로 다른 Any 결과는 별도로 기록한다.
 Canonical fixture에는 샘플링 후보 전체를 수동 검토해 표준 맞춤법을 확인한 Korean-Kaist
 문장만 넣는다. 검토에서 제외한 Korean-Kaist 문장은 query-level gold가 없는 sentence
 registry로 보존하며 canonical 품질 합계에 넣지 않는다.
