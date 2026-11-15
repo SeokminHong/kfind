@@ -771,13 +771,13 @@ fn compile_productive(
                 ContinuationState::Terminal,
                 vec![rule("ending.archaic-interrogative-nyo")],
             );
+            push_derived(
+                branches,
+                entry,
+                present.clone(),
+                ContinuationState::Terminal,
+            );
         }
-        push_derived(
-            branches,
-            entry,
-            present.clone(),
-            ContinuationState::Terminal,
-        );
         present
     } else {
         past.clone()
