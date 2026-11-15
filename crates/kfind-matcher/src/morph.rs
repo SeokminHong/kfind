@@ -1050,6 +1050,34 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start > whole.start
+            && candidate.consumed.end == whole.end
+            && haystack[whole.start..core.start]
+                .iter()
+                .all(u8::is_ascii_digit)
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nng)
+            && context::normalized_token(haystack, core.clone())
+                .is_some_and(|unit| resolver.has_exact_counter(&unit))
+        {
+            return true;
+        }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && core.start == whole.start
+            && core.end < whole.end
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Mm)
+            && let [Some(count), Some(token)] =
+                [core.clone(), whole.clone()].map(|part| context::normalized_token(haystack, part))
+            && resolver.has_attached_unspecified_count(&count, &token)
+        {
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && candidate.consumed == *core
             && haystack.get(core.end..whole.end).is_some_and(|tail| {
                 tail.starts_with("간".as_bytes()) || tail.starts_with("간".as_bytes())

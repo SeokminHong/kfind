@@ -19,6 +19,29 @@ fn analyzer() -> LexiconQueryAnalyzer {
 }
 
 #[test]
+fn automatic_auxiliary_inflection_requires_a_verified_vowel_connective() {
+    let analyzer = analyzer();
+    for lemma in ["걸어지다", "해지다"] {
+        let plan = compile_query(lemma, &CompileOptions::default(), &analyzer).unwrap();
+        assert!(
+            plan.atoms[0]
+                .analyses
+                .iter()
+                .any(|analysis| analysis.coarse_pos == CoarsePos::Verb),
+            "{lemma}"
+        );
+    }
+    // The unattested host must not create an automatic predicate analysis.
+    let plan = compile_query("툰얽어지다", &CompileOptions::default(), &analyzer).unwrap();
+    assert!(
+        plan.atoms[0]
+            .analyses
+            .iter()
+            .all(|analysis| analysis.coarse_pos == CoarsePos::Literal)
+    );
+}
+
+#[test]
 fn plans_share_the_analyzers_particle_graph() {
     let analyzer = analyzer();
     let first = compile_query("학교", &CompileOptions::default(), &analyzer).unwrap();

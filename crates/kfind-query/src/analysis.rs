@@ -247,6 +247,9 @@ impl QueryAnalyzer for LexiconQueryAnalyzer {
         if let Some(productive) = self.lexicons.productive_predicate(&atom.raw) {
             return Ok(vec![productive]);
         }
+        if let Some(predicate) = crate::auxiliary::change_of_state(&self.lexicons, &atom.raw) {
+            return Ok(vec![predicate]);
+        }
         if atom.raw.ends_with('다') {
             return Ok(vec![exact_analysis(
                 &atom.raw,

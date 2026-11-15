@@ -18,6 +18,21 @@ fn stable_facade_exposes_named_match_provenance() {
 }
 
 #[test]
+fn attested_front_rank_verb_is_recognized_without_a_pos_override() {
+    let engine = Engine::new().unwrap();
+    let matcher = engine
+        .compile("앞다투다", &CompileOptions::default())
+        .unwrap();
+    let text = "앞다투어 신청했다. 업체들이 앞다퉈 출시했다.";
+    let matches = matcher.find_all(text.as_bytes());
+    let surfaces = matches
+        .iter()
+        .map(|found| &text[found.span.clone()])
+        .collect::<Vec<_>>();
+    assert_eq!(surfaces, ["앞다투어", "앞다퉈"]);
+}
+
+#[test]
 fn disjunction_finds_each_alternative_in_source_order() {
     let engine = Engine::new().unwrap();
     let matcher = engine

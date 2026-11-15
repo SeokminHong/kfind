@@ -1763,6 +1763,38 @@ impl ConstraintResolver {
         matched
     }
 
+    #[must_use]
+    pub fn has_attached_unspecified_count(&self, count: &str, token: &str) -> bool {
+        if !UNSPECIFIED_COUNTER_QUANTITIES.contains(&count) {
+            return false;
+        }
+        let Some(following) = token.strip_prefix(count) else {
+            return false;
+        };
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(following.as_bytes(), |len, positions| {
+                matched |= positions == [StructuralPos::NNBC]
+                    && complete_suffix(
+                        &self.resource,
+                        &following[len..],
+                        StructuralPos::is_particle,
+                    );
+            });
+        if !matched || self.has_exact_adverb_surface(token) {
+            return false;
+        }
+        let mut competing_nominal = false;
+        self.resource
+            .common_prefix_positions(token.as_bytes(), |len, positions| {
+                competing_nominal |= len > count.len()
+                    && matches!(positions, [pos, particles @ ..] if pos.is_nominal()
+                        && particles.iter().all(|pos| pos.is_particle()))
+                    && complete_suffix(&self.resource, &token[len..], StructuralPos::is_particle);
+            });
+        !competing_nominal
+    }
+
     fn has_quantity_unit(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
