@@ -16,6 +16,8 @@ Python adapter는 세 ZIP snapshot을 읽고 source record와 동형이의 ident
 만들고 두 사전의 합의를 확인합니다. 우리말샘은 audit evidence로 보존합니다. Core
 중복과 생산적 접사 규칙으로 만들 수 있는 분석은 report에만 기록하고 배포
 artifact에서는 제외합니다.
+두 사전이 확인한 형용사의 현재 관형형 `-는`은 표제어와 어미 결합을
+뒷받침하므로 배포 사전에 보존합니다.
 
 ```sh
 scripts/build-enriched-predicates.sh

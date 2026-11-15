@@ -771,8 +771,6 @@ fn compile_productive(
                 ContinuationState::Terminal,
                 vec![rule("ending.archaic-interrogative-nyo")],
             );
-        }
-        if entry.pos.is_action() {
             push_derived(
                 branches,
                 entry,

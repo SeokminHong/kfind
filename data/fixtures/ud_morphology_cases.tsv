@@ -2017,6 +2017,12 @@ regression.alternative-deunga.deunji	먹다	verb	only-exact	0	9	먹든지 말든
 regression.alternative-deunga.separate	먹다	verb	only-exact	14	20	그 집에서 먹어. 든가라는 말은 처음이다.
 regression.future-present-adnominal.dictionary	모르다	verb	only-exact	0	12	모르겠는 것은 다음 시간에 질문하세요.
 regression.future-present-adnominal.other-context	모르다	verb	only-exact	24	36	이미 알았던 것과 모르겠는 부분을 나눴다.
+regression.state-present-adnominal.compound	끊임없다	adjective	only-exact	0	12	끊임없는 노력이 성과를 냈다.
+regression.state-present-adnominal.another-compound	난데없다	adjective	only-exact	0	12	난데없는 소식이 들렸다.
+regression.state-present-adnominal.lexicalized-existence	맛있다	adjective	only-exact	0	9	맛있는 국이 나왔다.
+regression.state-present-adnominal.ordinary-adjective	작다	adjective	no-match-both	0	6	작는다는 잘못된 표기다.
+regression.state-present-adnominal.joined-nominal	있다	adjective	no-match	6	12	인기있는 집이다.
+regression.state-present-adnominal.independent	있다	adjective	only-exact	7	13	뜻이 있는 곳에 길이 열린다.
 regression.quotative-deonde.adjective	춥다	adjective	only-exact	20	32	강원도는 많이 춥다던데.
 regression.quotative-deonde.action	떠나다	verb	only-exact	30	45	지수가 내일 고향으로 떠난다던데.
 regression.quotative-deonde.past	잠들다	verb	only-exact	17	35	아이는 벌써 잠들었다던데.
