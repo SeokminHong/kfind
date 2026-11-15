@@ -6,3 +6,13 @@
 {"id":"biopnaida-pray-context","query":"빌다","pos":"verb","text":"군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.","surface":"비옵나이다","expected":false,"gold_byte_start":60,"gold_byte_end":75,"paired_case_id":"biopnaida-pray"}
 {"id":"biopnaida-empty-context","query":"비다","pos":"verb","text":"두 손 모아 폐하의 만수무강을 비옵나이다.","surface":"비옵나이다","expected":false,"gold_byte_start":41,"gold_byte_end":56,"paired_case_id":"biopnaida-empty"}
 {"id":"biopnaida-empty","query":"비다","pos":"verb","text":"군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.","surface":"비옵나이다","expected":true,"gold_byte_start":60,"gold_byte_end":75,"paired_case_id":"biopnaida-empty-context"}
+{"id":"biopnaida-object-no-empty","query":"비다","pos":"verb","text":"부디 합격을 비옵나이다.","surface":"비옵나이다","expected":false,"gold_byte_start":17,"gold_byte_end":32,"paired_case_id":"biopnaida-empty-autumn"}
+{"id":"biopnaida-empty-autumn","query":"비다","pos":"verb","text":"가을이면 사랑채가 비옵나이다.","surface":"비옵나이다","expected":true,"gold_byte_start":26,"gold_byte_end":41,"paired_case_id":"biopnaida-object-no-empty"}
+{"id":"seonaida-duty-no-firm-rice","query":"설다","pos":"verb","text":"저는 경비를 서나이다.","surface":"서나이다","expected":false,"gold_byte_start":17,"gold_byte_end":29,"paired_case_id":"seonaida-firm-rice"}
+{"id":"seonaida-firm-rice","query":"설다","pos":"verb","text":"밥이 조금 서나이다.","surface":"서나이다","expected":true,"gold_byte_start":14,"gold_byte_end":26,"paired_case_id":"seonaida-duty-no-firm-rice"}
+{"id":"junaida-payment-not-decrease","query":"줄다","pos":"verb","text":"제가 값을 주나이다.","surface":"주나이다","expected":false,"gold_byte_start":14,"gold_byte_end":26,"paired_case_id":"junaida-decrease-length"}
+{"id":"junaida-decrease-length","query":"줄다","pos":"verb","text":"가뭄에 강물이 한 자를 주나이다.","surface":"주나이다","expected":true,"gold_byte_start":31,"gold_byte_end":43,"paired_case_id":"junaida-payment-not-decrease"}
+{"id":"ginaida-path-not-grow","query":"길다","pos":"verb","text":"병사는 참호를 기나이다.","surface":"기나이다","expected":false,"gold_byte_start":20,"gold_byte_end":32,"paired_case_id":"ginaida-hair-length"}
+{"id":"ginaida-hair-length","query":"길다","pos":"verb","text":"아이의 머리카락이 한 치를 기나이다.","surface":"기나이다","expected":true,"gold_byte_start":37,"gold_byte_end":49,"paired_case_id":"ginaida-path-not-grow"}
+{"id":"doesanaida-repurchase-not-revival","query":"되살다","pos":"verb","text":"제가 그 땅을 되사나이다.","surface":"되사나이다","expected":false,"gold_byte_start":18,"gold_byte_end":33,"paired_case_id":"doesanaida-revival"}
+{"id":"doesanaida-revival","query":"되살다","pos":"verb","text":"잊힌 기억이 문득 되사나이다.","surface":"되사나이다","expected":true,"gold_byte_start":24,"gold_byte_end":39,"paired_case_id":"doesanaida-repurchase-not-revival"}

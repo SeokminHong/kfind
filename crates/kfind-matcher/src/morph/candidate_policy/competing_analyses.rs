@@ -64,7 +64,6 @@ pub(super) fn rejects(
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
-        || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
         || crosses_concessive_connective(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_inferred_adnominal(
             haystack, candidate, branch, atom, resolver,
@@ -525,40 +524,6 @@ fn has_conflicting_honorific(
                         .any(|rule| rule.as_str() == "ending.honorific")
                 })
         })
-}
-
-fn has_humble_object_frame(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    atom: &AtomPlan,
-    resolver: &ConstraintResolver,
-) -> bool {
-    let Some(contrast) = accusative_verb_competitor(branch, atom) else {
-        return false;
-    };
-    let core = &candidate.verified.core;
-    let whole = surrounding_token_span(haystack, core.clone());
-    if whole.start != core.start || !is_sentence_end_after(haystack, whole.end) {
-        return false;
-    }
-    context::previous_word_with_start(haystack, whole.start).is_some_and(|(start, previous)| {
-        resolver.has_object_marked_nominal(&previous)
-            && previous.strip_suffix(['을', '를']).is_some_and(|host| {
-                let count = context::previous_word(haystack, start);
-                !resolver.has_elapsed_measure(host, count.as_deref())
-                    && !resolver.has_quantity_expression(host, None)
-                    && count
-                        .as_deref()
-                        .is_none_or(|count| !resolver.has_quantity_expression(count, Some(host)))
-            })
-    }) && context::normalized_token(haystack, whole).is_some_and(|word| {
-        has_competitor_inflection(contrast, &word, |base, tail| {
-            tail.last()
-                .or_else(|| base.last())
-                .is_some_and(|rule| rule.as_str() == "ending.archaic-naida")
-        })
-    })
 }
 
 fn accusative_verb_competitor(branch: &CandidateProgram, atom: &AtomPlan) -> Option<usize> {
