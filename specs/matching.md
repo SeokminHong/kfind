@@ -504,8 +504,11 @@
   덮는 독립 명사 node가 있어 두 명사가 어절을 완성하는 경우에도 유지한다.
 - 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
   core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
-  구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
-  품사 경계로만 판정한다.
+  구조로 유지한다. host 전체에 사전 고유명사 분석이 있으면 사전 성분 경계를 따르며,
+  성이나 이름 뒤에 쓰이는 호칭·직책 `공·군·님·씨·양·옹`은 조사까지 확인한 인명
+  분절을 유지한다. 같은 host가 일반 명사로도 확인되고 끝 성분에 사전 명사 정렬이
+  있으면 그 성분도 유지한다. `이민자`의 `자`가 여기에 해당한다.
+  [국립국어원 호칭어 기준](https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=9122&mn_id=21&pageIndex=2)
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
@@ -717,6 +720,8 @@
 - compact와 full morphology resource는 source identity와 비용을 제거한 structural projection의
   exact/common-prefix hit, POS와 정렬 component span이 일치해야 한다. full artifact의 비용 경로는
   별도 진단으로 기록하되 compact 판정과의 일치 여부를 제품 gate로 사용하지 않는다.
+  두 리소스는 고정 원본에서 확인한 동일 분석을 사용한다. 공식 원어에서 이름 전체의 음역임이
+  확인된 지명에 행정 단위 성분이 잘못 붙어 있으면, 일치하는 원본 분석을 통째 고유명사로 적재한다.
 - 제품 matcher와 benchmark evaluator의 candidate coverage는 100%여야 한다. 고정 test의
   TP를 줄이거나 FP를 늘리지 않고, dev precision 99.00% 이상·revised hard-negative
   신규 FP 0·FN 비증가를 전환 게이트로 삼는다.

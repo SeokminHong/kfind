@@ -234,6 +234,20 @@ pub(in crate::structure) fn proper_noun_dependent_noun_frame(
         && matches!(pattern.continuation, MorphContinuation::NominalParticles)
         && spans.core.end == host.end
         && spans.consumed.end > spans.core.end
+        && (matches!(
+            pattern.lexical_form.as_ref(),
+            "공" | "군" | "님" | "씨" | "양" | "옹"
+        ) || (evidence.has_nominal_source_component(&spans.core)
+            && evidence.units.starting_at(host.start).iter().any(|unit| {
+                unit.span == *host
+                    && unit.pos == DataFinePos::Nng
+                    && unit.evidence != StructuralEvidence::SourceComponent
+            }))
+            || !evidence.units.starting_at(host.start).iter().any(|unit| {
+                unit.span == *host
+                    && unit.pos == DataFinePos::Nnp
+                    && unit.evidence != StructuralEvidence::SourceComponent
+            }))
         && evidence.units.all().iter().any(|unit| {
             unit.pos == DataFinePos::Nnp
                 && unit.span.start == host.start

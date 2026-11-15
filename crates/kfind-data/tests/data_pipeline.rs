@@ -945,6 +945,30 @@ fn mecab_source_morphology_preserves_all_pos_and_analysis_fields() {
 }
 
 #[test]
+fn mecab_source_morphology_keeps_transliterated_place_names_atomic() {
+    let csv = concat!(
+        "콜로라도,1789,3552,5497,NNP,지명,F,콜로라도,Compound,*,*,콜로라/NNP/지명+도/NNG/*\n",
+        "콜로라도주,1789,3541,5497,NNP,지명,F,콜로라도주,Preanalysis,NNP,NNG,콜로라도/NNP/지명+주/NNG/*\n",
+        "강원도,1789,3552,3377,NNP,지명,F,강원도,Compound,*,*,강원/NNG/*+도/NNG/*\n",
+    );
+    let extraction = extract_mecab_source_morphology("Place.csv", Cursor::new(csv)).unwrap();
+    assert_eq!(extraction.entries().len(), 3);
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "콜로라도"
+            && entry.pos == "NNP"
+            && entry.analysis_type == "*"
+            && entry.expression == "*"
+            && entry.word_cost == 5497
+    }));
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "콜로라도주" && entry.expression == "콜로라도/NNP/지명+주/NNG/*"
+    }));
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "강원도" && entry.expression == "강원/NNG/*+도/NNG/*"
+    }));
+}
+
+#[test]
 fn mecab_connection_matrix_preserves_unordered_costs() {
     let matrix = "2 3\n1 2 -7\n0 0 1\n1 0 5\n0 2 3\n0 1 -2\n1 1 4\n";
     let parsed = parse_mecab_connection_matrix("matrix.def", Cursor::new(matrix)).unwrap();

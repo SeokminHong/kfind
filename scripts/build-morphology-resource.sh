@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly MORPHOLOGY_SHA256="50bbaa64b06a080c7fa09c13e21090388a1c0f5109ed413546e0004ce7794f23"
+readonly MORPHOLOGY_SHA256="3e1a215ed3a70ec7e6056fac1806cd2587b4f3fc2315f4029c1a931aaba24ffb"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "${repo_root}/scripts/lib/full-pos-source.sh"

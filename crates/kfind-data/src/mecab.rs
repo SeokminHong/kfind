@@ -9,6 +9,8 @@ use crate::{DataError, DataErrorKind};
 const MAX_CONNECTION_COSTS: usize = 1 << 24;
 const INFLECTED_PREDICATE_ALIAS_ROWS: &[&str] =
     include!("../../../data/rules/mecab-inflected-predicate-aliases.rs");
+const TRANSLITERATED_PLACE_ANALYSES: &[(&str, &str)] =
+    include!("../../../data/rules/mecab-transliterated-place-boundaries.rs");
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MecabConnectionMatrix {
@@ -315,16 +317,32 @@ pub fn extract_mecab_source_morphology(
         }
         let surface = original.nfc().collect::<String>();
         normalized_surfaces += usize::from(surface != original);
+        let atomic_place = fields[4] == "NNP"
+            && fields[5] == "지명"
+            && fields[8] == "Compound"
+            && TRANSLITERATED_PLACE_ANALYSES
+                .binary_search(&(surface.as_str(), fields[11].as_str()))
+                .is_ok();
+        let (analysis_type, start_pos, end_pos, expression) = if atomic_place {
+            ("*", "*", "*", "*")
+        } else {
+            (
+                fields[8].as_str(),
+                fields[9].as_str(),
+                fields[10].as_str(),
+                fields[11].as_str(),
+            )
+        };
         entries.push(MecabSourceMorphologyEntry {
             surface,
             pos: fields[4].clone(),
             left_id: parse_integer(source, line_number, "left_id", &fields[1])?,
             right_id: parse_integer(source, line_number, "right_id", &fields[2])?,
             word_cost: parse_integer(source, line_number, "word_cost", &fields[3])?,
-            analysis_type: fields[8].clone(),
-            start_pos: fields[9].clone(),
-            end_pos: fields[10].clone(),
-            expression: fields[11].clone(),
+            analysis_type: analysis_type.to_owned(),
+            start_pos: start_pos.to_owned(),
+            end_pos: end_pos.to_owned(),
+            expression: expression.to_owned(),
         });
     }
 
