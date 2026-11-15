@@ -2072,3 +2072,5 @@ regression.joined-adnominal.clause-chain	새롭다	adjective	smart-exact	31	40	�
 regression.joined-adnominal.proper-name	세다	adjective	no-match	22	25	충성을 서약한게셀 왕이 편지를 보냈다.
 regression.joined-connective.purpose	위하다	verb	smart-exact	34	40	불꽃을 감지하고차단하기위해 센서를 설치했다.
 regression.joined-connective.result	되다	verb	smart-exact	31	34	신약으로 인해회복하게된 환자를 만났다.
+regression.joined-nominalized-topic.contracted	힘들다	adjective	smart-exact	19	28	계속 기다리긴힘들다.
+regression.joined-nominalized-topic.full	어렵다	adjective	smart-exact	22	31	당장 출발하기는어렵다.

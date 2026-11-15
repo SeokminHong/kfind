@@ -12,6 +12,7 @@ pub(in crate::structure) enum PredicateBoundary {
     None,
     Connective,
     Purpose,
+    NominalizedTopic,
 }
 
 const PREDICATE: u8 = 1;
@@ -19,6 +20,7 @@ const DERIVATION_ROOT: u8 = 2;
 const DERIVED_PREDICATE: u8 = 4;
 const AFTER_CONNECTIVE: u8 = 8;
 const LINKED_PREDICATE: u8 = 16;
+const GI_NOMINALIZER: u8 = 32;
 
 pub(in crate::structure) struct NominalPathFacts {
     pub(in crate::structure) particle_hosts: Box<[Range<usize>]>,
@@ -82,19 +84,41 @@ impl CommonPathFacts {
                 {
                     predicate_boundaries[edge.span.end] = PredicateBoundary::Connective;
                 }
-                if state & (PREDICATE | DERIVED_PREDICATE | LINKED_PREDICATE) != 0
+                let surface = &text[edge.span.clone()];
+                if state & (PREDICATE | DERIVED_PREDICATE | LINKED_PREDICATE) != 0 {
+                    match (surface, positions) {
+                        ("기", [StructuralPos::ETN]) => {
+                            predicate_path[edge.span.end] |= GI_NOMINALIZER;
+                            if predicate_boundaries[edge.span.end] == PredicateBoundary::None
+                                && text[edge.span.end..]
+                                    .strip_prefix('위')
+                                    .is_some_and(|tail| {
+                                        tail.chars().next().is_some_and(|initial| {
+                                            matches!(
+                                                replace_final(initial, JONG_NONE),
+                                                Some('하' | '해')
+                                            )
+                                        })
+                                    })
+                            {
+                                predicate_boundaries[edge.span.end] = PredicateBoundary::Purpose;
+                            }
+                        }
+                        ("긴" | "기는", [StructuralPos::ETN, StructuralPos::JX])
+                            if predicate_boundaries[edge.span.end] == PredicateBoundary::None =>
+                        {
+                            predicate_boundaries[edge.span.end] =
+                                PredicateBoundary::NominalizedTopic;
+                        }
+                        _ => {}
+                    }
+                }
+                if state & GI_NOMINALIZER != 0
                     && predicate_boundaries[edge.span.end] == PredicateBoundary::None
-                    && positions == [StructuralPos::ETN]
-                    && &text[edge.span.clone()] == "기"
-                    && text[edge.span.end..]
-                        .strip_prefix('위')
-                        .is_some_and(|tail| {
-                            tail.chars().next().is_some_and(|initial| {
-                                matches!(replace_final(initial, JONG_NONE), Some('하' | '해'))
-                            })
-                        })
+                    && surface == "는"
+                    && positions == [StructuralPos::JX]
                 {
-                    predicate_boundaries[edge.span.end] = PredicateBoundary::Purpose;
+                    predicate_boundaries[edge.span.end] = PredicateBoundary::NominalizedTopic;
                 }
                 let ends_in_connective = if start == 0 {
                     predicate_path_ends_in_connective(positions)
@@ -167,6 +191,9 @@ fn linked_prefix_flags(start: usize, state: u8, positions: &[StructuralPos]) -> 
         return DERIVATION_ROOT;
     }
     let active = DERIVED_PREDICATE | LINKED_PREDICATE;
+    if state & (DERIVATION_ROOT | AFTER_CONNECTIVE | active) == 0 {
+        return 0;
+    }
     let (end, next) = if state & DERIVATION_ROOT != 0
         && let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions
     {
