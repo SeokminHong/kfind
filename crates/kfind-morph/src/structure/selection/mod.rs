@@ -16,8 +16,9 @@ use crate::structure::selection::components::{
     proper_noun_dependent_noun_frame, runtime_nominal_component_is_supported,
 };
 use crate::structure::selection::runtime::{
-    composed_nominal_subpath, is_predicate_nominalization, nominal_derivation_before_predicate,
-    query_nominal_particle_path, runtime_position_is_supported,
+    composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
+    nominal_derivation_before_predicate, query_nominal_particle_path,
+    runtime_position_is_supported,
 };
 use crate::structure::{BoundedTokenContext, ConstraintSupport, StructuralEvidence};
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
@@ -112,6 +113,25 @@ impl StructureSelection {
         let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && pattern.fine_pos == DataFinePos::Np
+            && spans.core.start == spans.token.start
+            && spans.consumed == spans.core
+            && spans.core.end < spans.token.end
+            && !evidence.has_nominal_copula_host(&spans.core)
+            && (evidence
+                .leading_predicate_spans
+                .iter()
+                .chain(evidence.nominal_derivation_predicate_prefixes.iter())
+                .any(|part| part.end > spans.core.end)
+                || evidence
+                    .adnominal_derivation_suffix_starts
+                    .iter()
+                    .any(|start| *start > spans.core.end))
+            && !has_complete_nominal_tail(&spans.core, &spans.token, evidence)
+        {
+            return false;
+        }
         if let Self::ConnectiveJiNominalFrame { fallback } = self {
             return !pattern.fine_pos.is_predicate()
                 && fallback.accepts(support, spans, patterns, text, evidence);

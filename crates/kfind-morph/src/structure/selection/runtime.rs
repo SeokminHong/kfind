@@ -18,7 +18,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
     );
     let modifier_without_nominal_tail = pattern.fine_pos == DataFinePos::Mm
         && spans.core != spans.token
-        && !modifier_has_complete_nominal_tail(&spans.core, &spans.token, evidence);
+        && !has_complete_nominal_tail(&spans.core, &spans.token, evidence);
     let modifier_inside_longer_analysis = pattern.fine_pos == DataFinePos::Mm
         && starts_token
         && spans.core.end < spans.token.end
@@ -141,7 +141,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && !terminal_nominal_in_predicate_frame
 }
 
-fn modifier_has_complete_nominal_tail(
+pub(super) fn has_complete_nominal_tail(
     core: &Range<usize>,
     token: &Range<usize>,
     evidence: &TokenEvidence,
