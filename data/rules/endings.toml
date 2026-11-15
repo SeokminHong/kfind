@@ -1325,10 +1325,10 @@ terminal = true
 id = "ending.auxiliary-naeda"
 category = "connective"
 initial = "consonant"
-forms = ["내", "냈", "냄"]
+forms = ["내", "냈"]
 required = ["action-verb"]
 forbidden = []
-next = ["ending.final-da", "ending.past", "ending.nominalizer-gi", "ending.nominalizer"]
+next = ["ending.final-da", "ending.past"]
 terminal = false
 
 [[ending]]

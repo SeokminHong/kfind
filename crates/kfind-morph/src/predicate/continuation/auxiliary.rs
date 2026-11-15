@@ -144,23 +144,16 @@ pub(super) fn verify_completion_naeda(
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
     const NAEDA: &str = "ending.auxiliary-naeda";
-    for (form, terminal_rule) in [
-        ("내다", "ending.final-da"),
-        ("내기", "ending.nominalizer-gi"),
-        ("냄", "ending.nominalizer"),
-    ] {
-        if following
-            .strip_prefix(form)
-            .is_some_and(|tail| !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
-        {
-            return Some(with_auxiliary(
-                anchor_len,
-                form,
-                Some(terminal_rule),
-                matched(form.len(), None),
-                NAEDA,
-            ));
-        }
+    if let Some(tail) = following.strip_prefix("내다")
+        && !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_')
+    {
+        return Some(with_auxiliary(
+            anchor_len,
+            "내",
+            None,
+            matched('내'.len_utf8(), Some(&suffix("다", &["ending.final-da"]))),
+            NAEDA,
+        ));
     }
     following.starts_with('냈').then_some(())?;
     let result = verify_form(
