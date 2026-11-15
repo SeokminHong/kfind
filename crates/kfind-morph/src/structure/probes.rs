@@ -1111,21 +1111,38 @@ impl ConstraintResolver {
                         if endings.is_empty() && !matches!(&tail[..end], "하" | "해") {
                             return;
                         }
-                        found |= !found
-                            && complete_inflected_ending(
-                                &self.resource,
-                                endings,
-                                &tail[end..],
-                                |pos| {
-                                    matches!(
-                                        pos,
-                                        StructuralPos::EF
-                                            | StructuralPos::EC
-                                            | StructuralPos::ETM
-                                            | StructuralPos::ETN
+                        if found {
+                            return;
+                        }
+                        let remaining = &tail[end..];
+                        found =
+                            complete_inflected_ending(&self.resource, endings, remaining, |pos| {
+                                matches!(
+                                    pos,
+                                    StructuralPos::EF
+                                        | StructuralPos::EC
+                                        | StructuralPos::ETM
+                                        | StructuralPos::ETN
+                                )
+                            }) || remaining.char_indices().any(|(split, _)| {
+                                let (predicate, noun) = tail.split_at(end + split);
+                                predicate.chars().next_back().is_some_and(|last| {
+                                    crate::hangul::decompose_syllable(last).is_some_and(
+                                        |syllable| {
+                                            matches!(
+                                                syllable.jongseong,
+                                                crate::hangul::JONG_NIEUN
+                                                    | crate::hangul::JONG_RIEUL
+                                            )
+                                        },
                                     )
-                                },
-                            );
+                                }) && complete_inflected_ending(
+                                    &self.resource,
+                                    endings,
+                                    &remaining[..split],
+                                    |pos| pos == StructuralPos::ETM,
+                                ) && self.has_nominal_with_optional_particles(noun)
+                            });
                     });
             });
         found
