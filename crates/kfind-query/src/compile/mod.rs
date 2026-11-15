@@ -753,7 +753,7 @@ fn compile_nominal_contractions(
                     && ((pronoun && kind == "nominal-copula-ending-compose")
                         || (dependent_noun
                             && kind == "dependent-noun-copula-ending-compose"
-                            && boundary == crate::BoundaryPolicy::Smart)) =>
+                            && boundary != crate::BoundaryPolicy::Token)) =>
             {
                 output.push(DraftBranch {
                     anchor: rule.result.clone(),

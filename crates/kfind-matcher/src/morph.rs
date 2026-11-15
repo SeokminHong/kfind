@@ -2008,7 +2008,8 @@ fn unique_anchors(
                 && (branch.consumption.composes_copula_host()
                     || branch.is_attributive_pronoun_contraction()
                     || (atom.boundary == BoundaryPolicy::Any
-                        && branch.is_pronoun_topic_contraction()))
+                        && (branch.is_pronoun_topic_contraction()
+                            || branch.is_dependent_nominal_copula_ending())))
             {
                 continue;
             }

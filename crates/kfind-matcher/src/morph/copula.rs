@@ -112,16 +112,20 @@ impl MorphMatcher {
         resolver: &ConstraintResolver,
         patterns: &[kfind_morph::QueryMorphPattern],
     ) -> bool {
+        let dependent = branch.is_dependent_nominal_copula_ending()
+            || patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nnb
+                    && pattern.continuation == kfind_morph::MorphContinuation::NominalCopulaEnding
+            });
+        let pronoun = patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Np
+                && pattern.continuation == kfind_morph::MorphContinuation::NominalCopulaEnding
+        });
         if !matches!(
             branch.consumption,
             CandidateConsumption::NominalCopulaEndingChain { .. }
-        ) || !patterns.iter().any(|pattern| {
-            matches!(pattern.fine_pos, DataFinePos::Np | DataFinePos::Nnb)
-                && matches!(
-                    pattern.continuation,
-                    kfind_morph::MorphContinuation::NominalCopulaEnding
-                )
-        }) {
+        ) || !(dependent || pronoun)
+        {
             return false;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
@@ -136,13 +140,8 @@ impl MorphMatcher {
         };
         let normalized = anchor.nfc().collect::<String>();
         self.accepts_token_boundary(haystack, &candidate.verified, branch)
-            && ((patterns
-                .iter()
-                .any(|pattern| pattern.fine_pos == DataFinePos::Np)
-                && resolver.has_exact_pronoun_copula_ending_path(&normalized))
-                || (patterns
-                    .iter()
-                    .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
+            && ((pronoun && resolver.has_exact_pronoun_copula_ending_path(&normalized))
+                || (dependent
                     && follows_predicate_adnominal(haystack, whole.start, resolver)
                     && resolver.has_exact_dependent_copula_ending_path(&normalized)))
     }

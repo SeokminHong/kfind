@@ -1980,10 +1980,10 @@ regression.gopeuda.lexical-adjective-past	배다	verb	no-match	0	12	배고팠다
 regression.gopeuda.lexical-adjective-connective	배다	verb	no-match	0	12	배고프고 힘들었다.
 regression.gopeuda.lexical-adjective-positive	배고프다	adjective	smart-exact	0	12	배고팠다.
 regression.gopeuda.connective	먹다	verb	smart-exact	0	12	먹고프고 목도 말랐다.
-regression.geot-formal.declarative	것	noun	smart-exact	7	16	있을 겁니다.
-regression.geot-formal.interrogative	거	noun	smart-exact	4	13	갈 겁니까?
-regression.geot-formal.competing-verb	것	noun	no-match	10	19	소금을 겁니다.
-regression.geot-formal.token-interior	것	noun	no-match	7	16	있는 겁니다사
+regression.geot-formal.declarative	것	noun	only-exact	7	16	있을 겁니다.
+regression.geot-formal.interrogative	거	noun	only-exact	4	13	갈 겁니까?
+regression.geot-formal.competing-verb	것	noun	no-match-both	10	19	소금을 겁니다.
+regression.geot-formal.token-interior	것	noun	no-match-both	7	16	있는 겁니다사
 regression.pronoun-topic.jeo	저	pronoun	only-exact	0	3	전 마니아입니다.
 regression.pronoun-topic.na	나	pronoun	only-exact	0	3	난 간다.
 regression.pronoun-topic.neo	너	pronoun	only-exact	0	3	넌 누구야?
