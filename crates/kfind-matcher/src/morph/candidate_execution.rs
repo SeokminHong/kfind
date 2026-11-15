@@ -228,9 +228,21 @@ impl MorphMatcher {
                     let particle = self
                         .particle_verifier
                         .verify_prefix(host, &consumption_following[normalized_consumed..]);
-                    normalized_consumed =
-                        normalized_consumed.checked_add(particle.consumed_bytes)?;
-                    rule_path.extend(particle.rule_path);
+                    if !particle.rule_path.first().is_some_and(|rule| {
+                        matches!(
+                            rule.as_str(),
+                            "particle.dative"
+                                | "particle.dative.deoreo"
+                                | "particle.dative.bogo"
+                                | "particle.source.egeseo"
+                                | "particle.source.hanteseo"
+                                | "particle.subject.honorific"
+                        )
+                    }) {
+                        normalized_consumed =
+                            normalized_consumed.checked_add(particle.consumed_bytes)?;
+                        rule_path.extend(particle.rule_path);
+                    }
                 }
                 let consumed_bytes = match &consumption_following {
                     Cow::Borrowed(_) => normalized_consumed,
