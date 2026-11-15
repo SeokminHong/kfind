@@ -678,9 +678,13 @@ pub(in crate::structure) fn select_structure(
     if evidence.has_whole(DataFinePos::Nnp)
         && !evidence.has_whole(DataFinePos::Nng)
         && evidence.has_whole_predicate()
-        && context
-            .next
-            .is_some_and(|next| has_unambiguous_proper_name(resource, next))
+        && context.next.is_some_and(|next| {
+            has_unambiguous_proper_name(resource, next)
+                && (!evidence.adnominal_ends.contains(&context.current.len())
+                    || !nominal_particle_hosts(resource, next).iter().any(|host| {
+                        has_exact_sequence(resource, &next[host.clone()], &[StructuralPos::NNG])
+                    }))
+        })
     {
         if context.previous.is_some_and(|previous| {
             has_complete_object_phrase(resource, previous)
