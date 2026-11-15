@@ -717,6 +717,8 @@
 - compact와 full morphology resource는 source identity와 비용을 제거한 structural projection의
   exact/common-prefix hit, POS와 정렬 component span이 일치해야 한다. full artifact의 비용 경로는
   별도 진단으로 기록하되 compact 판정과의 일치 여부를 제품 gate로 사용하지 않는다.
+  두 리소스는 고정 원본에서 확인한 동일 분석을 사용한다. 공식 원어에서 이름 전체의 음역임이
+  확인된 지명에 행정 단위 성분이 잘못 붙어 있으면, 일치하는 원본 분석을 통째 고유명사로 적재한다.
 - 제품 matcher와 benchmark evaluator의 candidate coverage는 100%여야 한다. 고정 test의
   TP를 줄이거나 FP를 늘리지 않고, dev precision 99.00% 이상·revised hard-negative
   신규 FP 0·FN 비증가를 전환 게이트로 삼는다.
