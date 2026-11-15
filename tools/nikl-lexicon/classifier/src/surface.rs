@@ -213,9 +213,17 @@ pub fn collect_surfaces(
     let mut generated_conjugation_count = 0;
     let mut output = Vec::new();
     for (key, evidence) in &conjugations {
-        let generated = analyses
-            .get(&(key.lemma.clone(), key.pos.clone()))
-            .is_some_and(|entries| entries.iter().any(|entry| generates(entry, &key.surface)));
+        // This record attests the adjective's lemma and its admission of present -는.
+        // The classifier can test generation with a synthesized lemma, without the full POS lexicon.
+        let adjective_present_adnominal = key.pos == "VA"
+            && key
+                .surface
+                .strip_suffix('는')
+                .is_some_and(|stem| key.lemma.strip_suffix('다') == Some(stem));
+        let generated = !adjective_present_adnominal
+            && analyses
+                .get(&(key.lemma.clone(), key.pos.clone()))
+                .is_some_and(|entries| entries.iter().any(|entry| generates(entry, &key.surface)));
         if generated {
             generated_conjugation_count += 1;
         } else {
@@ -480,6 +488,29 @@ mod tests {
                 .collect(),
             attested_adverbials: BTreeMap::new(),
         }
+    }
+
+    #[test]
+    fn keeps_present_adnominal_evidence_for_adjectives() {
+        let mut records = Vec::new();
+        for (source, id) in [("krdict", "k1"), ("stdict", "s1")] {
+            let mut adjective = voice_record(source, id, "채신없다", None);
+            adjective.pos = "VA".to_owned();
+            adjective.conjugations.insert("채신없는".to_owned());
+            records.push(adjective);
+
+            let mut verb = voice_record(source, id, "먹다", None);
+            verb.conjugations.insert("먹는".to_owned());
+            records.push(verb);
+        }
+
+        let surfaces = collect_surfaces(&records, &[], &BTreeMap::new(), &CoreEntries::new(), &[]);
+
+        assert_eq!(surfaces.agreed_conjugation_count, 2);
+        assert_eq!(surfaces.generated_conjugation_count, 1);
+        assert_eq!(surfaces.candidates.len(), 1);
+        assert_eq!(surfaces.candidates[0].key.lemma, "채신없다");
+        assert_eq!(surfaces.candidates[0].key.surface, "채신없는");
     }
 
     #[test]
