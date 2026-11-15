@@ -144,23 +144,16 @@ pub(super) fn verify_completion_naeda(
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
     const NAEDA: &str = "ending.auxiliary-naeda";
-    for (form, terminal_rule) in [
-        ("내다", "ending.final-da"),
-        ("내기", "ending.nominalizer-gi"),
-        ("냄", "ending.nominalizer"),
-    ] {
-        if following
-            .strip_prefix(form)
-            .is_some_and(|tail| !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
-        {
-            return Some(with_auxiliary(
-                anchor_len,
-                form,
-                Some(terminal_rule),
-                matched(form.len(), None),
-                NAEDA,
-            ));
-        }
+    if let Some(tail) = following.strip_prefix("내다")
+        && !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_')
+    {
+        return Some(with_auxiliary(
+            anchor_len,
+            "내",
+            None,
+            matched('내'.len_utf8(), Some(&suffix("다", &["ending.final-da"]))),
+            NAEDA,
+        ));
     }
     following.starts_with('냈').then_some(())?;
     let result = verify_form(
@@ -171,32 +164,6 @@ pub(super) fn verify_completion_naeda(
         Some("ending.past"),
         NAEDA,
     )?;
-    (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
-        .then_some(result)
-}
-
-pub(super) fn verify_juda_or_beorida(
-    anchor_len: usize,
-    following: &str,
-) -> Option<PredicateContinuationMatch> {
-    let (form, state, ending, auxiliary) = if following.starts_with("준다") {
-        (
-            "준다",
-            ContinuationState::Declarative,
-            "ending.declarative",
-            "ending.auxiliary-juda",
-        )
-    } else if following.starts_with("버렸") {
-        (
-            "버렸",
-            ContinuationState::Past,
-            "ending.past",
-            "ending.auxiliary-beorida",
-        )
-    } else {
-        return None;
-    };
-    let result = verify_form(anchor_len, following, form, state, Some(ending), auxiliary)?;
     (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
         .then_some(result)
 }
