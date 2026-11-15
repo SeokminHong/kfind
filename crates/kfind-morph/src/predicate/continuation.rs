@@ -3532,6 +3532,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-nieundeul"
                         | "ending.concessive-damaneun"
                         | "ending.concessive-nama"
+                        | "ending.geodeun-short"
                         | "ending.alternating-rak"
                         | "ending.causal-nimankeum"
                         | "ending.causal-jira"
