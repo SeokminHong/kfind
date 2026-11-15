@@ -2066,3 +2066,11 @@ regression.joined-purpose.separate	위하다	verb	smart-exact	26	32	목소리를
 regression.joined-purpose.adnominal	위하다	verb	smart-exact	22	28	시설을 개선하기위한 계획이다.
 regression.joined-purpose.independent-verb	위하다	verb	smart-exact	16	22	점심을 먹기위해 자리를 비웠다.
 regression.joined-purpose.lexical-noun	위하다	verb	no-match	20	26	위원회는 화재 위험성을 점검했다.
+regression.joined-adnominal.two-adnominals	많다	adjective	smart-exact	22	28	원주민을 포함한많은 사람이 의견을 냈다.
+regression.joined-adnominal.connective	새롭다	adjective	smart-exact	25	34	현장을 확장하면서새로운 건물을 세웠다.
+regression.joined-adnominal.clause-chain	새롭다	adjective	smart-exact	31	40	직원이 차용해서개발한새로운 도구를 공개했다.
+regression.joined-adnominal.proper-name	세다	adjective	no-match	22	25	충성을 서약한게셀 왕이 편지를 보냈다.
+regression.joined-connective.purpose	위하다	verb	smart-exact	34	40	불꽃을 감지하고차단하기위해 센서를 설치했다.
+regression.joined-connective.result	되다	verb	smart-exact	31	34	신약으로 인해회복하게된 환자를 만났다.
+regression.joined-nominalized-topic.contracted	힘들다	adjective	smart-exact	19	28	계속 기다리긴힘들다.
+regression.joined-nominalized-topic.full	어렵다	adjective	smart-exact	22	31	당장 출발하기는어렵다.

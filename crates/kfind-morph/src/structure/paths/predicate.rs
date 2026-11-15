@@ -68,6 +68,11 @@ pub(in crate::structure) fn compound_predicate_components(
         let Some((&first, suffix_positions)) = graph.positions(edge).split_first() else {
             continue;
         };
+        if predicate_boundaries[edge.span.start] == PredicateBoundary::NominalizedTopic
+            && !matches!(first, StructuralPos::VV | StructuralPos::VA)
+        {
+            continue;
+        }
         let Some(pos) = first.fine_pos().filter(|pos| pos.is_predicate()) else {
             continue;
         };
