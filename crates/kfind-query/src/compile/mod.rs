@@ -23,6 +23,8 @@ use normalization::{DraftBranch, DraftDecision, normalize_and_merge, normalize_a
 
 const PROGRAM_OVERHEAD_BYTES: usize = 64;
 const NIKL_ENDING_CATALOG: &str = include_str!("../../../../data/rules/nikl-modern-endings.tsv");
+const ADVERB_TOPIC_CONTRACTION_HOSTS: &str =
+    include_str!("../../../../data/rules/adverb-topic-contraction-hosts.txt");
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
@@ -482,13 +484,22 @@ fn compile_analysis(
                 && let Some(contracted) =
                     kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
             {
-                if options.boundary == crate::BoundaryPolicy::Smart {
+                let smart = options.boundary == crate::BoundaryPolicy::Smart;
+                if smart
+                    || ADVERB_TOPIC_CONTRACTION_HOSTS
+                        .lines()
+                        .any(|lemma| lemma == atom_surface)
+                {
                     output.push(exact_branch_with_decision(
                         &contracted,
                         analysis_index,
                         vec![RuleId::from("contraction.adverb-topic-neun")],
                         true,
-                        DraftDecision::Structural(ComponentCapability::Source),
+                        if smart {
+                            DraftDecision::Structural(ComponentCapability::Source)
+                        } else {
+                            DraftDecision::Boundary
+                        },
                     ));
                 }
                 output.push(DraftBranch {
