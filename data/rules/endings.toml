@@ -1332,6 +1332,26 @@ next = ["ending.final-da", "ending.past", "ending.nominalizer-gi", "ending.nomin
 terminal = false
 
 [[ending]]
+id = "ending.auxiliary-juda"
+category = "connective"
+initial = "consonant"
+forms = ["준다"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.declarative"]
+terminal = false
+
+[[ending]]
+id = "ending.auxiliary-beorida"
+category = "connective"
+initial = "consonant"
+forms = ["버렸"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.past"]
+terminal = false
+
+[[ending]]
 id = "ending.auxiliary-boda"
 category = "prefinal"
 initial = "other"
