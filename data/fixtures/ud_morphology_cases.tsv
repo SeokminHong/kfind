@@ -1769,6 +1769,9 @@ corpus.ud-gsd.test.test-s930.verb.negative-topic	거주하다	verb	smart-exact	1
 regression.negative-particle.past-additive	먹다	verb	smart-exact	0	12	먹었지도 않아요.
 regression.negative-particle.honorific-additive	먹다	verb	smart-exact	0	15	먹으시지도 않았어요.
 regression.negative-particle.prohibitive-object	먹다	verb	smart-exact	0	9	먹지를 마세요.
+regression.nominalized-predicate.adverb-dative	하다	verb	no-match	10	16	옆에서 함께 웃었다.
+regression.nominalized-predicate.place-particle	하다	verb	only-exact	11	17	그 일을 함에 어려움이 따른다.
+regression.nominalized-predicate.human-dative	선생님	noun	only-exact	0	12	선생님께 편지를 드렸다.
 corpus.ud-gsd.test.test-s75.adjective.simultaneous-additive	안쓰럽다	adjective	smart-exact	94	115	일흔이라는 나이도 잊은 채 매서운 추위에도 굴을 캐고 있는 할머니가 안쓰러우면서도 자랑스럽게 여겨졌다.
 regression.simultaneous-additive.rieul	알다	verb	smart-exact	0	12	알면서도 숨겼다.
 regression.simultaneous-additive.rieul-honorific	알다	verb	smart-exact	0	15	아시면서도 숨겼다.
