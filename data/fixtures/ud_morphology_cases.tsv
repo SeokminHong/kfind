@@ -208,6 +208,9 @@ regression.interrogative-na.adjective	많다	adjective	exact	0	6	많나?
 regression.interrogative-na.embedded-past	먹다	verb	exact	0	9	먹었나 싶었다.
 regression.interrogative-na.future	돕다	verb	exact	0	9	돕겠나?
 regression.interrogative-na.concessive	많다	adjective	only-exact	0	9	많으나 부족한 부분이 있다.
+regression.short-alternative-ending.paired	사다	verb	exact	7	13	네가 사건 말건 상관없다.
+regression.short-alternative-ending.nominal	사다	verb	no-match	4	10	이 사건은 따로 조사한다.
+regression.short-alternative-ending.other-nominal	물다	verb	no-match	4	10	그 물건을 내놓았다.
 corpus.ud-gsd.test.test-s9.verb.interrogative-na	있다	verb	exact	30	36	서울에 커피전문점 뭐 있나
 corpus.ud-gsd.test.test-s315.verb.interrogative-na	맞다	verb	exact	50	56	한국을 괴롭히던 옛날의 그 사우디가 맞나 싶을 정도였다.
 regression.nominalizer-gil.consonant	읽다	verb	smart-exact	7	13	책을 읽길 바란다.
