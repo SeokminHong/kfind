@@ -2037,6 +2037,9 @@ regression.resultative-ja.cold	차갑다	adjective	only-exact	7	22	물이 차가
 regression.resultative-ja.separate	가깝다	adjective	only-exact	0	9	가까워. 자, 이제 출발하자.
 regression.completion-naeda.attached	만들다	verb	only-exact	21	36	한국인, 기적을 만들어내다.
 regression.completion-naeda.past	풀다	verb	only-exact	20	32	어려운 문제를 풀어냈다.
+regression.completion-naeda.nominalized-gi	만들다	verb	only-exact	10	25	작품을 만들어내기 시작했다.
+regression.completion-naeda.nominalized-mieum	그리다	verb	only-exact	29	38	마감일까지 설계도를 그려냄.
+regression.completion-naeda.nominalized-separate	만들다	verb	only-exact	10	19	서류를 만들어 내기 전에 확인했다.
 regression.completion-naeda.separate	만들다	verb	only-exact	10	19	기적을 만들어 내다.
 regression.completion-naeda.nominal-prefix	만들다	verb	only-exact	10	19	서류를 만들어 내일 제출한다.
 regression.completion-naeda.derived-ha	하다	verb	no-match	16	25	공장이 생산해냈다.
