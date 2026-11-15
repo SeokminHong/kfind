@@ -114,4 +114,7 @@ binaida-counted-duration	비다	verb	exact	24	36	연회장은 두 주를 비나�
 binaida-semester	비다	verb	smart-exact	25	37	그 방은 한 학기를 비나이다.
 binaida-seasons	비다	verb	smart-exact	25	37	그 방은 두 계절을 비나이다.
 binaida-quarter	비다	verb	smart-exact	25	37	그 방은 한 분기를 비나이다.
+seonaida-duty-verb	서다	verb	smart-exact	17	29	저는 경비를 서나이다.
+seonaida-duty-no-firm-rice	설다	verb	no-match	17	29	저는 경비를 서나이다.
+seonaida-firm-rice	설다	verb	smart-exact	14	26	밥이 조금 서나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
