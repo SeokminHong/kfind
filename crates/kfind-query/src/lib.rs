@@ -2,6 +2,7 @@
 
 mod analysis;
 mod ast;
+mod auxiliary;
 mod compile;
 mod error;
 mod lexer;

@@ -177,6 +177,17 @@ pub fn generate_predicate_branches(
     Ok(branches)
 }
 
+/// Checks a vowel connective against the lexical entry's inflection.
+#[must_use]
+pub fn has_vowel_connective_surface(entry: &PredicateEntry, surface: &str) -> bool {
+    entry
+        .lemma
+        .strip_suffix('다')
+        .filter(|stem| !stem.is_empty())
+        .and_then(|stem| aeo_surfaces(entry, stem).ok())
+        .is_some_and(|forms| forms.iter().any(|form| form.surface == surface))
+}
+
 fn contract_eoji_stem(entry: &PredicateEntry, stem: &str) -> Option<String> {
     if !entry.pos.is_action() || entry.alternation != LexicalAlternation::Regular {
         return None;
