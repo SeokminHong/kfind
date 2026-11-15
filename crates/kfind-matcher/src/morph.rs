@@ -818,6 +818,22 @@ impl MorphMatcher {
             return self
                 .accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns);
         }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            }
+        ) && branch.anchor.as_ref() == "다".as_bytes()
+            && !is_boundary_before(haystack, candidate.anchor.start)
+        {
+            let whole = surrounding_token_span(haystack, candidate.anchor.clone());
+            return context::normalized_token(haystack, whole.start..candidate.anchor.start)
+                .and_then(|host| host.chars().next_back())
+                .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, "다"))
+                && self
+                    .accepts_product_copula_frame(haystack, candidate, branch, resolver, patterns);
+        }
         if self.accepts_nominal_copula_ending(haystack, candidate, branch, resolver, patterns) {
             return true;
         }

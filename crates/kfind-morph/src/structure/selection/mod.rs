@@ -42,7 +42,9 @@ pub(in crate::structure) enum StructureSelection {
     },
     NominalWhole,
     NominalOrContinuedPredicate,
-    RelativeLocationNoun,
+    RelativeLocationNoun {
+        preserves_determiner: bool,
+    },
     NominalOrAdverbWhole,
     BeforeHonorificSsi {
         preserves_anonymous_pronoun: bool,
@@ -183,9 +185,12 @@ impl StructureSelection {
                         && spans.anchor.end < spans.consumed.end
                         && spans.consumed == spans.token)
             }
-            Self::RelativeLocationNoun => {
+            Self::RelativeLocationNoun {
+                preserves_determiner,
+            } => {
                 support.evidence == StructuralEvidence::Whole
-                    && matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnb)
+                    && (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnb)
+                        || (*preserves_determiner && pattern.fine_pos == DataFinePos::Mm))
             }
             Self::BeforeHonorificSsi {
                 preserves_anonymous_pronoun,
@@ -500,25 +505,31 @@ pub(in crate::structure) fn select_structure(
                 || has_complete_object_phrase(resource, next)
                 || has_complete_subject_phrase(resource, next)
         })
-        && context.previous.is_some_and(|previous| {
-            !exact_analysis_starts_with_pos(resource, previous, StructuralPos::is_predicate_tag)
-                && (previous.strip_suffix('의').is_some_and(|host| {
-                    complete_nominal_host(resource, host)
-                        && has_exact_sequence(resource, "의", &[StructuralPos::JKG])
-                }) || (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
-                    && complete_nominal_particle_host(resource, previous).is_none_or(|host| {
-                        has_exact_sequence(resource, previous, &[StructuralPos::NNP])
-                            && !has_exact_sequence(
-                                resource,
-                                &previous[host.end..],
-                                &[StructuralPos::JKB],
-                            )
-                            && !has_complete_subject_phrase(resource, previous)
-                            && !has_complete_object_phrase(resource, previous)
-                    })))
-        })
+        && let Some(previous) = context.previous
+        && !exact_analysis_starts_with_pos(resource, previous, StructuralPos::is_predicate_tag)
     {
-        return StructureSelection::RelativeLocationNoun;
+        let genitive_reference = previous.strip_suffix('의').is_some_and(|host| {
+            complete_nominal_host(resource, host)
+                && has_exact_sequence(resource, "의", &[StructuralPos::JKG])
+        });
+        if genitive_reference
+            || (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
+                && complete_nominal_particle_host(resource, previous).is_none_or(|host| {
+                    has_exact_sequence(resource, previous, &[StructuralPos::NNP])
+                        && !has_exact_sequence(
+                            resource,
+                            &previous[host.end..],
+                            &[StructuralPos::JKB],
+                        )
+                        && !has_complete_subject_phrase(resource, previous)
+                        && !has_complete_object_phrase(resource, previous)
+                }))
+        {
+            return StructureSelection::RelativeLocationNoun {
+                preserves_determiner: genitive_reference
+                    && RELATIVE_LOCATION_HOMOGRAPHIC_DETERMINERS.contains(&context.current),
+            };
+        }
     }
     if evidence.has_whole(DataFinePos::Mag)
         && evidence

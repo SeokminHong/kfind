@@ -64,6 +64,14 @@ impl MorphMatcher {
             return false;
         };
         let host = host.nfc().collect::<String>();
+        if branch.anchor.as_ref() == "다".as_bytes()
+            && !resolver.has_exact_nominal_surface(&host)
+            && (resolver.has_exact_non_copula_predicate_surface(&token)
+                || resolver.has_independent_final_predicate(&token)
+                || resolver.has_nominal_with_optional_particles(&token))
+        {
+            return false;
+        }
         if host.ends_with('하')
             && context::previous_word(haystack, whole.start)
                 .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
