@@ -1,7 +1,11 @@
-use std::ops::Range;
+use std::{ops::Range, sync::OnceLock};
 
 use kfind_data::DataFinePos;
-use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, RuleId};
+use kfind_morph::{
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LexicalAlternation, PredicateEntry,
+    PredicatePos, RuleId, SurfaceBranchSpec, generate_predicate_branches,
+    verify_predicate_continuation,
+};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
@@ -16,6 +20,9 @@ use super::super::{
 
 mod nominal;
 mod quantity;
+
+const DROP_RIEUL_OBJECT_CONTRASTS: &[(&str, &str)] =
+    include!("../../../../../data/rules/krdict-drop-rieul-object-contrasts.rs");
 
 pub(super) fn rejects(
     haystack: &[u8],
@@ -423,13 +430,19 @@ fn has_conflicting_honorific(
                     .is_some_and(|prefix| !resolver.has_vowel_connective_host(&prefix))
         });
     }
-    // Auxiliary 주다 takes an -아/-어 connective. Its honorific overlaps with 줄다.
-    branch.origins.iter().all(|origin| {
-        atom.analyses
-            .get(usize::from(origin.analysis_index))
-            .is_some_and(|analysis| analysis.lemma.as_ref() == "줄다")
-    }) && context::previous_word(haystack, start)
+    let Some(contrast) = accusative_verb_competitor(branch, atom) else {
+        return false;
+    };
+    context::previous_word(haystack, start)
         .is_some_and(|previous| resolver.has_request_auxiliary_host(&previous))
+        && context::normalized_token(haystack, token).is_some_and(|word| {
+            resolver.has_vowel_auxiliary_inflection(&word, PredicatePos::Verb)
+                && has_competitor_inflection(contrast, &word, |base, tail| {
+                    base.iter()
+                        .chain(tail)
+                        .any(|rule| rule.as_str() == "ending.honorific")
+                })
+        })
 }
 
 fn has_humble_object_frame(
@@ -439,26 +452,12 @@ fn has_humble_object_frame(
     atom: &AtomPlan,
     resolver: &ConstraintResolver,
 ) -> bool {
-    if branch.origins.is_empty()
-        || !branch.origins.iter().all(|origin| {
-            atom.analyses
-                .get(usize::from(origin.analysis_index))
-                .is_some_and(|analysis| analysis.lemma.as_ref() == "비다")
-        })
-    {
+    let Some(contrast) = accusative_verb_competitor(branch, atom) else {
         return false;
-    }
+    };
     let core = &candidate.verified.core;
     let whole = surrounding_token_span(haystack, core.clone());
-    if whole.start != core.start
-        || !is_sentence_end_after(haystack, whole.end)
-        || !context::normalized_token(haystack, core.end..whole.end).is_some_and(|ending| {
-            matches!(
-                ending.as_ref(),
-                "나이다" | "나이까" | "옵나이다" | "옵나이까"
-            )
-        })
-    {
+    if whole.start != core.start || !is_sentence_end_after(haystack, whole.end) {
         return false;
     }
     context::previous_word_with_start(haystack, whole.start).is_some_and(|(start, previous)| {
@@ -467,6 +466,61 @@ fn has_humble_object_frame(
                 let count = context::previous_word(haystack, start);
                 !resolver.has_elapsed_measure(host, count.as_deref())
             })
+    }) && context::normalized_token(haystack, whole).is_some_and(|word| {
+        has_competitor_inflection(contrast, &word, |base, tail| {
+            tail.last()
+                .or_else(|| base.last())
+                .is_some_and(|rule| rule.as_str() == "ending.archaic-naida")
+        })
+    })
+}
+
+fn accusative_verb_competitor(branch: &CandidateProgram, atom: &AtomPlan) -> Option<usize> {
+    let mut contrasts = branch.origins.iter().map(|origin| {
+        let lemma = atom
+            .analyses
+            .get(usize::from(origin.analysis_index))?
+            .lemma
+            .as_ref();
+        DROP_RIEUL_OBJECT_CONTRASTS
+            .binary_search_by_key(&lemma, |&(key, _)| key)
+            .ok()
+    });
+    let contrast = contrasts.next()??;
+    contrasts
+        .all(|other| other == Some(contrast))
+        .then_some(contrast)
+}
+
+fn has_competitor_inflection(
+    index: usize,
+    text: &str,
+    accepts: impl Fn(&[RuleId], &[RuleId]) -> bool,
+) -> bool {
+    static COMPETITORS: OnceLock<Vec<Vec<SurfaceBranchSpec>>> = OnceLock::new();
+    let forms = COMPETITORS.get_or_init(|| {
+        DROP_RIEUL_OBJECT_CONTRASTS
+            .iter()
+            .map(|&(_, transitive)| {
+                let entry = PredicateEntry::new(
+                    transitive,
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                generate_predicate_branches(&entry).expect("valid dictionary predicate")
+            })
+            .collect()
+    });
+    forms[index].iter().any(|form| {
+        text.strip_prefix(form.anchor.as_ref()).is_some_and(|tail| {
+            if tail.is_empty() {
+                return accepts(&form.rule_path, &[]);
+            }
+            verify_predicate_continuation(form.continuation, form.pos, &form.anchor, tail)
+                .is_some_and(|ending| {
+                    ending.token_end == text.len() && accepts(&form.rule_path, &ending.rule_path)
+                })
+        })
     })
 }
 
