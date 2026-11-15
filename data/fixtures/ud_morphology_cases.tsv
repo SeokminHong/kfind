@@ -2074,3 +2074,6 @@ regression.joined-connective.purpose	위하다	verb	smart-exact	34	40	불꽃을 
 regression.joined-connective.result	되다	verb	smart-exact	31	34	신약으로 인해회복하게된 환자를 만났다.
 regression.joined-nominalized-topic.contracted	힘들다	adjective	smart-exact	19	28	계속 기다리긴힘들다.
 regression.joined-nominalized-topic.full	어렵다	adjective	smart-exact	22	31	당장 출발하기는어렵다.
+regression.joined-adverb.face	보다	verb	smart-exact	23	29	그는 상대를 마주보고 앉는 편이다.
+regression.joined-adverb.direct	보다	verb	smart-exact	32	38	아이는 선생님을 똑바로보고 앉는 연습을 했다.
+regression.joined-adverb.lexical-verb	보다	verb	no-match	20	26	그는 아이를 돌보고 사는 사람이다.
