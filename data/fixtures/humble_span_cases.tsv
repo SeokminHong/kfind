@@ -122,4 +122,6 @@ junaida-decrease-depth	줄다	verb	smart-exact	21	33	수위가 한 뼘을 주나
 junaida-decrease-numeric-unit	줄다	verb	smart-exact	18	30	수위가 2뼘을 주나이다.
 junaida-payment-not-decrease	줄다	verb	no-match	14	26	제가 값을 주나이다.
 junaida-payment	주다	verb	smart-exact	14	26	제가 값을 주나이다.
+ginaida-hair-length	길다	verb	smart-exact	37	49	아이의 머리카락이 한 치를 기나이다.
+jonaida-liquid-volume	졸다	verb	smart-exact	31	43	약탕기의 물이 한 홉을 조나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
