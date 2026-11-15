@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01094014:noun:개	개	noun	false	f77891420fb46b33cdc9fe7ddd474e9719892459907602a344f6cad8c5067043	contract-positive	aligned-source-component	PUD의 3번 개뿐(NNB+AP)은 앞의 수량 50과 결합하고 뒤에 4번 이었다(VC)가 붙는다. 단위와 조사 범위는 12..18이다.

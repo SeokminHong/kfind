@@ -406,8 +406,20 @@ impl MorphMatcher {
         resolver: &ConstraintResolver,
     ) -> Option<Range<usize>> {
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
-        if candidate.verified.core.start != whole.start
-            || candidate.consumed.end < candidate.verified.core.end
+        if candidate.verified.core.start != whole.start {
+            return None;
+        }
+        self.nominal_copula_trailing(haystack, candidate, whole, resolver)
+    }
+
+    pub(super) fn nominal_copula_trailing(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        whole: Range<usize>,
+        resolver: &ConstraintResolver,
+    ) -> Option<Range<usize>> {
+        if candidate.consumed.end < candidate.verified.core.end
             || candidate.consumed.end >= whole.end
         {
             return None;
