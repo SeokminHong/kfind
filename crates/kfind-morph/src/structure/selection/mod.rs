@@ -33,6 +33,7 @@ pub(super) mod runtime;
 pub(in crate::structure) enum StructureSelection {
     Whole,
     Adverb,
+    AdverbOrDeterminer,
     AdjacentDeterminer {
         excludes_pronoun: bool,
         excludes_predicate: bool,
@@ -150,9 +151,11 @@ impl StructureSelection {
         }
         match self {
             Self::Whole => support.evidence == StructuralEvidence::Whole,
-            Self::Adverb => {
+            Self::Adverb | Self::AdverbOrDeterminer => {
                 support.evidence == StructuralEvidence::Whole
-                    && pattern.fine_pos == DataFinePos::Mag
+                    && (pattern.fine_pos == DataFinePos::Mag
+                        || (matches!(self, Self::AdverbOrDeterminer)
+                            && pattern.fine_pos == DataFinePos::Mm))
             }
             Self::AdjacentDeterminer {
                 excludes_pronoun,
@@ -544,16 +547,27 @@ pub(in crate::structure) fn select_structure(
             .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-        && context.next.is_some_and(|next| {
-            complete_ha_predicate_path(resource, next)
-                && !has_exact_fine_pos(resource, next, DataFinePos::is_nominal)
-        })
+        && let Some(next) = context.next
+        && complete_ha_predicate_path(resource, next)
+        && !has_exact_fine_pos(resource, next, DataFinePos::is_nominal)
     {
-        return if next_is_numeral {
-            StructureSelection::NominalOrAdverbWhole
-        } else {
-            StructureSelection::Adverb
-        };
+        if next_is_numeral {
+            return StructureSelection::NominalOrAdverbWhole;
+        }
+        if evidence.has_whole(DataFinePos::Mm)
+            && (complete_nominal_particle_host(resource, next).is_some()
+                || next.char_indices().skip(1).any(|(split, _)| {
+                    let (head, suffix) = next.split_at(split);
+                    !crate::is_omitted_copula_ending(suffix)
+                        && head.chars().next_back().is_some_and(|last| {
+                            crate::verify_copula_surface_after_nominal(last, suffix)
+                        })
+                        && complete_nominal_host(resource, head)
+                }))
+        {
+            return StructureSelection::AdverbOrDeterminer;
+        }
+        return StructureSelection::Adverb;
     }
     let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
     if (next_starts_determiner_nominal || excludes_predicate)
