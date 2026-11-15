@@ -63,6 +63,7 @@ pub(in crate::structure) enum StructureSelection {
         selected: Range<usize>,
         allow_components: bool,
         allow_whole_nominal_source_components: bool,
+        has_whole_adverb_or_adjective_connective: bool,
     },
     CopularFrame {
         nominal: Range<usize>,
@@ -217,6 +218,7 @@ impl StructureSelection {
                 selected,
                 allow_components,
                 allow_whole_nominal_source_components,
+                has_whole_adverb_or_adjective_connective,
             } => {
                 (support.evidence == StructuralEvidence::Whole
                     && spans.core == spans.token
@@ -251,7 +253,12 @@ impl StructureSelection {
                                         text,
                                         evidence,
                                     ))))
-                            || spans.core == *selected
+                            || (spans.core == *selected
+                                && (support.evidence != StructuralEvidence::RuntimeComponent
+                                    || spans.consumed != spans.core
+                                    || spans.core.start != spans.token.start
+                                    || spans.core.end == spans.token.end
+                                    || !has_whole_adverb_or_adjective_connective))
                             || (selected.end == spans.core.start
                                 && matches!(
                                     pattern.fine_pos,
@@ -830,6 +837,13 @@ pub(in crate::structure) fn select_structure(
             selected: host,
             allow_components,
             allow_whole_nominal_source_components,
+            has_whole_adverb_or_adjective_connective: evidence.has_whole(DataFinePos::Mag)
+                || evidence.has_whole(DataFinePos::Maj)
+                || has_exact_sequence(
+                    resource,
+                    context.current,
+                    &[StructuralPos::VA, StructuralPos::EC],
+                ),
         }
     } else {
         StructureSelection::RuntimeCompatible {
