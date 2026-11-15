@@ -310,6 +310,31 @@ impl MorphMatcher {
             }
             candidate.suffix_rules.clear();
         }
+        if boundary == BoundaryPolicy::Smart
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation {
+                    pos: kfind_morph::PredicatePos::Verb,
+                    ..
+                }
+            )
+            && (candidate
+                .suffix_rules
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.connective-go")
+                || (candidate.suffix_rules.is_empty()
+                    && branch.origins.iter().any(|origin| {
+                        origin
+                            .rule_path
+                            .last()
+                            .is_some_and(|rule| rule.as_str() == "ending.connective-go")
+                    })))
+            && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                has_object_marked_adverbial_connective(haystack, &candidate.consumed, resolver)
+            })
+        {
+            return true;
+        }
         let accepted = match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
@@ -356,6 +381,33 @@ impl MorphMatcher {
                 && self.plan.atoms.len() > 1
                 && self.accepts_joined_nominal_phrase_component(haystack, candidate, branch, atom))
     }
+}
+
+fn has_object_marked_adverbial_connective(
+    haystack: &[u8],
+    span: &std::ops::Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::{PredicatePos, PredicatePosSet};
+    let whole = surrounding_token_span(haystack, span.clone());
+    if span.start <= whole.start || span.end != whole.end {
+        return false;
+    }
+    let verbs = PredicatePosSet::one(PredicatePos::Verb);
+    context::normalized_token(haystack, whole.start..span.start)
+        .is_some_and(|prefix| resolver.has_exact_adverb_surface(&prefix))
+        && context::previous_word(haystack, whole.start)
+            .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+        && context::normalized_token(haystack, span.clone()).is_some_and(|surface| {
+            resolver.has_exact_predicate_connective_path(&surface, verbs)
+                || surface
+                    .strip_suffix('고')
+                    .is_some_and(|stem| resolver.has_exact_action_predicate_surface(stem))
+        })
+        && context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
+            resolver.has_exact_predicate_ending_path(&next, PredicatePos::Verb)
+                || resolver.has_predicate_adnominal_surface(&next)
+        })
 }
 
 fn rejects_background_conjunction(
