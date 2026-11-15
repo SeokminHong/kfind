@@ -81,6 +81,13 @@ const ADNOMINAL_AUXILIARIES: &[(&str, PredicatePos, LexicalAlternation, bool, bo
 
 // 한국어기초사전에서 -(으)ㄴ가를 받는 추측 보조 용언.
 const INTERROGATIVE_AUXILIARIES: &[&str] = &["보다", "싶다"];
+
+// 한국어기초사전에서 동사의 '-고'를 받는 진행·희망 보조 용언.
+const PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES: &[(&str, PredicatePos)] = &[
+    ("있다", PredicatePos::AuxiliaryVerb),
+    ("계시다", PredicatePos::AuxiliaryVerb),
+    ("싶다", PredicatePos::AuxiliaryAdjective),
+];
 // 한국어기초사전의 '-어' 결합 주석 중 활용 전체가 허용되는 구성.
 // 일부 선행 용언 또는 특정 후행 어미로 범위가 제한된 뜻풀이는 포함하지 않는다.
 const VOWEL_AUXILIARIES: &[(&str, LexicalAlternation, VowelAuxiliaryHost)] = &[
