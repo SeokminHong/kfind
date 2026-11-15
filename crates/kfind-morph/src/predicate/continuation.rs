@@ -1519,18 +1519,9 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             }
             Some('온' | '왔') => auxiliary::verify_progression_oda(anchor.len(), following),
             Some('갈' | '갔') => auxiliary::verify_progression_gada(anchor.len(), following),
-            Some('내' | '냈') if pos.is_action() => {
-                auxiliary::verify_completion_naeda(anchor.len(), following)
-            }
-            Some('하' | '해' | '했')
-                if matches!(
-                    pos,
-                    PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
-                ) =>
-            {
-                auxiliary::verify_stative_hada(anchor.len(), following)
-            }
-            _ => auxiliary::verify_resultative(anchor.len(), following),
+            _ => auxiliary::verify_resultative(anchor.len(), following).or_else(|| {
+                auxiliary::verify_complete_vowel_auxiliary(anchor.len(), pos, following)
+            }),
         }
     {
         return Some(with_connective_politeness(auxiliary, following));
