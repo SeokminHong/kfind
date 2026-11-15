@@ -920,6 +920,14 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed.end == whole.end
+            && has_productive_nominal_component(haystack, &whole, core, patterns, resolver)
+        {
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && core.start > whole.start
             && *core == candidate.consumed
             && core.end < whole.end
@@ -1730,8 +1738,11 @@ fn has_nominal_component_before_copula(
     patterns: &[kfind_morph::QueryMorphPattern],
     resolver: &ConstraintResolver,
 ) -> bool {
-    core.start > whole.start
-        && patterns.iter().any(|pattern| {
+    if core.start <= whole.start {
+        return false;
+    }
+    has_productive_nominal_component(haystack, whole, core, patterns, resolver)
+        || patterns.iter().any(|pattern| {
             pattern.fine_pos == DataFinePos::Nng
                 && pattern.component_capability.allows_runtime()
                 && context::normalized_token(haystack, whole.start..core.end).is_some_and(|host| {
@@ -1740,6 +1751,23 @@ fn has_nominal_component_before_copula(
                         || resolver.has_unambiguous_final_nominal_component(&host, suffix)
                 })
         })
+}
+
+fn has_productive_nominal_component(
+    haystack: &[u8],
+    whole: &Range<usize>,
+    core: &Range<usize>,
+    patterns: &[kfind_morph::QueryMorphPattern],
+    resolver: &ConstraintResolver,
+) -> bool {
+    core.start > whole.start
+        && patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Nng
+                && pattern.component_capability.allows_runtime()
+                && ConstraintResolver::is_productive_nominal_head(&pattern.lexical_form)
+        })
+        && context::normalized_token(haystack, whole.start..core.start)
+            .is_some_and(|prefix| resolver.has_productive_nominal_head_prefix(&prefix))
 }
 
 fn has_conflicting_whole_predicate(
