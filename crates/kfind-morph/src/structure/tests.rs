@@ -173,7 +173,9 @@ proptest! {
             complete_nominal_particle_host(resolver.resource(), &text)
         );
         prop_assert_eq!(
-            common.predicate_connective_boundaries,
+            common.predicate_boundaries.iter().map(|boundary| {
+                *boundary == super::paths::PredicateBoundary::Connective
+            }).collect::<Vec<_>>(),
             reference_predicate_connective_boundaries(resolver.resource(), &text),
         );
         for start in text

@@ -1,3 +1,4 @@
+use crate::hangul::{JONG_NONE, replace_final};
 use crate::structure::graph::EdgeGraph;
 use kfind_data::ComponentPos as StructuralPos;
 use std::ops::Range;
@@ -5,6 +6,13 @@ use std::ops::Range;
 pub(super) mod nominal;
 pub(super) mod numeral;
 pub(super) mod predicate;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::structure) enum PredicateBoundary {
+    None,
+    Connective,
+    Purpose,
+}
 
 pub(in crate::structure) struct NominalPathFacts {
     pub(in crate::structure) particle_hosts: Box<[Range<usize>]>,
@@ -15,7 +23,7 @@ pub(in crate::structure) struct CommonPathFacts {
     pub(in crate::structure) nominal_prefix: Vec<[bool; 2]>,
     pub(in crate::structure) ending_suffix: Vec<bool>,
     pub(in crate::structure) particle_suffix: Vec<bool>,
-    pub(in crate::structure) predicate_connective_boundaries: Vec<bool>,
+    pub(in crate::structure) predicate_boundaries: Vec<PredicateBoundary>,
     pub(in crate::structure) exact_nominal_end: Vec<bool>,
 }
 
@@ -27,7 +35,7 @@ impl CommonPathFacts {
         const DERIVATION_ROOT: u8 = 2;
         const DERIVED_PREDICATE: u8 = 4;
         let mut predicate_path = vec![0; text.len() + 1];
-        let mut predicate_connective_boundaries = vec![false; text.len() + 1];
+        let mut predicate_boundaries = vec![PredicateBoundary::None; text.len() + 1];
         let mut exact_nominal_end = vec![false; text.len() + 1];
         for start in 0..text.len() {
             for edge in graph.starting_at(start) {
@@ -68,12 +76,26 @@ impl CommonPathFacts {
                     && &text[edge.span.clone()] == "게"
                     && text[edge.span.end..].chars().next().is_some_and(|initial| {
                         matches!(
-                            crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
+                            replace_final(initial, JONG_NONE),
                             Some('되' | '돼' | '하' | '해')
                         )
                     })
                 {
-                    predicate_connective_boundaries[edge.span.end] = true;
+                    predicate_boundaries[edge.span.end] = PredicateBoundary::Connective;
+                }
+                if predicate_path[start] & (PREDICATE | DERIVED_PREDICATE) != 0
+                    && predicate_boundaries[edge.span.end] == PredicateBoundary::None
+                    && positions == [StructuralPos::ETN]
+                    && &text[edge.span.clone()] == "기"
+                    && text[edge.span.end..]
+                        .strip_prefix('위')
+                        .is_some_and(|tail| {
+                            tail.chars().next().is_some_and(|initial| {
+                                matches!(replace_final(initial, JONG_NONE), Some('하' | '해'))
+                            })
+                        })
+                {
+                    predicate_boundaries[edge.span.end] = PredicateBoundary::Purpose;
                 }
                 let ends_in_connective = if start == 0 {
                     predicate_path_ends_in_connective(positions)
@@ -84,7 +106,7 @@ impl CommonPathFacts {
                 };
                 if let Some(ends_in_connective) = ends_in_connective {
                     if ends_in_connective {
-                        predicate_connective_boundaries[edge.span.end] = true;
+                        predicate_boundaries[edge.span.end] = PredicateBoundary::Connective;
                     } else {
                         predicate_path[edge.span.end] |= PREDICATE;
                     }
@@ -115,7 +137,7 @@ impl CommonPathFacts {
             nominal_prefix,
             ending_suffix,
             particle_suffix,
-            predicate_connective_boundaries,
+            predicate_boundaries,
             exact_nominal_end,
         }
     }

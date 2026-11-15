@@ -2061,3 +2061,8 @@ regression.derived-ge.attached	되다	verb	smart-exact	22	25	난관에 봉착하
 regression.derived-ge.separate	되다	verb	smart-exact	23	26	난관에 봉착하게 될 것이다.
 regression.derived-ge.causative	하다	verb	smart-exact	22	28	관객을 입장하게했다.
 regression.derived-ge.nominal-particle	말다	verb	no-match	12	15	박달대게만 전문적으로 팔아요.
+regression.joined-purpose.attached-connective	위하다	verb	smart-exact	25	31	목소리를 녹음하기위해 준비했다.
+regression.joined-purpose.separate	위하다	verb	smart-exact	26	32	목소리를 녹음하기 위해 준비했다.
+regression.joined-purpose.adnominal	위하다	verb	smart-exact	22	28	시설을 개선하기위한 계획이다.
+regression.joined-purpose.independent-verb	위하다	verb	smart-exact	16	22	점심을 먹기위해 자리를 비웠다.
+regression.joined-purpose.lexical-noun	위하다	verb	no-match	20	26	위원회는 화재 위험성을 점검했다.
