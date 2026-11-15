@@ -105,8 +105,8 @@ impl MorphMatcher {
                                 resolver
                                     .has_exact_predicate_connective_path(surface, source_positions)
                             });
-                    let contracted_host = whole.start == candidate.verified.core.start
-                        && has_rule("contraction.ha-yeo");
+                    let at_word_start = whole.start == candidate.verified.core.start;
+                    let contracted_host = at_word_start && has_rule("contraction.ha-yeo");
                     let supported_connective = source_auxiliary_suffix
                         && resolver.has_vowel_auxiliary_inflection(trailing, pos)
                         && token.is_some_and(|token| {
@@ -119,29 +119,36 @@ impl MorphMatcher {
                                 .has_competing_nominal_after_connective(token, connective_end)
                                 || (resolver.has_exact_nominal_surface(host)
                                     && (verifies_particle(trailing)
-                                        || (contracted_host
-                                            && trailing.char_indices().skip(1).any(
-                                                |(end, _)| verifies_particle(&trailing[..end]),
-                                            ))));
-                            !competing_nominal
-                                || (contracted_host
+                                        || trailing
+                                            .char_indices()
+                                            .skip(1)
+                                            .any(|(end, _)| verifies_particle(&trailing[..end]))));
+                            if competing_nominal {
+                                return contracted_host
                                     && has_contracted_auxiliary_host_context(
                                         haystack, &whole, trailing, resolver,
-                                    ))
-                        })
-                        && haystack
-                            .get(whole.start..candidate.consumed.end)
-                            .and_then(|surface| std::str::from_utf8(surface).ok())
-                            .is_some_and(|surface| {
-                                resolver.has_derived_predicate_connective_surface(
-                                    surface,
-                                    source_positions,
-                                ) || (contracted_host
+                                    )
                                     && resolver.has_exact_predicate_connective_path(
-                                        surface,
+                                        host,
+                                        source_positions,
+                                    );
+                            }
+                            resolver
+                                .has_derived_predicate_connective_surface(host, source_positions)
+                                || ((contracted_host
+                                    || (at_word_start
+                                        && complete_attached_path
+                                        && !extended_predicate_prefix
+                                        && !resolver.whole_predicate_conflicts(
+                                            token,
+                                            connective_end,
+                                            pos,
+                                        )))
+                                    && resolver.has_exact_predicate_connective_path(
+                                        host,
                                         source_positions,
                                     ))
-                            });
+                        });
                     (complete_attached_path
                         && (visible_connective
                             || unambiguous_contraction

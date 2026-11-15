@@ -205,6 +205,10 @@ regression.attached-vowel-auxiliary.derived-host	말하다	verb	smart-exact	20	3
 regression.attached-vowel-auxiliary.nominal-particle	하다	verb	no-match	6	12	지난해와 다르다.
 regression.attached-vowel-auxiliary.progressive-clause	하다	verb	smart-exact	21	30	그 일을 꾸준히 해오고 있다.
 regression.attached-vowel-auxiliary.progressive-honorific	하다	verb	smart-exact	18	27	그 일을 계속 해오고 계신다.
+regression.attached-vowel-auxiliary.contracted-honorific	쓰다	verb	smart-exact	41	53	선생님께서 두 해 동안 일기를 써오셨다.
+regression.attached-vowel-auxiliary.contracted-watch	보다	verb	smart-exact	43	55	선생님께서 오랫동안 이 영화를 봐오셨다.
+regression.attached-vowel-auxiliary.contracted-cohortative	도와주다	verb	smart-exact	20	35	어려운 이웃을 도와줍시다.
+regression.attached-vowel-auxiliary.longer-lexical-head	따르다	verb	no-match	73	82	그는 자신의 누이가 더 스코츠맨에서 찾은 구인광고를 따라간 후, 1년 반 동안 노팅엄 저널에서 기자로 활동하였다.
 regression.attached-vowel-auxiliary.existential-subject	하다	verb	no-match	0	12	해주시는 명부에 있다.
 regression.attached-give.nominal-competition	사다	verb	no-match	0	15	사주일가의 지분을 조사했다.
 regression.attached-give.nominalizer-instrumental	보이다	verb	smart-exact	0	18	보여줌으로써 설명했다.
