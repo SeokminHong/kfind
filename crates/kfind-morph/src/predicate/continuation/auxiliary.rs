@@ -1,4 +1,9 @@
-use crate::{ContinuationState, PredicatePos, RuleId};
+use std::sync::OnceLock;
+
+use crate::{
+    ContinuationState, LexicalAlternation, PredicateEntry, PredicatePos, RuleId, SurfaceBranchSpec,
+    generate_predicate_branches,
+};
 
 use super::{
     JIMAN, JIMANEUN, JIYO, JYO, MAE, PredicateContinuationMatch, STEM_FIXED_ENDINGS, Suffix,
@@ -139,58 +144,98 @@ pub(super) fn verify_resultative(
     )
 }
 
-pub(super) fn verify_completion_naeda(
+pub(super) fn verify_complete_vowel_auxiliary(
     anchor_len: usize,
+    host: PredicatePos,
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
-    const NAEDA: &str = "ending.auxiliary-naeda";
-    if let Some(tail) = following.strip_prefix("내다")
-        && !tail.starts_with(|ch: char| ch.is_alphanumeric() || ch == '_')
-    {
-        return Some(with_auxiliary(
-            anchor_len,
-            "내",
-            None,
-            matched('내'.len_utf8(), Some(&suffix("다", &["ending.final-da"]))),
-            NAEDA,
-        ));
-    }
-    following.starts_with('냈').then_some(())?;
-    let result = verify_form(
-        anchor_len,
-        following,
-        "냈",
-        ContinuationState::Past,
-        Some("ending.past"),
-        NAEDA,
-    )?;
-    (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
-        .then_some(result)
-}
+    static COMPLETION: OnceLock<Vec<SurfaceBranchSpec>> = OnceLock::new();
+    static STATIVE: OnceLock<Vec<SurfaceBranchSpec>> = OnceLock::new();
 
-pub(super) fn verify_stative_hada(
-    anchor_len: usize,
-    following: &str,
-) -> Option<PredicateContinuationMatch> {
-    use ContinuationState::{AOrEo, Past};
-    let (form, state, rule) = [
-        ("하였", Past, "ending.past"),
-        ("했", Past, "ending.past"),
-        ("하여", AOrEo, "ending.aoeo"),
-        ("해", AOrEo, "ending.aoeo"),
-    ]
-    .into_iter()
-    .find(|(form, _, _)| following.starts_with(form))?;
-    let result = verify_form(
-        anchor_len,
-        following,
-        form,
-        state,
-        Some(rule),
-        "ending.auxiliary-stative-hada",
-    )?;
-    (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
-        .then_some(result)
+    // 한국어기초사전의 보조 동사 문형. 두 구성의 선행 용언 품사는 다르다.
+    let (branches, lemma, alternation, rule) = match host.execution() {
+        PredicatePos::Verb => (
+            &COMPLETION,
+            "내다",
+            LexicalAlternation::Regular,
+            "ending.auxiliary-naeda",
+        ),
+        PredicatePos::Adjective => (
+            &STATIVE,
+            "하다",
+            LexicalAlternation::Ha,
+            "ending.auxiliary-stative-hada",
+        ),
+        _ => return None,
+    };
+    let initial = following.chars().next()?;
+    let branches = branches.get_or_init(|| {
+        let entry = PredicateEntry::new(lemma, PredicatePos::AuxiliaryVerb, alternation);
+        let mut branches = generate_predicate_branches(&entry).expect("valid auxiliary entry");
+        if host.execution() == PredicatePos::Adjective {
+            // Preserve the vowel and past paths while lexicalized compounds can
+            // compete with a productive -어하다 analysis.
+            branches.retain(|branch| {
+                matches!(
+                    branch.continuation,
+                    ContinuationState::AOrEo | ContinuationState::Past
+                )
+            });
+        }
+        branches.sort_by(|left, right| left.anchor.cmp(&right.anchor));
+        branches
+    });
+    let start = branches.partition_point(|branch| branch.anchor.chars().next() < Some(initial));
+    if !branches.get(start)?.anchor.starts_with(initial) {
+        return None;
+    }
+    let word = following
+        .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+        .next()?;
+    branches[start..]
+        .iter()
+        .take_while(|branch| branch.anchor.starts_with(initial))
+        .filter_map(|branch| {
+            let tail = word.strip_prefix(branch.anchor.as_ref())?;
+            let continuation = if tail.is_empty() {
+                if branch.rule_path.is_empty()
+                    || matches!(
+                        branch.continuation,
+                        ContinuationState::Past | ContinuationState::Future
+                    )
+                {
+                    return None;
+                }
+                matched(branch.anchor.len(), None)
+            } else {
+                verify_prefinal_chain(branch.continuation, branch.pos, branch.anchor.len(), tail)
+                    .filter(|matched| matched.consumed_bytes == tail.len())
+                    .or_else(|| {
+                        verify_simple_continuation(
+                            branch.continuation,
+                            branch.pos,
+                            &branch.anchor,
+                            tail,
+                        )
+                    })?
+            };
+            (continuation.token_end == word.len()).then_some((branch, continuation))
+        })
+        .max_by_key(|(branch, _)| branch.anchor.len())
+        .map(|(branch, continuation)| PredicateContinuationMatch {
+            token_end: anchor_len + word.len(),
+            consumed_bytes: word.len(),
+            rule_path: std::iter::once(RuleId::from(rule))
+                .chain(
+                    branch
+                        .rule_path
+                        .iter()
+                        .filter(|id| id.as_str().starts_with("ending."))
+                        .cloned(),
+                )
+                .chain(continuation.rule_path)
+                .collect(),
+        })
 }
 
 pub(super) fn verify_form(

@@ -2452,6 +2452,25 @@ fn vowel_auxiliary_frame_checks_host_pos_and_complete_inflection() {
 }
 
 #[test]
+fn appearance_predicate_checks_inflection_instead_of_surface_prefix() {
+    let resolver = resolver_from_entries(vec![
+        atomic("보인다", "VV+EF"),
+        atomic("보였지만", "VV+EP+EC"),
+        atomic("보이콧했", "VV+EP"),
+        atomic("다", "EF"),
+    ]);
+
+    assert!(resolver.has_boi_predicate("보인다"));
+    assert!(resolver.has_boi_predicate("보였지만"));
+    assert!(crate::structure::lexical::complete_predicate_ending_path(
+        resolver.resource(),
+        "보이콧했다",
+    ));
+    assert!(!resolver.has_boi_predicate("보이콧했다"));
+    assert!(!resolver.has_boi_predicate("보이"));
+}
+
+#[test]
 fn attached_auxiliary_requires_a_predicate_connective_path() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vx, "지").with_candidate_contract(
