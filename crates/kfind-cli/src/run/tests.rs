@@ -676,6 +676,36 @@ fn auto_pos_does_not_expand_reviewed_inflected_aliases() {
 }
 
 #[test]
+fn explicit_verb_keeps_a_user_lemma_in_a_pronoun_topic_surface() {
+    let temp = TempDir::new();
+    temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
+    let component = encode_component_resource(
+        COMPONENT_RESOURCE_SOURCE_DIGEST,
+        &[
+            component_entry("그", "NP", 0),
+            component_entry("그", "VV", 0),
+            component_entry("는", "JX", 0),
+            component_entry("는", "ETM", 0),
+        ],
+    )
+    .unwrap();
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component);
+    let user = temp.write(
+        "user.toml",
+        "[[predicate]]\nlemma = \"그다\"\npos = \"verb\"\nalternation = \"Regular\"\n",
+    );
+    for (user_lexicon, expected) in [(None, ExitStatus::NoMatch), (Some(user), ExitStatus::Match)] {
+        let mut args =
+            Args::try_parse_from(["kfind", "--data-dir", temp.0.to_str().unwrap(), "v:그다"])
+                .unwrap();
+        args.user_lexicon = user_lexicon;
+        let (status, _, stderr) = run(args, "그는 새 책을 읽었다.\n".as_bytes(), false);
+        assert_eq!(status, expected);
+        assert!(stderr.is_empty());
+    }
+}
+
+#[test]
 fn embedded_mode_skips_enriched_predicates() {
     let temp = TempDir::new();
     temp.write(

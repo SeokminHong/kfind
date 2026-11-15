@@ -3,10 +3,13 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
-use kfind_data::{ParticleHost, ParticleRuleRole, ParticleSelection};
+use kfind_data::{
+    DataFinePos, ParticleHost, ParticleRuleRole, ParticleSelection,
+    is_mecab_inflected_predicate_alias,
+};
 use kfind_morph::{
     CoarsePos, FinalCondition, FinePos, ParticleAllomorph, ParticleKind, ParticleRole,
-    ParticleTransition, PredicateEntry, PredicatePos, QueryMorphPattern, RuleId,
+    ParticleTransition, PredicateEntry, PredicateFlags, PredicatePos, QueryMorphPattern, RuleId,
 };
 
 use crate::lexicons::predicate_shape_alternation;
@@ -316,24 +319,28 @@ impl LexiconQueryAnalyzer {
                 }
                 return Ok(analyses);
             }
-            let stem = lemma.strip_suffix('다').filter(|stem| !stem.is_empty());
-            if stem.is_none() {
+            let Some(stem) = lemma.strip_suffix('다').filter(|stem| !stem.is_empty()) else {
                 return Err(AnalyzeError::InvalidForcedPredicateLemma {
                     lemma: lemma.into(),
                     pos: forced_pos,
                 });
-            }
+            };
             let predicate_pos = if forced_pos == CoarsePos::Verb {
                 PredicatePos::Verb
             } else {
                 PredicatePos::Adjective
             };
-            let predicate = PredicateEntry::new(
+            let mut predicate = PredicateEntry::new(
                 lemma,
                 predicate_pos,
                 predicate_shape_alternation(lemma, forced_pos)
                     .unwrap_or(kfind_morph::LexicalAlternation::Regular),
             );
+            if predicate_pos == PredicatePos::Verb
+                && is_mecab_inflected_predicate_alias(stem, DataFinePos::Vv)
+            {
+                predicate.flags |= PredicateFlags::FORCED_INFLECTED_ALIAS;
+            }
             let mut analyses = vec![Analysis {
                 lemma: lemma.into(),
                 coarse_pos: forced_pos,

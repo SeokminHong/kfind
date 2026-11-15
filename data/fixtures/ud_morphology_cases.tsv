@@ -1,4 +1,7 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.inferred-adnominal-alias.pronoun	그다	verb	no-match	0	6	그는 새 책을 읽었다.
+regression.inferred-adnominal-alias.canonical	긋다	verb	only-exact	7	16	줄을 그었다.
+regression.inferred-adnominal-alias.real-adnominal	날다	verb	only-exact	0	6	나는 새가 보인다.
 regression.selected-nominal-particle-tail.proper-noun	가	noun	no-match	9	12	타이가가 숲에 걸쳐 있다.
 regression.selected-nominal-particle-tail.pronoun	가	noun	no-match	6	9	그녀가 책을 읽었다.
 regression.selected-nominal-particle-tail.topic	은	noun	no-match	6	9	기업은 새 제품을 출시했다.

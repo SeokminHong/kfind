@@ -12,6 +12,15 @@ const INFLECTED_PREDICATE_ALIAS_ROWS: &[&str] =
 const TRANSLITERATED_PLACE_ANALYSES: &[(&str, &str)] =
     include!("../../../data/rules/mecab-transliterated-place-boundaries.rs");
 
+/// Whether the source identifies this apparent stem as a form of another predicate.
+#[must_use]
+pub fn is_mecab_inflected_predicate_alias(surface: &str, pos: DataFinePos) -> bool {
+    INFLECTED_PREDICATE_ALIAS_ROWS.iter().any(|row| {
+        let mut fields = row.split(',');
+        fields.next() == Some(surface) && fields.nth(3).and_then(DataFinePos::parse) == Some(pos)
+    })
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MecabConnectionMatrix {
     right_contexts: u16,
