@@ -1,4 +1,9 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.transliterated-place-boundaries.state	도	noun	no-match	9	12	콜로라도는 미국의 주다.
+regression.transliterated-place-boundaries.state-before-unit	도	noun	no-match	9	12	콜로라도주 덴버를 방문했다.
+regression.transliterated-place-boundaries.real-unit	주	noun	smart-only-exact	12	15	콜로라도주 덴버를 방문했다.
+regression.transliterated-place-boundaries.city	시	noun	no-match	6	9	아카시에는 성이 있다.
+regression.transliterated-place-boundaries.aligned-common-noun	자	noun	smart-only-exact	6	12	이민자를 받아들였다.
 regression.compound-nominal-head.price	값	noun	smart-only-exact	16	22	정부는 연료값을 인상했다.
 regression.compound-nominal-head.nominalization	값	noun	smart-only-exact	6	12	기름값이 계속 오른다.
 regression.compound-nominal-head.sai-siot	값	noun	smart-only-exact	16	22	정부는 연룟값을 인상했다.
