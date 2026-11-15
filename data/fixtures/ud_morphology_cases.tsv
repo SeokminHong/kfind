@@ -2070,3 +2070,5 @@ regression.joined-adnominal.two-adnominals	많다	adjective	smart-exact	22	28	�
 regression.joined-adnominal.connective	새롭다	adjective	smart-exact	25	34	현장을 확장하면서새로운 건물을 세웠다.
 regression.joined-adnominal.clause-chain	새롭다	adjective	smart-exact	31	40	직원이 차용해서개발한새로운 도구를 공개했다.
 regression.joined-adnominal.proper-name	세다	adjective	no-match	22	25	충성을 서약한게셀 왕이 편지를 보냈다.
+regression.joined-connective.purpose	위하다	verb	smart-exact	34	40	불꽃을 감지하고차단하기위해 센서를 설치했다.
+regression.joined-connective.result	되다	verb	smart-exact	31	34	신약으로 인해회복하게된 환자를 만났다.
