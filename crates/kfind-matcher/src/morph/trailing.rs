@@ -59,7 +59,9 @@ impl MorphMatcher {
             && has_rule("ending.aoeo")
             && match branch.consumption {
                 CandidateConsumption::PredicateContinuation {
-                    source_positions, ..
+                    pos,
+                    source_positions,
+                    ..
                 } => {
                     let visible_connective = candidate.consumed.end > candidate.verified.core.end;
                     let token = haystack
@@ -104,15 +106,26 @@ impl MorphMatcher {
                     let contracted_host = whole.start == candidate.verified.core.start
                         && has_rule("contraction.ha-yeo");
                     let supported_connective = source_auxiliary_suffix
-                        && trailing.starts_with(['주', '줘', '줬', '준', '줄', '줌', '줍'])
+                        && resolver.has_vowel_auxiliary_inflection(trailing, pos)
                         && token.is_some_and(|token| {
-                            !resolver.has_competing_nominal_after_connective(
-                                token,
-                                candidate.consumed.end - whole.start,
-                            ) || (contracted_host
-                                && has_contracted_auxiliary_host_context(
-                                    haystack, &whole, trailing, resolver,
-                                ))
+                            let connective_end = candidate.consumed.end - whole.start;
+                            let host = &token[..connective_end];
+                            let verifies_particle = |suffix| {
+                                self.particle_verifier.verify_exact(host, suffix).is_some()
+                            };
+                            let competing_nominal = resolver
+                                .has_competing_nominal_after_connective(token, connective_end)
+                                || (resolver.has_exact_nominal_surface(host)
+                                    && (verifies_particle(trailing)
+                                        || (contracted_host
+                                            && trailing.char_indices().skip(1).any(
+                                                |(end, _)| verifies_particle(&trailing[..end]),
+                                            ))));
+                            !competing_nominal
+                                || (contracted_host
+                                    && has_contracted_auxiliary_host_context(
+                                        haystack, &whole, trailing, resolver,
+                                    ))
                         })
                         && haystack
                             .get(whole.start..candidate.consumed.end)

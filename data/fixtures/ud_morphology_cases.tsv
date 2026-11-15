@@ -201,6 +201,8 @@ regression.attached-give.contracted-purpose	하다	verb	smart-exact	18	30	쉴 �
 regression.attached-give.contracted-request	하다	verb	smart-exact	14	26	설명을 잘 해주세요.
 regression.attached-give.contracted-adnominal	하다	verb	smart-exact	13	22	어머니가 해주신 음식입니다.
 regression.attached-give.contracted-city-topic	하다	verb	no-match	0	12	해주시는 올해 예산을 늘렸다.
+regression.attached-vowel-auxiliary.derived-host	말하다	verb	smart-exact	20	38	아이는 비밀을 말해버리더라.
+regression.attached-vowel-auxiliary.nominal-particle	하다	verb	no-match	6	12	지난해와 다르다.
 regression.attached-give.nominal-competition	사다	verb	no-match	0	15	사주일가의 지분을 조사했다.
 regression.attached-give.nominalizer-instrumental	보이다	verb	smart-exact	0	18	보여줌으로써 설명했다.
 regression.attached-give.nominalizer-object	보이다	verb	smart-exact	0	12	보여줌을 꺼렸다.
