@@ -1033,7 +1033,7 @@ regression.humble-wa.honorific	읽다	verb	only-exact	0	12	읽으시와 뜻을 �
 regression.humble-wa.nominal	사과	noun	only-exact	0	9	사과와 배를 샀다.
 regression.humble-wa.nominal-competitor	돌다	verb	no-match	0	9	도시와 농촌의 교류가 활발하다.
 regression.humble-wa.vowel-competitor	날다	verb	no-match	7	13	밖에 나와 하늘을 보았다.
-regression.humble-wa.independent-auxiliary	돌다	verb	no-match	0	6	도와달라고 부탁했다.
+regression.humble-wa.independent-auxiliary	돌다	verb	no-match-both	0	6	도와달라고 부탁했다.
 regression.humble-euwa.consonant	참다	verb	only-exact	0	9	참으와 훗날을 기약하소서.
 regression.humble-euwa.adjective	깊다	adjective	only-exact	0	9	깊으와 갚을 길이 없어라.
 regression.humble-euwa.irregular	듣다	verb	only-exact	0	9	들으와 그 뜻을 받들겠습니다.
@@ -1130,8 +1130,8 @@ regression.archaic-honorific-sa.consonant	깊다	adjective	only-exact	0	9	깊으
 regression.archaic-honorific-sa.rieul	만들다	verb	only-exact	0	9	만드사 사람들에게 베푸셨다.
 regression.archaic-honorific-sa.separate	오다	verb	only-exact	0	9	오셨다. ‘사’는 별도 어미다.
 regression.archaic-honorific-sa.nominal	기다	verb	no-match	0	6	기사가 사실을 보도했다.
-regression.archaic-honorific-sa.proper-prefix	알다	verb	no-match	0	6	아사히신문이 기사로 다뤘다.
-regression.archaic-honorific-sa.nominal-compound	놀다	verb	no-match	0	6	노사상생의 원칙을 따랐다.
+regression.archaic-honorific-sa.proper-prefix	알다	verb	no-match-both	0	6	아사히신문이 기사로 다뤘다.
+regression.archaic-honorific-sa.nominal-compound	놀다	verb	no-match-both	0	6	노사상생의 원칙을 따랐다.
 regression.archaic-honorific-sa.nominal-before-head	조다	verb	no-match	32	38	연방 스캔들을 조사하는조사 위원회의 책임자가 발언했다.
 regression.archaic-honorific-sa.nominal-with-particle	조다	verb	no-match	0	6	조사를 맡은 위원회가 열렸다.
 regression.archaic-honorific-sa.adverb-derivation	물다	verb	no-match	0	6	무사히 귀국했다.

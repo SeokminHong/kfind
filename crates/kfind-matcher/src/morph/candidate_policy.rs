@@ -24,6 +24,20 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Any
+            && let Some((first, rest)) = branch.origins.split_first()
+            && let Some(rule) = first.rule_path.last()
+            && matches!(
+                rule.as_str(),
+                "ending.archaic-honorific-sa" | "ending.humble-wa"
+            )
+            && rest
+                .iter()
+                .all(|origin| origin.rule_path.last() == Some(rule))
+            && !is_boundary_after(haystack, candidate.consumed.end)
+        {
+            return false;
+        }
         if boundary == BoundaryPolicy::Smart
             && candidate
                 .suffix_rules
