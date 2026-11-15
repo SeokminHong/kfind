@@ -66,8 +66,9 @@ impl MorphMatcher {
         {
             return false;
         }
-        if boundary == BoundaryPolicy::Smart
-            && candidate
+        if boundary == BoundaryPolicy::Smart {
+            let span = &candidate.consumed;
+            let archaic_honorific = candidate
                 .suffix_rules
                 .last()
                 .or_else(|| {
@@ -77,19 +78,26 @@ impl MorphMatcher {
                         .all(|origin| origin.rule_path.last() == Some(rule))
                         .then_some(rule)
                 })
-                .is_some_and(|rule| rule.as_str() == "ending.archaic-honorific-sa")
-            && (!is_boundary_after(haystack, candidate.consumed.end)
-                || self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                    let span = &candidate.consumed;
-                    context::normalized_token(haystack, span.clone()).is_some_and(|word| {
-                        resolver.has_exact_nominal_surface(&word)
-                            && context::next_word_on_line(haystack, span.end).is_some_and(
-                                |(_, next)| resolver.has_nominal_with_optional_particles(&next),
-                            )
-                    })
-                }))
-        {
-            return false;
+                .is_some_and(|rule| rule.as_str() == "ending.archaic-honorific-sa");
+            let structural_honorific =
+                matches!(
+                    branch.consumption,
+                    CandidateConsumption::StructuralPredicateEnding { .. }
+                ) && context::normalized_token(haystack, candidate.anchor.end..span.end)
+                    .is_some_and(|suffix| matches!(suffix.as_ref(), "사" | "으사"));
+            if (archaic_honorific || structural_honorific)
+                && (!is_boundary_after(haystack, span.end)
+                    || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                        context::normalized_token(haystack, span.clone()).is_some_and(|word| {
+                            resolver.has_exact_nominal_surface(&word)
+                                && context::next_word_on_line(haystack, span.end).is_some_and(
+                                    |(_, next)| resolver.has_nominal_with_optional_particles(&next),
+                                )
+                        })
+                    }))
+            {
+                return false;
+            }
         }
         if boundary == BoundaryPolicy::Smart
             && candidate
