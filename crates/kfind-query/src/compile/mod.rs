@@ -482,15 +482,15 @@ fn compile_analysis(
             });
             let general_adverb = analysis.fine_pos == FinePos::GeneralAdverb;
             let smart = options.boundary == crate::BoundaryPolicy::Smart;
-            let attested_without_components = !smart
+            let attested_topic = (!smart || !general_adverb)
                 && ADVERB_TOPIC_CONTRACTION_HOSTS
                     .lines()
                     .any(|lemma| lemma == atom_surface);
-            if (general_adverb || attested_without_components)
+            if (general_adverb || attested_topic)
                 && let Some(contracted) =
                     kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
             {
-                if smart || attested_without_components {
+                if smart || attested_topic {
                     output.push(exact_branch_with_decision(
                         &contracted,
                         analysis_index,

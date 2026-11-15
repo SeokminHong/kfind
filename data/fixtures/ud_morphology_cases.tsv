@@ -1276,6 +1276,7 @@ regression.adverb-topic.after-object	때로	adverb	smart-exact	7	16	일을 때�
 regression.adverb-topic.ijen	이제	adverb	smart-exact	0	6	이젠 걱정하지 않아도 된다.
 regression.adverb-topic.gsd-dasin	다시	adverb	exact	151	157	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 regression.adverb-topic.attested-variant	정확히	adverb	only-exact	0	9	정확힌 기억이 안 난다.
+regression.adverb-topic.conjunctive-headword	이러다가	adverb	only-exact	0	12	이러다간 사고가 난다.
 regression.adverb-topic.gsd-jedaero	제대로	adverb	smart-exact	107	116	특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.
 corpus.ud-kaist.dev.MH2_0069-s222.compound-copula	이다	adjective	smart-exact	113	131	물론 국가에 의한 개입방식이 시대에 따라 방법을 달리하기도 하였으나 국가에 의한 출판통제라는 큰 물줄기는 변하지 않고 있다.
 corpus.ud-kaist.dev.MH2_0069-s191.compound-copula	이다	adjective	smart-exact	0	18	검인정제라고 규정했다.
