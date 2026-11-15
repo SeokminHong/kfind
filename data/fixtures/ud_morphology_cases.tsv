@@ -1268,6 +1268,8 @@ regression.numeric-copula.bare-number	이다	adjective	smart-exact	12	18	정답�
 regression.roman-numeric-unit.regnal-ordinal	세	noun	smart-exact	23	29	프랑스의 루이 XVI세는 베르사유에 머물렀다.
 regression.roman-numeric-unit.unicode	세	noun	smart-exact	26	32	프랑스의 루이 ⅩⅥ세는 베르사유에 머물렀다.
 regression.roman-numeric-unit.chapter	장	noun	smart-exact	19	25	이 설명은 제IV장에 실려 있다.
+regression.roman-numeric-unit.chapter-copula	장	noun	smart-exact	29	32	이번에 읽을 부분은 IV장이다.
+regression.roman-numeric-unit.particle-copula	세	noun	smart-exact	17	23	그는 루이 XVI세뿐이었다.
 regression.roman-numeric-unit.latin-word	세	noun	no-match	15	21	브랜드 CIVIC세는 전시 대상에서 빠졌다.
 regression.roman-numeric-unit.invalid-repetition	세	noun	no-match	15	21	인물명 IIIII세는 오기였다.
 regression.numeric-copula.spaced-count-question	이다	adjective	smart-exact	4	10	몇 개냐?

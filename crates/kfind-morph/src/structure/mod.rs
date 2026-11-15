@@ -12,6 +12,7 @@ mod graph;
 mod lexical;
 mod paths;
 mod probes;
+mod roman_numeral;
 mod selection;
 mod support;
 

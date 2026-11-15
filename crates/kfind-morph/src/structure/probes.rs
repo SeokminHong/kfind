@@ -11,6 +11,7 @@ use crate::structure::lexical::{
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
 };
+use crate::structure::roman_numeral::{is_roman_digit, is_roman_numeral};
 use crate::{
     LexicalAlternation, PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal,
 };
@@ -381,16 +382,33 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_numeric_unit_surface(&self, text: &str) -> bool {
         let digits = text.bytes().take_while(u8::is_ascii_digit).count();
-        if digits == 0 || digits == text.len() {
+        let prefix_len = if digits == 0 {
+            let roman_end = text
+                .char_indices()
+                .find_map(|(offset, ch)| (!is_roman_digit(ch)).then_some(offset))
+                .unwrap_or(text.len());
+            if !is_roman_numeral(&text[..roman_end]) {
+                return false;
+            }
+            roman_end
+        } else {
+            digits
+        };
+        if prefix_len == text.len() {
             return false;
         }
-        Self::is_dictionary_numeric_unit(&text[digits..])
-            || numeric_unit_path_at(&self.resource, text, digits).is_some_and(|path| {
+        Self::is_dictionary_numeric_unit(&text[prefix_len..])
+            || numeric_unit_path_at(&self.resource, text, prefix_len).is_some_and(|path| {
                 path.dependent_tail.as_ref().unwrap_or(&path.unit).end == text.len()
                     && exact_analysis_starts_with_pos(&self.resource, &text[path.unit], |pos| {
                         matches!(pos, StructuralPos::NNB | StructuralPos::NNBC)
                     })
             })
+    }
+
+    #[must_use]
+    pub fn is_roman_unit_prefix(text: &str) -> bool {
+        is_roman_numeral(text)
     }
 
     #[must_use]

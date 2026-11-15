@@ -33,7 +33,6 @@ mod exact_token_graphs;
 mod fused_copula;
 mod line_candidate;
 mod phrase;
-mod roman_numeral;
 mod streaming_phrase;
 mod trailing;
 
@@ -998,9 +997,7 @@ impl MorphMatcher {
         ) && *core == candidate.consumed
             && whole.start < core.start
             && core.end < whole.end
-            && haystack[whole.start..core.start]
-                .iter()
-                .all(u8::is_ascii_digit)
+            && is_numeric_unit_prefix(&haystack[whole.start..core.start])
             && patterns
                 .iter()
                 .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr))
@@ -1377,7 +1374,7 @@ impl MorphMatcher {
         let prefix = &haystack[whole.start..core.start];
         let digits = |bytes: &[u8]| !bytes.is_empty() && bytes.iter().all(u8::is_ascii_digit);
         if !complete && candidate.consumed != *core {
-            return digits(prefix)
+            return is_numeric_unit_prefix(prefix)
                 && context::normalized_token(haystack, core.clone())
                     .is_some_and(|unit| resolver.has_exact_numeric_unit(&unit))
                 && self
@@ -1388,12 +1385,12 @@ impl MorphMatcher {
             && ((prefix.starts_with("제".as_bytes()) || prefix.starts_with("ᄌ".as_bytes()))
                 && context::normalized_token(haystack, whole.start..core.start).is_some_and(
                     |prefix| {
-                        prefix.strip_prefix('제').is_some_and(|number| {
-                            digits(number.as_bytes()) || roman_numeral::is_roman_numeral(number)
-                        })
+                        prefix
+                            .strip_prefix('제')
+                            .is_some_and(|number| is_numeric_unit_prefix(number.as_bytes()))
                     },
                 )
-                || std::str::from_utf8(prefix).is_ok_and(roman_numeral::is_roman_numeral))
+                || std::str::from_utf8(prefix).is_ok_and(ConstraintResolver::is_roman_unit_prefix))
         {
             return context::normalized_token(haystack, core.clone())
                 .is_some_and(|unit| resolver.has_exact_numeric_unit(&unit));
@@ -1718,6 +1715,12 @@ fn has_interrogative_auxiliary_frame(
         .is_some_and(|previous| resolver.has_subject_marked_nominal(&previous))
         && (resolver.has_exact_predicate_ending_path(&text, PredicatePos::Adjective)
             || resolver.has_exact_lost_span_copula_ending_path(&text))
+}
+
+fn is_numeric_unit_prefix(prefix: &[u8]) -> bool {
+    !prefix.is_empty()
+        && (prefix.iter().all(u8::is_ascii_digit)
+            || std::str::from_utf8(prefix).is_ok_and(ConstraintResolver::is_roman_unit_prefix))
 }
 
 fn has_nominal_component_before_copula(
