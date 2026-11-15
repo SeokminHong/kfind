@@ -1,4 +1,10 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.concessive-connective.adjective	마다	verb	no-match	13	16	키가 크지만 감기에 걸렸다.
+regression.concessive-connective.past	말다	verb	no-match	13	16	꼭 받았지만 답장을 보낼 수 없었다.
+regression.concessive-connective.copula	말다	verb	no-match	19	22	그게 사실이건만 아무도 믿지 않았다.
+regression.concessive-connective.full-form	마다	verb	no-match	20	26	그는 집에 있지마는 곧 떠날 것이다.
+regression.concessive-connective.adnominal-past	말다	verb	smart-only-exact	10	13	김밥을 만 사람이 나왔다.
+regression.concessive-connective.adnominal-present	말다	verb	smart-only-exact	10	16	김밥을 마는 사람을 불렀다.
 regression.any-attached-auxiliary.contracted	알리다	verb	only-exact	0	9	알려줘.
 regression.any-attached-auxiliary.honorific	고치다	verb	only-exact	0	15	고쳐주신다.
 regression.any-attached-auxiliary.state	열리다	verb	only-exact	0	12	열려있다.
