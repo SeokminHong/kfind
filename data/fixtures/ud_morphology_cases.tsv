@@ -1258,6 +1258,9 @@ regression.numeric-copula.consonant-unit-no-omission	이다	adjective	no-match	2
 regression.numeric-copula.other-unit	이다	adjective	smart-exact	14	17	정원은 4회다.
 regression.numeric-copula.ordinal-unit	이다	adjective	smart-exact	36	39	그 선수가 받은 등수는 37위다.
 regression.numeric-copula.past	이다	adjective	smart-exact	15	21	배낭은 37개였다.
+corpus.ud-pud.test.n01094014.noun.개	개	noun	smart-exact	12	18	시장은 50개뿐이었다.
+regression.numeric-copula.particle-chain	마리	noun	smart-exact	28	40	처음 도착한 새들은 2마리뿐만이었던 셈이다.
+regression.numeric-copula.invalid-after-particle	개	noun	no-match	15	21	시장에는 50개뿐였다.
 regression.numeric-copula.polite	이다	adjective	smart-exact	12	18	배낭은 37개죠.
 regression.numeric-copula.question	이다	adjective	smart-exact	12	18	배낭은 37개냐?
 regression.numeric-copula.grouped-question	이다	adjective	smart-exact	22	28	오늘 목표는 1,500개냐?

@@ -1373,11 +1373,16 @@ impl MorphMatcher {
     ) -> bool {
         let core = &candidate.verified.core;
         let complete = candidate.consumed.end == whole.end;
-        if !complete && candidate.consumed != *core {
-            return false;
-        }
         let prefix = &haystack[whole.start..core.start];
         let digits = |bytes: &[u8]| !bytes.is_empty() && bytes.iter().all(u8::is_ascii_digit);
+        if !complete && candidate.consumed != *core {
+            return digits(prefix)
+                && context::normalized_token(haystack, core.clone())
+                    .is_some_and(|unit| resolver.has_exact_numeric_unit(&unit))
+                && self
+                    .nominal_copula_trailing(haystack, candidate, whole.clone(), resolver)
+                    .is_some();
+        }
         if complete
             && (prefix.starts_with("제".as_bytes()) || prefix.starts_with("ᄌ".as_bytes()))
             && context::normalized_token(haystack, whole.start..core.start).is_some_and(|prefix| {
