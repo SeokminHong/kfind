@@ -1,4 +1,8 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.compound-nominal-head.price	값	noun	smart-only-exact	16	22	정부는 연료값을 인상했다.
+regression.compound-nominal-head.nominalization	값	noun	smart-only-exact	6	12	기름값이 계속 오른다.
+regression.compound-nominal-head.sai-siot	값	noun	smart-only-exact	16	22	정부는 연룟값을 인상했다.
+regression.compound-nominal-head.copula	값	noun	smart-only-exact	27	30	가장 큰 지출은 연료값이었다.
 regression.proper-name-nominal-boundary.ordinal	세	noun	smart-only-exact	16	22	투트모세 III세가 왕위에 올랐다.
 regression.proper-name-nominal-boundary.transliteration	아	noun	no-match	0	3	아이티 정부가 발표했다.
 regression.proper-name-nominal-boundary.person	정	noun	no-match	6	9	강혜정 배우가 참석했다.

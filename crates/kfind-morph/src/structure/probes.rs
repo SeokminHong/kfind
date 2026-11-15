@@ -20,6 +20,8 @@ use std::ops::Range;
 
 const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
     include!("../../../../data/rules/krdict-non-accusative-predicate-anchors.rs");
+const PRODUCTIVE_NOMINAL_HEADS: &[&str] =
+    include!("../../../../data/rules/nikl-productive-nominal-heads.rs");
 
 include!("../../../../data/rules/krdict-nominal-frames.rs");
 include!("../../../../data/rules/krdict-auxiliary-frames.rs");
@@ -262,6 +264,32 @@ impl ConstraintResolver {
         STDICT_ATTACHED_NOMINAL_USAGES
             .binary_search(&(suffix, word))
             .is_ok()
+    }
+
+    #[must_use]
+    pub fn is_productive_nominal_head(head: &str) -> bool {
+        PRODUCTIVE_NOMINAL_HEADS.contains(&head)
+    }
+
+    #[must_use]
+    pub fn has_productive_nominal_head_prefix(&self, prefix: &str) -> bool {
+        let independent_noun =
+            |word| has_exact_fine_pos(&self.resource, word, |pos| pos == DataFinePos::Nng);
+        if independent_noun(prefix) {
+            return true;
+        }
+        let Some((offset, last)) = prefix.char_indices().next_back() else {
+            return false;
+        };
+        if !crate::hangul::decompose_syllable(last)
+            .is_some_and(|syllable| syllable.jongseong == crate::hangul::JONG_SIOT)
+        {
+            return false;
+        }
+        let mut original = String::with_capacity(prefix.len());
+        original.push_str(&prefix[..offset]);
+        original.extend(crate::drop_final(last));
+        independent_noun(&original)
     }
 
     #[must_use]
