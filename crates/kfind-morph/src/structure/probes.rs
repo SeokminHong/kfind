@@ -29,6 +29,43 @@ struct AuxiliaryInflections {
     interrogative: Vec<crate::SurfaceBranchSpec>,
 }
 
+#[derive(Clone, Copy)]
+enum VowelAuxiliaryHost {
+    Verb,
+    Adjective,
+    VerbOrAdjective,
+}
+
+impl VowelAuxiliaryHost {
+    fn accepts(self, pos: PredicatePos) -> bool {
+        match self {
+            Self::Verb => pos.is_action(),
+            Self::Adjective => pos.execution() == PredicatePos::Adjective,
+            Self::VerbOrAdjective => pos != PredicatePos::Copula,
+        }
+    }
+}
+
+fn vowel_auxiliary_inflections() -> &'static [(VowelAuxiliaryHost, crate::SurfaceBranchSpec)] {
+    static FORMS: std::sync::OnceLock<Vec<(VowelAuxiliaryHost, crate::SurfaceBranchSpec)>> =
+        std::sync::OnceLock::new();
+    FORMS.get_or_init(|| {
+        let mut forms: Vec<_> = VOWEL_AUXILIARIES
+            .iter()
+            .flat_map(|&(lemma, alternation, host)| {
+                let entry =
+                    crate::PredicateEntry::new(lemma, PredicatePos::AuxiliaryVerb, alternation);
+                crate::generate_predicate_branches(&entry)
+                    .expect("valid dictionary auxiliary")
+                    .into_iter()
+                    .map(move |form| (host, form))
+            })
+            .collect();
+        forms.sort_unstable_by(|(_, left), (_, right)| left.anchor.cmp(&right.anchor));
+        forms
+    })
+}
+
 fn auxiliary_inflections() -> &'static AuxiliaryInflections {
     static INFLECTIONS: std::sync::OnceLock<AuxiliaryInflections> = std::sync::OnceLock::new();
     INFLECTIONS.get_or_init(|| {
@@ -66,14 +103,18 @@ fn auxiliary_inflections() -> &'static AuxiliaryInflections {
 }
 
 fn matches_auxiliary_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) -> bool {
-    forms.iter().any(|form| {
-        text.strip_prefix(form.anchor.as_ref()).is_some_and(|tail| {
-            if tail.is_empty() {
-                return !form.rule_path.is_empty() || form.anchor.ends_with('다');
-            }
-            crate::verify_predicate_continuation(form.continuation, form.pos, &form.anchor, tail)
-                .is_some_and(|matched| matched.token_end == text.len())
-        })
+    forms
+        .iter()
+        .any(|form| matches_auxiliary_branch(text, form))
+}
+
+fn matches_auxiliary_branch(text: &str, form: &crate::SurfaceBranchSpec) -> bool {
+    text.strip_prefix(form.anchor.as_ref()).is_some_and(|tail| {
+        if tail.is_empty() {
+            return !form.rule_path.is_empty() || form.anchor.ends_with('다');
+        }
+        crate::verify_predicate_continuation(form.continuation, form.pos, &form.anchor, tail)
+            .is_some_and(|matched| matched.token_end == text.len())
     })
 }
 
@@ -854,6 +895,27 @@ impl ConstraintResolver {
     #[must_use]
     pub fn supports_auxiliary_sequence(&self, text: &str, node_limit: usize) -> bool {
         self.supports_auxiliary_sequence_matching(text, node_limit, |_| true)
+    }
+
+    #[must_use]
+    pub fn has_vowel_auxiliary_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
+        let Some(initial) = text.chars().next() else {
+            return false;
+        };
+        let forms = vowel_auxiliary_inflections();
+        let start = forms.partition_point(|(_, form)| form.anchor.chars().next() < Some(initial));
+        forms[start..]
+            .iter()
+            .take_while(|(_, form)| form.anchor.starts_with(initial))
+            .any(|(host, form)| {
+                host.accepts(host_pos)
+                    && (form.anchor.as_ref() != text
+                        || !matches!(
+                            form.continuation,
+                            crate::ContinuationState::Past | crate::ContinuationState::Future
+                        ))
+                    && matches_auxiliary_branch(text, form)
+            })
     }
 
     #[must_use]

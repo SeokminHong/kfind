@@ -2419,6 +2419,39 @@ fn auxiliary_sequence_requires_an_auxiliary_predicate() {
 }
 
 #[test]
+fn vowel_auxiliary_frame_checks_host_pos_and_complete_inflection() {
+    use crate::PredicatePos::{Adjective, Verb};
+
+    let resolver = resolver();
+    for text in [
+        "준다고",
+        "줬더라",
+        "버렸고",
+        "버리세요",
+        "내기",
+        "냈다",
+        "치우고",
+    ] {
+        assert!(
+            resolver.has_vowel_auxiliary_inflection(text, Verb),
+            "{text}"
+        );
+        assert!(
+            !resolver.has_vowel_auxiliary_inflection(text, Adjective),
+            "{text}"
+        );
+    }
+    assert!(resolver.has_vowel_auxiliary_inflection("죽겠어", Adjective));
+    assert!(!resolver.has_vowel_auxiliary_inflection("죽겠어", Verb));
+    for text in ["싶다", "않고", "냈", "버렸", "버렸나무"] {
+        assert!(
+            !resolver.has_vowel_auxiliary_inflection(text, Verb),
+            "{text}"
+        );
+    }
+}
+
+#[test]
 fn attached_auxiliary_requires_a_predicate_connective_path() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vx, "지").with_candidate_contract(

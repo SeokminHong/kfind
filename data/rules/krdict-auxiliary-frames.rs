@@ -81,3 +81,31 @@ const ADNOMINAL_AUXILIARIES: &[(&str, PredicatePos, LexicalAlternation, bool, bo
 
 // 한국어기초사전에서 -(으)ㄴ가를 받는 추측 보조 용언.
 const INTERROGATIVE_AUXILIARIES: &[&str] = &["보다", "싶다"];
+// 한국어기초사전의 '-어' 결합 주석 중 활용 전체가 허용되는 구성.
+// 일부 선행 용언 또는 특정 후행 어미로 범위가 제한된 뜻풀이는 포함하지 않는다.
+const VOWEL_AUXILIARIES: &[(&str, LexicalAlternation, VowelAuxiliaryHost)] = &[
+    ("가다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("계시다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("나가다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("나다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("내다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("놓다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("대다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("두다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("드리다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("마지아니하다", LexicalAlternation::Ha, VowelAuxiliaryHost::Verb),
+    ("마지않다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("버릇하다", LexicalAlternation::Ha, VowelAuxiliaryHost::Verb),
+    ("버리다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("보다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("쌓다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("오다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("있다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("재끼다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("젖히다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("주다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("죽다", LexicalAlternation::Regular, VowelAuxiliaryHost::Adjective),
+    ("지다", LexicalAlternation::Regular, VowelAuxiliaryHost::VerbOrAdjective),
+    ("치우다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
+    ("하다", LexicalAlternation::Ha, VowelAuxiliaryHost::Adjective),
+];
