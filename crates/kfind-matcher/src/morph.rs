@@ -746,7 +746,7 @@ impl MorphMatcher {
                 && context::normalized_token(haystack, candidate.anchor.clone()).is_some_and(
                     |token| {
                         patterns.iter().any(|pattern| {
-                            pattern.fine_pos == DataFinePos::Mag
+                            matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj)
                                 && resolver
                                     .has_adverb_topic_contraction(&pattern.lexical_form, &token)
                         })

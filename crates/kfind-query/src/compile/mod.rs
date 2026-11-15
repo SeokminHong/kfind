@@ -23,6 +23,8 @@ use normalization::{DraftBranch, DraftDecision, normalize_and_merge, normalize_a
 
 const PROGRAM_OVERHEAD_BYTES: usize = 64;
 const NIKL_ENDING_CATALOG: &str = include_str!("../../../../data/rules/nikl-modern-endings.tsv");
+const ADVERB_TOPIC_CONTRACTION_HOSTS: &str =
+    include_str!("../../../../data/rules/adverb-topic-contraction-hosts.txt");
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
@@ -478,34 +480,46 @@ fn compile_analysis(
                 smart_left: true,
                 decision,
             });
-            if analysis.fine_pos == FinePos::GeneralAdverb
+            let general_adverb = analysis.fine_pos == FinePos::GeneralAdverb;
+            let smart = options.boundary == crate::BoundaryPolicy::Smart;
+            let attested_topic = (!smart || !general_adverb)
+                && ADVERB_TOPIC_CONTRACTION_HOSTS
+                    .lines()
+                    .any(|lemma| lemma == atom_surface);
+            if (general_adverb || attested_topic)
                 && let Some(contracted) =
                     kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
             {
-                if options.boundary == crate::BoundaryPolicy::Smart {
+                if smart || attested_topic {
                     output.push(exact_branch_with_decision(
                         &contracted,
                         analysis_index,
                         vec![RuleId::from("contraction.adverb-topic-neun")],
                         true,
-                        DraftDecision::Structural(ComponentCapability::Source),
+                        if smart {
+                            DraftDecision::Structural(ComponentCapability::Source)
+                        } else {
+                            DraftDecision::Boundary
+                        },
                     ));
                 }
-                output.push(DraftBranch {
-                    anchor: contracted,
-                    consumption: CandidateConsumption::NominalParticleChain {
-                        initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
-                        allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
-                        blocked_rule_ids: Arc::from([]),
-                    },
-                    core_mapping: CoreMapping::WholeAnchor,
-                    origins: vec![Origin {
-                        analysis_index,
-                        rule_path: vec![RuleId::from("structural.adverb-copula-nieun")],
-                    }],
-                    smart_left: true,
-                    decision,
-                });
+                if general_adverb {
+                    output.push(DraftBranch {
+                        anchor: contracted,
+                        consumption: CandidateConsumption::NominalParticleChain {
+                            initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
+                            allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
+                            blocked_rule_ids: Arc::from([]),
+                        },
+                        core_mapping: CoreMapping::WholeAnchor,
+                        origins: vec![Origin {
+                            analysis_index,
+                            rule_path: vec![RuleId::from("structural.adverb-copula-nieun")],
+                        }],
+                        smart_left: true,
+                        decision,
+                    });
+                }
             }
         } else {
             output.push(exact_branch_with_decision(

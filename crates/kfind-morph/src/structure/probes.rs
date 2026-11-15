@@ -424,7 +424,8 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_adverb_topic_contraction(&self, adverb: &str, contracted: &str) -> bool {
-        has_exact_sequence(&self.resource, adverb, &[StructuralPos::MAG])
+        (has_exact_sequence(&self.resource, adverb, &[StructuralPos::MAG])
+            || has_exact_sequence(&self.resource, adverb, &[StructuralPos::MAJ]))
             && has_exact_sequence(
                 &self.resource,
                 contracted,
