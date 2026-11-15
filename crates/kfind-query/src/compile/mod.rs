@@ -480,16 +480,17 @@ fn compile_analysis(
                 smart_left: true,
                 decision,
             });
-            if analysis.fine_pos == FinePos::GeneralAdverb
+            let general_adverb = analysis.fine_pos == FinePos::GeneralAdverb;
+            let smart = options.boundary == crate::BoundaryPolicy::Smart;
+            let attested_without_components = !smart
+                && ADVERB_TOPIC_CONTRACTION_HOSTS
+                    .lines()
+                    .any(|lemma| lemma == atom_surface);
+            if (general_adverb || attested_without_components)
                 && let Some(contracted) =
                     kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
             {
-                let smart = options.boundary == crate::BoundaryPolicy::Smart;
-                if smart
-                    || ADVERB_TOPIC_CONTRACTION_HOSTS
-                        .lines()
-                        .any(|lemma| lemma == atom_surface)
-                {
+                if smart || attested_without_components {
                     output.push(exact_branch_with_decision(
                         &contracted,
                         analysis_index,
@@ -502,21 +503,23 @@ fn compile_analysis(
                         },
                     ));
                 }
-                output.push(DraftBranch {
-                    anchor: contracted,
-                    consumption: CandidateConsumption::NominalParticleChain {
-                        initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
-                        allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
-                        blocked_rule_ids: Arc::from([]),
-                    },
-                    core_mapping: CoreMapping::WholeAnchor,
-                    origins: vec![Origin {
-                        analysis_index,
-                        rule_path: vec![RuleId::from("structural.adverb-copula-nieun")],
-                    }],
-                    smart_left: true,
-                    decision,
-                });
+                if general_adverb {
+                    output.push(DraftBranch {
+                        anchor: contracted,
+                        consumption: CandidateConsumption::NominalParticleChain {
+                            initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
+                            allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
+                            blocked_rule_ids: Arc::from([]),
+                        },
+                        core_mapping: CoreMapping::WholeAnchor,
+                        origins: vec![Origin {
+                            analysis_index,
+                            rule_path: vec![RuleId::from("structural.adverb-copula-nieun")],
+                        }],
+                        smart_left: true,
+                        decision,
+                    });
+                }
             }
         } else {
             output.push(exact_branch_with_decision(
