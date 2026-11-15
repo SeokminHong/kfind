@@ -174,6 +174,8 @@ impl PredicateFlags {
     pub const ALLOW_UNCONTRACTED: Self = Self(1 << 2);
     pub const NO_I_EO_CONTRACTION: Self = Self(1 << 3);
     pub const NO_DECLARATIVE_CONTINUATION: Self = Self(1 << 4);
+    /// A forced stem whose only reviewed source form belongs to another predicate.
+    pub const FORCED_INFLECTED_ALIAS: Self = Self(1 << 5);
 
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {

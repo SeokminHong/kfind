@@ -3,10 +3,10 @@ use std::{ops::Range, sync::OnceLock};
 use kfind_data::DataFinePos;
 use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LexicalAlternation, PredicateEntry,
-    PredicatePos, RuleId, SurfaceBranchSpec, generate_predicate_branches,
+    PredicateFlags, PredicatePos, RuleId, SurfaceBranchSpec, generate_predicate_branches,
     verify_predicate_continuation,
 };
-use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
+use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram, Morphology};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
@@ -59,6 +59,9 @@ pub(super) fn rejects(
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
+        || has_pronoun_topic_instead_of_inferred_adnominal(
+            haystack, candidate, branch, atom, resolver,
+        )
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
         || nominal::has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
@@ -67,6 +70,39 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_pronoun_topic_instead_of_inferred_adnominal(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    let core = &candidate.verified.core;
+    !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| {
+                    matches!(&analysis.morphology, Morphology::Predicate(predicate)
+                    if predicate.flags.contains(PredicateFlags::FORCED_INFLECTED_ALIAS))
+                })
+        })
+        && core.start == span.start
+        && core.end < span.end
+        && is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::normalized_token(haystack, core.end..span.end)
+            .is_some_and(|suffix| suffix == "는")
+        && context::normalized_token(haystack, core.clone())
+            .is_some_and(|host| resolver.has_exact_pronoun_surface(&host))
+        && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
+            resolver.has_topic_marked_nominal(&token)
+                && !resolver.has_exact_predicate_ending_path(&token, PredicatePos::Verb)
+                && !resolver.has_exact_predicate_ending_path(&token, PredicatePos::AuxiliaryVerb)
+        })
 }
 
 fn has_competing_derived_predicate(
