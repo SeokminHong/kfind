@@ -118,35 +118,39 @@ pub(super) fn adnominal_suffix_is_supported(resource: &ComponentResource, text: 
 }
 
 pub(super) fn complete_predicate_adnominal_path(resource: &ComponentResource, text: &str) -> bool {
-    predicate_adnominal_path(resource, text, StructuralPos::is_predicate_tag)
+    predicate_inflected_path(resource, text, StructuralPos::is_predicate_tag, |pos| {
+        pos == StructuralPos::ETM
+    })
 }
 
-fn predicate_adnominal_path(
+fn predicate_inflected_path(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(StructuralPos) -> bool,
+    accepts_stem: impl Fn(StructuralPos) -> bool,
+    accepts_ending: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
     resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         let Some((&predicate, endings)) = positions.split_first() else {
             return;
         };
-        if matched || !accepts(predicate) {
+        if matched || !accepts_stem(predicate) {
             return;
         }
-        matched = complete_adnominal_ending(resource, endings, &text[length..]);
+        matched = complete_inflected_ending(resource, endings, &text[length..], &accepts_ending);
     });
     matched
 }
 
 pub(super) fn complete_derived_adnominal_path(resource: &ComponentResource, text: &str) -> bool {
-    derived_adnominal_path(resource, text, |_| true)
+    derived_inflected_path(resource, text, |_| true, |pos| pos == StructuralPos::ETM)
 }
 
-fn derived_adnominal_path(
+fn derived_inflected_path(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(StructuralPos) -> bool,
+    accepts_derivation: impl Fn(StructuralPos) -> bool,
+    accepts_ending: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
     resource.common_prefix_positions(text.as_bytes(), |root_end, root| {
@@ -162,24 +166,38 @@ fn derived_adnominal_path(
             else {
                 return;
             };
-            matched |= accepts(*derivation)
-                && complete_adnominal_ending(resource, endings, &suffix[end..]);
+            matched |= accepts_derivation(*derivation)
+                && complete_inflected_ending(resource, endings, &suffix[end..], &accepts_ending);
         });
     });
     matched
 }
 
 pub(super) fn adjective_adnominal_path(resource: &ComponentResource, text: &str) -> bool {
-    predicate_adnominal_path(resource, text, |pos| pos == StructuralPos::VA)
-        || derived_adnominal_path(resource, text, |pos| pos == StructuralPos::XSA)
+    let adnominal = |pos| pos == StructuralPos::ETM;
+    predicate_inflected_path(resource, text, |pos| pos == StructuralPos::VA, adnominal)
+        || derived_inflected_path(resource, text, |pos| pos == StructuralPos::XSA, adnominal)
 }
 
-fn complete_adnominal_ending(
-    resource: &ComponentResource,
-    endings: &[StructuralPos],
-    suffix: &str,
-) -> bool {
-    complete_inflected_ending(resource, endings, suffix, |pos| pos == StructuralPos::ETM)
+pub(super) fn complete_modifier_prefix(resource: &ComponentResource, text: &str) -> bool {
+    let connective = |pos| pos == StructuralPos::EC;
+    let has_connective = |surface: &str| {
+        predicate_inflected_path(
+            resource,
+            surface,
+            StructuralPos::is_predicate_tag,
+            connective,
+        ) || derived_inflected_path(resource, surface, |_| true, connective)
+    };
+    let has_adnominal = |surface| {
+        complete_predicate_adnominal_path(resource, surface)
+            || complete_derived_adnominal_path(resource, surface)
+    };
+    has_adnominal(text)
+        || has_connective(text)
+        || text.char_indices().skip(1).any(|(boundary, _)| {
+            has_connective(&text[..boundary]) && has_adnominal(&text[boundary..])
+        })
 }
 
 pub(super) fn complete_inflected_ending(

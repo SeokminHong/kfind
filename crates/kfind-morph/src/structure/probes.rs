@@ -1825,6 +1825,27 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_adjective_adnominal(&self, text: &str, split: usize) -> bool {
+        let Some((left, right)) = text.split_at_checked(split) else {
+            return false;
+        };
+        !left.is_empty()
+            && self.has_adjective_adnominal_surface(right)
+            && super::lexical::complete_modifier_prefix(&self.resource, left)
+            && !self.has_exact_noun_with_optional_particles(text)
+            && !left.char_indices().skip(1).any(|(boundary, _)| {
+                self.has_exact_proper_name_surface(&text[boundary..])
+                    && (super::lexical::complete_predicate_adnominal_path(
+                        &self.resource,
+                        &text[..boundary],
+                    ) || super::lexical::complete_derived_adnominal_path(
+                        &self.resource,
+                        &text[..boundary],
+                    ))
+            })
+    }
+
+    #[must_use]
     pub fn has_predicate_adnominal_surface(&self, text: &str) -> bool {
         let mut matched = false;
         let mut modifier = false;

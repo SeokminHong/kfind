@@ -12,8 +12,8 @@ use crate::boundary::{
 };
 
 use super::{
-    ExecutedCandidate, MorphMatcher, StructuralCache, context, has_quotative_adnominal_head,
-    source_aligned_compound_predicate_position,
+    ADNOMINAL_RULE_IDS, ExecutedCandidate, MorphMatcher, StructuralCache, context,
+    has_quotative_adnominal_head, source_aligned_compound_predicate_position,
 };
 
 mod competing_analyses;
@@ -320,6 +320,38 @@ impl MorphMatcher {
             }
         };
         accepted
+            || (boundary == BoundaryPolicy::Smart
+                && matches!(
+                    branch.consumption,
+                    CandidateConsumption::PredicateContinuation {
+                        pos: kfind_morph::PredicatePos::Adjective,
+                        ..
+                    } | CandidateConsumption::StructuralPredicateEnding {
+                        pos: kfind_morph::PredicatePos::Adjective,
+                        ..
+                    }
+                )
+                && branch.origins.iter().any(|origin| {
+                    candidate
+                        .suffix_rules
+                        .last()
+                        .or_else(|| origin.rule_path.last())
+                        .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
+                })
+                && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                    let consumed = &candidate.consumed;
+                    let whole = surrounding_token_span(haystack, consumed.clone());
+                    consumed.start > whole.start
+                        && consumed.end == whole.end
+                        && context::normalized_token(haystack, whole.start..consumed.start)
+                            .zip(context::normalized_token(haystack, whole.clone()))
+                            .is_some_and(|(left, token)| {
+                                resolver.has_attached_adjective_adnominal(&token, left.len())
+                                    && context::next_word_on_line(haystack, whole.end).is_some_and(
+                                        |(_, head)| resolver.has_independent_nominal_head(&head),
+                                    )
+                            })
+                }))
             || (self.plan.composition == QueryComposition::Phrase
                 && self.plan.atoms.len() > 1
                 && self.accepts_joined_nominal_phrase_component(haystack, candidate, branch, atom))
