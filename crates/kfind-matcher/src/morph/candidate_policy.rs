@@ -13,6 +13,7 @@ use crate::boundary::{
 
 use super::{
     ExecutedCandidate, MorphMatcher, StructuralCache, context, has_quotative_adnominal_head,
+    source_aligned_compound_predicate_position,
 };
 
 mod competing_analyses;
@@ -27,6 +28,34 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Smart
+            && let CandidateConsumption::PredicateContinuation {
+                source_positions, ..
+            } = branch.consumption
+            && source_positions
+                == kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Adjective)
+            && !branch.origins.is_empty()
+            && branch.origins.iter().all(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == "ending.present-adnominal")
+            })
+            && !is_boundary_before(haystack, candidate.verified.core.start)
+            && !self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                let core = &candidate.verified.core;
+                let whole = surrounding_token_span(haystack, core.clone());
+                source_aligned_compound_predicate_position(
+                    haystack,
+                    core,
+                    &whole,
+                    source_positions,
+                    resolver,
+                )
+            })
+        {
+            return false;
+        }
         if boundary == BoundaryPolicy::Smart
             && matches!(
                 branch.consumption,
