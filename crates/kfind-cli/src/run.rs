@@ -134,8 +134,17 @@ where
     let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan = Arc::new(compile_query(query, &options, &analyzer).map_err(CliError::Compile)?);
-    let matcher = if plan.requires_component_resource() {
-        let resource = Arc::new(load_component_resource(args)?);
+    let component_path = if plan.requires_component_resource() {
+        Some(resolve_component_resource(args)?)
+    } else if plan.has_optional_component_programs() {
+        component_candidates(args)
+            .into_iter()
+            .find(|path| path.is_file())
+    } else {
+        None
+    };
+    let matcher = if let Some(path) = component_path {
+        let resource = Arc::new(load_component_resource(&path)?);
         MorphMatcher::with_component_resource(Arc::clone(&plan), resource)
     } else {
         MorphMatcher::new(Arc::clone(&plan))
@@ -440,9 +449,8 @@ fn resolve_enriched_predicates(args: &Args) -> Option<PathBuf> {
     candidates.into_iter().find(|path| path.is_file())
 }
 
-fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {
-    let path = resolve_component_resource(args)?;
-    let bytes = read_resource(&path, MAX_COMPONENT_RESOURCE_BYTES)?;
+fn load_component_resource(path: &Path) -> Result<ComponentResource, CliError> {
+    let bytes = read_resource(path, MAX_COMPONENT_RESOURCE_BYTES)?;
     decode_component_resource(
         &path.to_string_lossy(),
         bytes,
@@ -452,15 +460,17 @@ fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {
 }
 
 fn resolve_component_resource(args: &Args) -> Result<PathBuf, CliError> {
+    require_component_candidate(component_candidates(args))
+}
+
+fn component_candidates(args: &Args) -> Vec<PathBuf> {
     if let Some(directory) = &args.data_dir {
-        return require_component_candidate(vec![directory.join(COMPONENT_RESOURCE_FILE)]);
+        return vec![directory.join(COMPONENT_RESOURCE_FILE)];
     }
     if let Some(directory) = env::var_os("KFIND_DATA_DIR") {
-        return require_component_candidate(vec![
-            PathBuf::from(directory).join(COMPONENT_RESOURCE_FILE),
-        ]);
+        return vec![PathBuf::from(directory).join(COMPONENT_RESOURCE_FILE)];
     }
-    require_component_candidate(auto_component_candidates())
+    auto_component_candidates()
 }
 
 fn read_resource(path: &Path, limit: usize) -> Result<Vec<u8>, CliError> {

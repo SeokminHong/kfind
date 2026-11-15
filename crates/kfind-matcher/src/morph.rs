@@ -135,7 +135,8 @@ impl MorphMatcher {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
-        let (anchors, anchor_programs, fused_copula_anchor) = unique_anchors(&plan);
+        let (anchors, anchor_programs, fused_copula_anchor) =
+            unique_anchors(&plan, constraint_resolver.is_some());
         let mut max_anchor_end_from_token_start =
             anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         if fused_copula_anchor.is_some() {
@@ -811,12 +812,11 @@ impl MorphMatcher {
                     },
                 );
         }
-        if matches!(
-            branch.consumption,
-            CandidateConsumption::CopulaHostEndingCompose | CandidateConsumption::FusedCopulaEnding
-        ) {
-            return self
-                .accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns);
+        if branch.consumption.composes_copula_host() {
+            return patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
+                && self.accepts_lost_span_copula_ending(haystack, candidate, branch, resolver);
         }
         if matches!(
             branch.consumption,
@@ -2013,7 +2013,10 @@ impl AnchorPrograms {
     }
 }
 
-fn unique_anchors(plan: &QueryPlan) -> (Vec<&[u8]>, AnchorPrograms, Option<usize>) {
+fn unique_anchors(
+    plan: &QueryPlan,
+    has_component: bool,
+) -> (Vec<&[u8]>, AnchorPrograms, Option<usize>) {
     let program_count = plan.atoms.iter().map(|atom| atom.programs.len()).sum();
     let mut anchor_indices = HashMap::<&[u8], usize>::with_capacity(program_count);
     let mut anchors = Vec::<&[u8]>::with_capacity(program_count);
@@ -2022,6 +2025,9 @@ fn unique_anchors(plan: &QueryPlan) -> (Vec<&[u8]>, AnchorPrograms, Option<usize
     let mut fused_count = 0;
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
+            if !has_component && branch.consumption.composes_copula_host() {
+                continue;
+            }
             let program = ProgramRef {
                 atom_index,
                 program_index,
@@ -2058,7 +2064,7 @@ fn unique_anchors(plan: &QueryPlan) -> (Vec<&[u8]>, AnchorPrograms, Option<usize
             atom_index: 0,
             program_index: 0
         };
-        program_count
+        links.len()
     ];
     for (anchor_index, program) in links {
         let index = anchor_index.or(fused_anchor).expect("fused anchor");

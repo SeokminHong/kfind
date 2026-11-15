@@ -389,26 +389,29 @@ fn run_kfind(
     query_mode: KfindQueryMode,
 ) -> Result<Summary> {
     let initialization_started = Instant::now();
-    let (component_resource, component_artifact_sha256) = if boundary.requires_component() {
-        let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| COMPONENT_RESOURCE.into());
-        let component_bytes = fs::read(&component_path).with_context(|| {
-            format!(
-                "smart boundary requires component resource {}",
-                component_path.display()
-            )
-        })?;
-        let digest = format!("{:x}", Sha256::digest(&component_bytes));
-        let resource = decode_component_resource(
-            &component_path.display().to_string(),
-            component_bytes,
-            &COMPONENT_RESOURCE_SOURCE_DIGEST,
-        )?;
-        (Some(Arc::new(resource)), Some(digest))
-    } else {
-        (None, None)
-    };
+    let compare_any_component = matches!(boundary, KfindBoundary::Any)
+        && std::env::var_os(COMPONENT_RESOURCE_ENV).is_some();
+    let (component_resource, component_artifact_sha256) =
+        if boundary.requires_component() || compare_any_component {
+            let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(|| COMPONENT_RESOURCE.into());
+            let component_bytes = fs::read(&component_path).with_context(|| {
+                format!(
+                    "failed to read component resource {}",
+                    component_path.display()
+                )
+            })?;
+            let digest = format!("{:x}", Sha256::digest(&component_bytes));
+            let resource = decode_component_resource(
+                &component_path.display().to_string(),
+                component_bytes,
+                &COMPONENT_RESOURCE_SOURCE_DIGEST,
+            )?;
+            (Some(Arc::new(resource)), Some(digest))
+        } else {
+            (None, None)
+        };
     let (lexicons, lexicon_artifact_sha256, enriched_artifact_sha256) = match profile {
         KfindProfile::Embedded => (Lexicons::embedded()?, None, None),
         KfindProfile::FullPos => {
@@ -437,10 +440,10 @@ fn run_kfind(
         let plan = compile_query(&case.query, &options, &analyzer)
             .with_context(|| format!("failed to compile case {}", case.id))?;
         let matcher = match &component_resource {
-            Some(resource) => {
+            Some(resource) if !compare_any_component || plan.has_optional_component_programs() => {
                 MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))?
             }
-            None => MorphMatcher::new(Arc::new(plan))?,
+            _ => MorphMatcher::new(Arc::new(plan))?,
         };
         let spans = find_all_spans(&matcher, &case.text);
         let latency_ms = case_started.elapsed().as_secs_f64() * 1_000.0;

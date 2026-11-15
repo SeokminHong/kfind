@@ -51,6 +51,8 @@
 - engine은 full POS, enriched predicate와 component resource의 초기화 여부를 각각 getter로 노출한다.
   resource가 필요 없는 literal, `token`, `any`와 boundary-only plan은 component가 없는
   engine에서 그대로 compile한다.
+  component를 이미 설치한 engine은 `any`에서 융합·생략 지정사 후보도
+  구조로 확인한다.
 - 라이브러리 matcher는 UTF-8 byte slice에서 겹치지 않는 match와 형태 분석 provenance를
   반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
   포함하지 않는다.
