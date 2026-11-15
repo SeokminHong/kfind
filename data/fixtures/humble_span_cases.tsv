@@ -117,4 +117,9 @@ binaida-quarter	비다	verb	smart-exact	25	37	그 방은 한 분기를 비나이
 seonaida-duty-verb	서다	verb	smart-exact	17	29	저는 경비를 서나이다.
 seonaida-duty-no-firm-rice	설다	verb	no-match	17	29	저는 경비를 서나이다.
 seonaida-firm-rice	설다	verb	smart-exact	14	26	밥이 조금 서나이다.
+junaida-decrease-length	줄다	verb	smart-exact	31	43	가뭄에 강물이 한 자를 주나이다.
+junaida-decrease-depth	줄다	verb	smart-exact	21	33	수위가 한 뼘을 주나이다.
+junaida-decrease-numeric-unit	줄다	verb	smart-exact	18	30	수위가 2뼘을 주나이다.
+junaida-payment-not-decrease	줄다	verb	no-match	14	26	제가 값을 주나이다.
+junaida-payment	주다	verb	smart-exact	14	26	제가 값을 주나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
