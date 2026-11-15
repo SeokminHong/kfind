@@ -91,7 +91,14 @@ impl MorphMatcher {
                         context::normalized_token(haystack, span.clone()).is_some_and(|word| {
                             resolver.has_exact_nominal_surface(&word)
                                 && context::next_word_on_line(haystack, span.end).is_some_and(
-                                    |(_, next)| resolver.has_nominal_with_optional_particles(&next),
+                                    |(end, next)| {
+                                        resolver.has_nominal_with_optional_particles(&next)
+                                            || (resolver.has_exact_conjunctive_adverb(&next)
+                                                && context::next_word_on_line(haystack, end)
+                                                    .is_some_and(|(_, head)| {
+                                                        resolver.has_independent_nominal_head(&head)
+                                                    }))
+                                    },
                                 )
                         })
                     }))
