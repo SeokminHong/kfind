@@ -536,7 +536,8 @@ impl MorphMatcher {
                     }
                 }
 
-                let subject_starts_copula = branch.decision.is_structural()
+                let subject_starts_copula = (branch.decision.is_structural()
+                    || !branch.boundary().require_right)
                     && matches!(
                         branch.consumption,
                         CandidateConsumption::NominalParticleChain { .. }
@@ -553,6 +554,9 @@ impl MorphMatcher {
                         .next_back()
                         .is_some_and(|preceding| {
                             let whole = surrounding_token_span(haystack, core.clone());
+                            if whole.start != core.start && !branch.decision.is_structural() {
+                                return false;
+                            }
                             (whole.start == core.start
                                 || (is_numeric_unit_prefix(&haystack[whole.start..core.start])
                                     && self.constraint_resolver.as_ref().is_some_and(|resolver| {
