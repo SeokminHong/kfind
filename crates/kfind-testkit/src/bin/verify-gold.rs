@@ -129,7 +129,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             suite_errors.push(error.to_string());
         }
     }
-    for verify in [verify_context_homographs, verify_copula_conditionals] {
+    for verify in [
+        verify_context_homographs,
+        verify_copula_conditionals,
+        verify_automatic_quantities,
+    ] {
         if let Err(error) = verify(&enriched_harness) {
             suite_errors.push(error.to_string());
         }
@@ -142,6 +146,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
         cases.len()
     );
+    Ok(())
+}
+
+fn verify_automatic_quantities(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+    for (query, text, surface) in [
+        ("월", "6월에는 장마가 시작된다.", Some("월에는")),
+        ("킬로미터", "여기서 2킬로미터 걸었다.", Some("킬로미터")),
+        ("수", "길이가 수미터에 이른다.", Some("수")),
+        ("여러", "여러분이 도와주세요.", None),
+        ("여러", "여러모로 고맙습니다.", None),
+    ] {
+        let expected = surface
+            .map(|word| {
+                let start = text.find(word).expect("fixture surface is present");
+                start..start + word.len()
+            })
+            .into_iter()
+            .collect::<Vec<_>>();
+        let actual = harness.find_all(query, text)?;
+        if actual != expected {
+            return Err(
+                format!("{query} in {text:?}: expected {expected:?}, got {actual:?}").into(),
+            );
+        }
+    }
     Ok(())
 }
 
