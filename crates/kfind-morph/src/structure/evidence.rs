@@ -143,11 +143,8 @@ impl TokenEvidence {
         let complete = complete_edges(text.len(), &graph, &forward);
         let has_complete_path = forward[text.len()];
         let leading_predicate_spans = leading_predicate_spans(&graph, &path_facts.ending_suffix);
-        let compound_predicate_components = compound_predicate_components(
-            text.len(),
-            &graph,
-            &path_facts.predicate_connective_boundaries,
-        );
+        let compound_predicate_components =
+            compound_predicate_components(text.len(), &graph, &path_facts.predicate_boundaries);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&graph, &complete);
         let nominal_derivation_predicate_prefixes = if include_nominal_derivation_predicate {
             nominal_derivation_predicate_prefixes(text.len(), &graph, &path_facts.ending_suffix)
@@ -161,7 +158,7 @@ impl TokenEvidence {
             attached_auxiliary_spans(
                 text.len(),
                 &graph,
-                &path_facts.predicate_connective_boundaries,
+                &path_facts.predicate_boundaries,
                 &path_facts.ending_suffix,
             )
         } else {

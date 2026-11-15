@@ -1,3 +1,4 @@
+use super::PredicateBoundary;
 use crate::structure::graph::EdgeGraph;
 use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
@@ -22,7 +23,7 @@ const COMPOUND_TAIL_STATE_COUNT: usize = 3;
 pub(in crate::structure) fn compound_predicate_components(
     text_len: usize,
     graph: &EdgeGraph<'_>,
-    connective_boundary: &[bool],
+    predicate_boundaries: &[PredicateBoundary],
 ) -> Box<[PredicateComponent]> {
     let edges = graph.edges();
 
@@ -62,7 +63,7 @@ pub(in crate::structure) fn compound_predicate_components(
     }
     for edge in edges
         .iter()
-        .filter(|edge| connective_boundary[edge.span.start])
+        .filter(|edge| predicate_boundaries[edge.span.start] != PredicateBoundary::None)
     {
         let Some((&first, suffix_positions)) = graph.positions(edge).split_first() else {
             continue;
@@ -159,7 +160,7 @@ fn advance_compound_tail_position(
 pub(in crate::structure) fn attached_auxiliary_spans(
     text_len: usize,
     graph: &EdgeGraph<'_>,
-    connective_boundary: &[bool],
+    predicate_boundaries: &[PredicateBoundary],
     ending_suffix: &[bool],
 ) -> Box<[Range<usize>]> {
     let edges = graph.edges();
@@ -168,7 +169,7 @@ pub(in crate::structure) fn attached_auxiliary_spans(
         .iter()
         .filter(|edge| {
             let mut positions = graph.positions(edge).iter().copied();
-            connective_boundary[edge.span.start]
+            predicate_boundaries[edge.span.start] == PredicateBoundary::Connective
                 && positions.next() == Some(StructuralPos::VX)
                 && positions.all(StructuralPos::is_ending)
                 && ending_suffix[edge.span.end]
