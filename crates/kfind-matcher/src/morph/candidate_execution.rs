@@ -20,8 +20,8 @@ use crate::boundary::{
 
 use super::{
     ExecutedCandidate, MAX_CONSUMPTION_BYTES, MatchMetadata, MorphMatcher, StructuralCache,
-    context, has_nominal_component_before_copula, source_aligned_compound_predicate_position,
-    valid_utf8_prefix, valid_utf8_suffix,
+    context, has_nominal_component_before_copula, is_numeric_unit_prefix,
+    source_aligned_compound_predicate_position, valid_utf8_prefix, valid_utf8_suffix,
 };
 
 impl MorphMatcher {
@@ -554,9 +554,7 @@ impl MorphMatcher {
                         .is_some_and(|preceding| {
                             let whole = surrounding_token_span(haystack, core.clone());
                             (whole.start == core.start
-                                || (haystack[whole.start..core.start]
-                                    .iter()
-                                    .all(u8::is_ascii_digit)
+                                || (is_numeric_unit_prefix(&haystack[whole.start..core.start])
                                     && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                                         context::normalized_token(haystack, whole.start..core.end)
                                             .is_some_and(|host| {
