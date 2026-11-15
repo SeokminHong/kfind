@@ -1148,6 +1148,10 @@ regression.archaic-honorific-sa.nominal	기다	verb	no-match	0	6	기사가 사�
 regression.archaic-honorific-sa.proper-prefix	알다	verb	no-match-both	0	6	아사히신문이 기사로 다뤘다.
 regression.archaic-honorific-sa.nominal-compound	놀다	verb	no-match-both	0	6	노사상생의 원칙을 따랐다.
 regression.archaic-honorific-sa.nominal-before-head	조다	verb	no-match	32	38	연방 스캔들을 조사하는조사 위원회의 책임자가 발언했다.
+regression.archaic-honorific-sa.standalone-nominal-before-head	조다	verb	no-match	7	13	여론 조사 결과를 읽었다.
+regression.archaic-honorific-sa.standalone-nominal-other-lemma	지다	verb	no-match	10	16	케냐에 지사 신설을 준비한다.
+regression.archaic-honorific-sa.coordinated-nominal	조다	verb	no-match	0	6	조사 및 탐험을 시작했다.
+regression.archaic-honorific-sa.connective-before-coordination	돕다	verb	only-exact	0	9	도우사 또한 살 길을 열어 주셨다.
 regression.archaic-honorific-sa.nominal-with-particle	조다	verb	no-match	0	6	조사를 맡은 위원회가 열렸다.
 regression.archaic-honorific-sa.adverb-derivation	물다	verb	no-match	0	6	무사히 귀국했다.
 regression.archaic-honorific-sa.nominal-derivation	길다	adjective	no-match	0	6	기사화되었다.
