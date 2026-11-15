@@ -284,6 +284,7 @@ impl CandidateProgram {
         self.consumption.composes_copula_host()
             || self.is_attributive_pronoun_contraction()
             || self.is_pronoun_topic_contraction()
+            || self.is_dependent_nominal_copula_ending()
             || self.can_extend_attached_auxiliary()
     }
 
@@ -322,6 +323,19 @@ impl CandidateProgram {
                     .last()
                     .is_some_and(|rule| rule.as_str().starts_with("contraction.pronoun-topic-"))
             })
+    }
+
+    #[must_use]
+    pub fn is_dependent_nominal_copula_ending(&self) -> bool {
+        matches!(
+            self.consumption,
+            CandidateConsumption::NominalCopulaEndingChain { .. }
+        ) && self.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str().starts_with("contraction.dependent-"))
+        })
     }
 
     #[must_use]
