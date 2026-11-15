@@ -9,7 +9,7 @@ use kfind_morph::{
     BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver, MorphContinuation,
     PreparedStructuralContext, QueryMorphPattern,
 };
-use kfind_query::VerifiedSpan;
+use kfind_query::{BoundaryPolicy, VerifiedSpan};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use super::PreparedExactTokenGraphs;
@@ -461,6 +461,45 @@ pub(super) fn previous_word_with_start(bytes: &[u8], at: usize) -> Option<(usize
 
 pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
+}
+
+pub(super) fn accepts_pronoun_topic(
+    haystack: &[u8],
+    span: &Range<usize>,
+    resolver: &ConstraintResolver,
+    boundary: BoundaryPolicy,
+) -> bool {
+    crate::boundary::is_boundary_before(haystack, span.start)
+        && crate::boundary::is_boundary_after(haystack, span.end)
+        && normalized_token(haystack, span.clone()).is_some_and(|token| {
+            resolver.has_pronoun_topic_contraction(&token)
+                && (boundary != BoundaryPolicy::Any
+                    || !resolver.has_whole_determiner(&token)
+                    || next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+                        !resolver.has_nominal_with_optional_particles(&next)
+                            || resolver.has_final_copula_after_nominal(&next)
+                            || (resolver.has_exact_adverb_surface(&next)
+                                && next_word_on_line(haystack, end).is_some_and(
+                                    |(predicate_end, predicate)| {
+                                        resolver.has_predicate_adnominal_surface(&predicate)
+                                            || (crate::boundary::is_sentence_end_after(
+                                                haystack,
+                                                predicate_end,
+                                            ) && resolver
+                                                .has_independent_final_predicate(&predicate))
+                                    },
+                                ))
+                    }))
+                && !previous_word(haystack, span.start).is_some_and(|host| {
+                    (resolver.has_nominal_genitive_surface(&host)
+                        && resolver.has_exact_nominal_surface(&token))
+                        || (resolver.has_unambiguous_proper_name_surface(&host)
+                            && resolver.has_whole_determiner(&token)
+                            && next_word(haystack, span.end).is_some_and(|head| {
+                                resolver.has_nominal_with_optional_particles(&head)
+                            }))
+                })
+        })
 }
 
 pub(super) fn accepts_attributive_pronoun(

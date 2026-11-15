@@ -1984,11 +1984,12 @@ regression.geot-formal.declarative	것	noun	smart-exact	7	16	있을 겁니다.
 regression.geot-formal.interrogative	거	noun	smart-exact	4	13	갈 겁니까?
 regression.geot-formal.competing-verb	것	noun	no-match	10	19	소금을 겁니다.
 regression.geot-formal.token-interior	것	noun	no-match	7	16	있는 겁니다사
-regression.pronoun-topic.jeo	저	pronoun	smart-exact	0	3	전 마니아입니다.
-regression.pronoun-topic.na	나	pronoun	smart-exact	0	3	난 간다.
-regression.pronoun-topic.neo	너	pronoun	smart-exact	0	3	넌 누구야?
+regression.pronoun-topic.jeo	저	pronoun	only-exact	0	3	전 마니아입니다.
+regression.pronoun-topic.na	나	pronoun	only-exact	0	3	난 간다.
+regression.pronoun-topic.neo	너	pronoun	only-exact	0	3	넌 누구야?
 regression.pronoun-topic.genitive-head	나	pronoun	no-match	10	13	이괄의 난 때
-regression.pronoun-topic.title-modifier	저	pronoun	no-match	10	13	박근혜 전 대표.
+regression.pronoun-topic.title-modifier	저	pronoun	no-match-both	10	13	박근혜 전 대표.
+regression.pronoun-topic.token-interior	저	pronoun	no-match-both	3	6	운전 중입니다.
 regression.resultative-connective.past	타다	verb	smart-exact	17	20	모발이 모두 타 있었어요.
 regression.resultative-connective.present	타다	verb	smart-exact	7	10	모두 타 있다.
 regression.copula-polite-honorific.coda-contracted	이다	adjective	smart-only-exact	30	39	이분은 제 생명의 은인이셔요.

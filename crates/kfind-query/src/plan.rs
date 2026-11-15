@@ -283,6 +283,7 @@ impl CandidateProgram {
     pub fn uses_optional_component(&self) -> bool {
         self.consumption.composes_copula_host()
             || self.is_attributive_pronoun_contraction()
+            || self.is_pronoun_topic_contraction()
             || self.can_extend_attached_auxiliary()
     }
 
@@ -309,6 +310,17 @@ impl CandidateProgram {
                     .rule_path
                     .last()
                     .is_some_and(|rule| rule.as_str() == "contraction.uri-attributive-ul")
+            })
+    }
+
+    #[must_use]
+    pub fn is_pronoun_topic_contraction(&self) -> bool {
+        matches!(self.consumption, CandidateConsumption::Anchor)
+            && self.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str().starts_with("contraction.pronoun-topic-"))
             })
     }
 
