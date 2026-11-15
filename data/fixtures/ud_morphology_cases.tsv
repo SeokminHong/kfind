@@ -1771,6 +1771,9 @@ regression.pronominal-genitive.auxiliary-particle	나	pronoun	smart-exact	0	3	�
 regression.pronominal-genitive.determiner-tail	나	pronoun	no-match	7	10	정당 내 모든 사람들이 모였다.
 corpus.ud-gsd.test.test-s386.pronoun.ordinal	너	pronoun	no-match	27	30	어느덧 천막 안에서 네 해째 겨울을 맞이했다.
 regression.counted-ordinal.first	번	noun	smart-exact	4	10	첫 번째 임기를 마쳤다.
+corpus.ud-pud.test.w01049066.determiner.두	두	determiner	smart-exact	69	72	1879년 문을 연 호주의 왕립 국립공원은 전 세계에서 두번째로 공식 설립된 국립공원이다.
+regression.counted-ordinal.attached-compound	스물두	determiner	smart-exact	7	16	그는 스물두번째 원고를 읽었다.
+regression.counted-ordinal.invalid-particle	두	determiner	no-match	7	10	그는 두번째로를 읽었다.
 regression.counted-ordinal.spaced	해	noun	smart-exact	4	13	네 해째는 추웠다.
 regression.counted-ordinal.attached	일	noun	smart-exact	1	10	3일째에 돌아왔다.
 regression.counted-ordinal.whole	통	noun	smart-exact	10	13	상자를 통째로 들었다.

@@ -1071,7 +1071,16 @@ impl MorphMatcher {
                 .any(|pattern| pattern.fine_pos == DataFinePos::Mm)
             && let [Some(count), Some(token)] =
                 [core.clone(), whole.clone()].map(|part| context::normalized_token(haystack, part))
-            && resolver.has_attached_unspecified_count(&count, &token)
+            && (resolver.has_attached_unspecified_count(&count, &token)
+                || token.strip_prefix(count.as_ref()).is_some_and(|tail| {
+                    tail.split_once('째').is_some_and(|(unit, particles)| {
+                        resolver.has_standalone_counted_unit(&count, unit)
+                            && self
+                                .particle_verifier
+                                .verify_exact("째", particles)
+                                .is_some()
+                    })
+                }))
         {
             return true;
         }
