@@ -1,4 +1,9 @@
 id	query	pos	expected	byte_start	byte_end	text	contract_review
+regression.selected-nominal-particle-tail.proper-noun	가	noun	no-match	9	12	타이가가 숲에 걸쳐 있다.
+regression.selected-nominal-particle-tail.pronoun	가	noun	no-match	6	9	그녀가 책을 읽었다.
+regression.selected-nominal-particle-tail.topic	은	noun	no-match	6	9	기업은 새 제품을 출시했다.
+regression.selected-nominal-particle-tail.aligned-common-noun	자	noun	smart-only-exact	6	12	이민자가 도착했다.
+regression.selected-nominal-particle-tail.numeral-led-component	월	noun	smart-only-exact	3	9	칠월에 출발한다.
 regression.transliterated-place-boundaries.state	도	noun	no-match	9	12	콜로라도는 미국의 주다.
 regression.transliterated-place-boundaries.state-before-unit	도	noun	no-match	9	12	콜로라도주 덴버를 방문했다.
 regression.transliterated-place-boundaries.real-unit	주	noun	smart-only-exact	12	15	콜로라도주 덴버를 방문했다.
