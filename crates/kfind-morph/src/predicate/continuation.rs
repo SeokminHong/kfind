@@ -2234,10 +2234,14 @@ fn verify_simple_continuation(
                 ),
             ]
         }
-        ContinuationState::Future if pos.is_action() && following.starts_with("을거나") => {
+        ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with("을거나") =>
+        {
             &[suffix("을거나", &["ending.interrogative-rieulgeona"])]
         }
-        ContinuationState::Eu if pos.is_action() && following.starts_with("시겠을거나") => {
+        ContinuationState::Eu
+            if pos != PredicatePos::Copula && following.starts_with("시겠을거나") =>
+        {
             &[suffix(
                 "시겠을거나",
                 &[
@@ -3631,6 +3635,8 @@ fn verify_simple_continuation(
                         .chars()
                         .next()
                         .is_some_and(|next| next.is_alphanumeric() || next == '_'))
+                && (pos != PredicatePos::Copula
+                    || suffix.rules.last() != Some(&"ending.interrogative-rieulgeona"))
                 && (pos.is_action()
                     || !suffix.rules.iter().any(|rule| {
                         matches!(
@@ -3649,7 +3655,6 @@ fn verify_simple_continuation(
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"
                                 | "ending.intent-rieulrae"
-                                | "ending.interrogative-rieulgeona"
                                 | "ending.question-rieulkapsyo"
                                 | "ending.conditional-rieuljaksimyeon"
                                 | "ending.conditional-rieulrachimyeon"

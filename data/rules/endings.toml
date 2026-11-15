@@ -1586,8 +1586,8 @@ id = "ending.interrogative-rieulgeona"
 category = "final"
 initial = "attach-rieul"
 forms = ["ㄹ거나", "을거나"]
-required = ["action-verb"]
-forbidden = []
+required = []
+forbidden = ["copula"]
 next = []
 terminal = true
 

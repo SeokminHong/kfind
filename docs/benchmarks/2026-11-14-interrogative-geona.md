@@ -9,6 +9,8 @@
 [-을거나](https://stdict.korean.go.kr/search/searchView.do?word_no=260978&searchKeywordTo=3) ·
 [한국어기초사전 -을거나](https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=80970)
 
+[형용사 용례 추가 검증](2026-11-15-adjectival-rieulgeona.md)
+
 ## 품질
 
 행렬은 TP, FP, TN, FN 순서다. 비율은 precision, recall, F1 순서다.
