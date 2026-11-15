@@ -847,6 +847,25 @@ impl MorphMatcher {
         let core = &candidate.verified.core;
         if matches!(
             branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start > whole.start
+            && candidate.consumed.end == whole.end
+            && nominal_copula_surface_at(haystack, core.start, whole.end)
+            && context::normalized_token(haystack, whole.start..core.start).is_some_and(|host| {
+                resolver.has_complete_nominal_surface(&host)
+                    && host.chars().next_back().is_some_and(|preceding| {
+                        context::normalized_token(haystack, core.start..whole.end).is_some_and(
+                            |ending| verify_copula_surface_after_nominal(preceding, &ending),
+                        )
+                    })
+            })
+            && context::normalized_token(haystack, whole.clone())
+                .is_some_and(|token| !resolver.has_exact_nominal_surface(&token))
+        {
+            return false;
+        }
+        if matches!(
+            branch.consumption,
             CandidateConsumption::PredicateContinuation { .. }
         ) && candidate.consumed.end < whole.end
             && haystack
