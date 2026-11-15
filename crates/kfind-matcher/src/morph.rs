@@ -1735,6 +1735,19 @@ fn has_conflicting_whole_predicate(
         && candidate
             .suffix_rules
             .iter()
+            .any(|rule| rule.as_str() == "ending.auxiliary-gada")
+        && resolver
+            .has_exact_predicate_ending_path(&normalized_token, kfind_morph::PredicatePos::Verb)
+        && resolver
+            .has_exact_predicate_connective_path(&core.nfc().collect::<String>(), source_positions)
+    {
+        return false;
+    }
+    if extends_non_internal_core
+        && candidate.consumed == whole
+        && candidate
+            .suffix_rules
+            .iter()
             .any(|rule| rule.as_str() == "ending.auxiliary-jida")
         && branch
             .origins
