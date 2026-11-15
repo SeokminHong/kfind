@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -9,16 +10,19 @@ import {
 } from "@kfind/kfind/assets";
 
 const componentResourcePath = "/morphology-component-compact.kfc";
-const componentResourceSize = 37_103_813;
 const enrichedSourcePath = process.argv[2];
-assert(enrichedSourcePath, "usage: test-npm-assets.mjs ENRICHED_SOURCE");
+const componentChecksumPath = process.argv[3];
+assert(
+  enrichedSourcePath && componentChecksumPath,
+  "usage: test-npm-assets.mjs ENRICHED_SOURCE COMPONENT_CHECKSUM",
+);
 
 assert.equal(componentResourceFileUrl.protocol, "file:");
 assert.equal(enrichedPredicatesFileUrl.protocol, "file:");
 
 const componentResourceStat = await stat(componentResourceFileUrl);
+const componentChecksum = (await readFile(componentChecksumPath, "utf8")).trim();
 
-assert.equal(componentResourceStat.size, componentResourceSize);
 assert.deepEqual(
   await readFile(enrichedPredicatesFileUrl),
   await readFile(enrichedSourcePath),
@@ -62,15 +66,18 @@ try {
   );
   assert.equal(
     Number(response.headers.get("content-length")),
-    componentResourceSize,
+    componentResourceStat.size,
   );
 
   let streamedBytes = 0;
+  const streamedHash = createHash("sha256");
   assert(response.body !== null);
   for await (const chunk of response.body) {
     streamedBytes += chunk.byteLength;
+    streamedHash.update(chunk);
   }
-  assert.equal(streamedBytes, componentResourceSize);
+  assert.equal(streamedBytes, componentResourceStat.size);
+  assert.equal(streamedHash.digest("hex"), componentChecksum);
 } finally {
   await new Promise((resolve, reject) => {
     server.close((error) => {
@@ -84,5 +91,5 @@ try {
 }
 
 console.log(
-  `npm asset resolver streamed ${componentResourceSize} component bytes`,
+  `npm asset resolver streamed ${componentResourceStat.size} component bytes`,
 );

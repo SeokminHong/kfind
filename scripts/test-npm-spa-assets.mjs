@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -6,8 +7,11 @@ import { resolve } from "node:path";
 
 const distDirectory = process.argv[2];
 const enrichedSourcePath = process.argv[3];
-if (distDirectory === undefined || enrichedSourcePath === undefined) {
-  throw new Error("usage: test-npm-spa-assets.mjs DIST_DIRECTORY ENRICHED_SOURCE");
+const componentChecksumPath = process.argv[4];
+if (!distDirectory || !enrichedSourcePath || !componentChecksumPath) {
+  throw new Error(
+    "usage: test-npm-spa-assets.mjs DIST_DIRECTORY ENRICHED_SOURCE COMPONENT_CHECKSUM",
+  );
 }
 
 const absoluteDistDirectory = resolve(distDirectory);
@@ -35,9 +39,8 @@ const entryScript = exactlyOne(
 
 const componentAssetPath = resolve(assetsDirectory, componentAsset);
 const enrichedAssetPath = resolve(assetsDirectory, enrichedAsset);
-const componentResourceSize = 37_103_813;
-
-assert.equal((await stat(componentAssetPath)).size, componentResourceSize);
+const componentResourceSize = (await stat(componentAssetPath)).size;
+const componentChecksum = (await readFile(componentChecksumPath, "utf8")).trim();
 
 const entrySource = await readFile(
   resolve(assetsDirectory, entryScript),
@@ -96,10 +99,17 @@ try {
   const origin = `http://127.0.0.1:${address.port}`;
 
   assert.equal((await fetch(origin)).status, 200);
-  assert.equal(
-    await streamedByteLength(`${origin}/assets/${componentAsset}`),
-    componentResourceSize,
-  );
+  const componentResponse = await fetch(`${origin}/assets/${componentAsset}`);
+  assert.equal(componentResponse.status, 200);
+  assert(componentResponse.body !== null);
+  const componentHash = createHash("sha256");
+  let streamedBytes = 0;
+  for await (const chunk of componentResponse.body) {
+    streamedBytes += chunk.byteLength;
+    componentHash.update(chunk);
+  }
+  assert.equal(streamedBytes, componentResourceSize);
+  assert.equal(componentHash.digest("hex"), componentChecksum);
   const enrichedResponse = await fetch(`${origin}/assets/${enrichedAsset}`);
   assert.equal(enrichedResponse.status, 200);
   assert.deepEqual(
@@ -125,16 +135,4 @@ console.log(
 function exactlyOne(values, label) {
   assert.equal(values.length, 1, `expected one ${label}: ${values.join(", ")}`);
   return values[0];
-}
-
-async function streamedByteLength(url) {
-  const response = await fetch(url);
-  assert.equal(response.status, 200);
-  assert(response.body !== null);
-
-  let byteLength = 0;
-  for await (const chunk of response.body) {
-    byteLength += chunk.byteLength;
-  }
-  return byteLength;
 }

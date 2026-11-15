@@ -5,6 +5,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 package_dir="$repo_root/packages/kfind"
 enriched_source="$repo_root/data/enriched/predicates.tsv"
+component_checksum="$repo_root/data/generated/morphology-component-compact.sha256"
 
 "$repo_root/scripts/test-npm-package.sh"
 
@@ -22,11 +23,15 @@ test "$npm_license" = "SEE LICENSE IN LICENSES.md"
 test "$npm_bin" = "bin/kfind.js"
 
 npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
+  const { createHash } = require("node:crypto");
   const fs = require("node:fs");
   const report = JSON.parse(fs.readFileSync(0, "utf8"))[0];
   const files = new Map(report.files.map((file) => [file.path, file.size]));
   const asset = "assets/morphology-component-compact.kfc";
-  if (files.get(asset) !== 37103813) {
+  const component = fs.readFileSync(process.argv[2] + "/" + asset);
+  const componentHash = fs.readFileSync(process.argv[3], "utf8").trim();
+  if (files.get(asset) !== component.length ||
+      createHash("sha256").update(component).digest("hex") !== componentHash) {
     throw new Error("missing or invalid " + asset);
   }
   const enriched = "assets/predicates.enriched.tsv";
@@ -54,7 +59,7 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
   if (executable.mode !== 0o755) {
     throw new Error("bin/kfind.js is not executable");
   }
-' "$(wc -c < "$enriched_source")"
+' "$(wc -c < "$enriched_source")" "$package_dir" "$component_checksum"
 
 grep -Fq "원자료 저작자·제공자는 국립국어원입니다." \
   "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"
@@ -90,7 +95,7 @@ npm install \
   "${packed_tarballs[0]}" >/dev/null
 cp "$repo_root/scripts/test-npm-assets.mjs" \
   "$packed_consumer_dir/consumer/test-npm-assets.mjs"
-node "$packed_consumer_dir/consumer/test-npm-assets.mjs" "$enriched_source"
+node "$packed_consumer_dir/consumer/test-npm-assets.mjs" "$enriched_source" "$component_checksum"
 
 cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   "$packed_consumer_dir/consumer"
@@ -99,4 +104,4 @@ cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   pnpm --silent dlx vite@8.1.4 build
 )
 node "$repo_root/scripts/test-npm-spa-assets.mjs" \
-  "$packed_consumer_dir/consumer/dist" "$enriched_source"
+  "$packed_consumer_dir/consumer/dist" "$enriched_source" "$component_checksum"
