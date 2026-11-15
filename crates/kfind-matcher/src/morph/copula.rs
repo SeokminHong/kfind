@@ -167,6 +167,18 @@ impl MorphMatcher {
         if !self.accepts_token_boundary(haystack, &candidate.verified, branch) {
             return false;
         }
+        let fused_rieul_question = normalized
+            .strip_suffix("까요")
+            .or_else(|| normalized.strip_suffix('까'))
+            .and_then(|stem| stem.chars().next_back())
+            .is_some_and(kfind_morph::hangul::has_rieul_final);
+        if fused_rieul_question
+            && context::previous_word(haystack, candidate.verified.token.start)
+                .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+            && resolver.has_independent_final_verb_with_object(&normalized)
+        {
+            return false;
+        }
         let final_ending = normalized
             .strip_suffix('야')
             .map(|host| (host, "야"))
@@ -325,9 +337,10 @@ impl MorphMatcher {
                         || resolver.has_predicate_adnominal_surface(&word))
             })
         };
-        (normalized
-            .strip_suffix('요')
-            .is_none_or(continues_enumeration)
+        ((fused_rieul_question
+            || normalized
+                .strip_suffix('요')
+                .is_none_or(continues_enumeration))
             && resolver.has_exact_lost_span_copula_ending_path(&normalized))
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
