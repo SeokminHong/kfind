@@ -90,7 +90,9 @@ impl MorphMatcher {
                     let unambiguous_whole_path = token.is_some_and(|token| {
                         resolver.has_unambiguous_attached_auxiliary_whole_path(token)
                     });
-                    let resultative_contraction = starts_with_resultative_auxiliary(trailing);
+                    let resultative_contraction = (complete_attached_path
+                        || source_auxiliary_suffix)
+                        && resolver.has_attached_resultative_inflection(trailing, pos);
                     let aligned_auxiliary = complete_attached_path
                         && resolver.supports_auxiliary_with_fused_prefinal(
                             trailing,
@@ -586,7 +588,7 @@ fn has_contracted_auxiliary_host_context(
     auxiliary: &str,
     resolver: &ConstraintResolver,
 ) -> bool {
-    context::previous_word(haystack, token.start).is_some_and(|previous| {
+    context::previous_word_with_start(haystack, token.start).is_some_and(|(start, previous)| {
         resolver.has_exact_predicate_connective_path(
             &previous,
             kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Verb),
@@ -596,6 +598,13 @@ fn has_contracted_auxiliary_host_context(
             || (is_sentence_end_after(haystack, token.end)
                 && (resolver.has_exact_adverb_surface(&previous)
                     || resolver.has_object_marked_nominal(&previous)))
+            || (context::next_word_on_line(haystack, token.end).is_some_and(|(end, next)| {
+                is_sentence_end_after(haystack, end)
+                    && resolver.has_progressive_or_desiderative_ending(auxiliary, &next)
+            }) && (resolver.has_object_marked_nominal(&previous)
+                || (resolver.has_exact_adverb_surface(&previous)
+                    && context::previous_word(haystack, start)
+                        .is_some_and(|object| resolver.has_object_marked_nominal(&object)))))
             || (resolver.has_predicate_adnominal_surface(auxiliary)
                 && (resolver.has_subject_marked_nominal(&previous)
                     || resolver.has_nominal_oblique(&previous))
@@ -646,11 +655,4 @@ fn is_structural_suffix_particle(
                 branch.consumption,
                 CandidateConsumption::PredicateContinuation { .. }
             ))
-}
-
-fn starts_with_resultative_auxiliary(surface: &str) -> bool {
-    surface
-        .chars()
-        .next()
-        .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질' | '져' | '집' | '짐'))
 }

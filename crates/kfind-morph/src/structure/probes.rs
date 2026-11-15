@@ -46,9 +46,14 @@ impl VowelAuxiliaryHost {
     }
 }
 
-fn vowel_auxiliary_inflections() -> &'static [(VowelAuxiliaryHost, crate::SurfaceBranchSpec)] {
-    static FORMS: std::sync::OnceLock<Vec<(VowelAuxiliaryHost, crate::SurfaceBranchSpec)>> =
-        std::sync::OnceLock::new();
+struct VowelAuxiliaryInflection {
+    lemma: &'static str,
+    host: VowelAuxiliaryHost,
+    form: crate::SurfaceBranchSpec,
+}
+
+fn vowel_auxiliary_inflections() -> &'static [VowelAuxiliaryInflection] {
+    static FORMS: std::sync::OnceLock<Vec<VowelAuxiliaryInflection>> = std::sync::OnceLock::new();
     FORMS.get_or_init(|| {
         let mut forms: Vec<_> = VOWEL_AUXILIARIES
             .iter()
@@ -58,10 +63,10 @@ fn vowel_auxiliary_inflections() -> &'static [(VowelAuxiliaryHost, crate::Surfac
                 crate::generate_predicate_branches(&entry)
                     .expect("valid dictionary auxiliary")
                     .into_iter()
-                    .map(move |form| (host, form))
+                    .map(move |form| VowelAuxiliaryInflection { lemma, host, form })
             })
             .collect();
-        forms.sort_unstable_by(|(_, left), (_, right)| left.anchor.cmp(&right.anchor));
+        forms.sort_unstable_by(|left, right| left.form.anchor.cmp(&right.form.anchor));
         forms
     })
 }
@@ -109,12 +114,24 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
 }
 
 fn matches_predicate_branch(text: &str, form: &crate::SurfaceBranchSpec) -> bool {
+    matches_predicate_branch_with_ending(text, form, |_| true)
+}
+
+fn matches_predicate_branch_with_ending(
+    text: &str,
+    form: &crate::SurfaceBranchSpec,
+    accepts: impl FnOnce(Option<&crate::RuleId>) -> bool,
+) -> bool {
     text.strip_prefix(form.anchor.as_ref()).is_some_and(|tail| {
         if tail.is_empty() {
-            return !form.rule_path.is_empty() || form.anchor.ends_with('다');
+            return (!form.rule_path.is_empty() || form.anchor.ends_with('다'))
+                && accepts(form.rule_path.last());
         }
         crate::verify_predicate_continuation(form.continuation, form.pos, &form.anchor, tail)
-            .is_some_and(|matched| matched.token_end == text.len())
+            .is_some_and(|matched| {
+                matched.token_end == text.len()
+                    && accepts(matched.rule_path.last().or_else(|| form.rule_path.last()))
+            })
     })
 }
 
@@ -902,27 +919,82 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn supports_auxiliary_sequence(&self, text: &str, node_limit: usize) -> bool {
-        self.supports_auxiliary_sequence_matching(text, node_limit, |_| true)
+        self.supports_auxiliary_sequence_matching(text, node_limit, |_| true, |_| true)
     }
 
     #[must_use]
     pub fn has_vowel_auxiliary_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
+        self.has_matching_vowel_auxiliary_inflection(text, host_pos, |_| true, |_| true)
+    }
+
+    #[must_use]
+    pub fn has_attached_resultative_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
+        self.has_matching_vowel_auxiliary_inflection(
+            text,
+            host_pos,
+            |lemma| lemma == ATTACHED_RESULTATIVE_LEMMA,
+            |_| true,
+        )
+    }
+
+    #[must_use]
+    pub fn has_progressive_or_desiderative_ending(
+        &self,
+        connective: &str,
+        auxiliary: &str,
+    ) -> bool {
+        if !self.has_matching_vowel_auxiliary_inflection(
+            connective,
+            PredicatePos::Verb,
+            |_| true,
+            |ending| ending.is_some_and(|rule| rule.as_str() == "ending.connective-go"),
+        ) {
+            return false;
+        }
+        static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::OnceLock::new();
+        let forms = FORMS.get_or_init(|| {
+            PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES
+                .iter()
+                .flat_map(|&(lemma, pos)| {
+                    let entry = crate::PredicateEntry::new(lemma, pos, LexicalAlternation::Regular);
+                    crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
+                })
+                .collect()
+        });
+        matches_predicate_inflection(auxiliary, forms)
+            && self.supports_auxiliary_sequence_matching(
+                auxiliary,
+                crate::DEFAULT_LATTICE_NODE_LIMIT,
+                |_| true,
+                |positions| positions.last() == Some(&StructuralPos::EF),
+            )
+    }
+
+    fn has_matching_vowel_auxiliary_inflection(
+        &self,
+        text: &str,
+        host_pos: PredicatePos,
+        accepts_lemma: impl Fn(&str) -> bool,
+        accepts_ending: impl Fn(Option<&crate::RuleId>) -> bool,
+    ) -> bool {
         let Some(initial) = text.chars().next() else {
             return false;
         };
         let forms = vowel_auxiliary_inflections();
-        let start = forms.partition_point(|(_, form)| form.anchor.chars().next() < Some(initial));
+        let start = forms.partition_point(|entry| entry.form.anchor.chars().next() < Some(initial));
         forms[start..]
             .iter()
-            .take_while(|(_, form)| form.anchor.starts_with(initial))
-            .any(|(host, form)| {
-                host.accepts(host_pos)
+            .take_while(|entry| entry.form.anchor.starts_with(initial))
+            .any(|VowelAuxiliaryInflection { lemma, host, form }| {
+                accepts_lemma(lemma)
+                    && host.accepts(host_pos)
                     && (form.anchor.as_ref() != text
                         || !matches!(
                             form.continuation,
                             crate::ContinuationState::Past | crate::ContinuationState::Future
                         ))
-                    && matches_predicate_branch(text, form)
+                    && matches_predicate_branch_with_ending(text, form, &accepts_ending)
             })
     }
 
@@ -951,9 +1023,12 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn supports_auxiliary_with_fused_prefinal(&self, text: &str, node_limit: usize) -> bool {
-        self.supports_auxiliary_sequence_matching(text, node_limit, |endings| {
-            endings.first() == Some(&StructuralPos::EP)
-        })
+        self.supports_auxiliary_sequence_matching(
+            text,
+            node_limit,
+            |endings| endings.first() == Some(&StructuralPos::EP),
+            |_| true,
+        )
     }
 
     fn supports_auxiliary_sequence_matching(
@@ -961,6 +1036,7 @@ impl ConstraintResolver {
         text: &str,
         node_limit: usize,
         accepts_auxiliary_endings: impl Fn(&[StructuralPos]) -> bool,
+        accepts_last_segment: impl Fn(&[StructuralPos]) -> bool,
     ) -> bool {
         if text.is_empty() {
             return false;
@@ -991,7 +1067,7 @@ impl ConstraintResolver {
                     };
                     if allowed {
                         let end = start + length;
-                        if !visited[end] {
+                        if !visited[end] && (end != text.len() || accepts_last_segment(positions)) {
                             visited[end] = true;
                             pending.push(end);
                         }
