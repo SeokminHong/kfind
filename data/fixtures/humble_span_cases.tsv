@@ -1,4 +1,4 @@
-id	query	pos	expected	byte_start	byte_end	text
+id	query	pos	expected	byte_start	byte_end	text	contract_review
 stdict.나이까:1	가다	verb	exact	18	33	주여, 어디로 가시나이까?
 stdict.나이까:2	부르다	verb	exact	11	29	주인님, 부르셨나이까?
 stdict.나이까:3	거역하다	verb	exact	24	45	어찌 감히 어명을 거역하겠나이까?
@@ -99,33 +99,36 @@ stdict.자옵시:2	듣다	verb	exact	0	15	듣자옵시니.
 opendict.잡:1	좇다	verb	exact	17	32	스승의 뜻을 좇잡나이다.
 opendict.잡:2	받다	verb	exact	17	26	폐하의 명을 받잡고 소신 먼 길을 떠나왔습니다.
 binaida-pray	빌다	verb	exact	36	48	일월성신께 백성의 안녕을 비나이다.
-binaida-empty-context	비다	verb	no-match	36	48	일월성신께 백성의 안녕을 비나이다.
+binaida-empty-context	비다	verb	no-match	36	48	일월성신께 백성의 안녕을 비나이다.	structurally-indistinguishable-homograph
 binaida-pray-context	빌다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
 binaida-empty	비다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
 binaida-empty-duration	비다	verb	exact	24	36	이 별채는 닷새를 비나이다.
+binaida-weekend-duration	비다	verb	smart-only-exact	24	36	이 별채는 주말을 비나이다.
+binaida-summer-duration	비다	verb	smart-only-exact	24	36	이 별채는 여름을 비나이다.
 biopnaida-pray	빌다	verb	exact	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
-biopnaida-empty-context	비다	verb	no-match	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
+biopnaida-empty-context	비다	verb	no-match	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.	structurally-indistinguishable-homograph
 biopnaida-pray-context	빌다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
 biopnaida-empty	비다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
+biopnaida-empty-autumn	비다	verb	smart-only-exact	26	41	가을이면 사랑채가 비옵나이다.
 biopnaida-empty-duration	비다	verb	exact	27	42	동쪽 객방은 보름을 비옵나이다.
 biopnaida-object-verb	빌다	verb	exact	17	32	부디 합격을 비옵나이다.
-biopnaida-object-no-empty	비다	verb	no-match	17	32	부디 합격을 비옵나이다.
+biopnaida-object-no-empty	비다	verb	no-match	17	32	부디 합격을 비옵나이다.	structurally-indistinguishable-homograph
 binaida-counted-duration	비다	verb	exact	24	36	연회장은 두 주를 비나이다.
 binaida-semester	비다	verb	smart-exact	25	37	그 방은 한 학기를 비나이다.
 binaida-seasons	비다	verb	smart-exact	25	37	그 방은 두 계절을 비나이다.
 binaida-quarter	비다	verb	smart-exact	25	37	그 방은 한 분기를 비나이다.
 seonaida-duty-verb	서다	verb	smart-exact	17	29	저는 경비를 서나이다.
-seonaida-duty-no-firm-rice	설다	verb	no-match	17	29	저는 경비를 서나이다.
+seonaida-duty-no-firm-rice	설다	verb	no-match	17	29	저는 경비를 서나이다.	structurally-indistinguishable-homograph
 seonaida-firm-rice	설다	verb	smart-exact	14	26	밥이 조금 서나이다.
 junaida-decrease-length	줄다	verb	smart-exact	31	43	가뭄에 강물이 한 자를 주나이다.
 junaida-decrease-depth	줄다	verb	smart-exact	21	33	수위가 한 뼘을 주나이다.
 junaida-decrease-numeric-unit	줄다	verb	smart-exact	18	30	수위가 2뼘을 주나이다.
-junaida-payment-not-decrease	줄다	verb	no-match	14	26	제가 값을 주나이다.
+junaida-payment-not-decrease	줄다	verb	no-match	14	26	제가 값을 주나이다.	structurally-indistinguishable-homograph
 junaida-payment	주다	verb	smart-exact	14	26	제가 값을 주나이다.
 ginaida-hair-length	길다	verb	smart-exact	37	49	아이의 머리카락이 한 치를 기나이다.
-ginaida-path-not-grow	길다	verb	no-match	20	32	병사는 참호를 기나이다.
+ginaida-path-not-grow	길다	verb	no-match	20	32	병사는 참호를 기나이다.	structurally-indistinguishable-homograph
 doesanaida-revival	되살다	verb	smart-exact	24	39	잊힌 기억이 문득 되사나이다.
-doesanaida-repurchase-not-revival	되살다	verb	no-match	18	33	제가 그 땅을 되사나이다.
+doesanaida-repurchase-not-revival	되살다	verb	no-match	18	33	제가 그 땅을 되사나이다.	structurally-indistinguishable-homograph
 jonaida-liquid-volume	졸다	verb	smart-exact	31	43	약탕기의 물이 한 홉을 조나이다.
 jonaida-duration	졸다	verb	smart-exact	25	37	그 아이는 십 분을 조나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
