@@ -33,6 +33,7 @@ mod exact_token_graphs;
 mod fused_copula;
 mod line_candidate;
 mod phrase;
+mod roman_numeral;
 mod streaming_phrase;
 mod trailing;
 
@@ -1384,12 +1385,15 @@ impl MorphMatcher {
                     .is_some();
         }
         if complete
-            && (prefix.starts_with("제".as_bytes()) || prefix.starts_with("ᄌ".as_bytes()))
-            && context::normalized_token(haystack, whole.start..core.start).is_some_and(|prefix| {
-                prefix
-                    .strip_prefix('제')
-                    .is_some_and(|number| digits(number.as_bytes()))
-            })
+            && ((prefix.starts_with("제".as_bytes()) || prefix.starts_with("ᄌ".as_bytes()))
+                && context::normalized_token(haystack, whole.start..core.start).is_some_and(
+                    |prefix| {
+                        prefix.strip_prefix('제').is_some_and(|number| {
+                            digits(number.as_bytes()) || roman_numeral::is_roman_numeral(number)
+                        })
+                    },
+                )
+                || std::str::from_utf8(prefix).is_ok_and(roman_numeral::is_roman_numeral))
         {
             return context::normalized_token(haystack, core.clone())
                 .is_some_and(|unit| resolver.has_exact_numeric_unit(&unit));
