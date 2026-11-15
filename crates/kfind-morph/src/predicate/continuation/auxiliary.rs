@@ -175,6 +175,32 @@ pub(super) fn verify_completion_naeda(
         .then_some(result)
 }
 
+pub(super) fn verify_juda_or_beorida(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    let (form, state, ending, auxiliary) = if following.starts_with("준다") {
+        (
+            "준다",
+            ContinuationState::Declarative,
+            "ending.declarative",
+            "ending.auxiliary-juda",
+        )
+    } else if following.starts_with("버렸") {
+        (
+            "버렸",
+            ContinuationState::Past,
+            "ending.past",
+            "ending.auxiliary-beorida",
+        )
+    } else {
+        return None;
+    };
+    let result = verify_form(anchor_len, following, form, state, Some(ending), auxiliary)?;
+    (!following[result.consumed_bytes..].starts_with(|ch: char| ch.is_alphanumeric() || ch == '_'))
+        .then_some(result)
+}
+
 pub(super) fn verify_stative_hada(
     anchor_len: usize,
     following: &str,
