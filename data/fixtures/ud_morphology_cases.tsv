@@ -1763,6 +1763,8 @@ regression.relative-location.genitive-reference	사이	determiner	no-match	14	20
 regression.relative-location.pronoun	옆	pronoun	no-match	7	10	책장 옆 사진을 골랐다.
 regression.relative-location.place-name	일대	determiner	no-match	7	13	서울 일대 상점이 문을 닫았다.
 regression.relative-location.marked-reference	일대	determiner	smart-exact	10	16	유치에 일대 전기를 마련했다.
+regression.relative-location.genitive-before-determiner	일대	determiner	smart-exact	16	22	정신문화의 일대 전환이 빠른 시일 내에 가능했다.
+regression.relative-location.genitive-before-object	일대	determiner	smart-exact	10	16	정부의 일대 개혁을 추진했다.
 regression.relative-location.surroundings	주위	adverb	no-match	4	10	코 주위 상처가 아물었다.
 regression.relative-location.middle	중간	adverb	no-match	10	16	운동장 중간 자리가 비었다.
 regression.relative-location.negation	안	adverb	smart-exact	10	13	친구는 안 먹었다.

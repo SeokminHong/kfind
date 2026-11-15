@@ -4,3 +4,6 @@ const RELATIVE_LOCATION_NOUNS: &[&str] = &[
     // 국립국어원 한국어 교육 어휘 내용 개발(4단계) 부록의 ‘위치 및 방향’.
     "사이", "일대", "주위", "중간", "쪽",
 ];
+
+// 국립국어원 「국어생활」 2005년 봄호의 성상 관형사 一大.
+const RELATIVE_LOCATION_HOMOGRAPHIC_DETERMINERS: &[&str] = &["일대"];
