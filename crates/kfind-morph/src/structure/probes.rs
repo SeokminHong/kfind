@@ -116,6 +116,22 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
         .any(|form| matches_predicate_branch(text, form))
 }
 
+pub fn matches_negative_auxiliary_inflection(text: &str, pos: PredicatePos) -> bool {
+    static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
+    let forms = FORMS.get_or_init(|| {
+        NEGATIVE_AUXILIARIES
+            .iter()
+            .flat_map(|&(lemma, pos, alternation)| {
+                let entry = crate::PredicateEntry::new(lemma, pos, alternation);
+                crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
+            })
+            .collect()
+    });
+    forms
+        .iter()
+        .any(|form| form.pos == pos && matches_predicate_branch(text, form))
+}
+
 fn matches_predicate_branch(text: &str, form: &crate::SurfaceBranchSpec) -> bool {
     matches_predicate_branch_with_ending(text, form, |_| true)
 }
@@ -1141,6 +1157,28 @@ impl ConstraintResolver {
         anchor: Range<usize>,
         pos: PredicatePos,
     ) -> bool {
+        self.whole_predicate_conflicts_matching(text, anchor, pos, |_| true)
+    }
+
+    #[must_use]
+    pub fn whole_predicate_conflicts_without_auxiliary(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        pos: PredicatePos,
+    ) -> bool {
+        self.whole_predicate_conflicts_matching(text, 0..anchor_len, pos, |positions| {
+            !is_attached_auxiliary_whole_path(positions)
+        })
+    }
+
+    fn whole_predicate_conflicts_matching(
+        &self,
+        text: &str,
+        anchor: Range<usize>,
+        pos: PredicatePos,
+        competes: impl Fn(&[StructuralPos]) -> bool,
+    ) -> bool {
         if anchor.is_empty()
             || anchor.end > text.len()
             || !text.is_char_boundary(anchor.start)
@@ -1161,7 +1199,7 @@ impl ConstraintResolver {
                 if !first.is_predicate() {
                     return;
                 }
-                whole_predicate = true;
+                whole_predicate |= competes(analysis.positions());
                 aligned_query_stem |= analysis.components().any(|component| {
                     component.span == anchor && predicate_pos_matches(component.pos, pos)
                 });

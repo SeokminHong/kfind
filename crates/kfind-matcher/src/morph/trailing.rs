@@ -45,13 +45,39 @@ impl MorphMatcher {
         let host_len = context::normalized_token(haystack, whole.start..split)?.len();
         let (host, trailing) = token.split_at_checked(host_len)?;
         if !resolver.has_vowel_auxiliary_inflection(trailing, pos)
-            || resolver.has_exact_nominal_surface(host)
             || resolver.has_competing_nominal_after_connective(&token, host_len)
             || resolver.has_subject_or_topic_marked_proper_name(&token)
         {
             return None;
         }
 
+        let aligned = resolver.has_exact_predicate_connective_path(host, source_positions)
+            && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT);
+        if resolver.has_exact_nominal_surface(host) {
+            if !aligned
+                || self
+                    .particle_verifier
+                    .verify_exact(host, trailing)
+                    .is_some()
+            {
+                return None;
+            }
+            if !resolver.has_attached_auxiliary_whole_path(&token)
+                && !context::previous_word_with_start(haystack, whole.start).is_some_and(
+                    |(start, previous)| {
+                        !haystack[start..whole.start]
+                            .iter()
+                            .any(|byte| matches!(byte, b'\r' | b'\n'))
+                            && (resolver.has_subject_marked_nominal(&previous)
+                                || has_contracted_auxiliary_host_context(
+                                    haystack, &whole, trailing, resolver,
+                                ))
+                    },
+                )
+            {
+                return None;
+            }
+        }
         if resolver.has_unambiguous_attached_auxiliary_whole_path(&token) {
             return Some(whole.end);
         }
@@ -61,12 +87,17 @@ impl MorphMatcher {
             host_len,
             source_positions,
             DEFAULT_LATTICE_NODE_LIMIT,
-        ) || resolver.whole_predicate_conflicts(&token, core_len, pos)
-        {
+        ) {
             return None;
         }
-        let aligned = resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT)
-            && resolver.has_exact_predicate_connective_path(host, source_positions);
+        let conflicting_predicate = if aligned {
+            resolver.whole_predicate_conflicts_without_auxiliary(&token, core_len, pos)
+        } else {
+            resolver.whole_predicate_conflicts(&token, core_len, pos)
+        };
+        if conflicting_predicate {
+            return None;
+        }
         (aligned
             || resolver.has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT))
         .then_some(whole.end)

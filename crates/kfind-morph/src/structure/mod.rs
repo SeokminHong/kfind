@@ -16,6 +16,8 @@ mod roman_numeral;
 mod selection;
 mod support;
 
+pub use probes::matches_negative_auxiliary_inflection;
+
 #[derive(Clone, Copy, Debug)]
 pub struct BoundedTokenContext<'a> {
     pub previous: Option<&'a str>,
