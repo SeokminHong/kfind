@@ -422,6 +422,11 @@ regression.fused-copula.nieun-go	이다	adjective	smart-exact	38	44	대체 이�
 regression.fused-copula.nieun-go-past	이다	adjective	smart-exact	21	27	그가 벌써 떠난 건고?
 regression.fused-copula.nieun-go-quoted-literal	이다	adjective	no-match	17	23	그가 적은 ‘건고’의 뜻을 찾아봤다.
 regression.fused-copula.nieun-go-unattached	이다	adjective	no-match	0	6	건고.
+regression.copula-da.independent-adverb	이다	adjective	no-match	44	47	국산이 아닌 외국 제품이면 뭐든 다 좋은 거라고?
+regression.copula-da.initial-adverb	이다	adjective	smart-only-exact	17	20	다 좋은 기회다.
+regression.copula-da.independent-adjective	이다	adjective	no-match	22	25	단백질이 필요하다.
+regression.copula-da.particle	이다	adjective	no-match	23	26	이 문제는 생각보다 어렵다.
+regression.copula-da.quoted-host	이다	adjective	smart-only-exact	19	22	정답은 “가”다.
 corpus.ud-kaist.dev.MH2_0149-s108.adjective.이다	이다	adjective	no-match	123	129	그리고 볼셰비키 당은 이러한 프롤레타리아트의 임무를 수행하고자 대담하게 권력을 장악하였다.
 regression.copula-past.준수하였다	이다	adjective	no-match	26	32	법적 의무를 준수하였다.
 regression.copula-past.예외였다	이다	adjective	smart-exact	20	26	그 결정은 예외였다.

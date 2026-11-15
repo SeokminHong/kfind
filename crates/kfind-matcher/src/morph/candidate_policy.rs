@@ -6,7 +6,9 @@ use kfind_query::{
 };
 use unicode_normalization::UnicodeNormalization;
 
-use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
+use crate::boundary::{
+    is_boundary_after, is_boundary_before, previous_character, surrounding_token_span,
+};
 
 use super::{
     ExecutedCandidate, MorphMatcher, StructuralCache, context, has_quotative_adnominal_head,
@@ -24,6 +26,19 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Smart
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation {
+                    pos: kfind_morph::PredicatePos::Copula,
+                    ..
+                }
+            )
+            && branch.anchor.as_ref() == "다".as_bytes()
+            && previous_character(haystack, candidate.anchor.start).is_none_or(char::is_whitespace)
+        {
+            return false;
+        }
         if boundary == BoundaryPolicy::Any
             && let Some((first, rest)) = branch.origins.split_first()
             && let Some(rule) = first.rule_path.last()

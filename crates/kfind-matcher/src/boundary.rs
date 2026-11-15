@@ -128,7 +128,7 @@ pub(crate) fn bounded_surrounding_token_span(
     Ok(start..end)
 }
 
-fn previous_character(haystack: &[u8], at: usize) -> Option<char> {
+pub(crate) fn previous_character(haystack: &[u8], at: usize) -> Option<char> {
     previous_character_with_start(haystack, at).map(|(_, character)| character)
 }
 
