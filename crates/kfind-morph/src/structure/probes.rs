@@ -1693,6 +1693,13 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_connective_after_predicate(&self, host: &str, ending: &str) -> bool {
+        has_exact_sequence(&self.resource, ending, &[StructuralPos::EC])
+            && (exact_analysis_starts_with_pos(&self.resource, host, |pos| pos.is_predicate_tag())
+                || complete_predicate_ending_path(&self.resource, host))
+    }
+
+    #[must_use]
     pub fn has_competing_nominal_after_connective(
         &self,
         text: &str,

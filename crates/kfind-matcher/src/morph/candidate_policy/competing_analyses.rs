@@ -14,8 +14,9 @@ use crate::boundary::{
 };
 
 use super::super::{
-    ADNOMINAL_RULE_IDS, ExecutedCandidate, context, follows_predicate_adnominal,
-    has_counted_unit_copula_ending, has_jiyo_suffix, has_quotative_adnominal_head,
+    ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context,
+    follows_predicate_adnominal, has_counted_unit_copula_ending, has_jiyo_suffix,
+    has_quotative_adnominal_head,
 };
 
 mod nominal;
@@ -64,6 +65,7 @@ pub(super) fn rejects(
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
+        || crosses_concessive_connective(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_inferred_adnominal(
             haystack, candidate, branch, atom, resolver,
         )
@@ -75,6 +77,45 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn crosses_concessive_connective(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !is_boundary_after(haystack, span.end)
+        || is_boundary_before(haystack, span.start)
+        || !matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation { .. }
+        )
+    {
+        return false;
+    }
+    let Some(tail) = context::normalized_token(haystack, span.start..span.end) else {
+        return false;
+    };
+    if !matches!(tail.as_ref(), "만" | "마는") {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, span.clone());
+    if whole.len() > MAX_CONSUMPTION_BYTES {
+        return false;
+    }
+    let Some(token) = context::normalized_token(haystack, whole) else {
+        return false;
+    };
+    // The candidate starts inside the connective, after its first syllable.
+    ["지만", "지마는", "건만", "건마는"]
+        .iter()
+        .find_map(|ending| token.strip_suffix(ending).map(|host| (host, *ending)))
+        .is_some_and(|(host, ending)| {
+            resolver.has_scope_competing_connective(&token)
+                || resolver.has_connective_after_predicate(host, ending)
+        })
 }
 
 fn has_pronoun_topic_instead_of_inferred_adnominal(
