@@ -1,3 +1,4 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
 explicit-pos	corpus-negatives	pud:n01115013:determiner:한	한	determiner	false	55a3cf919a4971b4164b092558a088112d999c4a514ab475bf40cb01aac12713	contract-positive	aligned-source-component	PUD 원문의 6번 DT 한은 7번 NNB 해를 수식하며 8번 VC 였고는 해와 붙는다. 관형사 범위는 35..38이다. 뒤 절의 합류할준비 띄어쓰기는 이 범위와 독립이다.
 explicit-pos	corpus-negatives	pud:n02044008:determiner:한	한	determiner	false	4f5891ffeeed7a44d3fe8b05db656c06a2f3f60369de84597821b6324b4e7095	contract-positive	aligned-source-component	PUD 원문의 9번 DT 한은 10번 명사와 관형격 조사 해의(NN+CM)를 수식한다. 관형사 범위는 80..83이다.
+explicit-pos	corpus-negatives	pud:w01049066:determiner:두	두	determiner	false	00eff80a01aee07263662688af5e3c4897f68162334938d6984b509efe444cf0	contract-positive	aligned-source-component	PUD의 11번 DT 두는 12번 번째로(NNB+CM)의 차례를 나타낸다. 한글 맞춤법 제43항은 차례 표현의 붙여쓰기를 허용한다. 관형사 범위는 69..72이다.
