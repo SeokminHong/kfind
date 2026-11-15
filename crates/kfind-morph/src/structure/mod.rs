@@ -16,6 +16,7 @@ mod roman_numeral;
 mod selection;
 mod support;
 
+pub(crate) use probes::matches_interrogative_auxiliary_inflection;
 pub use probes::matches_negative_auxiliary_inflection;
 
 #[derive(Clone, Copy, Debug)]

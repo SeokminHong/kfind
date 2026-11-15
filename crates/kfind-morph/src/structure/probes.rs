@@ -98,16 +98,14 @@ fn auxiliary_inflections() -> &'static AuxiliaryInflections {
             present_or_past,
             interrogative: INTERROGATIVE_AUXILIARIES
                 .iter()
-                .flat_map(|lemma| {
-                    branches(
-                        lemma,
-                        PredicatePos::AuxiliaryAdjective,
-                        LexicalAlternation::Regular,
-                    )
-                })
+                .flat_map(|&(lemma, pos, alternation)| branches(lemma, pos, alternation))
                 .collect(),
         }
     })
+}
+
+pub(crate) fn matches_interrogative_auxiliary_inflection(text: &str) -> bool {
+    matches_predicate_inflection(text, &auxiliary_inflections().interrogative)
 }
 
 fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) -> bool {
@@ -1080,7 +1078,7 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_interrogative_auxiliary_surface(&self, text: &str) -> bool {
-        matches_predicate_inflection(text, &auxiliary_inflections().interrogative)
+        matches_interrogative_auxiliary_inflection(text)
     }
 
     #[must_use]

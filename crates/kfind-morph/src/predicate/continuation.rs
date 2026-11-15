@@ -2955,11 +2955,24 @@ fn verify_simple_continuation(
             &[INTERROGATIVE_NA, INTERROGATIVE_NA_YO]
         }
         ContinuationState::StemEnding
-            if following.strip_prefix('나').is_some_and(|tail| {
-                tail.trim_start().starts_with('?')
-                    && (pos.is_action() || anchor.ends_with(['있', '없']))
-                    && !anchor.chars().next_back().is_some_and(has_rieul_final)
-            }) =>
+            if pos.is_action()
+                && !anchor.chars().next_back().is_some_and(has_rieul_final)
+                && following.strip_prefix('나').is_some_and(|tail| {
+                    let next = tail.trim_start_matches(|character: char| {
+                        character.is_whitespace() && !matches!(character, '\n' | '\r')
+                    });
+                    next.is_empty()
+                        || next.starts_with(['?', '？', '\n', '\r'])
+                        || (next.len() < tail.len()
+                            && next
+                                .split(|character: char| {
+                                    !character.is_alphanumeric() && character != '_'
+                                })
+                                .next()
+                                .is_some_and(
+                                    crate::structure::matches_interrogative_auxiliary_inflection,
+                                ))
+                }) =>
         {
             &[INTERROGATIVE_NA]
         }
@@ -3807,6 +3820,36 @@ const fn suffix(surface: &'static str, rules: &'static [&'static str]) -> Suffix
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bare_interrogative_na_requires_a_question_boundary_or_auxiliary() {
+        for following in ["나", "나  \n다음 줄", "나 싶을 정도였다."] {
+            let matched = verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "맞",
+                following,
+            )
+            .unwrap();
+            assert_eq!(
+                matched.rule_path,
+                [RuleId::from_static("ending.interrogative-na")]
+            );
+            assert_eq!(matched.consumed_bytes, "나".len());
+        }
+        let competing = verify_predicate_continuation(
+            ContinuationState::StemEnding,
+            PredicatePos::Verb,
+            "가",
+            "나 대표팀이 도착했다.",
+        );
+        assert!(competing.is_none_or(|matched| {
+            matched
+                .rule_path
+                .iter()
+                .all(|rule| rule.as_str() != "ending.interrogative-na")
+        }));
+    }
 
     #[test]
     fn alternating_rak_requires_an_eligible_stem_and_token_end() {
