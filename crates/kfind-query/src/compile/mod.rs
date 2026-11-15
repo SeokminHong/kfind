@@ -707,7 +707,7 @@ fn compile_nominal_contractions(
             }
             "pronoun-attributive-shortening"
                 if pronoun
-                    && boundary == crate::BoundaryPolicy::Smart
+                    && boundary != crate::BoundaryPolicy::Token
                     && analysis.lemma.as_ref() == rule.left =>
             {
                 output.push(exact_branch_with_decision(

@@ -18,6 +18,6 @@ The matcher checks the boundary after consuming permitted particles or endings. 
 
 `any` imposes no left or right token boundary and returns spans verified by generated programs. Use it for broad collection and recall-oriented automation.
 
-With a compact resource, searches for `이다` also verify word forms with an omitted or fused copula, such as `너라면`. Searches still find overt copula forms without that resource.
+With a compact resource, searches for `이다` also verify word forms with an omitted or fused copula, such as `너라면`. Searches for `우리` can also match the contraction `울` when it modifies a following noun.
 
 Relaxing boundaries does not change the morphology rules. Combine `--literal --boundary any` for literal substring search.
