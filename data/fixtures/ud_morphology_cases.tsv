@@ -2045,3 +2045,9 @@ regression.stative-auxiliary-hada.separate	힘들다	adjective	only-exact	0	9	�
 regression.resultative-geora.stand	서다	verb	only-exact	12	21	이놈, 게 섰거라!
 regression.resultative-geora.withdraw	무르다	verb	only-exact	35	47	당장 물고를 내기 전에 썩 물렀거라.
 regression.resultative-geora.separate	서다	verb	only-exact	4	7	게 서 있거라.
+regression.derived-ha.share-conjugated	차다	verb	no-match	20	32	영토의 절반을 차지한다.
+regression.derived-ha.share-past	차다	verb	no-match	33	48	연합군이 상당한 우위를 차지하였다.
+regression.derived-ha.support-contracted	지다	verb	no-match	20	32	그는 EU 탈퇴를 지지했다.
+regression.derived-ha.share-lemma	차지하다	verb	smart-exact	20	32	영토의 절반을 차지한다.
+regression.derived-ha.connective-negative	차다	verb	smart-exact	7	13	공을 차지 않았다.
+regression.derived-ha.auxiliary-completion	짓다	verb	smart-exact	17	29	없는 얘기를 지어내서 말했다.

@@ -179,18 +179,34 @@ fn complete_adnominal_ending(
     endings: &[StructuralPos],
     suffix: &str,
 ) -> bool {
+    complete_inflected_ending(resource, endings, suffix, |pos| pos == StructuralPos::ETM)
+}
+
+pub(super) fn complete_inflected_ending(
+    resource: &ComponentResource,
+    endings: &[StructuralPos],
+    suffix: &str,
+    accepts: impl Fn(StructuralPos) -> bool,
+) -> bool {
+    let is_complete = |positions: &[StructuralPos]| {
+        positions.split_last().is_some_and(|(last, prefinals)| {
+            accepts(*last) && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
+        })
+    };
     if suffix.is_empty() {
-        return endings.split_last().is_some_and(|(last, prefinals)| {
-            *last == StructuralPos::ETM && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
-        });
+        return is_complete(endings);
     }
     endings.iter().all(|pos| *pos == StructuralPos::EP)
-        && (has_exact_sequence(resource, suffix, &[StructuralPos::ETM])
-            || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM])
-            || suffix.char_indices().skip(1).any(|(split, _)| {
-                has_exact_sequence(resource, &suffix[split..], &[StructuralPos::ETM])
-                    && complete_suffix(resource, &suffix[..split], |pos| pos == StructuralPos::EP)
-            }))
+        && suffix.char_indices().any(|(split, _)| {
+            let tail = &suffix[split..];
+            let mut complete = false;
+            resource.common_prefix_positions(tail.as_bytes(), |length, positions| {
+                complete |= length == tail.len() && is_complete(positions);
+            });
+            complete
+                && (split == 0
+                    || complete_suffix(resource, &suffix[..split], |pos| pos == StructuralPos::EP))
+        })
 }
 
 pub(super) fn exact_analysis_starts_with_pos(

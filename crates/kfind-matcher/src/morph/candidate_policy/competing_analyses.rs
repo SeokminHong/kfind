@@ -59,6 +59,33 @@ pub(super) fn rejects(
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
+        || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_competing_derived_predicate(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if !is_boundary_before(haystack, core.start)
+        || is_boundary_after(haystack, candidate.consumed.end)
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| matches!(rule.as_str(), "ending.aoeo" | "ending.connective-ji"))
+        })
+    {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, core.clone());
+    context::normalized_token(haystack, whole).is_some_and(|token| {
+        context::normalized_token(haystack, core.clone())
+            .is_some_and(|prefix| resolver.has_derived_ha_predicate_crossing(&token, prefix.len()))
+    })
 }
 
 fn has_competing_wa_analysis(
