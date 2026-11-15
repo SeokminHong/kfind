@@ -940,6 +940,14 @@ regression.interrogative-rieulgeona.irregular	짓다	verb	exact	0	12	지을거�
 regression.interrogative-rieulgeona.past	읽다	verb	exact	0	15	읽었을거나?
 regression.interrogative-rieulgeona.honorific	읽다	verb	exact	0	15	읽으실거나?
 regression.interrogative-rieulgeona.separate	먹다	verb	only-exact	0	9	먹거나 마시거나 편한 대로 하세요.
+regression.interrogative-rieulgeona.adjective-consonant	좋다	adjective	only-exact	40	52	제자들에게 주기에 어떤 책이 좋을거나?
+regression.interrogative-rieulgeona.adjective-irregular	어떻다	adjective	only-exact	14	26	옛 정분은 어떨거나?
+regression.interrogative-rieulgeona.adjective-past	좋다	adjective	only-exact	0	15	좋았을거나?
+regression.interrogative-rieulgeona.adjective-future	좋다	adjective	only-exact	0	15	좋겠을거나?
+regression.interrogative-rieulgeona.adjective-honorific-future	좋다	adjective	only-exact	0	21	좋으시겠을거나?
+regression.interrogative-rieulgeona.adjective-separate	좋다	adjective	only-exact	0	6	좋을 ‘거나’ 예문을 고르세요.
+regression.interrogative-rieulgeona.adjective-coordinate	좋다	adjective	only-exact	7	16	책이 좋거나 읽기 쉬우면 추천하세요.
+regression.interrogative-rieulgeona.adjective-trailing	좋다	adjective	no-match	0	6	좋을거나를 한 단어로 적었다.
 regression.connective-geoneul.stem	크다	adjective	exact	0	9	크거늘 어찌 보이지 않는다고 하느냐.
 regression.connective-geoneul.past	가다	verb	exact	0	9	갔거늘 어찌 돌아왔느냐.
 regression.connective-geoneul.honorific	읽다	verb	exact	0	15	읽으시거늘 어찌 말리느냐.
