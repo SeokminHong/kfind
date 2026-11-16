@@ -690,7 +690,7 @@ pub(super) fn has_contrastive_possibility_clause(
         .is_some_and(|(_, predicate)| resolver.has_existential_final_predicate(&predicate))
 }
 
-pub(super) fn has_copula_subject(
+pub(super) fn has_preceding_subject_or_topic(
     haystack: &[u8],
     at: usize,
     resolver: &ConstraintResolver,
@@ -730,6 +730,38 @@ pub(super) fn has_following_final_predicate(
         if !resolver.has_exact_adverb_surface(&word) {
             return false;
         }
+        before = end;
+    }
+    false
+}
+
+pub(super) fn has_interrogative_coordination(
+    haystack: &[u8],
+    first: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let limit = first
+        .end
+        .saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = first.end;
+    let mut through_connective = false;
+    while let Some((end, word)) = next_word_on_line(haystack, before) {
+        if end > limit {
+            break;
+        }
+        let ending = word.strip_suffix(['가', '를', '는', '도']).unwrap_or(&word);
+        if ending.strip_suffix('지').is_some_and(|host| {
+            !resolver.has_exact_nominal_surface(ending)
+                && (resolver.has_interrogative_ji_ending(ending)
+                    || resolver.has_adjective_adnominal_surface(host))
+        }) {
+            return !through_connective
+                || has_preceding_subject_or_topic(haystack, first.start, resolver);
+        }
+        if resolver.has_independent_final_predicate(&word) {
+            break;
+        }
+        through_connective |= resolver.has_complete_connective_path(&word);
         before = end;
     }
     false

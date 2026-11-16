@@ -206,8 +206,13 @@ impl MorphMatcher {
             && !resolver.has_exact_non_copula_predicate_surface(&normalized)
         {
             let pronoun = resolver.has_exact_pronoun_surface(host);
-            let subject =
-                || context::has_copula_subject(haystack, candidate.verified.token.start, resolver);
+            let subject = || {
+                context::has_preceding_subject_or_topic(
+                    haystack,
+                    candidate.verified.token.start,
+                    resolver,
+                )
+            };
             let accepted = if ending == "라니" {
                 pronoun && subject()
             } else {
@@ -290,7 +295,9 @@ impl MorphMatcher {
                         && context::previous_word_with_start(haystack, at).is_some_and(
                             |(before, modifier)| {
                                 resolver.has_adjective_adnominal_surface(&modifier)
-                                    && context::has_copula_subject(haystack, before, resolver)
+                                    && context::has_preceding_subject_or_topic(
+                                        haystack, before, resolver,
+                                    )
                             },
                         )
                 })
