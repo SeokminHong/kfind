@@ -1882,6 +1882,15 @@ regression.comparative.level	기대다	verb	no-match	10	16	결과는 기대 수�
 regression.comparative.level-nominal	기대	noun	smart-exact	10	16	결과는 기대 수준이었다.
 regression.comparative.level-verb	기대다	verb	smart-exact	7	13	벽에 기대 수준 높은 시를 읽었다.
 regression.comparative.approximation	기대다	verb	no-match	10	16	결과는 기대 정도였다.
+regression.comparative.degree-with-subject	더	noun	no-match	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
+regression.comparative.degree-adverb	더	adverb	smart-only-exact	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
+regression.comparative.degree-with-measure	더	noun	no-match	45	48	이름 중 케이라가 키에라보다 3배 더 많았다.
+regression.comparative.lower-degree	덜	noun	no-match	20	23	점수가 형보다 덜 높다.
+regression.comparative.lower-degree-adverb	덜	adverb	smart-only-exact	20	23	점수가 형보다 덜 높다.
+regression.comparative.bare-subject	더	noun	smart-only-exact	10	13	형보다 더 높다.
+regression.comparative.name-with-object-marker	더	noun	smart-only-exact	20	26	형제가 나보다 더를 먼저 불렀다.
+regression.comparative.name-in-title	더	noun	smart-only-exact	17	20	형이 나보다 더 스코츠맨을 자주 읽는다.
+regression.comparative.degree-amount	조금	noun	smart-only-exact	20	26	첫날보다 물이 조금 차갑다.
 regression.scope-genitive.possessive	나	pronoun	smart-exact	11	14	교실 안 내 가방이 있다.
 regression.scope-genitive.marked-host	나	pronoun	smart-exact	10	13	한국의 내 친구가 방문했다.
 regression.adnominal-auxiliary.past-contracted	오다	verb	smart-exact	14	17	밤에 비가 온듯했다.
