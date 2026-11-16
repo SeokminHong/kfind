@@ -94,6 +94,53 @@ pub(in crate::structure) fn nominal_component_is_supported(
     }
 }
 
+pub(super) fn nominal_prefix_is_shadowed_by_predicate(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    text: &str,
+    evidence: &TokenEvidence,
+) -> bool {
+    matches!(
+        pattern.fine_pos,
+        DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+    ) && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.start == spans.token.start
+        && spans.consumed.end < spans.token.end
+        && pattern.lexical_form.chars().count() == 1
+        && evidence
+            .leading_predicate_spans
+            .iter()
+            .any(|stem| stem.end >= spans.core.end)
+        && !evidence.has_nominal_source_component(&spans.core)
+        && !(evidence
+            .runtime_nominal_derivation_spans
+            .contains(&spans.core)
+            && evidence
+                .derivational_suffix_starts
+                .binary_search(&spans.core.end)
+                .is_ok())
+        && !evidence.has_nominal_copula_host(&spans.core)
+        && !has_nominal_copula_tail(text, spans, evidence)
+}
+
+fn has_nominal_copula_tail(text: &str, spans: &CandidateSpans, evidence: &TokenEvidence) -> bool {
+    let tail = &text[spans.core.end..spans.token.end];
+    let Some(last) = text[spans.core.clone()].chars().next_back() else {
+        return false;
+    };
+    crate::verify_copula_surface_after_nominal(last, tail)
+        || tail.char_indices().skip(1).any(|(offset, _)| {
+            let split = spans.core.end + offset;
+            evidence
+                .units
+                .starting_at(split)
+                .iter()
+                .any(|unit| unit.aligned_pos && unit.pos.is_particle())
+                && crate::verify_copula_surface_after_nominal(last, &tail[..offset])
+                && has_grammatical_particle_chain(&text[spans.core.start..split], &tail[offset..])
+        })
+}
+
 fn nominal_component_is_on_preferred_path(
     core: &Range<usize>,
     selected: &Range<usize>,
