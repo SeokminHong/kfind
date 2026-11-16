@@ -1405,16 +1405,19 @@ impl MorphMatcher {
                                 haystack, &whole, core, resolver,
                             ))))
                 && !(nominal_particle_chain
-                    && *core == candidate.consumed
-                    && consumed_end == whole.end
                     && core.start > whole.start
                     && (branch.anchor.as_ref() == "지".as_bytes()
                         || branch.anchor.as_ref() == "지".as_bytes())
-                    && decision
-                        .supported
-                        .iter()
-                        .all(|support| support.evidence == StructuralEvidence::RuntimeComponent)
-                    && context::has_attached_ji_ending(haystack, &whole, resolver))
+                    && ((consumed_end == whole.end
+                        && decision.supported.iter().all(|support| {
+                            support.evidence == StructuralEvidence::RuntimeComponent
+                        }))
+                        || (consumed_end == core.end
+                            && matches!(
+                                haystack.get(core.end..whole.end),
+                                Some(suffix) if suffix == "요".as_bytes() || suffix == "요".as_bytes()
+                            )))
+                    && context::has_attached_ji_ending(haystack, &whole, core.end, resolver))
         });
         if decision.is_none_or(|decision| {
             matches!(

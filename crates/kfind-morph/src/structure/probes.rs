@@ -2320,6 +2320,27 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_interrogative_ji_ending(&self, text: &str) -> bool {
+        let Some(host) = text.strip_suffix('지') else {
+            return false;
+        };
+        let rieul = host
+            .chars()
+            .next_back()
+            .is_some_and(crate::hangul::has_rieul_final);
+        if rieul || host.ends_with(['는', '던']) {
+            return super::lexical::complete_interrogative_ji_path(&self.resource, text)
+                || ((rieul || host.ends_with('는')) && self.has_predicate_adnominal_surface(host));
+        }
+        host.chars()
+            .next_back()
+            .and_then(crate::hangul::decompose_syllable)
+            .is_some_and(|syllable| syllable.jongseong == crate::hangul::JONG_NIEUN)
+            && self.has_adjective_adnominal_surface(host)
+            && !super::lexical::complete_past_verbal_adnominal_path(&self.resource, host)
+    }
+
+    #[must_use]
     pub fn has_exact_proper_name_surface(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Nnp)
     }
