@@ -473,6 +473,9 @@
   후보를 거부한다. 정렬된 합성·보조용언은 각 품사 경로로 검증한다.
   체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
   체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
+  독립 `하다` 질의에서 내부 어간과 같은 위치에 `NNG/XR + -하-/XSV·XSA + 어미`의
+  완성 경로가 있으면 파생 접미사 후보를 제외한다. 통째 체언 분석과 해당 위치에 성분을
+  정렬한 통째 합성·보조용언 분석은 각각의 구조 검증을 거친다.
 - token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가
   있고, 두 번째 용언 edge 또는 source component가 query core와 같은 span·세부 품사이며 query
   program도 그 위치부터 token 끝까지 continuation을 소비하면 내부 용언 component를 유지한다.

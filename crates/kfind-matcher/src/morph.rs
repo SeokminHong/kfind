@@ -1864,6 +1864,15 @@ fn has_conflicting_whole_predicate(
     }
     let normalized_core_start = normalized_prefix.len();
     let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
+    if internal_core
+        && resolver.has_conflicting_derived_ha_suffix(
+            &normalized_token,
+            normalized_core_start..normalized_core_end,
+            source_positions,
+        )
+    {
+        return true;
+    }
     if source_aligned_compound_predicate_position(
         haystack,
         &candidate.verified.core,

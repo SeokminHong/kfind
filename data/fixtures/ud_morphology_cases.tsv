@@ -2204,3 +2204,13 @@ regression.bare-nominal.consumed-particle	저	pronoun	smart-exact	0	9	저라도 
 regression.derived-ha.connective-go.final	보다	verb	no-match	20	26	경찰은 상황을 보고했다.
 regression.derived-ha.connective-go.joined-head	보다	verb	no-match	20	26	경찰은 상황을 보고한것을 확인했다.
 regression.derived-ha.connective-go.independent	보다	verb	smart-exact	20	26	경찰은 사진을 보고 판단했다.
+regression.derived-ha.suffix-adnominal	하다	verb	no-match	13	16	최근 실시한 설문조사다.
+regression.derived-ha.suffix-final	하다	verb	no-match	16	22	사건이 발생했다.
+regression.derived-ha.suffix-connective	하다	verb	no-match	16	22	변수를 감안해서 판단을 내렸다.
+regression.derived-ha.suffix-quotative	하다	verb	no-match	26	35	사장님이 직접 주유한다고 합니다.
+regression.derived-ha.full-adnominal	실시하다	verb	smart-only-exact	7	16	최근 실시한 설문조사다.
+regression.derived-ha.full-final	발생하다	verb	smart-only-exact	10	22	사건이 발생했다.
+regression.derived-ha.independent-adnominal	하다	verb	smart-only-exact	20	23	아이가 숙제를 한 뒤에 나갔다.
+regression.derived-ha.marked-object	하다	verb	smart-only-exact	10	16	공사를 해서 길을 막았다.
+regression.derived-ha.auxiliary	하다	verb	smart-only-exact	30	36	학생이 발표를 잘하게 했다.
+regression.derived-ha.joined-auxiliary	하다	verb	smart-only-exact	23	29	그는 아이를 앉게했다.

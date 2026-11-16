@@ -105,6 +105,12 @@ pub(in crate::structure) fn compound_predicate_components(
     components.into_boxed_slice()
 }
 
+pub(in crate::structure) fn compound_predicate_pos(
+    positions: &[StructuralPos],
+) -> Option<DataFinePos> {
+    compound_tail_inside_analysis(positions).map(|(pos, _)| pos)
+}
+
 fn compound_tail_inside_analysis(
     positions: &[StructuralPos],
 ) -> Option<(DataFinePos, CompoundTailState)> {
