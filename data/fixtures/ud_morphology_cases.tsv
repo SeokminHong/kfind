@@ -2224,6 +2224,12 @@ regression.prohibitive-adnominal.past-adnominal-indirect	알다	verb	no-match	35
 regression.prohibitive-adnominal.prohibitive-adverb	안	adverb	smart-only-exact	26	29	진열품을 만져서는 안 되겠어요.
 regression.prohibitive-adnominal.past-adnominal-positive	알다	verb	smart-only-exact	17	20	계약 내용을 안 뒤에 서명했다.
 regression.prohibitive-adnominal.noun-inside	안	noun	smart-only-exact	4	10	집 안이 조용하다.
+regression.ge-connective.connective-competing	알다	verb	no-match	10	16	큰상을 안게 되었다.
+regression.ge-connective.connective-complete	안다	verb	smart-only-exact	10	16	큰상을 안게 되었다.
+regression.ge-connective.causative-competing	알다	verb	no-match	33	39	어른이 아이에게 인형을 안게 했다.
+regression.ge-connective.spaced-adnominal	알다	verb	smart-only-exact	7	10	직접 안 게 하나 있다.
+regression.ge-connective.spaced-dependent	게	noun	smart-only-exact	11	14	직접 안 게 하나 있다.
+regression.ge-connective.prospective	풀다	verb	smart-only-exact	21	27	이 문제는 내가 풀게.
 regression.adverb.b-irregular.bare-adverb	매우	adverb	smart-only-exact	0	6	매우
 regression.adverb.b-irregular.bare-adjective	맵다	adjective	no-match	0	6	매우
 regression.adverb.b-irregular.conditional-adverb	매우	adverb	no-match	7	16	국이 매우면 물을 조금 넣으세요.
