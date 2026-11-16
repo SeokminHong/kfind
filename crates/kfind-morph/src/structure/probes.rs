@@ -23,7 +23,7 @@ const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
     include!("../../../../data/rules/krdict-non-accusative-predicate-anchors.rs");
 const PRODUCTIVE_NOMINAL_HEADS: &[&str] =
     include!("../../../../data/rules/nikl-productive-nominal-heads.rs");
-const BOUND_NOMINAL_PREFIX_USAGES: &[(&str, &str)] =
+const BOUND_NOMINAL_PREFIX_USAGES: &[(&str, &[&str])] =
     include!("../../../../data/rules/nikl-bound-nominal-prefix-usages.rs");
 
 include!("../../../../data/rules/krdict-nominal-frames.rs");
@@ -406,20 +406,21 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_bound_nominal_prefix(&self, prefix: &str, text: &str) -> bool {
-        let start = BOUND_NOMINAL_PREFIX_USAGES.partition_point(|&(form, _)| form < prefix);
-        BOUND_NOMINAL_PREFIX_USAGES[start..]
-            .iter()
-            .take_while(|&&(form, _)| form == prefix)
-            .any(|&(_, noun)| {
-                text.strip_prefix(noun).is_some_and(|tail| {
-                    tail.is_empty()
-                        || complete_suffix(&self.resource, tail, StructuralPos::is_particle)
-                        || noun
-                            .chars()
-                            .next_back()
-                            .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
-                })
+        let Ok(index) =
+            BOUND_NOMINAL_PREFIX_USAGES.binary_search_by_key(&prefix, |&(form, _)| form)
+        else {
+            return false;
+        };
+        BOUND_NOMINAL_PREFIX_USAGES[index].1.iter().any(|&noun| {
+            text.strip_prefix(noun).is_some_and(|tail| {
+                tail.is_empty()
+                    || complete_suffix(&self.resource, tail, StructuralPos::is_particle)
+                    || noun
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
             })
+        })
     }
 
     #[must_use]
