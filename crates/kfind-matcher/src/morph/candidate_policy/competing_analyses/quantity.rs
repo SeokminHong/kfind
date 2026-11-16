@@ -38,6 +38,34 @@ pub(super) fn has_counted_unit_copula(
         })
 }
 
+pub(super) fn has_spaced_dictionary_numeric_unit(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let (CandidateConsumption::PredicateContinuation { pos, .. }
+    | CandidateConsumption::StructuralPredicateEnding { pos, .. }) = branch.consumption
+    else {
+        return false;
+    };
+    let span = &candidate.consumed;
+    if pos == PredicatePos::Copula
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+    {
+        return false;
+    }
+    context::previous_word_with_start(haystack, span.start).is_some_and(|(start, previous)| {
+        previous.bytes().all(|byte| byte.is_ascii_digit())
+            && !haystack[start + previous.len()..span.start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+            && context::normalized_token(haystack, span.clone())
+                .is_some_and(|token| resolver.has_complete_dictionary_numeric_unit_path(&token))
+    })
+}
+
 pub(super) fn has_elapsed_measure_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
