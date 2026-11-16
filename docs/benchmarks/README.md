@@ -26,8 +26,9 @@ KFIND_BENCHMARK_WAIT_TIMEOUT=3600 scripts/benchmark-morphology.sh
 KFIND_BENCHMARK_RUN_TIMEOUT=7200 scripts/benchmark-morphology.sh
 ```
 
-대기 timeout은 exit code 75, 실행 timeout은 exit code 124를 반환한다. raw `cargo`, `docker`나
-임의의 재현 명령도 직렬화하려면 공통 runner로 감싼다.
+대기 기한이 지나면 명령을 시작하지 않고 exit code 75를 반환한다. 실행 timeout은
+exit code 124를 반환한다. raw `cargo`, `docker`나 임의의 재현 명령도 직렬화하려면
+공통 runner로 감싼다.
 
 ```console
 scripts/benchmark-run.sh run --name custom-check -- command arg

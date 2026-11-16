@@ -88,15 +88,21 @@ class ExclusiveLock:
                     self.file_descriptor,
                     fcntl.LOCK_EX | fcntl.LOCK_NB,
                 )
-                return time.monotonic() - started
             except OSError as error:
                 if error.errno not in (errno.EACCES, errno.EAGAIN):
                     raise
+                acquired = False
+            else:
+                acquired = True
 
             now = time.monotonic()
             elapsed = now - started
             if wait_timeout is not None and elapsed >= wait_timeout:
+                if acquired:
+                    fcntl.flock(self.file_descriptor, fcntl.LOCK_UN)
                 raise LockWaitTimeout(elapsed)
+            if acquired:
+                return elapsed
             if now >= next_status:
                 print_wait_status(self.path, elapsed)
                 next_status = now + status_interval
