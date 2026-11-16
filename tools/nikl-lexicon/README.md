@@ -111,3 +111,7 @@ relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 
 `audit_bound_si_hosts.py`는 표준국어대사전에서 `-시(視)`가 붙은 표제어와 동형 명사를
 대조합니다. 기본 출력은 검색에 사용하는 Rust 목록이고, `--format fixture`는 명사
 질의의 음성 회귀 TSV를 출력합니다.
+
+`audit_hanja_nominalizer_hosts.py`는 MeCab의 합성 명사 분절을 표준국어대사전의
+첫 성분 원어와 대조합니다. `--mecab`에 원본 CSV 디렉터리, `--stdict`에 고정
+ZIP, `--cache-dir`에 사전 캐시를 지정하면 확인한 표제어와 식별자를 TSV로 출력합니다.
