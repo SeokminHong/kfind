@@ -128,7 +128,11 @@ fn has_nominal_copula_tail(text: &str, spans: &CandidateSpans, evidence: &TokenE
     let Some(last) = text[spans.core.clone()].chars().next_back() else {
         return false;
     };
-    crate::verify_copula_surface_after_nominal(last, tail)
+    let verifies = |ending| {
+        (ending == "고" && !crate::hangul::has_final(last))
+            || crate::verify_copula_surface_after_nominal(last, ending)
+    };
+    verifies(tail)
         || tail.char_indices().skip(1).any(|(offset, _)| {
             let split = spans.core.end + offset;
             evidence
@@ -136,7 +140,7 @@ fn has_nominal_copula_tail(text: &str, spans: &CandidateSpans, evidence: &TokenE
                 .starting_at(split)
                 .iter()
                 .any(|unit| unit.aligned_pos && unit.pos.is_particle())
-                && crate::verify_copula_surface_after_nominal(last, &tail[..offset])
+                && verifies(&tail[..offset])
                 && has_grammatical_particle_chain(&text[spans.core.start..split], &tail[offset..])
         })
 }

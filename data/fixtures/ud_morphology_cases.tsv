@@ -2117,6 +2117,17 @@ regression.nominal-prefix.predicate.contracted-copula	거	noun	smart-only-exact	
 regression.nominal-prefix.predicate.quoted-copula-topic	거	noun	smart-only-exact	4	7	내 거라고는 생각하지 못했다.
 regression.nominal-prefix.predicate.long-compound-part	아이	noun	smart-only-exact	0	6	아이웨어(선글라스)를 골랐다.
 regression.nominal-prefix.predicate.omitted-copula	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
+regression.nominal-prefix.realized-derivation.give-noun	주	noun	no-match	41	44	그 결정은 다른 팀에도 영향을 주고 있다.
+regression.nominal-prefix.realized-derivation.give-verb	주다	verb	smart-only-exact	41	47	그 결정은 다른 팀에도 영향을 주고 있다.
+regression.nominal-prefix.realized-derivation.place-noun	두	noun	no-match	10	13	초점을 두고 논의했다.
+regression.nominal-prefix.realized-derivation.place-verb	두다	verb	smart-only-exact	10	16	초점을 두고 논의했다.
+regression.nominal-prefix.realized-derivation.know-noun	알	noun	no-match	14	17	그 사실을 알게 됐다.
+regression.nominal-prefix.realized-derivation.know-verb	알다	verb	smart-only-exact	14	20	그 사실을 알게 됐다.
+regression.nominal-prefix.realized-derivation.omitted-go-copula	주	noun	smart-only-exact	14	17	이곳은 한 주고 저곳은 군이다.
+regression.nominal-prefix.realized-derivation.explicit-go-copula	주	noun	smart-only-exact	14	17	이곳은 한 주이고 저곳은 군이다.
+regression.nominal-prefix.realized-derivation.topic	주	noun	smart-only-exact	7	13	이번 주는 바쁘다.
+regression.nominal-prefix.realized-derivation.deleted-ha	생각	noun	smart-only-exact	7	13	내가 생각건대 이 길이 더 빠르다.
+regression.nominal-prefix.realized-derivation.aligned-component	가	noun	smart-only-exact	29	32	국제결혼으로 다문화 가족의 수가 늘었다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.

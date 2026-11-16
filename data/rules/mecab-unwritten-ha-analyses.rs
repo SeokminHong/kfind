@@ -1,0 +1,28 @@
+// mecab-ko-dic-2.1.1-20180720 Inflect.csv.
+// The NFC surface equals the recomposed expression after its initial 하/XSV or 하/XSA.
+&[
+    ("건대", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("게", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("겠다고", &[StructuralPos::XSV, StructuralPos::EP, StructuralPos::EC]),
+    ("고", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("기도", &[StructuralPos::XSV, StructuralPos::ETN, StructuralPos::JX]),
+    ("기에", &[StructuralPos::XSA, StructuralPos::ETN, StructuralPos::JKB]),
+    ("네", &[StructuralPos::XSA, StructuralPos::EC]),
+    ("는", &[StructuralPos::XSV, StructuralPos::ETM]),
+    ("는중에", &[StructuralPos::XSA, StructuralPos::ETM, StructuralPos::NNB, StructuralPos::JKB]),
+    ("니", &[StructuralPos::XSA, StructuralPos::EC]),
+    ("다", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("다가", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("던", &[StructuralPos::XSV, StructuralPos::ETM]),
+    ("지", &[StructuralPos::XSA, StructuralPos::EC]),
+    ("지", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("지는", &[StructuralPos::XSA, StructuralPos::EC, StructuralPos::JX]),
+    ("지는", &[StructuralPos::XSV, StructuralPos::EC, StructuralPos::JX]),
+    ("지도", &[StructuralPos::XSA, StructuralPos::EC, StructuralPos::JX]),
+    ("지도", &[StructuralPos::XSV, StructuralPos::EC, StructuralPos::JX]),
+    ("지만", &[StructuralPos::XSV, StructuralPos::EC]),
+    ("지않았으나", &[StructuralPos::XSA, StructuralPos::EC, StructuralPos::VX, StructuralPos::EP, StructuralPos::EC]),
+    ("지은", &[StructuralPos::XSV, StructuralPos::EC, StructuralPos::JX]),
+    ("진", &[StructuralPos::XSV, StructuralPos::EC, StructuralPos::JX]),
+    ("진이", &[StructuralPos::XSV, StructuralPos::EC, StructuralPos::JX, StructuralPos::JKS]),
+]
