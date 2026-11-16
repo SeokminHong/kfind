@@ -10,7 +10,7 @@
 [한국어기초사전 snapshot](../../data/SOURCES.toml)의 명사 중
 ‘건물 종류’와 ‘식생활 관련 장소’ 107항목의 뜻풀이를 확인했다.
 앞 집합에 올 수 있는 장소 명사 86개와 표제어 ID를
-[장소 어휘 자료](../../data/rules/krdict-partitive-place-groups.rs)에 기록했다.
+[측정 당시의 장소 어휘 자료](https://github.com/SeokminHong/kfind/blob/d4b29d4f3f8fcd51658f2283687692bc558fd348/data/rules/krdict-partitive-place-groups.rs)에 기록했다.
 `건축·시식회` 같은 활동, `골재` 같은 재료, `자판기` 같은 기기,
 시간 구문을 허용하는 동형은 그 자료의 대상에서 제외한다.
 

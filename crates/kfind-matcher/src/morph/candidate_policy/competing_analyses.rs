@@ -60,7 +60,6 @@ pub(super) fn rejects(
         || quantity::has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_comparative_adverb_frame(haystack, candidate, branch, atom, resolver)
-        || quantity::has_partitive_count_frame(haystack, candidate, branch, resolver)
         || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
         || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
         || nominal::has_determiner_frame_for_alternative(haystack, candidate, resolver)

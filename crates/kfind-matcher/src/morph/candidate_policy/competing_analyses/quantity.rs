@@ -1,17 +1,13 @@
-use kfind_morph::{
-    CoarsePos, ConstraintResolver, PredicatePos, verify_copula_surface_after_nominal,
-};
+use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
 
-use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, context, has_counted_unit_copula_ending};
+use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
 
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
-const PARTITIVE_PLACE_GROUPS: &[&str] =
-    include!("../../../../../../data/rules/krdict-partitive-place-groups.rs");
 
 pub(super) fn has_counted_unit_copula(
     haystack: &[u8],
@@ -188,74 +184,6 @@ pub(super) fn has_comparative_adverb_frame(
             resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
                 || resolver.has_final_adjective_by_ending(&next)
                 || resolver.has_adjective_adnominal_surface(&next)
-        })
-}
-
-pub(super) fn has_partitive_count_frame(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    resolver: &ConstraintResolver,
-) -> bool {
-    let span = &candidate.consumed;
-    // A single Hangul syllable occupies at most three UTF-8 jamo in NFD.
-    if !matches!(
-        branch.consumption,
-        CandidateConsumption::PredicateContinuation { .. }
-            | CandidateConsumption::StructuralPredicateEnding { .. }
-    ) || span.len() > 9
-        || !candidate
-            .suffix_rules
-            .iter()
-            .chain(branch.origins.iter().flat_map(|origin| &origin.rule_path))
-            .any(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
-        || !is_boundary_before(haystack, span.start)
-        || !is_boundary_after(haystack, span.end)
-    {
-        return false;
-    }
-    let Some((start, previous)) = context::previous_word_with_start(haystack, span.start) else {
-        return false;
-    };
-    let group = (previous == "중")
-        .then(|| context::previous_word_with_start(haystack, start))
-        .flatten()
-        .filter(|(group_start, group)| {
-            !haystack[*group_start..start]
-                .iter()
-                .any(|byte| matches!(byte, b'\r' | b'\n'))
-                && (resolver.has_nominal_with_optional_particles(group)
-                    || resolver.has_quantity_expression(group, None))
-                && !context::previous_word(haystack, *group_start)
-                    .is_some_and(|word| resolver.has_object_marked_nominal(&word))
-        });
-    (previous == "그중" || group.is_some())
-        && !haystack[start..span.start]
-            .iter()
-            .any(|byte| matches!(byte, b'\r' | b'\n'))
-        && context::normalized_token(haystack, span.clone()).is_some_and(|count| {
-            count.chars().count() == 1
-                && resolver.has_whole_determiner(&count)
-                && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
-                    haystack.get(end) != Some(&b'(')
-                        && (resolver.has_inflected_counted_unit(&count, &next)
-                            || (next.starts_with("곳")
-                                && ((previous == "그중"
-                                    && !context::previous_word(haystack, start).is_some_and(
-                                        |word| resolver.has_object_marked_nominal(&word),
-                                    ))
-                                    || group.as_ref().is_some_and(|(_, group)| {
-                                        let head = group.strip_suffix('들').unwrap_or(group);
-                                        PARTITIVE_PLACE_GROUPS.binary_search(&head).is_ok()
-                                    }))
-                                && resolver.has_counted_place_surface(&count, &next))
-                            || next.char_indices().skip(1).any(|(split, _)| {
-                                let (unit, ending) = next.split_at(split);
-                                unit.chars().next_back().is_some_and(|last| {
-                                    verify_copula_surface_after_nominal(last, ending)
-                                }) && resolver.has_counted_unit_frame(&count, unit)
-                            }))
-                })
         })
 }
 
