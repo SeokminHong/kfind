@@ -2106,6 +2106,17 @@ regression.modifier.nominal-tail.spaced	전	determiner	smart-only-exact	0	3	전 
 regression.modifier.nominal-tail.attached	전	determiner	smart-only-exact	0	3	전과정을 기록했다.
 regression.modifier.nominal-tail.attached-ordinal	두	determiner	smart-only-exact	0	3	두번째 장면을 보았다.
 regression.modifier.nominal-tail.spaced-frequency	한	determiner	smart-only-exact	14	17	차를 사면 한 번쯤 가 볼 곳이다.
+regression.nominal-prefix.predicate.adnominal-noun	배	noun	no-match	23	26	학생들은 영어를 배울 수 있다.
+regression.nominal-prefix.predicate.adnominal-verb	배우다	verb	smart-only-exact	23	29	학생들은 영어를 배울 수 있다.
+regression.nominal-prefix.predicate.connective-noun	가	noun	no-match	7	10	집에 가서 만나자.
+regression.nominal-prefix.predicate.connective-verb	가다	verb	smart-only-exact	7	13	집에 가서 만나자.
+regression.nominal-prefix.predicate.partial-particle	나	noun	no-match	14	20	그는 먼저 나와서 사람들을 기다렸다.
+regression.nominal-prefix.predicate.compound-verb	나오다	verb	smart-only-exact	14	23	그는 먼저 나와서 사람들을 기다렸다.
+regression.nominal-prefix.predicate.whole-particle	배	noun	smart-only-exact	14	20	원래의 두 배를 받았다.
+regression.nominal-prefix.predicate.contracted-copula	거	noun	smart-only-exact	14	17	이것은 내 거예요.
+regression.nominal-prefix.predicate.quoted-copula-topic	거	noun	smart-only-exact	4	7	내 거라고는 생각하지 못했다.
+regression.nominal-prefix.predicate.long-compound-part	아이	noun	smart-only-exact	0	6	아이웨어(선글라스)를 골랐다.
+regression.nominal-prefix.predicate.omitted-copula	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.

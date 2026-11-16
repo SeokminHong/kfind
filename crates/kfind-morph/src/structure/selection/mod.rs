@@ -13,8 +13,8 @@ use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
     compound_predicate_component_is_supported, has_grammatical_particle_chain,
     has_grammatical_particle_component, modifier_led_nominal_component_is_on_preferred_path,
-    nominal_component_is_supported, proper_noun_dependent_noun_frame,
-    runtime_nominal_component_is_supported,
+    nominal_component_is_supported, nominal_prefix_is_shadowed_by_predicate,
+    proper_noun_dependent_noun_frame, runtime_nominal_component_is_supported,
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
@@ -181,6 +181,11 @@ impl StructureSelection {
         }
         if nominal_derivation_before_predicate(pattern, spans, evidence) {
             return true;
+        }
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && nominal_prefix_is_shadowed_by_predicate(pattern, spans, text, evidence)
+        {
+            return false;
         }
         if matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn)
             && support.evidence == StructuralEvidence::RuntimeComponent
