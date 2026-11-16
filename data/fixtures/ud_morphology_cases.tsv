@@ -1979,6 +1979,23 @@ regression.final-ending.directive-nominal-dative	나다	verb	no-match	7	22	다�
 regression.final-ending.hao-concessive-rieul	떨다	verb	smart-only-exact	7	13	손을 떠오마는 괜찮소.
 regression.final-ending.directive-quotative-adnominal	가다	verb	smart-only-exact	7	16	먼저 가라는 말을 들었다.
 regression.final-ending.propositive-quotative-connective	먹다	verb	smart-only-exact	7	16	먼저 먹자고 권했다.
+regression.propositive-adnominal.body	먹다	verb	smart-only-exact	7	16	먼저 먹자는 말을 들었다.
+regression.propositive-adnominal.pud	살다	verb	smart-only-exact	122	131	그들은 돌아온 후 전후 벨기에에서 발생한문제들로부터 완전히 멀어질 수 있도록 남미에서 살자는 아이디어를 냈다.
+regression.propositive-adnominal.homographic-adnominal	남다	verb	smart-only-exact	11	20	조금 더 남자는 제안을 했다.
+regression.propositive-adnominal.homographic-topic	남다	verb	no-match	4	13	그 남자는 진실을 말했다.
+regression.propositive-adnominal.topic-with-coordinated-head	남다	verb	no-match	4	13	그 남자는 자신과 월터가 만났다고 말했다.
+regression.propositive-adnominal.forced-nominal-stem	운전다	verb	no-match	10	22	다행히 운전자는 큰 부상을 입지 않았다.
+regression.propositive-adnominal.mixed-nominal-stem	LG전다	verb	no-match	0	11	LG전자는 최근 새 제품을 공개했다.
+regression.propositive-adnominal.honorific	읽다	verb	smart-only-exact	21	36	회의 뒤에 같이 읽으시자는 제안이 나왔다.
+regression.propositive-adnominal.linked-predicate	놀다	verb	smart-only-exact	10	19	나가서 놀자는 의견에 동의했다.
+regression.propositive-adnominal.quoted-additive	피다	verb	smart-only-exact	10	16	‘활짝 피자’도 재미있는 문구다.
+regression.propositive-adnominal.nominal-additive	피다	verb	no-match	0	9	피자도 맛있게 먹었다.
+regression.propositive-adnominal.copula-adnominal	그다	verb	no-match	24	33	한 명의 보좌관일 거라는 말이 돌았다.
+regression.propositive-adnominal.concessive-not-final	모다	verb	no-match	13	22	돼지일지 몰라도 혼자인 것은 아니다.
+regression.propositive-adnominal.concessive-connective	모르다	verb	smart-only-exact	13	22	돼지일지 몰라도 혼자인 것은 아니다.
+regression.propositive-adnominal.concessive-ordinary	먹다	verb	smart-only-exact	7	16	먼저 먹어도 된다.
+regression.propositive-adnominal.topic-ordinary	먹다	verb	smart-only-exact	7	16	먼저 먹고는 떠났다.
+regression.propositive-adnominal.negative-topic	먹다	verb	smart-only-exact	0	9	먹지는 못했다.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.

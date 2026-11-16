@@ -375,16 +375,16 @@ impl MorphMatcher {
                             .particle_verifier
                             .verify_non_nominal_prefix(&ending, &trailing);
                         matched.consumed_bytes == trailing.len()
-                            && (!prospective_quotative_topic
-                                || matched
-                                    .rule_path
-                                    .first()
-                                    .is_some_and(|rule| rule.as_str() == "particle.topic"))
                             && matched.rule_path.first().is_some_and(|rule| {
                                 contains_rule(
                                     &self.plan.predicate_ending_initial_particle_rules,
                                     rule,
-                                )
+                                ) && (!prospective_quotative_topic
+                                    || rule.as_str() == "particle.topic")
+                                    && (!matches!(
+                                        rule.as_str(),
+                                        "particle.topic" | "particle.additive"
+                                    ) || !ends_in_final_ending(candidate, branch))
                             })
                             && matched.rule_path.iter().all(|rule| {
                                 contains_rule(&self.plan.auxiliary_particle_rules, rule)

@@ -51,6 +51,7 @@ pub(super) fn rejects(
             .is_some_and(|rule| rule.as_str() == "ending.prospective-final")
             && !is_boundary_after(haystack, candidate.consumed.end))
         || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
+        || has_topic_instead_of_propositive_adnominal(haystack, candidate, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
         || has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
@@ -420,6 +421,31 @@ fn lacks_contracted_quotative_head(
         && std::str::from_utf8(&haystack[candidate.anchor.end..candidate.consumed.end])
             .is_ok_and(|suffix| suffix.nfc().eq("란".chars()))
         && !has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver)
+}
+
+fn has_topic_instead_of_propositive_adnominal(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.propositive-quotative-adnominal")
+        && context::normalized_token(haystack, candidate.consumed.clone()).is_some_and(|word| {
+            word.strip_suffix('는').is_some_and(|host| {
+                let latin_prefix = host.bytes().take_while(u8::is_ascii_alphabetic).count();
+                resolver.has_complete_nominal_surface(host)
+                    || (latin_prefix > 0
+                        && latin_prefix < host.len()
+                        && resolver.has_complete_nominal_surface(&host[latin_prefix..]))
+            })
+        })
+        && (!context::normalized_token(haystack, candidate.verified.core.clone())
+            .is_some_and(|stem| resolver.has_exact_action_predicate_surface(&stem))
+            || context::previous_word(haystack, candidate.consumed.start)
+                .is_some_and(|previous| resolver.has_whole_determiner(&previous))
+            || !has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver))
 }
 
 fn has_competing_iran_particle_analysis(

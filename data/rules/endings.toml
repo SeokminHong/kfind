@@ -2172,6 +2172,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.propositive-quotative-adnominal"
+category = "adnominal"
+initial = "consonant"
+forms = ["자는"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.propositive-conditional"
 category = "connective"
 initial = "consonant"
