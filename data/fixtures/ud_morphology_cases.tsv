@@ -1755,6 +1755,11 @@ regression.polite-nominal.after-demonstrative-comma	해	noun	smart-only-exact	18
 regression.polite-nominal.whole-modifier	주	noun	no-match	4	7	그 주요 임무를 다시 확인했다.
 regression.polite-nominal.whole-noun	가	noun	no-match	4	7	그 가요 한 곡만 다시 들려주세요.
 regression.polite-nominal.coordinated-copula	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
+regression.enumerative-copula.before-auxiliary	이다	adjective	smart-exact	26	32	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
+regression.enumerative-copula.nominalized-coordinate	이다	adjective	smart-exact	47	56	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
+regression.enumerative-copula.auxiliary-is-not-copula	이다	adjective	no-match	60	63	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
+regression.enumerative-copula.polite-reply	이다	adjective	no-match	18	24	창밖에 뜬 저 해요, 달 말고요.
+regression.enumerative-copula.modifier-head	이다	adjective	no-match	33	39	또한 화강암과 도자기의 주요 생산지이다.
 corpus.ud-gsd.test.test-s310.adjective.honorific-neyo	착하다	adjective	smart-exact	71	86	제가 지금 입원 중인데 간호사 선생님들이 다 예쁘고 착하시네요.
 regression.honorific-neyo.consonant	좋다	adjective	smart-exact	23	38	선생님은 기분이 좋으시네요.
 regression.honorific-neyo.rieul	알다	verb	smart-exact	24	36	선생님도 그 일을 아시네요.

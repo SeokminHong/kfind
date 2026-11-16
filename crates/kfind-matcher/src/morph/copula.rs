@@ -65,6 +65,19 @@ impl MorphMatcher {
         };
         let host = host.nfc().collect::<String>();
         if branch.anchor.as_ref() == "다".as_bytes()
+            && host == "하"
+            && context::previous_word_with_start(haystack, whole.start).is_some_and(
+                |(start, word)| {
+                    !haystack[start..whole.start]
+                        .iter()
+                        .any(|byte| matches!(byte, b'\r' | b'\n'))
+                        && self.has_copula_nominalizer_particles(&word, resolver)
+                },
+            )
+        {
+            return false;
+        }
+        if branch.anchor.as_ref() == "다".as_bytes()
             && !resolver.has_exact_nominal_surface(&host)
             && (resolver.has_exact_non_copula_predicate_surface(&token)
                 || resolver.has_independent_final_predicate(&token)
@@ -337,6 +350,31 @@ impl MorphMatcher {
                         || resolver.has_predicate_adnominal_surface(&word))
             })
         };
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+            && haystack.get(candidate.verified.token.end) == Some(&b',')
+            && let Some(host) = normalized.strip_suffix('요')
+            && host
+                .chars()
+                .next_back()
+                .and_then(kfind_morph::decompose_syllable)
+                .is_some_and(|last| last.jongseong == 0)
+            && resolver.has_exact_nominal_surface(host)
+            && !context::previous_word(haystack, candidate.verified.token.start)
+                .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+            && context::next_word_on_line(haystack, candidate.verified.token.end + 1).is_some_and(
+                |(end, word)| {
+                    self.has_enumerated_copula(haystack, end, &word, resolver)
+                        || (resolver.has_independent_nominal_head(&word)
+                            && context::next_word_on_line(haystack, end).is_some_and(
+                                |(end, next)| {
+                                    self.has_enumerated_copula(haystack, end, &next, resolver)
+                                },
+                            ))
+                },
+            )
+        {
+            return true;
+        }
         ((fused_rieul_question
             || normalized
                 .strip_suffix('요')
@@ -389,6 +427,42 @@ impl MorphMatcher {
                             })
                         },
                     )))
+    }
+
+    fn has_enumerated_copula(
+        &self,
+        haystack: &[u8],
+        end: usize,
+        word: &str,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        if resolver.has_explicit_copula_after_nominal(word) {
+            return true;
+        }
+        self.has_copula_nominalizer_particles(word, resolver)
+            && context::next_word_on_line(haystack, end).is_some_and(|(_, auxiliary)| {
+                auxiliary.chars().next().is_some_and(|initial| {
+                    matches!(
+                        kfind_morph::drop_final(initial).unwrap_or(initial),
+                        '하' | '해'
+                    )
+                }) && resolver.supports_auxiliary_sequence(
+                    &auxiliary,
+                    kfind_morph::DEFAULT_LATTICE_NODE_LIMIT,
+                )
+            })
+    }
+
+    fn has_copula_nominalizer_particles(&self, word: &str, resolver: &ConstraintResolver) -> bool {
+        word.rmatch_indices('기').any(|(start, ending)| {
+            let (predicate, particles) = word.split_at(start + ending.len());
+            !particles.is_empty()
+                && resolver.has_explicit_copula_after_nominal(predicate)
+                && self
+                    .particle_verifier
+                    .verify_auxiliary_exact("기", particles)
+                    .is_some()
+        })
     }
 
     pub(super) fn licensed_nominal_copula_trailing(
