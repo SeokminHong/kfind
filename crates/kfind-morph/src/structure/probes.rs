@@ -1553,6 +1553,11 @@ impl ConstraintResolver {
                             | StructuralPos::ETM
                             | StructuralPos::ETN
                     )
+                }) || remaining.char_indices().any(|(split, _)| {
+                    let (ending, particles) = remaining.split_at(split);
+                    complete_inflected_ending(&self.resource, endings, ending, |pos| {
+                        pos == StructuralPos::ETN
+                    }) && complete_suffix(&self.resource, particles, StructuralPos::is_particle)
                 }) || (allow_joined_head
                     && remaining.char_indices().any(|(split, _)| {
                         let (predicate, noun) = tail.split_at(end + split);
