@@ -71,6 +71,7 @@ pub(super) fn rejects(
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || crosses_concessive_connective(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
+        || has_pronoun_object_instead_of_adnominal(haystack, candidate, branch, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
@@ -80,6 +81,23 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_pronoun_object_instead_of_adnominal(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            candidate
+                .suffix_rules
+                .last()
+                .or_else(|| origin.rule_path.last())
+                .is_some_and(|rule| rule.as_str() == "ending.future-adnominal")
+        })
+        && context::accepts_pronoun_object(haystack, &candidate.consumed, resolver)
 }
 
 fn has_adverb_instead_of_inferred_nominalization(

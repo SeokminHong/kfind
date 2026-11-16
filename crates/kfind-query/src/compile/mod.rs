@@ -692,7 +692,7 @@ fn compile_nominal_contractions(
                     });
                 }
             }
-            "pronoun-topic-compose"
+            "pronoun-topic-compose" | "pronoun-object-compose"
                 if pronoun
                     && boundary != crate::BoundaryPolicy::Token
                     && analysis.lemma.as_ref() == rule.left =>

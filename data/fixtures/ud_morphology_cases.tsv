@@ -457,6 +457,16 @@ regression.adnominal-bound-head.dependent-noun-case	것	noun	smart-only-exact	17
 regression.adnominal-bound-head.topic-before-quote	입	noun	smart-only-exact	0	6	입은 ‘것’과 발음이 다르다.
 regression.adnominal-bound-head.copula-topic	노	noun	no-match	10	16	그때는 노는 것이었다.
 regression.adnominal-bound-head.copula-verb	놀다	verb	smart-only-exact	10	16	그때는 노는 것이었다.
+regression.pronoun-object.negative-auxiliary	나	pronoun	smart-only-exact	13	16	아버지는 날 좋아하지 않아.
+regression.pronoun-object.not-happen	나다	verb	no-match	13	16	아버지는 날 좋아하지 않아.
+regression.pronoun-object.not-fly	날다	verb	no-match	13	16	아버지는 날 좋아하지 않아.
+regression.pronoun-object.final-verb	너	pronoun	smart-only-exact	13	16	아이들이 널 믿는다.
+regression.pronoun-object.not-hang	널다	verb	no-match	13	16	아이들이 널 믿는다.
+regression.pronoun-object.adnominal-fly	날다	verb	smart-only-exact	20	23	시범 비행에서 날 기체를 골랐다.
+regression.pronoun-object.adnominal-happen	나다	verb	smart-only-exact	10	13	짜증이 날 것이다.
+regression.pronoun-object.before-free-noun	나	pronoun	no-match	20	23	시범 비행에서 날 기체를 골랐다.
+regression.pronoun-object.before-dependent-noun	나	pronoun	no-match	10	13	짜증이 날 것이다.
+regression.pronoun-object.before-negative-adjective	나	pronoun	no-match	4	7	이 날 춥지 않아 걷기 좋았다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
