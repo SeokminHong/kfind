@@ -1879,6 +1879,14 @@ regression.particle.enclosed.nested-supplement	가다	verb	no-match	20	23	해(�
 regression.particle.enclosed.quoted-title	가다	verb	no-match	12	15	《월보》가 발행되었다.
 regression.particle.enclosed.supplement-inside-quote	과	noun	no-match	20	26	“기관(Agency)”과의 협상을 시작했다.
 regression.particle.enclosed.straight-open-quote	가다	verb	smart-only-exact	11	14	편지에 "가"라고만 적혀 있었다.
+regression.particle.enclosed.quotative-curly	고	noun	no-match	33	36	그는 “비가 계속 온다”고 말했다.
+regression.particle.enclosed.quotative-straight	고	noun	no-match	25	28	그는 "일이 끝났다"고 덧붙였다.
+regression.particle.enclosed.quotative-copula	고	noun	no-match	25	28	그는 ‘학생이다’고 설명했다.
+regression.particle.enclosed.quotative-question	고	noun	no-match	23	26	그는 “가겠니?”고 물었다.
+regression.particle.enclosed.quotative-predicate	오다	verb	smart-only-exact	24	30	그는 “비가 계속 온다”고 말했다.
+regression.particle.enclosed.quotative-quoted-noun	고	noun	smart-only-exact	10	13	그는 “고 씨가 왔다”고 말했다.
+regression.particle.enclosed.quotative-separate-name	고	noun	smart-only-exact	0	3	고 씨가 “비가 온다”고 말했다.
+regression.particle.enclosed.quotative-spaced-name	고	noun	smart-only-exact	24	27	“비가 내린다.” 고 씨가 창문을 닫았다.
 regression.particle.enclosed.spaced-predicate	가다	verb	smart-only-exact	28	31	계단으로(뛰지 말고) 가.
 regression.particle.enclosed.restrictive-not-numeral	만	numeral	no-match	26	38	멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
 regression.particle.enclosed.standalone-numeral	만	numeral	smart-only-exact	30	39	입장객 수를 오천에서 만으로 높였다.

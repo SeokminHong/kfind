@@ -52,11 +52,13 @@ pub(super) fn rejects(
     let Some(suffix) = context::normalized_token(haystack, span.clone()) else {
         return false;
     };
-    if !particles
-        .model()
-        .allomorphs
-        .iter()
-        .any(|form| suffix.starts_with(form.surface.as_ref()))
+    let quotative = !supplement && suffix == "고";
+    if !quotative
+        && !particles
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| suffix.starts_with(form.surface.as_ref()))
     {
         return false;
     }
@@ -70,6 +72,9 @@ pub(super) fn rejects(
     let enclosed = &enclosed[open.len_utf8()..];
     if !enclosed.chars().any(is_token_character) {
         return false;
+    }
+    if quotative {
+        return true;
     }
     let tail = enclosed.trim_end_matches([')', ']']);
     (supplement && verifies_after(before, &suffix, particles))
