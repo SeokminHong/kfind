@@ -2685,18 +2685,9 @@ impl ConstraintResolver {
         text: &str,
     ) -> (PredicatePosSet, bool) {
         let has_final_ending = |length: usize, endings: &[StructuralPos]| {
-            if length == text.len() {
-                return endings.split_last().is_some_and(|(last, prefinals)| {
-                    *last == StructuralPos::EF
-                        && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
-                });
-            }
-            endings.iter().all(|pos| *pos == StructuralPos::EP)
-                && super::lexical::has_exact_sequence(
-                    &self.resource,
-                    &text[length..],
-                    &[StructuralPos::EF],
-                )
+            complete_inflected_ending(&self.resource, endings, &text[length..], |pos| {
+                pos == StructuralPos::EF
+            })
         };
         let mut positions_found = PredicatePosSet::EMPTY;
         let mut has_final_auxiliary = false;
