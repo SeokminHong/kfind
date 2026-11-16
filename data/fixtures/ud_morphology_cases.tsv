@@ -2214,3 +2214,10 @@ regression.derived-ha.independent-adnominal	하다	verb	smart-only-exact	20	23	�
 regression.derived-ha.marked-object	하다	verb	smart-only-exact	10	16	공사를 해서 길을 막았다.
 regression.derived-ha.auxiliary	하다	verb	smart-only-exact	30	36	학생이 발표를 잘하게 했다.
 regression.derived-ha.joined-auxiliary	하다	verb	smart-only-exact	23	29	그는 아이를 앉게했다.
+regression.nominal-boundary.noun-comparative	하다	verb	no-match	6	15	지난해보다 기온이 낮다.
+regression.nominal-boundary.proper-name	하다	verb	no-match	3	6	남해 쪽으로 배가 떠났다.
+regression.nominal-boundary.common-noun-particle	하다	verb	no-match	9	15	항공모함은 길다.
+regression.nominal-boundary.bare-noun-contrast	남해	noun	smart-only-exact	0	6	남해 쪽으로 배가 떠났다.
+regression.nominal-boundary.conjugated-compound	잡다	verb	smart-only-exact	17	23	두 산이 자리잡고 있다.
+regression.nominal-boundary.conjugated-auxiliary	주다	verb	smart-only-exact	16	22	인상을 심어주지 못하였다.
+regression.nominal-boundary.conjugated-purpose	위하다	verb	smart-only-exact	22	34	신뢰를 회복하기위해서는 필요하다.
