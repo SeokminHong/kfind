@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01037020:verb:하다	하다	verb	false	bb8583d7fac19ef30969aeb4a9adb4cacb274ca8c7b994ba9104b5ce623fc34e	excluded	nonstandard-input	20번 항의하고와 21번 있다의 경계 186에서 공백이 빠졌다. 제47항에 따라 -고 뒤 진행 보조 용언을 띄어 쓴다.
+explicit-pos	corpus-negatives	pud:n01064113:verb:하다	하다	verb	false	ffcbd4c08f284f9f54b48b9f641ce437b236710dbaac21aef22f594ee628e681	excluded	nonstandard-input	9번 범람하지와 10번 않았는데의 경계 82에서 공백이 빠졌다. 제47항에 따라 -지 뒤 부정 보조 용언을 띄어 쓴다.
+explicit-pos	corpus-negatives	pud:w01018101:verb:하다	하다	verb	false	9b6a951349762632980f0376f6d37b4d7d86dbdef9e9ff4c8dae085d09bf1a8c	excluded	nonstandard-input	18번 참여하고와 19번 있으며의 경계 123에서 공백이 빠졌다. 제47항에 따라 -고 뒤 진행 보조 용언을 띄어 쓴다.
+explicit-pos	corpus-negatives	pud:n02040023:verb:차다	차다	verb	false	266f24f9b07b7397fe12f672e0734d7f014447125513b5bd6ef15665ffbcbf0d	excluded	nonstandard-input	9번 차지하고와 10번 있기의 경계 82에서 공백이 빠졌다. 제47항은 -고 뒤에 오는 진행 보조 용언의 명사형에도 적용된다.
