@@ -71,6 +71,7 @@ pub(super) fn rejects(
             haystack, candidate, branch, atom, resolver,
         )
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
+        || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
         || nominal::has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
         || nominal::has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
@@ -78,6 +79,44 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_adverb_instead_of_inferred_nominalization(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    let is_nominalizer = |rule: &RuleId| rule.as_str() == "ending.nominalizer";
+    if !(candidate.suffix_rules.last().is_some_and(is_nominalizer)
+        || (candidate.anchor == *span
+            && candidate.suffix_rules.is_empty()
+            && !branch.origins.is_empty()
+            && branch
+                .origins
+                .iter()
+                .all(|origin| origin.rule_path.last().is_some_and(is_nominalizer))))
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+    {
+        return false;
+    }
+    context::normalized_token(haystack, span.clone()).is_some_and(|token| {
+        resolver.has_exact_adverb_surface(&token)
+            && !resolver.has_exact_predicate_nominalization(&token)
+            && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+                resolver.has_independent_final_predicate(&next)
+                    || resolver.has_exact_adverb_surface(&next)
+                    || resolver
+                        .has_attached_auxiliary_final_predicate(&next, DEFAULT_LATTICE_NODE_LIMIT)
+                    || (resolver.has_predicate_adnominal_surface(&next)
+                        && context::next_word_on_line(haystack, end).is_some_and(|(_, head)| {
+                            resolver.has_nominal_with_optional_particles(&head)
+                        }))
+                    || resolver.has_adverbial_copula_predicate(&next)
+            })
+    })
 }
 
 fn has_nominal_head_instead_of_resultative_adnominal(

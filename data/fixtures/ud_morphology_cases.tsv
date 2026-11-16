@@ -2221,3 +2221,13 @@ regression.nominal-boundary.bare-noun-contrast	남해	noun	smart-only-exact	0	6	
 regression.nominal-boundary.conjugated-compound	잡다	verb	smart-only-exact	17	23	두 산이 자리잡고 있다.
 regression.nominal-boundary.conjugated-auxiliary	주다	verb	smart-only-exact	16	22	인상을 심어주지 못하였다.
 regression.nominal-boundary.conjugated-purpose	위하다	verb	smart-only-exact	22	34	신뢰를 회복하기위해서는 필요하다.
+regression.nominalization-adverb.request	조다	verb	no-match	7	10	사진 좀 보여줘.
+regression.nominalization-adverb.adverb	좀	adverb	smart-only-exact	7	10	사진 좀 보여줘.
+regression.nominalization-adverb.attachment	조다	verb	no-match	7	10	가게 좀 찾아줘.
+regression.nominalization-adverb.degree	조다	verb	no-match	13	16	이야기를 좀 더 해 주세요.
+regression.nominalization-adverb.adnominal	조다	verb	no-match	4	7	돈 좀 번 것 같아요.
+regression.nominalization-adverb.adverbial-copula	조다	verb	no-match	10	13	가격은 좀 별로였지만 괜찮았다.
+regression.nominalization-adverb.noun	좀	noun	smart-only-exact	11	17	이 옷에 좀이 슬었다.
+regression.nominalization-adverb.nominal-particle	잠들다	verb	smart-only-exact	7	16	그가 잠듦을 확인했다.
+regression.nominalization-adverb.particle-contrast	그렇다	adjective	smart-only-exact	0	12	그럼에도 불구하고 인생은 가치가 있다.
+regression.nominalization-adverb.nominalization	잠들다	verb	smart-only-exact	14	20	일곱 시에 잠듦.
