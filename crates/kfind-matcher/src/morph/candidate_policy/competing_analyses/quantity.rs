@@ -2,12 +2,42 @@ use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
-use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
+use crate::boundary::{
+    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+};
 
 use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
 
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
+
+pub(super) fn has_object_before_han_and_final_copula(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    matches!(haystack.get(core.clone()), Some(surface)
+        if surface == "한".as_bytes() || surface == "한".as_bytes())
+        && *core == candidate.consumed
+        && !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.coarse_pos == CoarsePos::Determiner)
+        })
+        && is_boundary_before(haystack, core.start)
+        && is_boundary_after(haystack, core.end)
+        && context::previous_word(haystack, core.start)
+            .is_some_and(|object| resolver.has_object_marked_nominal(&object))
+        && context::next_word_with_end(haystack, core.end).is_some_and(|(end, predicate)| {
+            is_sentence_end_after(haystack, end)
+                && resolver.has_final_copula_after_nominal(&predicate)
+                && !resolver.has_exact_nominal_surface(&predicate)
+        })
+}
 
 pub(super) fn has_counted_unit_copula(
     haystack: &[u8],
