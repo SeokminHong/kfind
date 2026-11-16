@@ -348,7 +348,10 @@ impl StructureSelection {
                                     || spans.consumed != spans.core
                                     || spans.core.start != spans.token.start
                                     || spans.core.end == spans.token.end
-                                    || !has_whole_adverb_or_adjective_connective))
+                                    || (!has_whole_adverb_or_adjective_connective
+                                        && !has_unverified_object_suffix(
+                                            selected, text, evidence,
+                                        ))))
                             || (selected.end == spans.core.start
                                 && matches!(
                                     pattern.fine_pos,
@@ -474,6 +477,20 @@ impl StructureSelection {
             },
         }
     }
+}
+
+fn has_unverified_object_suffix(host: &Range<usize>, text: &str, evidence: &TokenEvidence) -> bool {
+    evidence
+        .units
+        .starting_at(host.end)
+        .iter()
+        .any(|unit| unit.span.end == text.len() && unit.pos == DataFinePos::Jko)
+        && evidence
+            .units
+            .starting_at(host.start)
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+        && !has_grammatical_particle_chain(&text[host.clone()], &text[host.end..])
 }
 
 pub(in crate::structure) fn select_structure(
