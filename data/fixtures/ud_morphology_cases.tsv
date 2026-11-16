@@ -2248,3 +2248,14 @@ regression.pronoun-prefix.different-adjective-root	저	pronoun	no-match	20	29	�
 regression.pronoun-prefix.bare-nominal	이	pronoun	smart-only-exact	0	3	이 역시 좋은 방법이다.
 regression.pronoun-prefix.real-particle	이	pronoun	smart-only-exact	0	9	이들은 서로를 위로했다.
 regression.pronoun-prefix.full-lemma	이용하다	verb	smart-only-exact	10	19	기술을 이용할 계획이다.
+regression.bound-prefix.noun-prefix-main	대	noun	no-match	0	12	대부분의 학생이 참석했다.
+regression.bound-prefix.noun-prefix-earthquake	대	noun	no-match	0	15	대지진으로 건물이 무너졌다.
+regression.bound-prefix.noun-prefix-copula	대	noun	no-match	17	32	오늘은 정월 대보름이다.
+regression.bound-prefix.nominal-compound-with-particle	대	noun	smart-only-exact	0	3	대나무가 자랐다.
+regression.bound-prefix.nominal-compound-no-particle	대	noun	smart-only-exact	0	3	대나무 숲을 걸었다.
+regression.bound-prefix.discrete-counter	대	noun	smart-only-exact	8	14	차 한 대를 샀다.
+regression.bound-prefix.distinct-prefix-sin	신	noun	no-match	10	22	선수가 신기록을 세웠다.
+regression.bound-prefix.distinct-prefix-mi	미	noun	no-match	14	29	이 소설은 미완성이다.
+regression.bound-prefix.real-noun-sin	신	noun	smart-only-exact	0	6	신을 믿는 사람이 많다.
+regression.bound-prefix.full-root	대부분	noun	smart-only-exact	0	12	대부분의 학생이 참석했다.
+regression.bound-prefix.partial-particle	대	noun	no-match	0	12	대도시를 방문했다.
