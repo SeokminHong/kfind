@@ -1930,6 +1930,13 @@ regression.indirect-question.case-past	지나다	verb	smart-only-exact	20	35	시
 regression.indirect-question.case-adjective	크다	adjective	smart-only-exact	10	19	얼마나 큰지에 따라 달라진다.
 regression.indirect-question.case-topic	살다	verb	smart-only-exact	17	29	어떤 곳에서 살지에는 관심이 없다.
 regression.indirect-question.case-separate-noun	떠나다	verb	smart-only-exact	7	13	그가 떠난 지 사흘 만이다.
+regression.indirect-question.internal-noun	지	noun	no-match	23	26	누가 언제 찾아올지 아직 정하지 않았다.
+regression.indirect-question.internal-noun-verb	찾아오다	verb	smart-only-exact	14	26	누가 언제 찾아올지 아직 정하지 않았다.
+regression.negation.connective-not-noun	지	noun	no-match	20	23	땅이 물에 덮이지 않은 곳을 찾아보자.
+regression.negation.connective-verb	덮이다	verb	smart-only-exact	14	23	땅이 물에 덮이지 않은 곳을 찾아보자.
+regression.elapsed.ji-noun-count	지	noun	smart-only-exact	17	20	친구가 떠난 지 사흘이 지났다.
+regression.elapsed.ji-noun-amount	지	noun	smart-only-exact	17	20	친구가 떠난 지 얼마 되지 않았다.
+regression.indirect-question.competing-compound-noun	지	noun	smart-only-exact	19	22	측량용 수준일지 몰라서 먼저 서식을 찾아보았다.
 regression.doubt-topic.past-honorific	가다	verb	smart-exact	0	15	가셨을지는 모르겠다.
 regression.doubt-topic.rieul-neunji	먹다	verb	smart-exact	0	15	먹을는지는 모르겠다.
 regression.doubt-topic.present	먹다	verb	smart-exact	0	12	먹는지는 모르겠다.

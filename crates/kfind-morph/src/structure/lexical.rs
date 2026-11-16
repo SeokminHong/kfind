@@ -152,6 +152,28 @@ pub(super) fn complete_predicate_adnominal_path(resource: &ComponentResource, te
     })
 }
 
+pub(super) fn complete_past_verbal_adnominal_path(
+    resource: &ComponentResource,
+    text: &str,
+) -> bool {
+    if text.ends_with('는')
+        || !text
+            .chars()
+            .next_back()
+            .and_then(crate::hangul::decompose_syllable)
+            .is_some_and(|syllable| syllable.jongseong == crate::hangul::JONG_NIEUN)
+    {
+        return false;
+    }
+    let adnominal = |pos| pos == StructuralPos::ETM;
+    predicate_inflected_path(
+        resource,
+        text,
+        |pos| matches!(pos, StructuralPos::VV | StructuralPos::VX),
+        adnominal,
+    ) || derived_inflected_path(resource, text, |pos| pos == StructuralPos::XSV, adnominal)
+}
+
 fn predicate_inflected_path(
     resource: &ComponentResource,
     text: &str,

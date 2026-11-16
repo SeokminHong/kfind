@@ -42,6 +42,7 @@ pub(in crate::structure) enum StructureSelection {
         preserves_proper_name: bool,
         preserves_proper_name_tail: bool,
         preserves_counted_noun: bool,
+        preserves_elapsed_noun: bool,
     },
     NominalWhole,
     NominalOrContinuedPredicate,
@@ -249,9 +250,11 @@ impl StructureSelection {
                 preserves_proper_name,
                 preserves_proper_name_tail,
                 preserves_counted_noun,
+                preserves_elapsed_noun,
             } => {
                 (support.evidence == StructuralEvidence::Whole
                     && (pattern.fine_pos == DataFinePos::Mm
+                        || (*preserves_elapsed_noun && pattern.fine_pos == DataFinePos::Nnb)
                         || (*preserves_proper_name && pattern.fine_pos == DataFinePos::Nnp)
                         || ((*preserves_proper_name_tail || *preserves_counted_noun)
                             && pattern.fine_pos == DataFinePos::Nng)))
@@ -721,6 +724,11 @@ pub(in crate::structure) fn select_structure(
         return StructureSelection::AdjacentDeterminer {
             excludes_pronoun: demonstrative && next_starts_determiner_nominal,
             excludes_predicate,
+            preserves_elapsed_noun: context.current == "지"
+                && evidence.has_whole(DataFinePos::Nnb)
+                && context.previous.is_some_and(|previous| {
+                    super::lexical::complete_past_verbal_adnominal_path(resource, previous)
+                }),
             preserves_counted_noun: !demonstrative
                 && evidence.has_whole(DataFinePos::Nng)
                 && next_is_numeral,
