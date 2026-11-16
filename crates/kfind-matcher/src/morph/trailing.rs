@@ -51,7 +51,8 @@ impl MorphMatcher {
             return None;
         }
 
-        let aligned = resolver.has_exact_predicate_connective_path(host, source_positions)
+        let aligned = (resolver.has_exact_predicate_connective_path(host, source_positions)
+            || resolver.has_derived_predicate_connective_surface(host, source_positions))
             && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT);
         if resolver.has_exact_nominal_surface(host) {
             if !aligned

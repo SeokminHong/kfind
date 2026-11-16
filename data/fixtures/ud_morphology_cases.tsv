@@ -19,6 +19,8 @@ regression.any-attached-auxiliary.honorific	고치다	verb	only-exact	0	15	고�
 regression.any-attached-auxiliary.state	열리다	verb	only-exact	0	12	열려있다.
 regression.any-attached-auxiliary.request	보다	verb	only-exact	34	49	싱크대 뚫는 법 비디오를 보여주시오.
 regression.any-attached-auxiliary.honorific-request	알리다	verb	only-exact	26	41	전화로도 친절하게 알려주세요
+regression.any-attached-auxiliary.derived-honorific	배달하다	verb	only-exact	33	57	주문하면 그때 요리해서 배달해주시더군요.
+regression.any-attached-auxiliary.derived-polite	설명하다	verb	only-exact	34	52	모르는 부분을 친절히 잘 설명해주네요.
 regression.copula-subject-span.any-noun	일품	noun	only-exact	10	16	국물은 일품이었다.
 regression.copula-subject-span.real-subject	일품	noun	only-exact	0	9	일품이 첫째로 뽑혔다.
 regression.prospective-final-boundary.conjunction	그다	verb	no-match	0	6	그리고 소식을 알렸다.
