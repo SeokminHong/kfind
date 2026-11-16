@@ -180,7 +180,7 @@ pub(super) fn complete_past_verbal_adnominal_path(
     ) || derived_inflected_path(resource, text, |pos| pos == StructuralPos::XSV, adnominal)
 }
 
-fn predicate_inflected_path(
+pub(super) fn predicate_inflected_path(
     resource: &ComponentResource,
     text: &str,
     accepts_stem: impl Fn(StructuralPos) -> bool,

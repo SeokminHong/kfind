@@ -634,6 +634,18 @@ impl MorphMatcher {
             return false;
         }
         let core = &candidate.verified.core;
+        if candidate.consumed == *core
+            && matches!(haystack.get(core.clone()), Some(text)
+                if text == "전".as_bytes() || text == "전".as_bytes())
+            && is_boundary_before(haystack, core.start)
+            && is_boundary_after(haystack, core.end)
+            && context::previous_word(haystack, core.start)
+                .is_some_and(|previous| resolver.has_temporal_before_frame(&previous))
+        {
+            return patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nng);
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }

@@ -2805,6 +2805,15 @@ regression.nominalizer-hanja.gold	그다	verb	no-match	0	3	금메달을 받았�
 regression.nominalizer-hanja.three	사다	verb	no-match	0	3	삼거리에서 기다렸다.
 regression.nominalizer-hanja.nominalization-case	나다	verb	smart-only-exact	10	16	얼룩이 남을 확인했다.
 regression.nominalizer-hanja.nominalization-compound	쉬다	verb	smart-only-exact	10	13	그들은 쉼터에서 기다렸다.
+regression.temporal-before.derived-noun	전	noun	smart-only-exact	54	57	러시아 제국은 1차 세계대전이 발발하기 전 국가가 심각하게 분열되고 있는 모습을 보였던 여러 민족들의 집합체였다.
+regression.temporal-before.derived-determiner	전	determiner	no-match	54	57	러시아 제국은 1차 세계대전이 발발하기 전 국가가 심각하게 분열되고 있는 모습을 보였던 여러 민족들의 집합체였다.
+regression.temporal-before.verb-noun	전	noun	smart-only-exact	14	17	밥을 먹기 전 손을 씻었다.
+regression.temporal-before.verb-determiner	전	determiner	no-match	14	17	밥을 먹기 전 손을 씻었다.
+regression.temporal-before.adjective-noun	전	noun	smart-only-exact	10	13	어둡기 전 마을에 도착했다.
+regression.temporal-before.copula-noun	전	noun	smart-only-exact	13	16	교사이기 전 학생이었다.
+regression.temporal-before.all-determiner	전	determiner	smart-only-exact	0	3	전 국민이 참여했다.
+regression.temporal-before.comma-determiner	전	determiner	smart-only-exact	8	11	먹기, 전 국민의 기본권이다.
+regression.temporal-before.comma-pronoun	저	pronoun	smart-only-exact	29	32	해야 할 일은 장보기, 전 먼저 시장에 갑니다.
 regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.
