@@ -1,6 +1,6 @@
 use crate::PredicatePos;
 use crate::predicate::ha_aspirates_after;
-use crate::structure::BoundedTokenContext;
+use crate::structure::{BoundedTokenContext, ConstraintResolver};
 use kfind_data::{ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use std::ops::Range;
 
@@ -74,11 +74,17 @@ pub(super) fn numeric_unit_path_at(
             if !complete_suffix(resource, &text[tail_end..], StructuralPos::is_particle) {
                 return;
             }
+            let (unit, dependent_tail) =
+                if ConstraintResolver::is_dictionary_numeric_unit(&text[numeric_end..tail_end]) {
+                    (numeric_end..tail_end, None)
+                } else {
+                    (numeric_end..unit_end, Some(unit_end..tail_end))
+                };
             select_numeric_unit_path(
                 &mut selected,
                 NumericUnitPath {
-                    unit: numeric_end..unit_end,
-                    dependent_tail: Some(unit_end..tail_end),
+                    unit,
+                    dependent_tail,
                 },
             );
         });

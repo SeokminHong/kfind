@@ -536,6 +536,13 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_complete_dictionary_numeric_unit_path(&self, text: &str) -> bool {
+        numeric_unit_path_at(&self.resource, text, 0).is_some_and(|path| {
+            path.dependent_tail.is_none() && Self::is_dictionary_numeric_unit(&text[path.unit])
+        })
+    }
+
+    #[must_use]
     pub fn calendar_chain_last_unit(text: &str, unit: Range<usize>) -> Option<Range<usize>> {
         super::lexical::calendar_chain_last_unit(text, Some(unit))
     }

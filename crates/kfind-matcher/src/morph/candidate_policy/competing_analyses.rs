@@ -59,6 +59,7 @@ pub(super) fn rejects(
         || nominal::has_adverb_instead_of_genitive(haystack, candidate, resolver)
         || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
         || quantity::has_counted_unit_copula(haystack, candidate, branch, resolver)
+        || quantity::has_spaced_dictionary_numeric_unit(haystack, candidate, branch, resolver)
         || quantity::has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_comparative_adverb_frame(haystack, candidate, branch, atom, resolver)

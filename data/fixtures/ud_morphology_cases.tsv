@@ -2791,3 +2791,16 @@ regression.bound-prefix.jeong-square-final	형	noun	smart-only-exact	13	19	큰 �
 regression.bound-prefix.jeong-affection	정	noun	smart-only-exact	27	33	오랫동안 함께 일해 정이 들었다.
 regression.bound-prefix.jeong-additive	정	noun	smart-only-exact	17	23	자주 만나면 정도 든다.
 regression.bound-prefix.jeong-focused-homograph	정	noun	smart-only-exact	17	23	돌을 다듬는 정을 골랐다.
+regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
+regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
+regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.
+regression.counted-dictionary-noun.century-spaced-short	세	noun	no-match	2	5	1 세기를 두고 변화가 이어졌다.
+regression.counted-dictionary-noun.century-spaced-adjective	세다	adjective	no-match	2	11	1 세기를 두고 변화가 이어졌다.
+regression.counted-dictionary-noun.century-spaced-whole	세기	noun	smart-only-exact	2	11	1 세기를 두고 변화가 이어졌다.
+regression.counted-dictionary-noun.connective-adjective	세다	adjective	smart-only-exact	10	19	바람이 세기에 배는 멈췄다.
+regression.counted-dictionary-noun.serving-short	인	noun	no-match	8	11	국수 2인분을 주문했다.
+regression.counted-dictionary-noun.serving-whole	인분	noun	smart-only-exact	8	17	국수 2인분을 주문했다.
+regression.counted-dictionary-noun.age	세	noun	smart-only-exact	12	15	그때는 14세였다.
+regression.counted-dictionary-noun.tax	세	noun	smart-only-exact	13	19	가게에서 세를 냈다.
+regression.counted-dictionary-noun.machine	기	noun	smart-only-exact	8	14	기계 3기가 작동했다.
+regression.counted-dictionary-noun.gigabyte	기가	noun	smart-only-exact	11	17	용량은 3기가였다.
