@@ -1204,6 +1204,14 @@ regression.alternative-deunji.copula	이다	adjective	exact	6	15	사실이든지
 regression.alternative-deunji.retrospective	읽다	verb	only-exact	0	9	읽던지 말던지 했던 모습이 기억난다.
 regression.alternative-deunji.joined-determiner	모다	verb	no-match	15	21	폐지했으며모든 범죄를 조사했다.
 regression.alternative-deunji.detached-verb	모다	verb	exact	10	16	서류를 모든 찢든 네가 결정해라.
+regression.alternative-deunji.detached-determiner-genitive-verb	모다	verb	no-match	10	16	친구의 모든 자료를 돌려주었다.
+regression.alternative-deunji.detached-determiner-genitive	모든	determiner	smart-only-exact	10	16	친구의 모든 자료를 돌려주었다.
+regression.alternative-deunji.detached-determiner-bound-noun-verb	모다	verb	no-match	0	6	모든 것이 실망스러웠다.
+regression.alternative-deunji.detached-determiner-bound-noun	모든	determiner	smart-only-exact	0	6	모든 것이 실망스러웠다.
+regression.alternative-deunji.detached-determiner-plural-bound-noun-verb	모다	verb	no-match	7	13	이런 모든 것들로부터 벗어났다.
+regression.alternative-deunji.detached-determiner-plural-bound-noun	모든	determiner	smart-only-exact	7	13	이런 모든 것들로부터 벗어났다.
+regression.alternative-deunji.detached-verb-determiner	모든	determiner	no-match	10	16	서류를 모든 찢든 네가 결정해라.
+regression.alternative-deunji.detached-nominal-choice	모든	determiner	smart-only-exact	10	16	서류를 모든 봉투에든지 큰 상자에든지 나눠 담아라.
 regression.quotative-deora.vowel	오다	verb	exact	0	12	온다더라.
 regression.quotative-deora.consonant	먹다	verb	exact	0	15	먹는다더라.
 regression.quotative-deora.adjective	곱다	adjective	exact	0	12	곱다더라.

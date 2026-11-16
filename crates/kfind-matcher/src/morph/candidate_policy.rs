@@ -343,6 +343,10 @@ impl MorphMatcher {
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 self.has_invalid_terminal_na_boundary(haystack, candidate, branch, resolver)
                     || self.has_adnominal_instead_of_topic(haystack, candidate, branch, resolver)
+                    || self.has_determiner_frame_for_alternative(haystack, candidate, resolver)
+                    || has_alternative_frame_for_determiner(
+                        haystack, candidate, branch, atom, resolver,
+                    )
                     || competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
             })
         {
@@ -462,34 +466,69 @@ impl MorphMatcher {
             && is_boundary_before(haystack, span.start)
             && is_boundary_after(haystack, span.end)
             && context::next_word_with_end(haystack, span.end).is_some_and(|(end, head)| {
-                ADNOMINAL_BOUND_HEADS.iter().any(|&noun| {
-                    head.strip_prefix(noun).is_some_and(|suffix| {
+                self.has_adnominal_bound_head(&head)
+                    || (head.strip_prefix("데").is_some_and(|suffix| {
                         suffix.is_empty()
-                            || self.particle_verifier.verify_exact(noun, suffix).is_some()
-                            || noun.chars().next_back().is_some_and(|last| {
-                                verify_copula_surface_after_nominal(last, suffix)
-                            })
-                    })
-                }) || (head.strip_prefix("데").is_some_and(|suffix| {
-                    suffix.is_empty()
-                        || self
-                            .particle_verifier
-                            .verify_exact("데", suffix)
-                            .is_some_and(|matched| {
-                                matched
-                                    .rule_path
-                                    .first()
-                                    .is_some_and(|rule| rule.as_str() == "particle.locative")
-                            })
-                }) && context::has_elapsed_time_frame(
-                    haystack,
-                    end,
-                    resolver,
-                    &self.particle_verifier,
-                ))
+                            || self
+                                .particle_verifier
+                                .verify_exact("데", suffix)
+                                .is_some_and(|matched| {
+                                    matched
+                                        .rule_path
+                                        .first()
+                                        .is_some_and(|rule| rule.as_str() == "particle.locative")
+                                })
+                    }) && context::has_elapsed_time_frame(
+                        haystack,
+                        end,
+                        resolver,
+                        &self.particle_verifier,
+                    ))
             })
             && context::normalized_token(haystack, span.clone())
                 .is_some_and(|token| resolver.has_predicate_adnominal_surface(&token))
+    }
+
+    fn has_adnominal_bound_head(&self, head: &str) -> bool {
+        ADNOMINAL_BOUND_HEADS.iter().any(|&noun| {
+            head.strip_prefix(noun).is_some_and(|suffix| {
+                suffix.is_empty()
+                    || self.particle_verifier.verify_exact(noun, suffix).is_some()
+                    || noun
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, suffix))
+            })
+        })
+    }
+
+    fn has_determiner_frame_for_alternative(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        let span = &candidate.consumed;
+        let Some(rule) = candidate.suffix_rules.last().map(|rule| rule.as_str()) else {
+            return false;
+        };
+        let alternative = rule == "ending.alternative-deunji"
+            || (rule == "structural.ending-path"
+                && haystack
+                    .get(candidate.anchor.end..span.end)
+                    .is_some_and(|suffix| suffix == "든".as_bytes() || suffix == "든".as_bytes()));
+        alternative
+            && context::normalized_token(haystack, span.clone())
+                .is_some_and(|word| resolver.has_whole_determiner(&word))
+            && context::next_word(haystack, span.end).is_some_and(|head| {
+                if !is_boundary_before(haystack, span.start) {
+                    return resolver.has_independent_nominal_head(&head);
+                }
+                self.has_adnominal_bound_head(&head)
+                    || (context::previous_word(haystack, span.start)
+                        .is_some_and(|previous| resolver.has_nominal_genitive_surface(&previous))
+                        && resolver.has_independent_nominal_head(&head))
+            })
     }
 
     fn has_invalid_terminal_na_boundary(
@@ -545,6 +584,38 @@ impl MorphMatcher {
                 })
         })
     }
+}
+
+fn has_alternative_frame_for_determiner(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    *span == candidate.verified.core
+        && haystack.get(span.clone()).is_some_and(|token| {
+            token.ends_with("든".as_bytes()) || token.ends_with("든".as_bytes())
+        })
+        && !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.coarse_pos == kfind_morph::CoarsePos::Determiner)
+        })
+        && is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::previous_word(haystack, span.start)
+            .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+        && context::next_word(haystack, span.end).is_some_and(|next| {
+            resolver.predicate_choice_stem(&next).is_some_and(|stem| {
+                !resolver.has_complete_nominal_surface(stem)
+                    && !resolver.has_independent_nominal_head(&next)
+            })
+        })
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|word| resolver.predicate_choice_stem(&word).is_some())
 }
 
 fn has_object_marked_adverbial_connective(

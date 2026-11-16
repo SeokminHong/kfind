@@ -676,6 +676,21 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn predicate_choice_stem<'a>(&self, text: &'a str) -> Option<&'a str> {
+        ["든지", "든가", "든"].into_iter().find_map(|suffix| {
+            let stem = text.strip_suffix(suffix)?;
+            (has_exact_sequence(&self.resource, suffix, &[StructuralPos::EC])
+                && predicate_inflected_path(
+                    &self.resource,
+                    text,
+                    StructuralPos::is_predicate_tag,
+                    |pos| pos == StructuralPos::EC,
+                ))
+            .then_some(stem)
+        })
+    }
+
+    #[must_use]
     pub fn has_whole_modifier(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
