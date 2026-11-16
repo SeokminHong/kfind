@@ -161,12 +161,41 @@ impl StructureSelection {
         {
             return false;
         }
+        let compound_predicate =
+            compound_predicate_component_is_supported(pattern, spans, evidence);
+        let selected_nominal = match self {
+            Self::NominalWhole => Some(&spans.token),
+            Self::NominalSpan { selected, .. } => Some(selected),
+            Self::RuntimeCompatible {
+                graph_nominal_host: Some(selected),
+            } if *selected == spans.token => Some(selected),
+            _ => None,
+        };
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && matches!(
+                pattern.fine_pos,
+                DataFinePos::Vv | DataFinePos::Va | DataFinePos::Vx
+            )
+            && selected_nominal.is_some_and(|span| {
+                span.start < spans.core.start
+                    && spans.core.start < span.end
+                    && !evidence
+                        .leading_predicate_spans
+                        .iter()
+                        .any(|stem| stem.end >= span.end)
+            })
+            && !evidence.has_whole_predicate()
+            && !(compound_predicate && text[..spans.core.start].ends_with(['아', '어', '여']))
+        {
+            return false;
+        }
         let selected_nominal_particle_tail = matches!(
             self,
             Self::NominalSpan { selected, .. } if selected.end == spans.core.start
         ) && !evidence.has_whole_predicate();
-        if !selected_nominal_particle_tail
-            && compound_predicate_component_is_supported(pattern, spans, evidence)
+        if !matches!(self, Self::NominalWhole)
+            && !selected_nominal_particle_tail
+            && compound_predicate
         {
             return true;
         }
