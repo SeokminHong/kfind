@@ -477,6 +477,22 @@ pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     previous_word_with_start(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn has_connective_go_verb_frame(
+    haystack: &[u8],
+    whole: &Range<usize>,
+    core: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    previous_word(haystack, whole.start).is_some_and(|previous| {
+        resolver.has_object_marked_nominal(&previous)
+            || (resolver.has_nominal_oblique(&previous)
+                && next_word(haystack, whole.end)
+                    .is_some_and(|next| resolver.has_progressive_auxiliary_inflection(&next))
+                && normalized_token(haystack, core.clone())
+                    .is_some_and(|stem| resolver.has_exact_action_predicate_surface(&stem)))
+    })
+}
+
 pub(super) fn previous_word_with_start(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
     let span = adjacent_token_span(
         bytes,

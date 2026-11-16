@@ -125,6 +125,19 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
         .any(|form| matches_predicate_branch(text, form))
 }
 
+fn go_auxiliary_inflections() -> &'static [crate::SurfaceBranchSpec] {
+    static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
+    FORMS.get_or_init(|| {
+        PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES
+            .iter()
+            .flat_map(|&(lemma, pos)| {
+                let entry = crate::PredicateEntry::new(lemma, pos, LexicalAlternation::Regular);
+                crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
+            })
+            .collect()
+    })
+}
+
 pub fn matches_negative_auxiliary_inflection(text: &str, pos: PredicatePos) -> bool {
     static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
     let Some(initial) = text.chars().next() else {
@@ -1153,24 +1166,20 @@ impl ConstraintResolver {
         ) {
             return false;
         }
-        static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> =
-            std::sync::OnceLock::new();
-        let forms = FORMS.get_or_init(|| {
-            PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES
-                .iter()
-                .flat_map(|&(lemma, pos)| {
-                    let entry = crate::PredicateEntry::new(lemma, pos, LexicalAlternation::Regular);
-                    crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
-                })
-                .collect()
-        });
-        matches_predicate_inflection(auxiliary, forms)
+        matches_predicate_inflection(auxiliary, go_auxiliary_inflections())
             && self.supports_auxiliary_sequence_matching(
                 auxiliary,
                 crate::DEFAULT_LATTICE_NODE_LIMIT,
                 |_| true,
                 |positions| positions.last() == Some(&StructuralPos::EF),
             )
+    }
+
+    #[must_use]
+    pub fn has_progressive_auxiliary_inflection(&self, text: &str) -> bool {
+        go_auxiliary_inflections().iter().any(|form| {
+            form.pos == PredicatePos::AuxiliaryVerb && matches_predicate_branch(text, form)
+        })
     }
 
     fn has_matching_vowel_auxiliary_inflection(
