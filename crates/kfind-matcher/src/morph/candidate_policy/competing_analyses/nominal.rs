@@ -1,10 +1,36 @@
-use kfind_morph::{ConstraintResolver, RuleId};
-use kfind_query::{CandidateConsumption, CandidateProgram};
+use kfind_morph::{CoarsePos, ConstraintResolver, RuleId};
+use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, context};
+
+pub(super) fn has_prohibitive_negation(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    (branch.anchor.as_ref() == "안".as_bytes() || branch.anchor.as_ref() == "안".as_bytes())
+        && matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        )
+        && *span == candidate.verified.core
+        && is_boundary_before(haystack, span.start)
+        && branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)].coarse_pos == CoarsePos::Noun
+        })
+        && context::previous_word(haystack, span.start).is_some_and(|previous| {
+            previous.ends_with("서는")
+                && context::next_word_on_line(haystack, span.end).is_some_and(|(_, next)| {
+                    resolver.has_prohibitive_negation_frame(&previous, &next)
+                })
+        })
+}
 
 pub(super) fn has_competing_nominal_with_gu(
     haystack: &[u8],

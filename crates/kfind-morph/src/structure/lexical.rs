@@ -146,6 +146,12 @@ pub(super) fn complete_derived_adnominal_path(resource: &ComponentResource, text
     derived_inflected_path(resource, text, |_| true, |pos| pos == StructuralPos::ETM)
 }
 
+pub(super) fn complete_connective_path(resource: &ComponentResource, text: &str) -> bool {
+    let connective = |pos| pos == StructuralPos::EC;
+    predicate_inflected_path(resource, text, StructuralPos::is_predicate_tag, connective)
+        || derived_inflected_path(resource, text, |_| true, connective)
+}
+
 fn derived_inflected_path(
     resource: &ComponentResource,
     text: &str,
