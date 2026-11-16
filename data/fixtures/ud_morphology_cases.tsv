@@ -212,6 +212,19 @@ regression.interrogative-na.adjective	많다	adjective	exact	0	6	많나?
 regression.interrogative-na.embedded-past	먹다	verb	exact	0	9	먹었나 싶었다.
 regression.interrogative-na.future	돕다	verb	exact	0	9	돕겠나?
 regression.interrogative-na.concessive	많다	adjective	only-exact	0	9	많으나 부족한 부분이 있다.
+regression.terminal-na.numeral-topic	하다	verb	no-match	14	20	대표작 중 하나는 사라졌다.
+regression.terminal-na.numeral-span	하나	numeral	smart-exact	14	23	대표작 중 하나는 사라졌다.
+regression.terminal-na.numeral-copula	하다	verb	no-match	14	20	대표작 중 하나였다.
+regression.terminal-na.numeral-restrictive	하다	verb	no-match	10	16	문제를 하나만 풀었다.
+regression.terminal-na.place-topic	가다	verb	no-match	0	6	가나는 아프리카에 있다.
+regression.terminal-na.place-copula	가다	verb	no-match	13	19	개최국은 가나였다.
+regression.terminal-na.noun-plural	누다	verb	no-match	10	16	간호사 누나들 다 착하시네요.
+regression.terminal-na.name-topic	달다	verb	no-match	0	6	다나는 사진을 게재했다.
+regression.terminal-na.question	하다	verb	smart-only-exact	18	24	그 일도 직접 하나?
+regression.terminal-na.concessive	하다	verb	smart-only-exact	10	16	가능은 하나 더 고민하자.
+regression.terminal-na.quotation	하다	verb	smart-only-exact	22	28	그 문장에 나온 "하나"는 동사 형태다.
+regression.terminal-na.archaic	하다	verb	smart-only-exact	14	26	제가 직접 하나이다.
+regression.terminal-na.homographic-predicate	지나다	verb	smart-only-exact	25	34	동지를 2, 3 주일만 지나도 낮시간이 굉장히 길어진 기분이다.
 regression.short-alternative-ending.paired	사다	verb	exact	7	13	네가 사건 말건 상관없다.
 regression.short-alternative-ending.nominal	사다	verb	no-match	4	10	이 사건은 따로 조사한다.
 regression.short-alternative-ending.other-nominal	물다	verb	no-match	4	10	그 물건을 내놓았다.

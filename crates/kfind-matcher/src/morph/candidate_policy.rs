@@ -1,5 +1,8 @@
 use kfind_data::DataFinePos;
-use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, verify_predicate_continuation};
+use kfind_morph::{
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, verify_copula_surface_after_nominal,
+    verify_predicate_continuation,
+};
 use kfind_query::{
     AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateProgram,
     QueryComposition,
@@ -8,7 +11,8 @@ use unicode_general_category::{GeneralCategory, get_general_category};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
-    is_boundary_after, is_boundary_before, previous_character, surrounding_token_span,
+    bounded_surrounding_token_span, is_boundary_after, is_boundary_before, previous_character,
+    surrounding_token_span,
 };
 
 use super::{
@@ -329,7 +333,8 @@ impl MorphMatcher {
         }
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
+                self.has_nominal_suffix_after_terminal_na(haystack, candidate, branch, resolver)
+                    || competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
             })
         {
             return false;
@@ -426,6 +431,53 @@ impl MorphMatcher {
             || (self.plan.composition == QueryComposition::Phrase
                 && self.plan.atoms.len() > 1
                 && self.accepts_joined_nominal_phrase_component(haystack, candidate, branch, atom))
+    }
+
+    fn has_nominal_suffix_after_terminal_na(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        let span = &candidate.consumed;
+        let is_terminal_na = |rule: &kfind_morph::RuleId| {
+            matches!(
+                rule.as_str(),
+                "ending.connective-na" | "ending.interrogative-na"
+            )
+        };
+        if !candidate.suffix_rules.last().map_or_else(
+            || {
+                !branch.origins.is_empty()
+                    && branch
+                        .origins
+                        .iter()
+                        .all(|origin| origin.rule_path.last().is_some_and(is_terminal_na))
+            },
+            is_terminal_na,
+        ) || !is_boundary_before(haystack, span.start)
+            || is_boundary_after(haystack, span.end)
+        {
+            return false;
+        }
+        let Ok(whole) =
+            bounded_surrounding_token_span(haystack, span.clone(), super::MAX_CONSUMPTION_BYTES)
+        else {
+            return false;
+        };
+        context::normalized_token(haystack, span.clone()).is_some_and(|host| {
+            resolver.has_exact_nominal_surface(&host)
+                && context::normalized_token(haystack, span.end..whole.end).is_some_and(|suffix| {
+                    self.particle_verifier
+                        .verify_exact(&host, &suffix)
+                        .is_some()
+                        || host
+                            .chars()
+                            .next_back()
+                            .is_some_and(|last| verify_copula_surface_after_nominal(last, &suffix))
+                })
+        })
     }
 }
 
