@@ -2830,6 +2830,14 @@ regression.resultative-negative.actual-noun	전해	noun	smart-only-exact	0	9	전
 regression.resultative-negative.other-nominal-component	권	noun	no-match	33	36	그 영화는 초등학생에게 권해지지 않았다.
 regression.resultative-negative.other-verb	권하다	verb	smart-only-exact	33	45	그 영화는 초등학생에게 권해지지 않았다.
 regression.resultative-negative.actual-homograph-compound	전	noun	smart-only-exact	7	10	낡은 전화로를 치웠다.
+regression.han-final-copula.original-determiner	한	determiner	no-match	138	141	감독의 관점에서 볼 때 그 영화는 유쾌한가족극과 직설적인 사회극 사이에서 위태위태하게 줄다리기를 한 작품이다.
+regression.han-final-copula.original-verb	하다	verb	smart-only-exact	138	141	감독의 관점에서 볼 때 그 영화는 유쾌한가족극과 직설적인 사회극 사이에서 위태위태하게 줄다리기를 한 작품이다.
+regression.han-final-copula.polite-determiner	한	determiner	no-match	23	26	수리공이 수선을 한 시계입니다.
+regression.han-final-copula.polite-verb	하다	verb	smart-only-exact	23	26	수리공이 수선을 한 시계입니다.
+regression.han-final-copula.ordinary-determiner	한	determiner	smart-only-exact	10	13	그것은 한 작품이다.
+regression.han-final-copula.elliptic-request	한	determiner	smart-only-exact	31	34	헌책을 정리한 뒤 책을 한 권이요.
+regression.han-final-copula.background-determiner	한	determiner	smart-only-exact	23	26	그림을 배경으로 한 사람이 서 있었다.
+regression.han-final-copula.instrument-count	한	determiner	smart-only-exact	17	20	쌀을 재료로 한 그릇 만들었다.
 regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.
