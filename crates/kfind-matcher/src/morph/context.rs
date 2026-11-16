@@ -483,9 +483,11 @@ pub(super) fn has_connective_go_verb_frame(
     core: &Range<usize>,
     resolver: &ConstraintResolver,
 ) -> bool {
-    previous_word(haystack, whole.start).is_some_and(|previous| {
+    previous_word_with_start(haystack, whole.start).is_some_and(|(start, previous)| {
         resolver.has_object_marked_nominal(&previous)
             || (resolver.has_nominal_oblique(&previous)
+                && previous_word(haystack, start)
+                    .is_some_and(|object| resolver.has_object_marked_nominal(&object))
                 && next_word(haystack, whole.end)
                     .is_some_and(|next| resolver.has_progressive_auxiliary_inflection(&next))
                 && normalized_token(haystack, core.clone())
