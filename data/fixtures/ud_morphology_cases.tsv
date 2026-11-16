@@ -237,6 +237,9 @@ regression.concessive-na.interrogative	가다	verb	smart-only-exact	14	20	정말
 regression.concessive-na.interrogative-complement	가다	verb	smart-only-exact	7	13	지금 가나 싶었다.
 regression.concessive-na.long-concessive	살다	verb	smart-only-exact	7	16	멀리 사나마 종종 뵙겠습니다.
 regression.concessive-na.archaic-connective	전하다	verb	smart-only-exact	11	23	이 뜻을 전하나니 마음에 새겨라.
+regression.concessive-na.interrogative-concessive	가다	verb	smart-only-exact	7	19	지금 가나마는 아마 늦겠지.
+regression.concessive-na.honorific-interrogative-concessive	가다	verb	smart-only-exact	17	32	노인이 지금 가시나마는 아마 늦겠지.
+regression.concessive-na.past-interrogative-concessive	가다	verb	smart-only-exact	14	26	그가 이미 갔나마는 아직 소식이 없다.
 regression.short-alternative-ending.paired	사다	verb	exact	7	13	네가 사건 말건 상관없다.
 regression.short-alternative-ending.nominal	사다	verb	no-match	4	10	이 사건은 따로 조사한다.
 regression.short-alternative-ending.other-nominal	물다	verb	no-match	4	10	그 물건을 내놓았다.
