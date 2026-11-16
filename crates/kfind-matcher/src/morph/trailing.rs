@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, RuleId};
-use kfind_query::{CandidateConsumption, CandidateProgram};
+use kfind_query::{CandidateConsumption, CandidateProgram, Lexicons};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::boundary::{
@@ -362,8 +362,10 @@ impl MorphMatcher {
                 .is_some_and(|ending| {
                     let ending = ending.nfc().collect::<String>();
                     let trailing = trailing.nfc().collect::<String>();
-                    if (trailing == "마는" || (trailing == "그려" && ending.ends_with('네')))
-                        && has_rule("ending.final-ne")
+                    if (trailing == "마는" && ends_in_final_ending(candidate, branch))
+                        || (trailing == "그려"
+                            && ending.ends_with('네')
+                            && has_rule("ending.final-ne"))
                     {
                         return true;
                     }
@@ -589,17 +591,7 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::PredicateContinuation { .. }
-        ) && !branch.origins.is_empty()
-            && branch.origins.iter().all(|origin| {
-                let mut rules = origin.rule_path.iter().chain(&candidate.suffix_rules).rev();
-                match rules.next().map(RuleId::as_str) {
-                    Some("ending.final-ne") => true,
-                    Some("ending.polite-yo") => rules
-                        .next()
-                        .is_some_and(|rule| rule.as_str() == "ending.final-ne"),
-                    _ => false,
-                }
-            })
+        ) && ends_in_final_ending(candidate, branch)
         {
             return true;
         }
@@ -703,6 +695,18 @@ impl MorphMatcher {
             .iter()
             .any(|form| is_terminal(&form.rule_id) && trailing.starts_with(form.surface.as_ref()))
     }
+}
+
+fn ends_in_final_ending(candidate: &ExecutedCandidate, branch: &CandidateProgram) -> bool {
+    !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            let mut rules = origin.rule_path.iter().chain(&candidate.suffix_rules).rev();
+            let terminal = match rules.next() {
+                Some(rule) if rule.as_str() == "ending.polite-yo" => rules.next(),
+                rule => rule,
+            };
+            terminal.is_some_and(|rule| Lexicons::is_final_ending_rule(rule.as_str()))
+        })
 }
 
 fn has_contracted_auxiliary_host_context(

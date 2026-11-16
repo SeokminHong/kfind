@@ -1952,6 +1952,25 @@ regression.ne-ending.emphatic	달다	adjective	smart-only-exact	15	21	이 과일
 regression.ne-ending.past-emphatic	가다	verb	smart-only-exact	14	20	벌써 집에 갔네그려.
 regression.ne-ending.polite-concessive	달다	adjective	smart-only-exact	15	24	이 과일 참 다네요만 너무 무르군요.
 regression.ne-ending.separate-quotative	달다	adjective	smart-only-exact	17	23	그는 과일이 다네 하며 미소 지었다.
+regression.final-ending.hao-lexical-predicate	떨다	verb	no-match	27	39	바람을 타고 입자가 떠오른다.
+regression.final-ending.complete-compound-predicate	떠오르다	verb	smart-only-exact	27	39	바람을 타고 입자가 떠오른다.
+regression.final-ending.hao-rieul	떨다	verb	smart-only-exact	24	30	추워서 손을 계속 떠오.
+regression.final-ending.hao-before-action-ending	날다	verb	no-match	7	16	그가 나오자 문을 닫았다.
+regression.final-ending.complete-action-ending	나오다	verb	smart-only-exact	7	16	그가 나오자 문을 닫았다.
+regression.final-ending.propositive-proper-name	주다	verb	no-match	0	21	주자정통주의를 연구했다.
+regression.final-ending.propositive-common-noun	피다	verb	no-match	0	12	피자집을 발견했다.
+regression.final-ending.hao-nominal-compound	열다	verb	no-match	0	18	여우주연상을 받았다.
+regression.final-ending.hao-concessive	가다	verb	smart-only-exact	14	20	나는 먼저 가오마는 조심하시오.
+regression.final-ending.hao-u	가다	verb	smart-only-exact	14	20	나는 먼저 가우.
+regression.final-ending.propositive	먹다	verb	smart-only-exact	20	26	오랜만에 같이 먹자.
+regression.final-ending.propositive-concessive	먹다	verb	smart-only-exact	17	23	밥은 나중에 먹자마는 허기는 달래야 하겠다.
+regression.final-ending.immediate	먹다	verb	smart-only-exact	10	22	밥부터 먹자마자 출발했다.
+regression.final-ending.directive-quotative	오다	verb	smart-only-exact	20	29	먼저 정문으로 오라고 했다.
+regression.final-ending.adjective-reporting	않다	adjective	smart-only-exact	30	42	옛말이 하나도 틀리지 않다니까.
+regression.final-ending.adjective-reporting-no-verb	않다	verb	no-match	30	42	옛말이 하나도 틀리지 않다니까.
+regression.final-ending.verb-reporting	않다	verb	smart-only-exact	17	32	열매를 먹지 않는다니까.
+regression.final-ending.compound-component	오다	verb	smart-only-exact	16	19	손님이 올라온 뒤에 문을 닫았다.
+regression.final-ending.adverbial-derivative	남다	verb	no-match	21	33	그 사람은 일을 남다르게 해냈다.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.

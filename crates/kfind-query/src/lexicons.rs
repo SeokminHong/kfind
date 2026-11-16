@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use kfind_data::{
-    DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData, LexiconSources,
-    RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons, parse_predicates_tsv,
-    parse_rule_set, validate_predicates,
+    DataError, DataFinePos, DecodedPosLexicon, DerivationRule, EndingCategory, LexiconData,
+    LexiconSources, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons,
+    parse_predicates_tsv, parse_rule_set, validate_predicates,
 };
 use kfind_morph::{CoarsePos, FinePos, LexicalAlternation, PredicateEntry, PredicatePos, RuleId};
 
@@ -22,6 +22,30 @@ const ALTERNATIONS: &str = include_str!("../../../data/rules/alternations.toml")
 const CONTRACTIONS: &str = include_str!("../../../data/rules/contractions.toml");
 const DERIVATIONS: &str = include_str!("../../../data/rules/derivations.toml");
 const PARTICLE_RULES: &str = include_str!("../../../data/rules/particles.toml");
+
+static EMBEDDED_RULES: LazyLock<Result<Arc<RuleSet>, DataError>> = LazyLock::new(|| {
+    parse_rule_set(RuleSources {
+        endings: ENDINGS,
+        alternations: ALTERNATIONS,
+        contractions: CONTRACTIONS,
+        derivations: DERIVATIONS,
+        particles: PARTICLE_RULES,
+    })
+    .map(Arc::new)
+});
+
+static FINAL_ENDING_IDS: LazyLock<Box<[&str]>> = LazyLock::new(|| {
+    let mut ids = EMBEDDED_RULES
+        .as_ref()
+        .ok()
+        .into_iter()
+        .flat_map(|rules| &rules.endings)
+        .filter(|rule| rule.category == EndingCategory::Final)
+        .map(|rule| rule.id.as_str())
+        .collect::<Vec<_>>();
+    ids.sort_unstable();
+    ids.into_boxed_slice()
+});
 
 #[derive(Debug, Clone)]
 pub struct Lexicons {
@@ -41,16 +65,10 @@ impl Lexicons {
             modifiers: MODIFIERS,
             particles: PARTICLES,
         })?;
-        let rules = parse_rule_set(RuleSources {
-            endings: ENDINGS,
-            alternations: ALTERNATIONS,
-            contractions: CONTRACTIONS,
-            derivations: DERIVATIONS,
-            particles: PARTICLE_RULES,
-        })?;
+        let rules = EMBEDDED_RULES.as_ref().map_err(Clone::clone)?;
         let mut result = Self {
             materialized_entries: BTreeMap::new(),
-            rules: Arc::new(rules),
+            rules: Arc::clone(rules),
             full_pos: None,
             enriched_predicates_loaded: false,
             replaced_full_predicates: BTreeSet::new(),
@@ -158,6 +176,12 @@ impl Lexicons {
     #[must_use]
     pub fn rules(&self) -> &RuleSet {
         &self.rules
+    }
+
+    /// Checks whether the embedded rule catalog classifies this ID as a final ending.
+    #[must_use]
+    pub fn is_final_ending_rule(id: &str) -> bool {
+        FINAL_ENDING_IDS.binary_search(&id).is_ok()
     }
 
     #[must_use]
