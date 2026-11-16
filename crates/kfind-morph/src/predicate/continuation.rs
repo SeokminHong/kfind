@@ -1317,6 +1317,8 @@ macro_rules! question {
             suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
             suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
             suffix(concat!($surface, "느니"), &[$($prior,)* "ending.quotative-nyaneuni"]),
+            suffix(concat!($surface, "며"), &[$($prior,)* "ending.quotative-nyamyeo"]),
+            suffix(concat!($surface, "면서"), &[$($prior,)* "ending.quotative-nyamyeo"]),
             suffix(concat!($surface, "는"), &[$($prior,)* $rule, "particle.topic"]),
         ]
     };
@@ -1387,6 +1389,8 @@ const INTERROGATIVE: &[Suffix] = &[
     suffix("고", &["ending.quotative-go"]),
     suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
     suffix("느니", &["ending.quotative-nyaneuni"]),
+    suffix("며", &["ending.quotative-nyamyeo"]),
+    suffix("면서", &["ending.quotative-nyamyeo"]),
 ];
 
 macro_rules! nieun_extensions {
@@ -3591,6 +3595,7 @@ fn verify_simple_continuation(
                         | "ending.exclamative-era"
                         | "ending.humble-wa"
                         | "ending.quotative-nyaneuni"
+                        | "ending.quotative-nyamyeo"
                         | "ending.quotative-daneuni"
                         | "ending.quotative-janeuni"
                         | "ending.final-gu-exclamative"

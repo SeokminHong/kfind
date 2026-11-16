@@ -1252,6 +1252,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.quotative-nyamyeo"
+category = "connective"
+initial = "other"
+forms = ["냐며", "으냐며", "느냐며", "냐면서", "으냐면서", "느냐면서"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-daneuni"
 category = "connective"
 initial = "consonant"
