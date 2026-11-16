@@ -440,6 +440,17 @@ impl TokenEvidence {
         })
     }
 
+    pub(super) fn has_longer_aligned_nominal_tail(&self, core: &Range<usize>) -> bool {
+        self.unambiguous_nominal_source_components
+            .iter()
+            .any(|component| {
+                component.host_start == 0
+                    && component.host_end == core.end
+                    && component.component_end == core.end
+                    && component.component_start < core.start
+            })
+    }
+
     pub(super) fn has_whole_nominal_source_component(
         &self,
         span: &Range<usize>,
