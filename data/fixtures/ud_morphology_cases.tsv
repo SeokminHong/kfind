@@ -1978,6 +1978,16 @@ regression.final-ending.propositive-common-noun	피다	verb	no-match	0	12	피자
 regression.final-ending.hao-nominal-compound	열다	verb	no-match	0	18	여우주연상을 받았다.
 regression.final-ending.hao-concessive	가다	verb	smart-only-exact	14	20	나는 먼저 가오마는 조심하시오.
 regression.final-ending.hao-u	가다	verb	smart-only-exact	14	20	나는 먼저 가우.
+regression.final-ending.hao-u-adverb-before-adnominal	매다	verb	no-match	10	16	점성이 매우 높은 경향이 있다.
+regression.final-ending.hao-u-adverb-before-adnominal-positive	매우	adverb	smart-exact	10	16	점성이 매우 높은 경향이 있다.
+regression.final-ending.hao-u-adverb-before-connective	매다	verb	no-match	10	16	고기가 매우 좋고 값도 싸다.
+regression.final-ending.hao-u-adverb-before-final	매다	verb	no-match	13	19	목소리가 매우 좋다.
+regression.final-ending.hao-u-quoted	매다	verb	smart-only-exact	27	33	“짐의 끈을 단단히 매우” 하고 말했다.
+regression.final-ending.hao-u-unmarked-quote	매다	verb	smart-only-exact	7	13	끈을 매우 하는 소리를 들었다.
+regression.final-ending.hao-u-postposed-manner	매다	verb	smart-only-exact	7	13	끈을 매우 느슨하게.
+regression.final-ending.hao-u-postposed-instrument	매다	verb	smart-only-exact	7	13	끈을 매우 굵은 것으로.
+regression.final-ending.hao-u-irregular-conditional	맵다	adjective	smart-exact	7	16	국이 매우면 물을 넣으세요.
+regression.final-ending.hao-u-irregular-not-adverb	매우	adverb	no-match	7	16	국이 매우면 물을 넣으세요.
 regression.final-ending.propositive	먹다	verb	smart-only-exact	20	26	오랜만에 같이 먹자.
 regression.final-ending.propositive-concessive	먹다	verb	smart-only-exact	17	23	밥은 나중에 먹자마는 허기는 달래야 하겠다.
 regression.final-ending.immediate	먹다	verb	smart-only-exact	10	22	밥부터 먹자마자 출발했다.
