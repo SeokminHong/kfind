@@ -1465,7 +1465,7 @@ impl ConstraintResolver {
             return false;
         }
         let mut derived_root = false;
-        let mut exact_competitor = false;
+        let mut aligned_compound_predicate = false;
         self.resource
             .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
                 if length == anchor.start {
@@ -1477,10 +1477,8 @@ impl ConstraintResolver {
                 if length != text.len() {
                     return;
                 }
-                exact_competitor |= matches!(analysis.positions(), [pos]
-                    if pos.fine_pos().is_some_and(DataFinePos::is_nominal));
-                exact_competitor |=
-                    compound_predicate_pos(analysis.positions()).is_some_and(|pos| {
+                aligned_compound_predicate |= compound_predicate_pos(analysis.positions())
+                    .is_some_and(|pos| {
                         source_positions
                             .iter()
                             .any(|source| predicate_pos_matches(pos.as_str(), source))
@@ -1489,7 +1487,7 @@ impl ConstraintResolver {
                             })
                     });
             });
-        derived_root && !exact_competitor
+        derived_root && !aligned_compound_predicate
     }
 
     #[must_use]
