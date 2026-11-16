@@ -444,6 +444,19 @@ regression.negative-ji.explicit-copula	학생	noun	smart-only-exact	7	13	그는 
 regression.negative-ji.pronominal-copula	나	pronoun	smart-only-exact	31	34	이 사진을 찍은 사람은 나지.
 regression.negative-ji.whole-branch-noun	가지	noun	smart-only-exact	0	6	가지 끝이 아직 푸르다.
 regression.negative-ji.whole-stop-noun	정지	noun	smart-only-exact	0	6	정지 명령을 받았다.
+regression.adnominal-bound-head.injury-topic	입	noun	no-match	10	16	피해를 입은 것으로 알려졌다.
+regression.adnominal-bound-head.injury-verb	입다	verb	smart-only-exact	10	16	피해를 입은 것으로 알려졌다.
+regression.adnominal-bound-head.giving-topic	주	noun	no-match	10	16	선물을 주는 것이 관례다.
+regression.adnominal-bound-head.giving-verb	주다	verb	smart-only-exact	10	16	선물을 주는 것이 관례다.
+regression.adnominal-bound-head.playing-topic	노	noun	no-match	0	6	노는 것을 좋아했다.
+regression.adnominal-bound-head.playing-verb	놀다	verb	smart-only-exact	0	6	노는 것을 좋아했다.
+regression.adnominal-bound-head.topic-with-modifier	입	noun	smart-only-exact	0	6	입은 작은 것으로 바꾸었다.
+regression.adnominal-bound-head.topic-with-free-noun	노	noun	smart-only-exact	0	6	노는 배 안에 남겨 뒀다.
+regression.adnominal-bound-head.topic-with-genitive	가	noun	smart-only-exact	7	13	둑의 가는 초록색으로 칠했다.
+regression.adnominal-bound-head.dependent-noun-case	것	noun	smart-only-exact	17	26	피해를 입은 것으로 알려졌다.
+regression.adnominal-bound-head.topic-before-quote	입	noun	smart-only-exact	0	6	입은 ‘것’과 발음이 다르다.
+regression.adnominal-bound-head.copula-topic	노	noun	no-match	10	16	그때는 노는 것이었다.
+regression.adnominal-bound-head.copula-verb	놀다	verb	smart-only-exact	10	16	그때는 노는 것이었다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
