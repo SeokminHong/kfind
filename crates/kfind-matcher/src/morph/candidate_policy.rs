@@ -17,6 +17,7 @@ use super::{
 };
 
 mod competing_analyses;
+mod enclosed_particle;
 
 impl MorphMatcher {
     pub(super) fn accepts_program<'a>(
@@ -28,6 +29,17 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if boundary == BoundaryPolicy::Smart
+            && enclosed_particle::rejects(
+                haystack,
+                &candidate.consumed,
+                branch,
+                atom,
+                &self.particle_verifier,
+            )
+        {
+            return false;
+        }
         if boundary == BoundaryPolicy::Any && branch.is_dependent_nominal_copula_ending() {
             return self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 self.accepts_nominal_copula_ending(haystack, candidate, branch, resolver, &[])
