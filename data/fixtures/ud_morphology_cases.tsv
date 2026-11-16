@@ -1937,6 +1937,15 @@ regression.negation.connective-verb	덮이다	verb	smart-only-exact	14	23	땅이
 regression.elapsed.ji-noun-count	지	noun	smart-only-exact	17	20	친구가 떠난 지 사흘이 지났다.
 regression.elapsed.ji-noun-amount	지	noun	smart-only-exact	17	20	친구가 떠난 지 얼마 되지 않았다.
 regression.indirect-question.competing-compound-noun	지	noun	smart-only-exact	19	22	측량용 수준일지 몰라서 먼저 서식을 찾아보았다.
+regression.negative-connective.alternative-particle	지	noun	no-match	7	13	얼마 지나지 않아 소식이 왔다.
+regression.negative-connective.alternative-predicate	지나다	verb	smart-only-exact	7	16	얼마 지나지 않아 소식이 왔다.
+regression.negative-connective.alternative-inability	지	noun	no-match	10	16	시간이 지나지 못하고 멈춘 듯했다.
+regression.negative-connective.alternative-separate-choice	지	noun	smart-only-exact	17	23	형제 중에는 지나 현을 부르자.
+regression.negative-connective.alternative-separate-predicate	영화	noun	smart-only-exact	0	9	영화나 보지 마라.
+regression.negative-connective.alternative-whole-name	지나	noun	smart-only-exact	0	6	지나 씨를 찾고 있습니다.
+regression.negative-connective.alternative-language-noun	일어	noun	no-match	17	23	사건은 거의 일어나지 않았다.
+regression.negative-connective.alternative-language-choice	일어	noun	smart-only-exact	10	19	숙제는 일어나 영어로 쓰자.
+corpus.ud-pud.test.w03010100.noun.partial-alternative-particle	지	noun	no-match	81	87	그는 휴가 동안 이 젊은 여성과 혼외 정사를 시작했으며얼마 지나지 않아 이를 인정하였다.
 regression.doubt-topic.past-honorific	가다	verb	smart-exact	0	15	가셨을지는 모르겠다.
 regression.doubt-topic.rieul-neunji	먹다	verb	smart-exact	0	15	먹을는지는 모르겠다.
 regression.doubt-topic.present	먹다	verb	smart-exact	0	12	먹는지는 모르겠다.

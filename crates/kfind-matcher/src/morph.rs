@@ -1363,6 +1363,24 @@ impl MorphMatcher {
         let accepted = decision.as_ref().is_some_and(|decision| {
             ProductPolicy::RecallFirst.accepts(decision)
                 && !(nominal_particle_chain
+                    && core.start == whole.start
+                    && candidate.consumed.end < whole.end
+                    && candidate
+                        .suffix_rules
+                        .last()
+                        .is_some_and(|rule| rule.as_str() == "particle.alternative.ina-na")
+                    && decision
+                        .supported
+                        .iter()
+                        .all(|support| support.evidence == StructuralEvidence::RuntimeComponent)
+                    && matches!(
+                        haystack.get(candidate.consumed.end..whole.end),
+                        Some(suffix) if suffix == "지".as_bytes() || suffix == "지".as_bytes()
+                    )
+                    && context::normalized_token(haystack, whole.clone()).is_some_and(|word| {
+                        context::has_negative_connective_frame(haystack, whole.end, &word, resolver)
+                    }))
+                && !(nominal_particle_chain
                     && *core == candidate.consumed
                     && consumed_end == core.end
                     && core.start == whole.start

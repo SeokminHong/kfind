@@ -538,16 +538,24 @@ pub(super) fn has_attached_ji_ending(
     {
         return true;
     }
-    resolver.has_negative_connective_host(&word)
-        && next_word_on_line(haystack, token.end).is_some_and(|(_, next)| {
-            kfind_morph::matches_negative_auxiliary_inflection(
-                &next,
-                kfind_morph::PredicatePos::AuxiliaryVerb,
-            ) || kfind_morph::matches_negative_auxiliary_inflection(
-                &next,
-                kfind_morph::PredicatePos::AuxiliaryAdjective,
-            )
-        })
+    has_negative_connective_frame(haystack, token.end, &word, resolver)
+}
+
+pub(super) fn has_negative_connective_frame(
+    haystack: &[u8],
+    token_end: usize,
+    word: &str,
+    resolver: &ConstraintResolver,
+) -> bool {
+    next_word_on_line(haystack, token_end).is_some_and(|(_, next)| {
+        kfind_morph::matches_negative_auxiliary_inflection(
+            &next,
+            kfind_morph::PredicatePos::AuxiliaryVerb,
+        ) || kfind_morph::matches_negative_auxiliary_inflection(
+            &next,
+            kfind_morph::PredicatePos::AuxiliaryAdjective,
+        )
+    }) && resolver.has_negative_connective_host(word)
 }
 
 pub(super) fn accepts_pronoun_object(
