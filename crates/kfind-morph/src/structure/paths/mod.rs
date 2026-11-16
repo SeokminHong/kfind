@@ -21,6 +21,7 @@ const DERIVED_PREDICATE: u8 = 4;
 const AFTER_CONNECTIVE: u8 = 8;
 const LINKED_PREDICATE: u8 = 16;
 const GI_NOMINALIZER: u8 = 32;
+const COPULAR_PREDICATE: u8 = 64;
 
 pub(in crate::structure) struct NominalPathFacts {
     pub(in crate::structure) particle_hosts: Box<[Range<usize>]>,
@@ -33,6 +34,7 @@ pub(in crate::structure) struct CommonPathFacts {
     pub(in crate::structure) particle_suffix: Vec<bool>,
     pub(in crate::structure) predicate_boundaries: Vec<PredicateBoundary>,
     pub(in crate::structure) exact_nominal_end: Vec<bool>,
+    pub(in crate::structure) has_bound_go: bool,
 }
 
 impl CommonPathFacts {
@@ -42,6 +44,8 @@ impl CommonPathFacts {
         let mut predicate_path = vec![0; text.len() + 1];
         let mut predicate_boundaries = vec![PredicateBoundary::None; text.len() + 1];
         let mut exact_nominal_end = vec![false; text.len() + 1];
+        let terminal_start = text.strip_suffix('고').map(str::len);
+        let mut has_final_before_terminal = false;
         for start in 0..text.len() {
             for edge in graph.starting_at(start) {
                 let positions = graph.positions(edge);
@@ -72,6 +76,41 @@ impl CommonPathFacts {
                 }
                 let state = predicate_path[start];
                 predicate_path[edge.span.end] |= linked_prefix_flags(start, state, positions);
+                if let Some(terminal_start) = terminal_start
+                    && edge.span.end <= terminal_start
+                    && ((nominal_prefix[start][1]
+                        && matches!(positions, [StructuralPos::VCP, prefinals @ ..]
+                            if prefinals.iter().all(|&pos| pos == StructuralPos::EP)))
+                        || (state & COPULAR_PREDICATE != 0
+                            && positions.iter().all(|&pos| pos == StructuralPos::EP)))
+                {
+                    predicate_path[edge.span.end] |= COPULAR_PREDICATE;
+                }
+                if terminal_start == Some(edge.span.end) {
+                    let predicate = state
+                        & (PREDICATE | DERIVED_PREDICATE | LINKED_PREDICATE | COPULAR_PREDICATE);
+                    let endings = match positions {
+                        [head, endings @ ..]
+                            if (start == 0 || state & AFTER_CONNECTIVE != 0)
+                                && head.is_predicate() =>
+                        {
+                            endings
+                        }
+                        [StructuralPos::XSV | StructuralPos::XSA, endings @ ..]
+                            if state & DERIVATION_ROOT != 0 =>
+                        {
+                            endings
+                        }
+                        [StructuralPos::VCP, endings @ ..] if nominal_prefix[start][1] => endings,
+                        _ if predicate != 0 => positions,
+                        _ => &[],
+                    };
+                    has_final_before_terminal |= matches!(
+                        endings,
+                        [prefinals @ .., StructuralPos::EF]
+                            if prefinals.iter().all(|&pos| pos == StructuralPos::EP)
+                    );
+                }
                 if state & (DERIVED_PREDICATE | LINKED_PREDICATE) != 0
                     && positions == [StructuralPos::EC]
                     && &text[edge.span.clone()] == "게"
@@ -157,12 +196,25 @@ impl CommonPathFacts {
             }
         }
 
+        let has_bound_go = terminal_start.is_some_and(|start| {
+            let continues = predicate_path[start]
+                & (PREDICATE | DERIVED_PREDICATE | LINKED_PREDICATE | COPULAR_PREDICATE)
+                != 0;
+            graph.starting_at(start).iter().any(|edge| {
+                edge.span.end == text.len()
+                    && ((continues && graph.positions(edge) == [StructuralPos::EC])
+                        || (has_final_before_terminal
+                            && graph.positions(edge) == [StructuralPos::JKQ]))
+            })
+        });
+
         Self {
             nominal_prefix,
             ending_suffix,
             particle_suffix,
             predicate_boundaries,
             exact_nominal_end,
+            has_bound_go,
         }
     }
 
