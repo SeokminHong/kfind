@@ -1,10 +1,13 @@
-use kfind_morph::ConstraintResolver;
+use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
 
 use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
+
+const COMPARATIVE_ADVERBS: &[(&str, &str)] =
+    include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
 
 pub(super) fn has_counted_unit_copula(
     haystack: &[u8],
@@ -147,4 +150,80 @@ pub(super) fn has_postnominal_count_frame(
             resolver.has_object_marked_nominal(&word)
                 || (complete_aoeo && resolver.has_nominal_oblique(&word))
         })
+}
+
+pub(super) fn has_comparative_adverb_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some(&(lemma, _)) = COMPARATIVE_ADVERBS.iter().find(|(nfc, nfd)| {
+        branch.anchor.as_ref() == nfc.as_bytes() || branch.anchor.as_ref() == nfd.as_bytes()
+    }) else {
+        return false;
+    };
+    let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || *core != candidate.consumed
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            let analysis = &atom.analyses[usize::from(origin.analysis_index)];
+            analysis.coarse_pos == CoarsePos::Noun && analysis.lemma.as_ref() == lemma
+        })
+        || !is_boundary_before(haystack, core.start)
+        || !is_boundary_after(haystack, core.end)
+    {
+        return false;
+    }
+    has_marked_comparison_participants(haystack, core.start, resolver)
+        && context::next_word_on_line(haystack, core.end).is_some_and(|(_, next)| {
+            resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
+                || resolver.has_final_adjective_by_ending(&next)
+                || resolver.has_adjective_adnominal_surface(&next)
+        })
+}
+
+fn has_marked_comparison_participants(
+    haystack: &[u8],
+    end: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let limit = end.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = end;
+    let mut subject = false;
+    let mut comparison = false;
+    while let Some((start, word)) = context::previous_word_with_start(haystack, before) {
+        if start < limit
+            || haystack[start..before]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+        {
+            return false;
+        }
+        if !comparison
+            && word
+                .strip_suffix("보다")
+                .or_else(|| word.strip_suffix("보다는"))
+                .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
+        {
+            comparison = true;
+        } else if !subject && resolver.has_subject_marked_nominal(&word) {
+            subject = true;
+        } else if !(resolver.has_quantity_expression(&word, None)
+            || ((resolver.has_exact_adverb_surface(&word)
+                || ((subject || comparison) && resolver.has_predicate_adnominal_surface(&word)))
+                && !resolver.has_exact_nominal_surface(&word)))
+        {
+            return false;
+        }
+        if subject && comparison {
+            return true;
+        }
+        before = start;
+    }
+    false
 }
