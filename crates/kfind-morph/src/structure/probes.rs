@@ -10,7 +10,7 @@ use crate::structure::lexical::{
     structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
-    has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
+    compound_predicate_pos, has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
 };
 use crate::structure::roman_numeral::{is_roman_digit, is_roman_numeral};
 use crate::{
@@ -1371,6 +1371,47 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_conflicting_derived_ha_suffix(
+        &self,
+        text: &str,
+        anchor: Range<usize>,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        let Some(suffix) = text.get(anchor.start..) else {
+            return false;
+        };
+        if !self.has_inflected_ha_suffix(suffix, false) {
+            return false;
+        }
+        let mut derived_root = false;
+        let mut exact_competitor = false;
+        self.resource
+            .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
+                if length == anchor.start {
+                    derived_root |= matches!(
+                        analysis.positions(),
+                        [StructuralPos::NNG | StructuralPos::XR]
+                    );
+                }
+                if length != text.len() {
+                    return;
+                }
+                exact_competitor |= matches!(analysis.positions(), [pos]
+                    if pos.fine_pos().is_some_and(DataFinePos::is_nominal));
+                exact_competitor |=
+                    compound_predicate_pos(analysis.positions()).is_some_and(|pos| {
+                        source_positions
+                            .iter()
+                            .any(|source| predicate_pos_matches(pos.as_str(), source))
+                            && analysis.components().any(|component| {
+                                component.span == anchor && component.pos == pos.as_str()
+                            })
+                    });
+            });
+        derived_root && !exact_competitor
+    }
+
+    #[must_use]
     pub fn has_derived_ha_predicate_crossing(&self, text: &str, prefix_end: usize) -> bool {
         let mut found = false;
         self.resource
@@ -1382,57 +1423,58 @@ impl ConstraintResolver {
                 {
                     return;
                 }
-                let tail = &text[root_end..];
-                if !tail.chars().next().is_some_and(|initial| {
-                    matches!(
-                        crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
-                        Some('하' | '해')
-                    )
-                }) {
+                found = self.has_inflected_ha_suffix(&text[root_end..], true);
+            });
+        found
+    }
+
+    fn has_inflected_ha_suffix(&self, tail: &str, allow_joined_head: bool) -> bool {
+        if !tail.chars().next().is_some_and(|initial| {
+            matches!(
+                crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
+                Some('하' | '해')
+            )
+        }) {
+            return false;
+        }
+        let mut found = false;
+        self.resource
+            .common_prefix_positions(tail.as_bytes(), |end, positions| {
+                let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions else {
+                    return;
+                };
+                if endings.is_empty() && !matches!(&tail[..end], "하" | "해") {
                     return;
                 }
-                self.resource
-                    .common_prefix_positions(tail.as_bytes(), |end, positions| {
-                        let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions
-                        else {
-                            return;
-                        };
-                        if endings.is_empty() && !matches!(&tail[..end], "하" | "해") {
-                            return;
-                        }
-                        if found {
-                            return;
-                        }
-                        let remaining = &tail[end..];
-                        found =
-                            complete_inflected_ending(&self.resource, endings, remaining, |pos| {
+                if found {
+                    return;
+                }
+                let remaining = &tail[end..];
+                found = complete_inflected_ending(&self.resource, endings, remaining, |pos| {
+                    matches!(
+                        pos,
+                        StructuralPos::EF
+                            | StructuralPos::EC
+                            | StructuralPos::ETM
+                            | StructuralPos::ETN
+                    )
+                }) || (allow_joined_head
+                    && remaining.char_indices().any(|(split, _)| {
+                        let (predicate, noun) = tail.split_at(end + split);
+                        predicate.chars().next_back().is_some_and(|last| {
+                            crate::hangul::decompose_syllable(last).is_some_and(|syllable| {
                                 matches!(
-                                    pos,
-                                    StructuralPos::EF
-                                        | StructuralPos::EC
-                                        | StructuralPos::ETM
-                                        | StructuralPos::ETN
+                                    syllable.jongseong,
+                                    crate::hangul::JONG_NIEUN | crate::hangul::JONG_RIEUL
                                 )
-                            }) || remaining.char_indices().any(|(split, _)| {
-                                let (predicate, noun) = tail.split_at(end + split);
-                                predicate.chars().next_back().is_some_and(|last| {
-                                    crate::hangul::decompose_syllable(last).is_some_and(
-                                        |syllable| {
-                                            matches!(
-                                                syllable.jongseong,
-                                                crate::hangul::JONG_NIEUN
-                                                    | crate::hangul::JONG_RIEUL
-                                            )
-                                        },
-                                    )
-                                }) && complete_inflected_ending(
-                                    &self.resource,
-                                    endings,
-                                    &remaining[..split],
-                                    |pos| pos == StructuralPos::ETM,
-                                ) && self.has_nominal_with_optional_particles(noun)
-                            });
-                    });
+                            })
+                        }) && complete_inflected_ending(
+                            &self.resource,
+                            endings,
+                            &remaining[..split],
+                            |pos| pos == StructuralPos::ETM,
+                        ) && self.has_nominal_with_optional_particles(noun)
+                    }));
             });
         found
     }
