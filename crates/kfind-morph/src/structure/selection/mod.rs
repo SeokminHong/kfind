@@ -18,8 +18,8 @@ use crate::structure::selection::components::{
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
-    nominal_derivation_before_predicate, query_nominal_particle_path,
-    runtime_position_is_supported,
+    nominal_derivation_before_predicate, nominalization_conflicts_with_nominal_host,
+    query_nominal_particle_path, runtime_position_is_supported,
 };
 use crate::structure::{BoundedTokenContext, ConstraintSupport, StructuralEvidence};
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
@@ -127,19 +127,9 @@ impl StructureSelection {
         {
             return false;
         }
-        if support.evidence == StructuralEvidence::RuntimeComponent
-            && is_predicate_nominalization(pattern)
+        if is_predicate_nominalization(pattern)
             && spans.consumed.end < spans.token.end
-            && (evidence
-                .units
-                .starting_at(spans.token.start)
-                .iter()
-                .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-                || evidence
-                    .nominal_particle_hosts
-                    .iter()
-                    .any(|host| spans.consumed.end < host.end))
-            && !evidence.has_nominal_source_component(&spans.anchor)
+            && nominalization_conflicts_with_nominal_host(spans, text, evidence, support.evidence)
         {
             return false;
         }

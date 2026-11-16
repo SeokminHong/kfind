@@ -2798,6 +2798,13 @@ regression.bound-prefix.gun-dumpling	군	noun	no-match	0	15	군만두부터 먹�
 regression.bound-prefix.gun-drool	군	noun	no-match	0	9	군침이 돈다.
 regression.bound-prefix.gun-army	군	noun	smart-only-exact	0	6	군이 나섰다.
 regression.bound-prefix.gun-army-compound	군	noun	smart-only-exact	0	3	군부대 앞을 지나갔다.
+regression.nominalizer-hanja.south-verb	나다	verb	no-match	10	13	우리는 남쪽으로 움직였다.
+regression.nominalizer-hanja.south-noun	남쪽	noun	smart-only-exact	10	22	우리는 남쪽으로 움직였다.
+regression.nominalizer-hanja.region	나다	verb	no-match	0	3	남아시아에서 열렸다.
+regression.nominalizer-hanja.gold	그다	verb	no-match	0	3	금메달을 받았다.
+regression.nominalizer-hanja.three	사다	verb	no-match	0	3	삼거리에서 기다렸다.
+regression.nominalizer-hanja.nominalization-case	나다	verb	smart-only-exact	10	16	얼룩이 남을 확인했다.
+regression.nominalizer-hanja.nominalization-compound	쉬다	verb	smart-only-exact	10	13	그들은 쉼터에서 기다렸다.
 regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.

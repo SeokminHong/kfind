@@ -5,6 +5,9 @@ use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
 use kfind_data::DataFinePos;
 use std::ops::Range;
 
+const COMPOUNDS_WITH_INITIAL_HANJA: &[&str] =
+    include!("../../../../../data/rules/stdict-initial-hanja-compounds.rs");
+
 pub(in crate::structure) fn runtime_position_is_supported(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
@@ -301,6 +304,38 @@ pub(in crate::structure) fn is_predicate_nominalization(pattern: &QueryMorphPatt
             ..
         }
     )
+}
+
+pub(in crate::structure) fn nominalization_conflicts_with_nominal_host(
+    spans: &CandidateSpans,
+    text: &str,
+    evidence: &TokenEvidence,
+    support: StructuralEvidence,
+) -> bool {
+    let whole_host = evidence
+        .units
+        .starting_at(spans.token.start)
+        .iter()
+        .find(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+        .map(|unit| &unit.span);
+    let mut hosts = whole_host.into_iter().chain(
+        evidence
+            .nominal_particle_hosts
+            .iter()
+            .filter(|host| spans.consumed.end < host.end),
+    );
+    let Some(first) = hosts.next() else {
+        return false;
+    };
+    (support == StructuralEvidence::RuntimeComponent
+        && !evidence.has_nominal_source_component(&spans.anchor))
+        || (spans.anchor.start == spans.token.start
+            && spans.anchor.len() == '가'.len_utf8()
+            && std::iter::once(first).chain(hosts).any(|host| {
+                COMPOUNDS_WITH_INITIAL_HANJA
+                    .binary_search(&&text[host.clone()])
+                    .is_ok()
+            }))
 }
 
 pub(in crate::structure) fn query_nominal_particle_path(
