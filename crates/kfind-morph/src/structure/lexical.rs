@@ -381,13 +381,23 @@ pub(super) fn complete_nominal_particle_host(
     resource: &ComponentResource,
     current: &str,
 ) -> Option<Range<usize>> {
+    complete_nominal_particle_host_with(resource, current, |_, _| true)
+}
+
+pub(super) fn complete_nominal_particle_host_with(
+    resource: &ComponentResource,
+    current: &str,
+    accepts: impl Fn(&str, &str) -> bool,
+) -> Option<Range<usize>> {
     current
         .char_indices()
         .map(|(offset, _)| offset)
         .skip(1)
         .filter(|&split| {
-            complete_nominal_host(resource, &current[..split])
-                && complete_suffix(resource, &current[split..], StructuralPos::is_particle)
+            let (host, particle) = current.split_at(split);
+            complete_nominal_host(resource, host)
+                && complete_suffix(resource, particle, StructuralPos::is_particle)
+                && accepts(host, particle)
         })
         .max()
         .map(|end| 0..end)

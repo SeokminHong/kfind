@@ -1884,6 +1884,8 @@ regression.dictionary-neun.background	재미없다	adjective	smart-exact	10	25	�
 regression.dictionary-neun.question	맛있다	adjective	smart-exact	7	19	국이 맛있느냐?
 regression.relative-location.picture	속	noun	smart-exact	7	10	화보 속 박하선은 웃었다.
 regression.relative-location.object	속	noun	smart-exact	4	7	책 속 이야기를 읽었다.
+regression.relative-location.whole-reference-over-particle	속	noun	smart-only-exact	10	13	드라마 속 캐릭터처럼 다루지 않았어요.
+regression.relative-location.whole-reference-before-subject	속	noun	smart-only-exact	10	13	드라마 속 장면이 계속 떠올랐다.
 regression.relative-location.lexical-reference	사이	determiner	no-match	7	13	나무 사이 통로를 걸었다.
 regression.relative-location.genitive-reference	사이	determiner	no-match	14	20	두 나무의 사이 통로를 지나갔다.
 regression.relative-location.pronoun	옆	pronoun	no-match	7	10	책장 옆 사진을 골랐다.
