@@ -827,6 +827,24 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed == *core
+            && core.start == whole.start
+            && core.end < whole.end
+            && (is_sentence_end_after(haystack, whole.end)
+                || haystack.get(whole.end) == Some(&b','))
+            && context::normalized_token(haystack, core.end..whole.end)
+                .is_some_and(|tail| tail == "요")
+            && let Some(previous) = context::previous_word(haystack, whole.start)
+            && let Some(host) = context::normalized_token(haystack, core.clone())
+            && patterns.iter().any(|pattern| {
+                resolver.has_polite_nominal_reply(&previous, &host, pattern.fine_pos)
+            })
+        {
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && core.start > whole.start
             && candidate.consumed.end == whole.end
             && nominal_copula_surface_at(haystack, core.start, whole.end)
