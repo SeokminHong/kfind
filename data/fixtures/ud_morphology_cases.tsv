@@ -1765,6 +1765,20 @@ regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44
 regression.familiar-direct-question.raw-gsd-future-become	되다	verb	smart-exact	44	53	서울 시내에 차를 가지고 나가도 되겠니?
 regression.familiar-direct-question.formal-copula	입다	verb	no-match	29	35	아빠는 이탈리아 사람입니다.
 regression.familiar-direct-question.wear-question	입다	verb	smart-exact	24	30	오늘은 어떤 옷을 입니?
+regression.ni-token.past-foreign	알다	verb	no-match	21	33	그 말은 농담이 아니었다.
+regression.ni-token.nominalizer-foreign	알다	verb	no-match	20	29	확정된 일정이 아니기 때문에 다시 확인했다.
+regression.ni-token.quote-foreign	알다	verb	no-match	17	29	그는 사실이 아니냐며 따져 물었다.
+regression.ni-token.know-question	알다	verb	smart-only-exact	14	20	어제 일을 아니?
+regression.ni-token.know-long-connective	알다	verb	smart-only-exact	17	29	내가 사정을 아니까는 직접 갈게.
+regression.ni-token.tie-loan	매다	verb	no-match	0	9	매니시 스타일의 코트를 입었다.
+regression.ni-token.drive-loan	몰다	verb	no-match	23	38	고객이 사용량을 모니터링할 수 있다.
+regression.ni-token.push-loan	밀다	verb	no-match	4	19	첫 미니앨범을 발표했다.
+regression.ni-token.give-loan	주다	verb	no-match	18	27	마틴 루터 킹 주니어 기념관에 갔다.
+regression.ni-token.dig-place-name	파다	verb	no-match	10	28	군대가 파이오니안을 정복하였다.
+regression.ni-token.respectful-connective	가다	verb	smart-only-exact	7	16	먼저 가오니 뒤따라오시오.
+regression.ni-token.respectful-long-connective	가다	verb	smart-only-exact	14	26	제가 먼저 가오니까 기다리시오.
+regression.ni-token.respectful-condition	가다	verb	smart-only-exact	7	16	미리 가오면 연락하시오.
+regression.ni-token.archaic-adjective	않다	adjective	smart-only-exact	14	26	길이 멀지 않으니라.
 regression.interrogative-gam.irregular	덥다	adjective	smart-exact	27	36	무슨 날씨가 이리도 더운감.
 regression.interrogative-gam.consonant	넓다	adjective	smart-exact	17	26	방이 얼마나 넓은감.
 regression.interrogative-gam.future	가다	verb	smart-exact	55	67	어릴 때부터 천재 소리 듣던 사람이 어디 가겠는감?
