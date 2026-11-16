@@ -420,6 +420,18 @@ regression.object-suffix.nominal-compound	철	noun	smart-only-exact	7	10	체내 
 regression.object-suffix.fused-interrogative	뭐	pronoun	smart-only-exact	29	32	대한항공 전화번호가 뭐야
 regression.object-suffix.copula	독	noun	smart-only-exact	10	13	건강에 독일 수 있다.
 regression.object-suffix.valid-object	소	noun	smart-only-exact	13	19	오랫동안 소를 돌봤다.
+regression.connected-go.noun-before-verb	입	noun	no-match	7	10	내복 입고 주무세요.
+regression.connected-go.verb	입다	verb	smart-only-exact	7	13	내복 입고 주무세요.
+regression.connected-go.whole-noun	입고	noun	smart-only-exact	0	6	입고 기록을 확인했다.
+regression.connected-go.noun-before-adjective	길	noun	no-match	7	10	또한 길고 두꺼운 발톱도 위험하다.
+regression.connected-go.adjective	길다	adjective	smart-only-exact	7	13	또한 길고 두꺼운 발톱도 위험하다.
+regression.connected-go.nominal-shape	달	noun	no-match	17	20	같은 간판을 달고 있는 매장이다.
+regression.connected-go.liquid-coda	알	noun	no-match	19	22	언제부터인지 알고 있었다.
+regression.connected-go.counted-copula	주	noun	smart-exact	14	17	지금은 한 주고 다음엔 두 주다.
+regression.connected-go.counted-final-copula	주	noun	smart-exact	35	38	지금은 한 주고 다음엔 두 주다.
+regression.connected-go.copula	학교	noun	smart-only-exact	10	16	여기는 학교고 저기는 도서관이다.
+regression.connected-go.coordination	친구	noun	smart-only-exact	0	6	친구고 동료고 모두 달려왔다.
+regression.connected-go.particle	입	noun	smart-only-exact	0	6	입은 꼭 다물었다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.

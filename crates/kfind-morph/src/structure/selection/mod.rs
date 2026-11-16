@@ -351,6 +351,9 @@ impl StructureSelection {
                                     || (!has_whole_adverb_or_adjective_connective
                                         && !has_unverified_object_suffix(
                                             selected, text, evidence,
+                                        )
+                                        && !has_verbal_go_after_closed_host(
+                                            selected, text, evidence,
                                         ))))
                             || (selected.end == spans.core.start
                                 && matches!(
@@ -491,6 +494,21 @@ fn has_unverified_object_suffix(host: &Range<usize>, text: &str, evidence: &Toke
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
         && !has_grammatical_particle_chain(&text[host.clone()], &text[host.end..])
+}
+
+fn has_verbal_go_after_closed_host(
+    host: &Range<usize>,
+    text: &str,
+    evidence: &TokenEvidence,
+) -> bool {
+    evidence.has_bound_go
+        && &text[host.end..] == "고"
+        && text[host.clone()]
+            .chars()
+            .next_back()
+            .is_some_and(crate::hangul::has_final)
+        && evidence.leading_predicate_spans.contains(host)
+        && !evidence.has_nominal_source_component(host)
 }
 
 pub(in crate::structure) fn select_structure(
