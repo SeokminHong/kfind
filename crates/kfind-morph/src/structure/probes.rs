@@ -2,11 +2,12 @@ use crate::structure::ConstraintResolver;
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
-    complete_dependent_noun_particle_suffix, complete_ha_predicate_path, complete_inflected_ending,
-    complete_nominal_host, complete_nominal_particle_host, complete_predicate_ending_path,
-    complete_suffix, exact_analysis_starts_with_pos, has_adnominal_result_complement,
-    has_complete_object_phrase, has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at,
-    predicate_pos_matches, structural_predicate_pos_matches,
+    complete_connective_path, complete_dependent_noun_particle_suffix, complete_ha_predicate_path,
+    complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
+    complete_predicate_ending_path, complete_suffix, exact_analysis_starts_with_pos,
+    has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
+    has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
+    structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -290,6 +291,31 @@ include!("../../../../data/rules/stdict-attested-nominal-suffix-usages.rs");
 include!("../../../../data/rules/stdict-bound-si-hosts.rs");
 
 impl ConstraintResolver {
+    /// Verifies the predicate heads in the prohibition construction `-어서는 안 되다`.
+    #[must_use]
+    pub fn has_prohibitive_negation_frame(&self, previous: &str, next: &str) -> bool {
+        let Some(stem) = previous
+            .strip_suffix("서는")
+            .filter(|stem| !stem.is_empty())
+        else {
+            return false;
+        };
+        let connective = &previous[..stem.len() + '서'.len_utf8()];
+        if !complete_connective_path(&self.resource, connective) {
+            return false;
+        }
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "되다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid permission predicate")
+            });
+        matches_predicate_inflection(next, &FORMS)
+    }
+
     #[must_use]
     pub fn has_bound_si_suffix(&self, host: &str, following: &str, nominal_end: bool) -> bool {
         STDICT_BOUND_SI_HOSTS
