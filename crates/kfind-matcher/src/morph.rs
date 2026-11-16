@@ -1925,11 +1925,11 @@ fn has_conflicting_whole_predicate(
         return false;
     };
     let normalized_prefix = prefix.nfc().collect::<String>();
-    if internal_core && normalized_prefix.ends_with(['아', '어', '여']) {
+    if internal_core && normalized_prefix.ends_with(['아', '어']) {
         return false;
     }
     let normalized_core_start = normalized_prefix.len();
-    let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
+    let normalized_core_end = normalized_core_start + core.nfc().map(char::len_utf8).sum::<usize>();
     if internal_core
         && resolver.has_conflicting_derived_ha_suffix(
             &normalized_token,
@@ -1938,6 +1938,9 @@ fn has_conflicting_whole_predicate(
         )
     {
         return true;
+    }
+    if internal_core && normalized_prefix.ends_with('여') {
+        return false;
     }
     if source_aligned_compound_predicate_position(
         haystack,
