@@ -293,6 +293,20 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             }
         })
     }
+
+    pub(super) fn has_aligned_nominal_prefix_before(
+        &self,
+        core: Range<usize>,
+        consumed: Range<usize>,
+    ) -> bool {
+        self.current
+            .normalized_span(core)
+            .zip(self.current.normalized_span(consumed))
+            .is_some_and(|(core, consumed)| {
+                self.prepared
+                    .has_aligned_nominal_prefix_before(&core, consumed.end)
+            })
+    }
 }
 
 impl PreparedStructuralContextCache {

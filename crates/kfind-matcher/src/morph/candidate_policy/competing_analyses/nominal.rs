@@ -308,3 +308,24 @@ pub(super) fn has_nonpredicate_report_frame(
                 && resolver.has_independent_final_predicate(&following))
     })
 }
+pub(super) fn has_bound_nominal_prefix(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || !is_boundary_before(haystack, core.start)
+        || is_boundary_after(haystack, core.end)
+    {
+        return false;
+    }
+    context::normalized_token(haystack, core.clone()).is_some_and(|prefix| {
+        ConstraintResolver::has_attested_nominal_prefix(&prefix)
+            && context::normalized_token(haystack, surrounding_token_span(haystack, core.clone()))
+                .is_some_and(|text| resolver.has_bound_nominal_prefix(&prefix, &text))
+    })
+}

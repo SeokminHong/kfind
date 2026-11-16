@@ -1322,7 +1322,18 @@ impl MorphMatcher {
         {
             return false;
         }
-        let trim_particle = compound_prefix && candidate.verified.token != candidate.verified.core;
+        let trim_particle = candidate.verified.token != candidate.verified.core
+            && (compound_prefix
+                || (nominal_particle_chain
+                    && candidate.verified.core.start == whole.start
+                    && consumed_end < whole.end
+                    && patterns
+                        .iter()
+                        .any(|pattern| pattern.fine_pos == DataFinePos::Nng)
+                    && context.has_aligned_nominal_prefix_before(
+                        candidate.verified.core.clone(),
+                        consumed.clone(),
+                    )));
         let decision = context.resolve(
             StructuralRequest {
                 candidate: &candidate.verified,

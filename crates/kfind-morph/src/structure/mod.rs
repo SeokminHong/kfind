@@ -310,6 +310,27 @@ impl PreparedStructuralContext {
     }
 
     #[must_use]
+    pub fn has_aligned_nominal_prefix_before(&self, span: &Range<usize>, end: usize) -> bool {
+        let token = self.token.as_ref();
+        let whole = 0..token.text.len();
+        token
+            .evidence
+            .nominal_particle_hosts
+            .iter()
+            .chain(std::iter::once(&whole))
+            .any(|host| {
+                host.start == span.start
+                    && span.end < end
+                    && end <= host.end
+                    && token.evidence.has_unambiguous_nominal_source_component(
+                        host,
+                        span,
+                        DataFinePos::Nng,
+                    )
+            })
+    }
+
+    #[must_use]
     pub fn has_bare_compound_nominal_prefix(&self, span: &Range<usize>) -> bool {
         let token = self.token.as_ref();
         let whole = 0..token.text.len();

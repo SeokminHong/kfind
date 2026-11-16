@@ -54,6 +54,7 @@ pub(super) fn rejects(
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
         || nominal::has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
+        || nominal::has_bound_nominal_prefix(haystack, candidate, branch, resolver)
         || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
         || quantity::has_counted_unit_copula(haystack, candidate, branch, resolver)
         || quantity::has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
