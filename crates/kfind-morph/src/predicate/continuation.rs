@@ -459,6 +459,9 @@ const EUNAMA: Suffix = suffix("으나마", &["ending.concessive-nama"]);
 const HONORIFIC_NAMA: Suffix = suffix("시나마", &["ending.honorific", "ending.concessive-nama"]);
 const INTERROGATIVE_NA_YO: Suffix = suffix("나요", &["ending.interrogative-na"]);
 const INTERROGATIVE_NA: Suffix = suffix("나", &["ending.interrogative-na"]);
+const INTERROGATIVE_NA_MANEUN: Suffix = suffix("나마는", &["ending.interrogative-na"]);
+const HONORIFIC_INTERROGATIVE_NA_MANEUN: Suffix =
+    suffix("시나마는", &["ending.honorific", "ending.interrogative-na"]);
 const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
     suffix("시나요", &["ending.honorific", "ending.interrogative-na"]);
 const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
@@ -2956,7 +2959,11 @@ fn verify_simple_continuation(
         ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with('나') =>
         {
-            &[INTERROGATIVE_NA, INTERROGATIVE_NA_YO]
+            &[
+                INTERROGATIVE_NA,
+                INTERROGATIVE_NA_YO,
+                INTERROGATIVE_NA_MANEUN,
+            ]
         }
         ContinuationState::StemEnding
             if matches!(
@@ -2968,7 +2975,11 @@ fn verify_simple_continuation(
                     .next_back()
                     .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
         {
-            &[INTERROGATIVE_NA, INTERROGATIVE_NA_YO]
+            &[
+                INTERROGATIVE_NA,
+                INTERROGATIVE_NA_YO,
+                INTERROGATIVE_NA_MANEUN,
+            ]
         }
         ContinuationState::StemEnding
             if pos.is_action()
@@ -2994,14 +3005,24 @@ fn verify_simple_continuation(
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula
-                && following.starts_with("나요")
+                && following
+                    .strip_prefix('나')
+                    .is_some_and(|tail| tail.starts_with('요') || tail.starts_with("마는"))
                 && (state != ContinuationState::StemEnding
                     || !anchor.chars().next_back().is_some_and(has_rieul_final)) =>
         {
-            &[INTERROGATIVE_NA_YO]
+            &[INTERROGATIVE_NA_YO, INTERROGATIVE_NA_MANEUN]
         }
-        ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with("시나요") => {
-            &[HONORIFIC_INTERROGATIVE_NA_YO]
+        ContinuationState::Eu
+            if pos != PredicatePos::Copula
+                && following
+                    .strip_prefix("시나")
+                    .is_some_and(|tail| tail.starts_with('요') || tail.starts_with("마는")) =>
+        {
+            &[
+                HONORIFIC_INTERROGATIVE_NA_YO,
+                HONORIFIC_INTERROGATIVE_NA_MANEUN,
+            ]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with('긴') =>
