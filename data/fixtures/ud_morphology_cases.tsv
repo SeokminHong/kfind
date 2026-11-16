@@ -2239,3 +2239,12 @@ regression.pronoun-topic.pronoun	나	pronoun	smart-only-exact	0	6	나는 또한 
 regression.pronoun-topic.adnominal-copula-head	나다	verb	smart-only-exact	7	13	땀이 나는 날이었다.
 regression.pronoun-topic.stacked-adnominal	날다	verb	smart-only-exact	10	16	하늘을 나는 아주 작은 새를 보았다.
 regression.pronoun-topic.explicit-copula	날다	verb	smart-only-exact	23	29	주인공은 하늘을 나는 친구이었다.
+regression.pronoun-prefix.action	이	pronoun	no-match	23	32	선생님이 아이를 이끌어 주셨다.
+regression.pronoun-prefix.verb-nominalization	이	pronoun	no-match	13	22	경기에서 이기기 위해 연습했다.
+regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	10	19	기술을 이용할 계획이다.
+regression.pronoun-prefix.negative-joined-continuation	이	pronoun	no-match	10	22	기술을 이용할수 있다.
+regression.pronoun-prefix.different-pronoun-root	나	pronoun	no-match	17	26	그는 방에서 나오려 했다.
+regression.pronoun-prefix.different-adjective-root	저	pronoun	no-match	20	29	지난달 실적이 저조한 이유를 찾았다.
+regression.pronoun-prefix.bare-nominal	이	pronoun	smart-only-exact	0	3	이 역시 좋은 방법이다.
+regression.pronoun-prefix.real-particle	이	pronoun	smart-only-exact	0	9	이들은 서로를 위로했다.
+regression.pronoun-prefix.full-lemma	이용하다	verb	smart-only-exact	10	19	기술을 이용할 계획이다.
