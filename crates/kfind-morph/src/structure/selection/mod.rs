@@ -1,19 +1,20 @@
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::lexical::{
     adnominal_suffix_is_supported, complete_ha_predicate_path, complete_nominal_host,
-    complete_nominal_particle_host, complete_predicate_adnominal_path,
-    complete_predicate_connective_ji_path, complete_predicate_ending_path, complete_suffix,
-    copular_frame, exact_analysis_ends_with_pos, exact_analysis_starts_with_pos,
-    has_adnominal_result_complement, has_auxiliary_adnominal_split, has_complete_object_phrase,
-    has_complete_subject_phrase, has_copular_adnominal_split, has_exact_fine_pos,
-    has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
+    complete_nominal_particle_host, complete_nominal_particle_host_with,
+    complete_predicate_adnominal_path, complete_predicate_connective_ji_path,
+    complete_predicate_ending_path, complete_suffix, copular_frame, exact_analysis_ends_with_pos,
+    exact_analysis_starts_with_pos, has_adnominal_result_complement, has_auxiliary_adnominal_split,
+    has_complete_object_phrase, has_complete_subject_phrase, has_copular_adnominal_split,
+    has_exact_fine_pos, has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
     nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
-    compound_predicate_component_is_supported, has_grammatical_particle_component,
-    modifier_led_nominal_component_is_on_preferred_path, nominal_component_is_supported,
-    proper_noun_dependent_noun_frame, runtime_nominal_component_is_supported,
+    compound_predicate_component_is_supported, has_grammatical_particle_chain,
+    has_grammatical_particle_component, modifier_led_nominal_component_is_on_preferred_path,
+    nominal_component_is_supported, proper_noun_dependent_noun_frame,
+    runtime_nominal_component_is_supported,
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
@@ -549,8 +550,13 @@ pub(in crate::structure) fn select_structure(
                 && has_exact_sequence(resource, "의", &[StructuralPos::JKG])
         });
         if genitive_reference
-            || (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
-                && complete_nominal_particle_host(resource, previous).is_none_or(|host| {
+            || (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal) && {
+                let whole_common_noun =
+                    has_exact_sequence(resource, previous, &[StructuralPos::NNG]);
+                complete_nominal_particle_host_with(resource, previous, |host, particle| {
+                    !whole_common_noun || has_grammatical_particle_chain(host, particle)
+                })
+                .is_none_or(|host| {
                     has_exact_sequence(resource, previous, &[StructuralPos::NNP])
                         && !has_exact_sequence(
                             resource,
@@ -559,7 +565,8 @@ pub(in crate::structure) fn select_structure(
                         )
                         && !has_complete_subject_phrase(resource, previous)
                         && !has_complete_object_phrase(resource, previous)
-                }))
+                })
+            })
         {
             return StructureSelection::RelativeLocationNoun {
                 preserves_determiner: genitive_reference

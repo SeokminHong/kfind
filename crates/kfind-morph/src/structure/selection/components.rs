@@ -118,16 +118,17 @@ pub(in crate::structure) fn has_grammatical_particle_component(
     text: &str,
     evidence: &TokenEvidence,
 ) -> bool {
-    static VERIFIER: LazyLock<ParticleVerifier> = LazyLock::new(ParticleVerifier::default);
-
     evidence
         .units
         .starting_at(core.start)
         .iter()
         .any(|unit| unit.span == *core && unit.pos.is_particle())
-        && VERIFIER
-            .verify_exact(&text[host.clone()], &text[core.clone()])
-            .is_some()
+        && has_grammatical_particle_chain(&text[host.clone()], &text[core.clone()])
+}
+
+pub(super) fn has_grammatical_particle_chain(host: &str, particle: &str) -> bool {
+    static VERIFIER: LazyLock<ParticleVerifier> = LazyLock::new(ParticleVerifier::default);
+    VERIFIER.verify_exact(host, particle).is_some()
 }
 
 pub(in crate::structure) fn modifier_led_nominal_component_is_on_preferred_path(
