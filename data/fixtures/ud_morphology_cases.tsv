@@ -2048,6 +2048,13 @@ regression.comparative.bare-subject	더	noun	smart-only-exact	10	13	형보다 �
 regression.comparative.name-with-object-marker	더	noun	smart-only-exact	20	26	형제가 나보다 더를 먼저 불렀다.
 regression.comparative.name-in-title	더	noun	smart-only-exact	17	20	형이 나보다 더 스코츠맨을 자주 읽는다.
 regression.comparative.degree-amount	조금	noun	smart-only-exact	20	26	첫날보다 물이 조금 차갑다.
+regression.comparative.resultative-not-name	더	noun	no-match	42	45	바다에 물고기보다 플라스틱이 더 많아질 것이라고 한다.
+regression.comparative.resultative-adverb	더	adverb	smart-only-exact	42	45	바다에 물고기보다 플라스틱이 더 많아질 것이라고 한다.
+regression.comparative.resultative-lower-degree	덜	noun	no-match	20	23	형보다 동생이 덜 밝아졌다.
+regression.comparative.resultative-lower-adverb	덜	adverb	smart-only-exact	20	23	형보다 동생이 덜 밝아졌다.
+regression.comparative.resultative-contracted	더	noun	no-match	23	26	시험이 작년보다 더 쉬워질 것이다.
+regression.comparative.resultative-bare-subject	더	noun	smart-only-exact	13	16	작년보다 더 많아질 것이다.
+regression.comparative.resultative-action-host	더	noun	smart-only-exact	23	26	지난번보다 물이 더 쏟아졌다.
 regression.scope-genitive.possessive	나	pronoun	smart-exact	11	14	교실 안 내 가방이 있다.
 regression.scope-genitive.marked-host	나	pronoun	smart-exact	10	13	한국의 내 친구가 방문했다.
 regression.adnominal-auxiliary.past-contracted	오다	verb	smart-exact	14	17	밤에 비가 온듯했다.

@@ -184,6 +184,7 @@ pub(super) fn has_comparative_adverb_frame(
             resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
                 || resolver.has_final_adjective_by_ending(&next)
                 || resolver.has_adjective_adnominal_surface(&next)
+                || resolver.has_adjective_with_attached_resultative(&next)
         })
 }
 

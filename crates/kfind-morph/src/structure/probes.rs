@@ -1153,6 +1153,44 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_adjective_with_attached_resultative(&self, text: &str) -> bool {
+        let adjective = PredicatePos::Adjective;
+        text.char_indices().skip(1).any(|(split, _)| {
+            let (host, auxiliary) = text.split_at(split);
+            if !self.has_attached_resultative_inflection(auxiliary, adjective) {
+                return false;
+            }
+            if let Some(stem) = host.strip_suffix(['아', '어', '여'])
+                && has_exact_sequence(&self.resource, stem, &[StructuralPos::VA])
+                && crate::predicate::has_vowel_connective_surface(
+                    &crate::PredicateEntry::new(
+                        format!("{stem}다"),
+                        adjective,
+                        LexicalAlternation::Regular,
+                    ),
+                    host,
+                )
+            {
+                return true;
+            }
+            if !self.has_exact_predicate_connective_path(host, PredicatePosSet::one(adjective)) {
+                return false;
+            }
+            let mut matched = false;
+            self.resource
+                .common_prefix_positions(text.as_bytes(), |length, positions| {
+                    matched |= length == text.len()
+                        && matches!(
+                            positions,
+                            [StructuralPos::VA, StructuralPos::EC, StructuralPos::VX, endings @ ..]
+                                if !endings.is_empty() && endings.iter().all(|pos| pos.is_ending())
+                        );
+                });
+            matched
+        })
+    }
+
+    #[must_use]
     pub fn has_progressive_or_desiderative_ending(
         &self,
         connective: &str,
