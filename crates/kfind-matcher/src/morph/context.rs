@@ -487,6 +487,36 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn accepts_pronoun_object(
+    haystack: &[u8],
+    span: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !crate::boundary::is_boundary_before(haystack, span.start)
+        || !crate::boundary::is_boundary_after(haystack, span.end)
+        || !normalized_token(haystack, span.clone())
+            .is_some_and(|token| resolver.has_pronoun_object_contraction(&token))
+    {
+        return false;
+    }
+    let Some((end, predicate)) = next_word_with_end(haystack, span.end) else {
+        return false;
+    };
+    if let Some(stem) = predicate.strip_suffix('지')
+        && !crate::boundary::is_sentence_end_after(haystack, end)
+    {
+        return resolver.has_accusative_verb_stem(stem)
+            && resolver.has_negative_connective_host(&predicate)
+            && next_word(haystack, end).is_some_and(|auxiliary| {
+                kfind_morph::matches_negative_auxiliary_inflection(
+                    &auxiliary,
+                    kfind_morph::PredicatePos::AuxiliaryVerb,
+                )
+            });
+    }
+    resolver.has_independent_final_verb_with_object(&predicate)
+}
+
 pub(super) fn accepts_pronoun_topic(
     haystack: &[u8],
     span: &Range<usize>,

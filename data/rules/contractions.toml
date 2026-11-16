@@ -144,6 +144,23 @@ right = "는"
 result = "넌"
 ending_ids = []
 
+# 한글 맞춤법 제33항의 목적격 축약.
+[[contraction]]
+id = "contraction.pronoun-object-na"
+kind = "pronoun-object-compose"
+left = "나"
+right = "를"
+result = "날"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-object-neo"
+kind = "pronoun-object-compose"
+left = "너"
+right = "를"
+result = "널"
+ending_ids = []
+
 [[contraction]]
 id = "contraction.uri-attributive-ul"
 kind = "pronoun-attributive-shortening"

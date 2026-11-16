@@ -29,6 +29,14 @@ const BOUND_NOMINAL_PREFIX_USAGES: &[(&str, &str)] =
 include!("../../../../data/rules/krdict-nominal-frames.rs");
 include!("../../../../data/rules/krdict-auxiliary-frames.rs");
 
+// Keep one copy of the large table in the linked image.
+#[inline(never)]
+fn stem_excludes_accusative(stem: &str) -> bool {
+    NON_ACCUSATIVE_PREDICATE_ANCHORS
+        .binary_search(&stem)
+        .is_ok()
+}
+
 struct AuxiliaryInflections {
     future: Vec<crate::SurfaceBranchSpec>,
     present_or_past: Vec<crate::SurfaceBranchSpec>,
@@ -657,6 +665,15 @@ impl ConstraintResolver {
             &self.resource,
             text,
             &[StructuralPos::NP, StructuralPos::JX],
+        )
+    }
+
+    #[must_use]
+    pub fn has_pronoun_object_contraction(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NP, StructuralPos::JKO],
         )
     }
 
@@ -2446,6 +2463,12 @@ impl ConstraintResolver {
         positions.contains(PredicatePos::Verb) && !excludes_object
     }
 
+    #[must_use]
+    pub fn has_accusative_verb_stem(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::VV])
+            && !stem_excludes_accusative(text)
+    }
+
     fn independent_final_predicate<const CHECK_OBJECT: bool>(
         &self,
         text: &str,
@@ -2470,9 +2493,7 @@ impl ConstraintResolver {
         let mut record = |pos, anchor_end| {
             positions_found |= PredicatePosSet::one(pos);
             if CHECK_OBJECT {
-                excludes_object &= NON_ACCUSATIVE_PREDICATE_ANCHORS
-                    .binary_search(&&text[..anchor_end])
-                    .is_ok();
+                excludes_object &= stem_excludes_accusative(&text[..anchor_end]);
             }
         };
         self.resource

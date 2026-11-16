@@ -670,6 +670,9 @@ impl MorphMatcher {
                 BoundaryPolicy::Smart,
             );
         }
+        if branch.is_pronoun_object_contraction() {
+            return context::accepts_pronoun_object(haystack, &candidate.verified.token, resolver);
+        }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
@@ -2090,6 +2093,7 @@ fn unique_anchors(
             if !has_component
                 && (branch.consumption.composes_copula_host()
                     || branch.is_attributive_pronoun_contraction()
+                    || branch.is_pronoun_object_contraction()
                     || (atom.boundary == BoundaryPolicy::Any
                         && (branch.is_pronoun_topic_contraction()
                             || branch.is_dependent_nominal_copula_ending())))

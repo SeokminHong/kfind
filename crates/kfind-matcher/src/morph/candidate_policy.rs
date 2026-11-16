@@ -62,6 +62,11 @@ impl MorphMatcher {
                 )
             });
         }
+        if boundary == BoundaryPolicy::Any && branch.is_pronoun_object_contraction() {
+            return self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                context::accepts_pronoun_object(haystack, &candidate.verified.token, resolver)
+            });
+        }
         if boundary == BoundaryPolicy::Any && branch.is_attributive_pronoun_contraction() {
             return self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 context::accepts_attributive_pronoun(haystack, &candidate.verified.token, resolver)

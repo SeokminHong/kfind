@@ -129,6 +129,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "stem-rewrite",
         "nominal-particle-compose",
         "pronoun-topic-compose",
+        "pronoun-object-compose",
         "pronoun-attributive-shortening",
         "locative-pronoun-iss-compose",
         "dependent-noun-subject-compose",
@@ -183,6 +184,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
             rule.kind.as_str(),
             "nominal-particle-compose"
                 | "pronoun-topic-compose"
+                | "pronoun-object-compose"
                 | "pronoun-attributive-shortening"
                 | "locative-pronoun-iss-compose"
                 | "dependent-noun-subject-compose"
@@ -210,6 +212,20 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
                 "right",
                 &rule.right,
                 "nominal host를 허용하는 particle surface여야 합니다",
+            ));
+        }
+        if rule.kind == "pronoun-object-compose"
+            && !rules.particles.iter().any(|particle| {
+                particle.id == "particle.object" && particle.forms.contains(&rule.right)
+            })
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "right",
+                &rule.right,
+                "목적격 조사 이형태여야 합니다",
             ));
         }
         if rule.kind == "dependent-noun-subject-compose"
