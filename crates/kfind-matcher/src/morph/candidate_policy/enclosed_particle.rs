@@ -65,7 +65,18 @@ pub(super) fn rejects(
     let end = span.start - close.len_utf8();
     let left = valid_utf8_suffix(&haystack[..end]);
     let line = left.rsplit(['\r', '\n']).next().unwrap_or_default();
-    let Some(opener) = matching_opener(line, open, close) else {
+    let line_start_visible = line.len() < left.len() || left.len() == end;
+    let opener = if open == '"' && line_start_visible {
+        let last = memchr::memrchr(b'"', line.as_bytes());
+        last.filter(|&index| {
+            memchr::memchr_iter(b'"', &line.as_bytes()[..index])
+                .count()
+                .is_multiple_of(2)
+        })
+    } else {
+        matching_opener(line, open, close)
+    };
+    let Some(opener) = opener else {
         return false;
     };
     let (before, enclosed) = line.split_at(opener);
