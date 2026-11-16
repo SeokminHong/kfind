@@ -2697,6 +2697,17 @@ impl ConstraintResolver {
             && !stem_excludes_accusative(text)
     }
 
+    #[must_use]
+    pub fn has_accusative_verb_connective(&self, text: &str) -> bool {
+        !self.has_exact_nominal_surface(text)
+            && text.char_indices().skip(1).any(|(split, _)| {
+                self.has_accusative_verb_stem(&text[..split])
+                    && complete_inflected_ending(&self.resource, &[], &text[split..], |pos| {
+                        pos == StructuralPos::EC
+                    })
+            })
+    }
+
     fn independent_final_predicate<const CHECK_OBJECT: bool>(
         &self,
         text: &str,
