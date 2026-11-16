@@ -1923,6 +1923,13 @@ corpus.ud-pud.test.n01074020.verb.simultaneous-additive	임하다	verb	smart-exa
 corpus.ud-pud.test.n02066010.verb.simultaneous-additive	알다	verb	smart-exact	167	179	그 비행기 추락 사고를 조사하는 캐나다 조사관 랠리 밴스는 슈피겔(SPIEGEL)과의 인터뷰에서 조종사 중 한 명이 가라앉을 것을 알면서도 의도적으로 비행기를 해수면에 착륙시킨 것 같다고 밝혔다.
 corpus.ud-gsd.test.test-s473.verb.doubt-topic	바뀌다	verb	smart-exact	144	156	지금 세계 게임시장의 주도권을 비디오게임이 쥐고 있지만 향후 3년 이후만 해도 게임산업의 지형이 어떻게 바뀔지는 상상하기 힘든데요.
 regression.doubt-topic.irregular	걷다	verb	smart-exact	0	12	걸을지는 모르겠다.
+regression.indirect-question.case-future	하다	verb	smart-only-exact	33	42	등장인물들이 무슨 말을 할지에 대해 이야기를 나눈다.
+regression.indirect-question.case-consonant	맡다	verb	smart-only-exact	7	19	누가 맡을지에 따라 결과가 달라진다.
+regression.indirect-question.case-present	듣다	verb	smart-only-exact	14	26	그들이 잘 듣는지에 따라 순서를 정한다.
+regression.indirect-question.case-past	지나다	verb	smart-only-exact	20	35	시간이 얼마나 지났는지에 대한 답을 적었다.
+regression.indirect-question.case-adjective	크다	adjective	smart-only-exact	10	19	얼마나 큰지에 따라 달라진다.
+regression.indirect-question.case-topic	살다	verb	smart-only-exact	17	29	어떤 곳에서 살지에는 관심이 없다.
+regression.indirect-question.case-separate-noun	떠나다	verb	smart-only-exact	7	13	그가 떠난 지 사흘 만이다.
 regression.doubt-topic.past-honorific	가다	verb	smart-exact	0	15	가셨을지는 모르겠다.
 regression.doubt-topic.rieul-neunji	먹다	verb	smart-exact	0	15	먹을는지는 모르겠다.
 regression.doubt-topic.present	먹다	verb	smart-exact	0	12	먹는지는 모르겠다.
