@@ -2130,12 +2130,13 @@ regression.nominal-prefix.realized-derivation.deleted-ha	생각	noun	smart-only-
 regression.nominal-prefix.realized-derivation.aligned-component	가	noun	smart-only-exact	29	32	국제결혼으로 다문화 가족의 수가 늘었다.
 regression.nominal-prefix.progressive-oblique.noun	두	noun	no-match	37	40	여당이 그 가능성을 염두에 두고 있다는 분석이 나왔다.
 regression.nominal-prefix.progressive-oblique.verb	두다	verb	smart-only-exact	37	43	여당이 그 가능성을 염두에 두고 있다는 분석이 나왔다.
-regression.nominal-prefix.progressive-oblique.destination-noun	가	noun	no-match	10	13	서울로 가고 있다는 연락을 받았다.
-regression.nominal-prefix.progressive-oblique.destination-verb	가다	verb	smart-only-exact	10	16	서울로 가고 있다는 연락을 받았다.
+regression.nominal-prefix.progressive-oblique.recipient-noun	주	noun	no-match	30	33	그는 자료를 팀원에게 주고 있다는 사실을 알렸다.
+regression.nominal-prefix.progressive-oblique.recipient-verb	주다	verb	smart-only-exact	30	36	그는 자료를 팀원에게 주고 있다는 사실을 알렸다.
 regression.nominal-prefix.progressive-oblique.honorific-noun	두	noun	no-match	37	40	선생님은 그 문제를 염두에 두고 계십니다.
 regression.nominal-prefix.progressive-oblique.honorific-verb	두다	verb	smart-only-exact	37	43	선생님은 그 문제를 염두에 두고 계십니다.
 regression.nominal-prefix.progressive-oblique.copula-comma	주	noun	smart-only-exact	14	17	이곳은 한 주고, 있을 곳은 저기다.
 regression.nominal-prefix.progressive-oblique.copula-independent	주	noun	smart-only-exact	14	17	이곳은 한 주고 있을 곳은 저기다.
+regression.nominal-prefix.progressive-oblique.copula-oblique	주	noun	smart-only-exact	23	26	이곳은 지도에서 주고 있던 주민은 모두 떠났다.
 regression.nominal-prefix.progressive-oblique.desire-copula	자신	noun	smart-only-exact	18	24	나는 그저 나 자신이고 싶다.
 regression.adnominal-closed-nominal.date	날	noun	smart-only-exact	7	10	어느 날, 그가 다시 찾아왔다.
 regression.adnominal-closed-nominal.comma-relative	날다	verb	smart-only-exact	4	7	그 날, 네가 설계한 비행기를 시험장으로 옮기자.
