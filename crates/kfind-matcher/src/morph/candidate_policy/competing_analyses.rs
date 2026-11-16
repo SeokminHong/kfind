@@ -53,7 +53,7 @@ pub(super) fn rejects(
         || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
-        || nominal::has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
+        || has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
         || nominal::has_bound_nominal_prefix(haystack, candidate, branch, resolver)
         || nominal::has_adverb_instead_of_genitive(haystack, candidate, resolver)
         || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
@@ -81,6 +81,49 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_prohibitive_negation(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if branch.anchor.as_ref() != "안".as_bytes() && branch.anchor.as_ref() != "안".as_bytes()
+    {
+        return false;
+    }
+    let span = &candidate.consumed;
+    let competes = match branch.consumption {
+        CandidateConsumption::NominalParticleChain { .. } => {
+            *span == candidate.verified.core
+                && branch.origins.iter().all(|origin| {
+                    atom.analyses[usize::from(origin.analysis_index)].coarse_pos
+                        == kfind_morph::CoarsePos::Noun
+                })
+        }
+        CandidateConsumption::PredicateContinuation { .. } => {
+            *span == candidate.anchor
+                && is_boundary_after(haystack, span.end)
+                && !branch.origins.is_empty()
+                && branch.origins.iter().all(|origin| {
+                    origin
+                        .rule_path
+                        .last()
+                        .is_some_and(|rule| rule.as_str() == "ending.past-adnominal")
+                })
+        }
+        _ => false,
+    };
+    competes
+        && is_boundary_before(haystack, span.start)
+        && context::previous_word(haystack, span.start).is_some_and(|previous| {
+            previous.ends_with("서는")
+                && context::next_word_on_line(haystack, span.end).is_some_and(|(_, next)| {
+                    resolver.has_prohibitive_negation_frame(&previous, &next)
+                })
+        })
 }
 
 fn has_pronoun_object_instead_of_adnominal(
