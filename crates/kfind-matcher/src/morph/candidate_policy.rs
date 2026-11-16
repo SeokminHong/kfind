@@ -341,7 +341,7 @@ impl MorphMatcher {
         }
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                self.has_nominal_suffix_after_terminal_na(haystack, candidate, branch, resolver)
+                self.has_invalid_terminal_na_boundary(haystack, candidate, branch, resolver)
                     || self.has_adnominal_instead_of_topic(haystack, candidate, branch, resolver)
                     || competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
             })
@@ -476,7 +476,7 @@ impl MorphMatcher {
                 .is_some_and(|token| resolver.has_predicate_adnominal_surface(&token))
     }
 
-    fn has_nominal_suffix_after_terminal_na(
+    fn has_invalid_terminal_na_boundary(
         &self,
         haystack: &[u8],
         candidate: &ExecutedCandidate,
@@ -484,24 +484,31 @@ impl MorphMatcher {
         resolver: &ConstraintResolver,
     ) -> bool {
         let span = &candidate.consumed;
-        let is_terminal_na = |rule: &kfind_morph::RuleId| {
+        let all_end_in = |matches_ending: fn(&kfind_morph::RuleId) -> bool| {
+            candidate.suffix_rules.last().map_or_else(
+                || {
+                    !branch.origins.is_empty()
+                        && branch
+                            .origins
+                            .iter()
+                            .all(|origin| origin.rule_path.last().is_some_and(matches_ending))
+                },
+                matches_ending,
+            )
+        };
+        if !all_end_in(|rule| {
             matches!(
                 rule.as_str(),
                 "ending.connective-na" | "ending.interrogative-na"
             )
-        };
-        if !candidate.suffix_rules.last().map_or_else(
-            || {
-                !branch.origins.is_empty()
-                    && branch
-                        .origins
-                        .iter()
-                        .all(|origin| origin.rule_path.last().is_some_and(is_terminal_na))
-            },
-            is_terminal_na,
-        ) || !is_boundary_before(haystack, span.start)
-            || is_boundary_after(haystack, span.end)
+        }) || is_boundary_after(haystack, span.end)
         {
+            return false;
+        }
+        if all_end_in(|rule| rule.as_str() == "ending.connective-na") {
+            return true;
+        }
+        if !is_boundary_before(haystack, span.start) {
             return false;
         }
         let Ok(whole) =

@@ -225,6 +225,18 @@ regression.terminal-na.concessive	하다	verb	smart-only-exact	10	16	가능은 �
 regression.terminal-na.quotation	하다	verb	smart-only-exact	22	28	그 문장에 나온 "하나"는 동사 형태다.
 regression.terminal-na.archaic	하다	verb	smart-only-exact	14	26	제가 직접 하나이다.
 regression.terminal-na.homographic-predicate	지나다	verb	smart-only-exact	25	34	동지를 2, 3 주일만 지나도 낮시간이 굉장히 길어진 기분이다.
+regression.concessive-na.competing-connective	떨다	verb	no-match	14	23	그는 집을 떠나서 연락을 끊었다.
+regression.concessive-na.complete-connective	떠나다	verb	smart-only-exact	14	23	그는 집을 떠나서 연락을 끊었다.
+regression.concessive-na.competing-additive	떨다	verb	no-match	7	16	지금 떠나도 늦지 않다.
+regression.concessive-na.complete-concessive	떠나다	verb	smart-only-exact	7	16	지금 떠나도 늦지 않다.
+regression.concessive-na.proper-compound	가다	verb	no-match	0	15	가나안시는 먼 곳에 있다.
+regression.concessive-na.proper-compound-genitive	가다	verb	no-match	0	18	가나안인들의 장신구를 봤다.
+regression.concessive-na.rieul-stem	살다	verb	smart-only-exact	7	13	멀리 사나 서로 자주 연락한다.
+regression.concessive-na.consonant-stem	먹다	verb	smart-only-exact	0	9	먹으나 마나 차이는 없었다.
+regression.concessive-na.interrogative	가다	verb	smart-only-exact	14	20	정말 집에 가나?
+regression.concessive-na.interrogative-complement	가다	verb	smart-only-exact	7	13	지금 가나 싶었다.
+regression.concessive-na.long-concessive	살다	verb	smart-only-exact	7	16	멀리 사나마 종종 뵙겠습니다.
+regression.concessive-na.archaic-connective	전하다	verb	smart-only-exact	11	23	이 뜻을 전하나니 마음에 새겨라.
 regression.short-alternative-ending.paired	사다	verb	exact	7	13	네가 사건 말건 상관없다.
 regression.short-alternative-ending.nominal	사다	verb	no-match	4	10	이 사건은 따로 조사한다.
 regression.short-alternative-ending.other-nominal	물다	verb	no-match	4	10	그 물건을 내놓았다.
