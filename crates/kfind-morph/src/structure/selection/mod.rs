@@ -1036,11 +1036,15 @@ pub(in crate::structure) fn select_structure(
         }
     } else {
         let graph_nominal_host = evidence.complete_nominal_particle_host.clone().or_else(|| {
-            (evidence.has_whole(DataFinePos::Nnp)
-                && !evidence.units.all().iter().any(|unit| {
-                    unit.evidence == StructuralEvidence::Whole && unit.pos != DataFinePos::Nnp
-                }))
-            .then_some(0..context.current.len())
+            let mut whole_positions = evidence
+                .units
+                .starting_at(0)
+                .iter()
+                .filter(|unit| unit.evidence == StructuralEvidence::Whole)
+                .map(|unit| unit.pos);
+            let nominal = |pos| matches!(pos, DataFinePos::Nng | DataFinePos::Nnp);
+            (whole_positions.next().is_some_and(nominal) && whole_positions.all(nominal))
+                .then_some(0..context.current.len())
         });
         StructureSelection::RuntimeCompatible { graph_nominal_host }
     };
