@@ -10,7 +10,8 @@ use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram, Morphology};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
-    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+    bounded_surrounding_token_span, is_boundary_after, is_boundary_before, is_sentence_end_after,
+    surrounding_token_span,
 };
 
 use super::super::{
@@ -53,6 +54,7 @@ pub(super) fn rejects(
         || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
         || has_topic_instead_of_propositive_adnominal(haystack, candidate, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
+        || has_purpose_motion_frame(haystack, candidate, branch, atom, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
         || has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
         || nominal::has_bound_nominal_prefix(haystack, candidate, branch, resolver)
@@ -83,6 +85,52 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_purpose_motion_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: PredicatePos::Verb,
+            ..
+        } | CandidateConsumption::StructuralPredicateEnding {
+            pos: PredicatePos::Verb,
+            ..
+        }
+    ) || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            // KRDict 갈다 (59937, 62334) takes a replaced or ground object.
+            atom.analyses[usize::from(origin.analysis_index)]
+                .lemma
+                .as_ref()
+                == "갈다"
+        })
+    {
+        return false;
+    }
+    let span = &candidate.consumed;
+    if !is_boundary_before(haystack, span.start)
+        || !context::previous_word_with_start(haystack, span.start).is_some_and(|(start, word)| {
+            !haystack[start..span.start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                && resolver.has_purpose_connective_host(&word)
+        })
+    {
+        return false;
+    }
+    bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES).is_ok_and(
+        |word| {
+            context::normalized_token(haystack, word)
+                .is_some_and(|text| ConstraintResolver::has_motion_go_inflection(&text))
+        },
+    )
 }
 
 fn has_prohibitive_negation(

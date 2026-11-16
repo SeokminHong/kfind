@@ -125,6 +125,34 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
         .any(|form| matches_predicate_branch(text, form))
 }
 
+fn purpose_host_alternations() -> &'static [(LexicalAlternation, crate::SurfaceBranchSpec)] {
+    static FORMS: std::sync::OnceLock<Vec<(LexicalAlternation, crate::SurfaceBranchSpec)>> =
+        std::sync::OnceLock::new();
+    FORMS.get_or_init(|| {
+        let (records, _) = kfind_data::parse_predicates_tsv(
+            "data/lexicon/predicates.tsv",
+            include_str!("../../../../data/lexicon/predicates.tsv"),
+        )
+        .expect("valid embedded predicate lexicon");
+        records
+            .iter()
+            .filter_map(crate::PredicateEntry::from_lexicon_record)
+            .filter(|entry| {
+                matches!(
+                    entry.alternation,
+                    LexicalAlternation::DToL | LexicalAlternation::DropS | LexicalAlternation::Reo
+                )
+            })
+            .flat_map(|entry| {
+                crate::generate_predicate_branches(&entry)
+                    .expect("valid dictionary alternation")
+                    .into_iter()
+                    .map(move |form| (entry.alternation, form))
+            })
+            .collect()
+    })
+}
+
 fn go_auxiliary_inflections() -> &'static [crate::SurfaceBranchSpec] {
     static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
     FORMS.get_or_init(|| {
@@ -826,6 +854,69 @@ impl ConstraintResolver {
             },
             |last| last == StructuralPos::EC,
         )
+    }
+
+    #[must_use]
+    pub fn has_purpose_connective_host(&self, text: &str) -> bool {
+        let Some(stem) = text.strip_suffix('러') else {
+            return false;
+        };
+        let bare_stem = |stem: &str| has_exact_sequence(&self.resource, stem, &[StructuralPos::VV]);
+        let with_eu = stem.strip_suffix('으').is_some_and(|base| {
+            base.chars()
+                .next_back()
+                .is_some_and(|last| crate::has_final(last) && !crate::has_rieul_final(last))
+                && bare_stem(base)
+        });
+        let last = stem.chars().next_back();
+        let without_eu = last
+            .is_some_and(|last| !crate::has_final(last) || crate::has_rieul_final(last))
+            && bare_stem(stem);
+        // The vowel connective can also surface in this position, as in 눌러 and 이르러.
+        let vowel_connective_possible = last.is_some_and(crate::has_rieul_final)
+            && self.has_vowel_connective_host(text)
+            || last == Some('르')
+                && purpose_host_alternations()
+                    .iter()
+                    .any(|(alternation, form)| {
+                        *alternation == LexicalAlternation::Reo
+                            && form.anchor.as_ref() == text
+                            && form
+                                .rule_path
+                                .iter()
+                                .any(|rule| rule.as_str() == "lexical.reo")
+                    });
+        (with_eu
+            || without_eu
+            || stem.ends_with('으')
+                && purpose_host_alternations()
+                    .iter()
+                    .any(|(alternation, form)| {
+                        *alternation != LexicalAlternation::Reo
+                            && matches_predicate_branch_with_ending(text, form, |rule| {
+                                rule.is_some_and(|rule| rule.as_str() == "ending.purpose-reo")
+                            })
+                    })
+            || derived_inflected_path(
+                &self.resource,
+                text,
+                |pos| pos == StructuralPos::XSV,
+                |pos| pos == StructuralPos::EC,
+            ))
+            && !vowel_connective_possible
+            && !self.has_exact_nominal_surface(text)
+    }
+
+    #[must_use]
+    pub fn has_motion_go_inflection(text: &str) -> bool {
+        static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::OnceLock::new();
+        let forms = FORMS.get_or_init(|| {
+            let entry =
+                crate::PredicateEntry::new("가다", PredicatePos::Verb, LexicalAlternation::Regular);
+            crate::generate_predicate_branches(&entry).expect("valid motion predicate")
+        });
+        matches_predicate_inflection(text, forms)
     }
 
     #[must_use]
