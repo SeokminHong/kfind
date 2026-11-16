@@ -2,6 +2,7 @@ use std::ops::Range;
 
 use kfind_morph::{CoarsePos, FinePos, ParticleVerifier};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateDecision, CandidateProgram};
+use unicode_general_category::{GeneralCategory, get_general_category};
 
 use crate::boundary::{is_boundary_after, is_token_character, previous_character};
 
@@ -17,16 +18,17 @@ pub(super) fn rejects(
     let Some(close) = previous_character(haystack, span.start) else {
         return false;
     };
-    let (open, supplement) = match close {
-        ')' => ('(', true),
-        ']' => ('[', true),
-        '〉' => ('〈', false),
-        '》' => ('《', false),
-        '」' => ('「', false),
-        '』' => ('『', false),
-        '”' => ('“', false),
-        '’' => ('‘', false),
-        '\'' | '"' | '`' => (close, false),
+    let enclosure = match close {
+        ')' => Some(('(', true)),
+        ']' => Some(('[', true)),
+        '〉' => Some(('〈', false)),
+        '》' => Some(('《', false)),
+        '」' => Some(('「', false)),
+        '』' => Some(('『', false)),
+        '”' => Some(('“', false)),
+        '’' => Some(('‘', false)),
+        '\'' | '"' | '`' => Some((close, false)),
+        '%' | '％' => None,
         _ => return false,
     };
     if !is_boundary_after(haystack, span.end)
@@ -51,6 +53,11 @@ pub(super) fn rejects(
     }
     let Some(suffix) = context::normalized_token(haystack, span.clone()) else {
         return false;
+    };
+    let Some((open, supplement)) = enclosure else {
+        return previous_character(haystack, span.start - close.len_utf8()).is_some_and(
+            |character| get_general_category(character) == GeneralCategory::DecimalNumber,
+        ) && particles.verify_exact("퍼센트", &suffix).is_some();
     };
     let backtick = close == '`';
     let quotative = !supplement && !backtick && suffix == "고";

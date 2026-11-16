@@ -21,7 +21,7 @@ use super::{
 };
 
 mod competing_analyses;
-mod enclosed_particle;
+mod punctuated_particle;
 
 const ADNOMINAL_BOUND_HEADS: &[&str] =
     include!("../../../../data/rules/krdict-adnominal-bound-heads.rs");
@@ -37,7 +37,7 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
-            && enclosed_particle::rejects(
+            && punctuated_particle::rejects(
                 haystack,
                 &candidate.consumed,
                 branch,
