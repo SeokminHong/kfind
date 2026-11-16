@@ -1221,6 +1221,22 @@ impl MorphMatcher {
             ) {
                 return false;
             }
+            if candidate.consumed.start == whole.start
+                && matches!(haystack.get(candidate.consumed.end..whole.end),
+                    Some(tail) if tail == "게".as_bytes() || tail == "게".as_bytes())
+                && !branch.origins.is_empty()
+                && branch.origins.iter().all(|origin| {
+                    candidate
+                        .suffix_rules
+                        .last()
+                        .or_else(|| origin.rule_path.last())
+                        .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
+                })
+                && context::normalized_token(haystack, whole.clone())
+                    .is_some_and(|token| resolver.has_complete_connective_path(&token))
+            {
+                return false;
+            }
         }
         let (licensed_trailing, attached_auxiliary) =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);

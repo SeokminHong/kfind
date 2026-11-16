@@ -314,6 +314,11 @@ include!("../../../../data/rules/stdict-attested-nominal-suffix-usages.rs");
 include!("../../../../data/rules/stdict-bound-si-hosts.rs");
 
 impl ConstraintResolver {
+    #[must_use]
+    pub fn has_complete_connective_path(&self, text: &str) -> bool {
+        complete_connective_path(&self.resource, text)
+    }
+
     /// Verifies the predicate heads in the prohibition construction `-어서는 안 되다`.
     #[must_use]
     pub fn has_prohibitive_negation_frame(&self, previous: &str, next: &str) -> bool {
@@ -324,7 +329,7 @@ impl ConstraintResolver {
             return false;
         };
         let connective = &previous[..stem.len() + '서'.len_utf8()];
-        if !complete_connective_path(&self.resource, connective) {
+        if !self.has_complete_connective_path(connective) {
             return false;
         }
         static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
