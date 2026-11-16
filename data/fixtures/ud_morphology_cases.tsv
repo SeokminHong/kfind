@@ -1779,6 +1779,17 @@ regression.ni-token.respectful-connective	가다	verb	smart-only-exact	7	16	먼�
 regression.ni-token.respectful-long-connective	가다	verb	smart-only-exact	14	26	제가 먼저 가오니까 기다리시오.
 regression.ni-token.respectful-condition	가다	verb	smart-only-exact	7	16	미리 가오면 연락하시오.
 regression.ni-token.archaic-adjective	않다	adjective	smart-only-exact	14	26	길이 멀지 않으니라.
+regression.quotative-nyamyeo.negative-copula	아니다	adjective	smart-only-exact	17	29	그는 사실이 아니냐며 따져 물었다.
+regression.quotative-nyamyeo.explicit-copula	이다	adjective	smart-only-exact	26	35	말하는 사람이 학생이냐며 따져 물었다.
+regression.quotative-nyamyeo.vowel-verb	가다	verb	smart-only-exact	10	19	기차로 가냐며 동생이 물었다.
+regression.quotative-nyamyeo.closed-verb	먹다	verb	smart-only-exact	17	29	아이가 밥을 먹느냐며 이모가 물었다.
+regression.quotative-nyamyeo.closed-adjective	많다	adjective	smart-only-exact	7	19	일이 많으냐며 걱정하셨다.
+regression.quotative-nyamyeo.past	늦다	adjective	smart-only-exact	4	16	왜 늦었냐며 친구가 날 혼냈다.
+regression.quotative-nyamyeo.honorific	읽다	verb	smart-only-exact	30	45	학생이 선생님께 책을 읽으셨냐며 말을 꺼냈다.
+regression.quotative-nyamyeo.future	오다	verb	smart-only-exact	10	25	나중에 오겠느냐며 일정을 물었다.
+regression.quotative-nyamyeo.closed-verb-long	먹다	verb	smart-only-exact	17	32	아이가 무얼 먹느냐면서 접시를 보았다.
+regression.quotative-nyamyeo.closed-adjective-long	많다	adjective	smart-only-exact	7	22	일이 많으냐면서 일정을 살폈다.
+regression.quotative-nyamyeo.vowel-verb-long	가다	verb	smart-only-exact	13	25	자동차로 가냐면서 열쇠를 꺼냈다.
 regression.interrogative-gam.irregular	덥다	adjective	smart-exact	27	36	무슨 날씨가 이리도 더운감.
 regression.interrogative-gam.consonant	넓다	adjective	smart-exact	17	26	방이 얼마나 넓은감.
 regression.interrogative-gam.future	가다	verb	smart-exact	55	67	어릴 때부터 천재 소리 듣던 사람이 어디 가겠는감?

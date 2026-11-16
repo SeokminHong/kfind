@@ -1727,6 +1727,8 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
                 reference_suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
                 reference_suffix(concat!($surface, "느니"), &[$($prior,)* "ending.quotative-nyaneuni"]),
+                reference_suffix(concat!($surface, "며"), &[$($prior,)* "ending.quotative-nyamyeo"]),
+                reference_suffix(concat!($surface, "면서"), &[$($prior,)* "ending.quotative-nyamyeo"]),
             ]
         };
     }
@@ -1801,6 +1803,8 @@ fn reference_simple_continuation(
         reference_suffix("고", &["ending.quotative-go"]),
         reference_suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
         reference_suffix("느니", &["ending.quotative-nyaneuni"]),
+        reference_suffix("며", &["ending.quotative-nyamyeo"]),
+        reference_suffix("면서", &["ending.quotative-nyamyeo"]),
     ];
 
     macro_rules! nieun_extensions {
@@ -3727,6 +3731,7 @@ fn reference_simple_continuation(
                             | "ending.humble-euwa"
                             | "ending.archaic-honorific-sa"
                             | "ending.quotative-nyaneuni"
+                            | "ending.quotative-nyamyeo"
                             | "ending.quotative-daneuni"
                             | "ending.quotative-janeuni"
                             | "ending.archaic-interrogative-nyo"
