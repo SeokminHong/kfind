@@ -16,9 +16,9 @@ pub(in crate::structure) fn runtime_position_is_supported(
         pattern.fine_pos,
         DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm | DataFinePos::Mag
     );
-    let modifier_without_nominal_tail = pattern.fine_pos == DataFinePos::Mm
+    let unsupported_modifier = pattern.fine_pos == DataFinePos::Mm
         && spans.core != spans.token
-        && !has_complete_nominal_tail(&spans.core, &spans.token, evidence);
+        && !has_preferred_modifier_tail(&spans.core, &spans.token, evidence);
     let modifier_inside_longer_analysis = pattern.fine_pos == DataFinePos::Mm
         && starts_token
         && spans.core.end < spans.token.end
@@ -153,7 +153,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
         );
 
     (!leading_only || starts_token)
-        && !modifier_without_nominal_tail
+        && !unsupported_modifier
         && !modifier_inside_longer_analysis
         && !pronoun_inside_predicate
         && !trailing_predicate_subspan
@@ -176,17 +176,76 @@ pub(super) fn has_complete_nominal_tail(
     if core.start != token.start || core.end >= token.end {
         return false;
     }
+    let span = core.end..token.end;
+    let tails = nominal_tail_costs::<false>(&span, evidence);
+    first_nominal_tail_cost::<false>(&span, &tails, evidence).is_some()
+}
+
+fn has_preferred_modifier_tail(
+    core: &Range<usize>,
+    token: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    if core.start != token.start || core.end >= token.end {
+        return false;
+    }
+    let span = core.end..token.end;
+    let tails = nominal_tail_costs::<true>(&span, evidence);
+    let Some(modifier_tail) = first_nominal_tail_cost::<true>(&span, &tails, evidence) else {
+        return false;
+    };
+    !evidence.units.starting_at(token.start).iter().any(|unit| {
+        unit.aligned_pos
+            && unit.pos.is_nominal()
+            && unit.span.end > core.end
+            && unit.span.end <= token.end
+            && tails[unit.span.end - core.end]
+                .is_some_and(|nominal_tail| nominal_tail < modifier_tail)
+    })
+}
+
+fn first_nominal_tail_cost<const ALIGNED: bool>(
+    span: &Range<usize>,
+    tails: &[Option<usize>],
+    evidence: &TokenEvidence,
+) -> Option<usize> {
     evidence
         .units
-        .all()
+        .starting_at(span.start)
         .iter()
-        .map(|unit| unit.span.end)
-        .filter(|&host_end| host_end > core.end && host_end <= token.end)
-        .any(|host_end| {
-            minimum_unit_path(&(core.end..host_end), evidence, DataFinePos::is_nominal).is_some()
-                && minimum_unit_path(&(host_end..token.end), evidence, DataFinePos::is_particle)
-                    .is_some()
+        .filter(|unit| {
+            (!ALIGNED || unit.aligned_pos) && unit.pos.is_nominal() && unit.span.end <= span.end
         })
+        .filter_map(|unit| tails[unit.span.end - span.start].map(|count| count + 1))
+        .min()
+}
+
+fn nominal_tail_costs<const ALIGNED: bool>(
+    span: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> Vec<Option<usize>> {
+    // A zero-cost suffix contains only particles, so another particle can precede it.
+    let mut tails = vec![None; span.len() + 1];
+    tails[span.len()] = Some(0);
+    for offset in (1..span.len()).rev() {
+        tails[offset] = evidence
+            .units
+            .starting_at(span.start + offset)
+            .iter()
+            .filter(|unit| (!ALIGNED || unit.aligned_pos) && unit.span.end <= span.end)
+            .filter_map(|unit| {
+                let count = tails[unit.span.end - span.start]?;
+                if unit.pos.is_nominal() {
+                    Some(count + 1)
+                } else if unit.pos.is_particle() && count == 0 {
+                    Some(0)
+                } else {
+                    None
+                }
+            })
+            .min();
+    }
+    tails
 }
 
 pub(in crate::structure) fn attached_auxiliary_is_supported(

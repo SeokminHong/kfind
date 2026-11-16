@@ -246,6 +246,7 @@ impl TokenEvidence {
                         StructuralEvidence::RuntimeComponent
                     },
                     from_whole_nominal: false,
+                    aligned_pos: positions.len() == 1,
                 });
             }
             for component in components {
@@ -279,6 +280,7 @@ impl TokenEvidence {
                     pos,
                     evidence: StructuralEvidence::SourceComponent,
                     from_whole_nominal,
+                    aligned_pos: true,
                 });
             }
         }
@@ -302,6 +304,7 @@ impl TokenEvidence {
                             StructuralEvidence::RuntimeComponent
                         },
                         from_whole_nominal: false,
+                        aligned_pos: graph.positions(edge) == [StructuralPos::NNBC],
                     });
                 }
                 for component in graph.components(edge).filter(|part| {
@@ -315,6 +318,7 @@ impl TokenEvidence {
                         pos: DataFinePos::Nnb,
                         evidence: StructuralEvidence::SourceComponent,
                         from_whole_nominal: false,
+                        aligned_pos: true,
                     });
                 }
             }
@@ -341,7 +345,6 @@ impl TokenEvidence {
                 unit.span.end,
                 unit.pos,
                 unit.evidence as u8,
-                !unit.from_whole_nominal,
             )
         });
         units.dedup_by(|current, previous| {
@@ -349,9 +352,8 @@ impl TokenEvidence {
                 && current.pos == previous.pos
                 && current.evidence == previous.evidence;
             if same_unit {
-                let from_whole_nominal = current.from_whole_nominal || previous.from_whole_nominal;
-                current.from_whole_nominal = from_whole_nominal;
-                previous.from_whole_nominal = from_whole_nominal;
+                previous.from_whole_nominal |= current.from_whole_nominal;
+                previous.aligned_pos |= current.aligned_pos;
             }
             same_unit
         });

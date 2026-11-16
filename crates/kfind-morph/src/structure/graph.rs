@@ -11,6 +11,7 @@ pub(super) struct Unit {
     pub(super) pos: DataFinePos,
     pub(super) evidence: StructuralEvidence,
     pub(super) from_whole_nominal: bool,
+    pub(super) aligned_pos: bool,
 }
 
 #[derive(Debug)]

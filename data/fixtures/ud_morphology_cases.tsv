@@ -2097,6 +2097,15 @@ regression.modifier.attached-auxiliary.auxiliary	내다	verb	smart-only-exact	30
 regression.modifier.attached-auxiliary.passive-pronoun	이	pronoun	no-match	10	13	재배가 이뤄졌다.
 regression.modifier.attached-auxiliary.pronoun	이	pronoun	smart-only-exact	0	6	이로 인해 일정이 바뀌었다.
 regression.modifier.attached-auxiliary.quantity	일	determiner	smart-only-exact	0	3	일 년 동안 문제를 일으켜놓고 나갔다.
+regression.modifier.nominal-tail.compound	전	determiner	no-match	13	16	이사회는 전체회의를 열었다.
+regression.modifier.nominal-tail.particle	전	determiner	no-match	0	3	전쟁영화를 봤다.
+regression.modifier.nominal-tail.stacked-particles	이	determiner	smart-only-exact	0	3	이 책은 이론상으로는 가능한 예를 다룬다.
+regression.modifier.nominal-tail.noun	전쟁	noun	smart-only-exact	0	6	전쟁영화를 봤다.
+regression.modifier.nominal-tail.bare	전	determiner	no-match	0	3	전쟁영화.
+regression.modifier.nominal-tail.spaced	전	determiner	smart-only-exact	0	3	전 과정을 기록했다.
+regression.modifier.nominal-tail.attached	전	determiner	smart-only-exact	0	3	전과정을 기록했다.
+regression.modifier.nominal-tail.attached-ordinal	두	determiner	smart-only-exact	0	3	두번째 장면을 보았다.
+regression.modifier.nominal-tail.spaced-frequency	한	determiner	smart-only-exact	14	17	차를 사면 한 번쯤 가 볼 곳이다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.

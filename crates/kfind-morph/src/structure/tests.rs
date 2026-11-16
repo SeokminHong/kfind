@@ -399,6 +399,7 @@ fn arbitrary_unit_graph() -> impl Strategy<Value = (usize, Vec<Unit>, Range<usiz
                             StructuralEvidence::RuntimeComponent
                         },
                         from_whole_nominal: false,
+                        aligned_pos: true,
                     })
                     .collect::<Vec<_>>();
                 units.sort_unstable_by_key(|unit| {
