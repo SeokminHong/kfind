@@ -173,6 +173,7 @@ pub(in crate::structure) fn attached_auxiliary_spans(
     graph: &EdgeGraph<'_>,
     predicate_boundaries: &[PredicateBoundary],
     ending_suffix: &[bool],
+    has_complete_path: bool,
 ) -> Box<[Range<usize>]> {
     let edges = graph.edges();
 
@@ -196,7 +197,7 @@ pub(in crate::structure) fn attached_auxiliary_spans(
             })
             .map(|edge| edge.span.clone()),
     );
-    if has_complete_attached_auxiliary_path(text_len, graph) {
+    if has_complete_path {
         spans.push(0..text_len);
     }
     spans.sort_unstable_by_key(|span| (span.start, span.end));
@@ -237,9 +238,17 @@ pub(in crate::structure) fn has_attached_auxiliary_path_ending_in(
     graph: &EdgeGraph<'_>,
     accepts_ending: impl Fn(StructuralPos) -> bool,
 ) -> bool {
+    attached_auxiliary_head_end(text_len, graph, accepts_ending).is_some()
+}
+
+pub(in crate::structure) fn attached_auxiliary_head_end(
+    text_len: usize,
+    graph: &EdgeGraph<'_>,
+    accepts_ending: impl Fn(StructuralPos) -> bool,
+) -> Option<usize> {
     let mut reachable = vec![[false; ATTACHED_AUXILIARY_STATE_COUNT]; text_len + 1];
-    reachable[0][AttachedAuxiliaryState::Start as usize] = true;
-    for start in 0..text_len {
+    reachable[text_len][AttachedAuxiliaryState::AuxiliaryEnding as usize] = true;
+    for start in (1..text_len).rev() {
         for edge in graph.starting_at(start) {
             let positions = graph.positions(edge);
             if edge.span.end == text_len && !positions.last().copied().is_some_and(&accepts_ending)
@@ -247,16 +256,23 @@ pub(in crate::structure) fn has_attached_auxiliary_path_ending_in(
                 continue;
             }
             for state in ATTACHED_AUXILIARY_STATES {
-                if !reachable[start][state as usize] {
-                    continue;
-                }
                 if let Some(next) = advance_attached_auxiliary_path(state, positions) {
-                    reachable[edge.span.end][next as usize] = true;
+                    reachable[start][state as usize] |= reachable[edge.span.end][next as usize];
                 }
             }
         }
     }
-    reachable[text_len][AttachedAuxiliaryState::AuxiliaryEnding as usize]
+    graph
+        .starting_at(0)
+        .iter()
+        .filter(|edge| {
+            let positions = graph.positions(edge);
+            (edge.span.end < text_len || positions.last().copied().is_some_and(&accepts_ending))
+                && advance_attached_auxiliary_path(AttachedAuxiliaryState::Start, positions)
+                    .is_some_and(|state| reachable[edge.span.end][state as usize])
+        })
+        .map(|edge| edge.span.end)
+        .max()
 }
 
 fn advance_attached_auxiliary_path(
@@ -326,6 +342,7 @@ pub(in crate::structure) fn is_attached_auxiliary_whole_path(positions: &[Struct
 pub(in crate::structure) fn leading_predicate_spans(
     graph: &EdgeGraph<'_>,
     ending_suffix: &[bool],
+    attached_auxiliary_head: Option<usize>,
 ) -> Box<[Range<usize>]> {
     let mut spans = graph
         .edges()
@@ -338,6 +355,7 @@ pub(in crate::structure) fn leading_predicate_spans(
                 && ending_suffix[edge.span.end])
                 .then(|| edge.span.clone())
         })
+        .chain(attached_auxiliary_head.map(|end| 0..end))
         .collect::<Vec<_>>();
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();

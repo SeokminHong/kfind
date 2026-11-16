@@ -6,8 +6,8 @@ use crate::structure::paths::nominal::{
 };
 use crate::structure::paths::numeral::{hangul_numeral_spans, numeral_sequence_spans};
 use crate::structure::paths::predicate::{
-    PredicateComponent, attached_auxiliary_spans, compound_predicate_components,
-    leading_predicate_spans,
+    PredicateComponent, attached_auxiliary_head_end, attached_auxiliary_spans,
+    compound_predicate_components, leading_predicate_spans,
 };
 use crate::structure::paths::{
     CommonPathFacts, complete_edges, forward_positions, forward_positions_with_prefix,
@@ -143,7 +143,25 @@ impl TokenEvidence {
         );
         let complete = complete_edges(text.len(), &graph, &forward);
         let has_complete_path = forward[text.len()];
-        let leading_predicate_spans = leading_predicate_spans(&graph, &path_facts.ending_suffix);
+        let has_modifier_prefix = graph
+            .starting_at(0)
+            .iter()
+            .any(|edge| edge.span.end < text.len() && graph.positions(edge) == [StructuralPos::MM]);
+        let attached_head = if include_attached_auxiliary
+            || (has_modifier_prefix
+                && edges
+                    .iter()
+                    .any(|edge| graph.positions(edge).contains(&StructuralPos::VX)))
+        {
+            attached_auxiliary_head_end(text.len(), &graph, StructuralPos::is_ending)
+        } else {
+            None
+        };
+        let leading_predicate_spans = leading_predicate_spans(
+            &graph,
+            &path_facts.ending_suffix,
+            attached_head.filter(|_| has_modifier_prefix),
+        );
         let compound_predicate_components =
             compound_predicate_components(text.len(), &graph, &path_facts.predicate_boundaries);
         let runtime_nominal_derivation_spans =
@@ -162,6 +180,7 @@ impl TokenEvidence {
                 &graph,
                 &path_facts.predicate_boundaries,
                 &path_facts.ending_suffix,
+                attached_head.is_some(),
             )
         } else {
             Box::default()
