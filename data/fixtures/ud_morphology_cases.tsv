@@ -2829,3 +2829,11 @@ regression.fused-copula-boundary.productive-date-noun	일	noun	smart-only-exact	
 regression.fused-copula-boundary.calendar-day	일	noun	smart-only-exact	7	10	11월 1일 열린다.
 regression.fused-copula-boundary.work-noun	일	noun	smart-only-exact	7	10	맡은 일이라면 끝까지 하자.
 regression.fused-copula-boundary.work-copula	이다	adjective	smart-only-exact	10	19	맡은 일이라면 끝까지 하자.
+regression.aligned-nominal-tail.calendar-day	일	noun	smart-only-exact	17	20	연극은 6월 10일 토요일에 상연된다.
+regression.aligned-nominal-tail.weekday-component	요일	noun	smart-only-exact	24	33	연극은 6월 10일 토요일에 상연된다.
+regression.aligned-nominal-tail.weekday-extra	일	noun	no-match	6	12	토요일에 문을 연다.
+regression.aligned-nominal-tail.sunday-first	일	noun	smart-only-exact	0	3	일요일에 만나자.
+regression.aligned-nominal-tail.fruit-extra	일	noun	no-match	16	19	신선한 생과일 주스를 샀다.
+regression.aligned-nominal-tail.fruit-component	과일	noun	smart-only-exact	13	19	신선한 생과일 주스를 샀다.
+regression.aligned-nominal-tail.office-extra	정	noun	no-match	13	22	그는 좌의정까지 올랐다.
+regression.aligned-nominal-tail.office-component	의정	noun	smart-only-exact	10	22	그는 좌의정까지 올랐다.

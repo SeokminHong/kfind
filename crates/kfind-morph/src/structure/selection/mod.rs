@@ -116,6 +116,18 @@ impl StructureSelection {
             return false;
         };
         if support.evidence == StructuralEvidence::RuntimeComponent
+            && matches!(
+                pattern.fine_pos,
+                DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+            )
+            && spans.core.start > spans.token.start
+            && spans.consumed.end == spans.token.end
+            && evidence.has_longer_aligned_nominal_tail(&spans.core)
+            && !evidence.has_nominal_source_component(&spans.core)
+        {
+            return false;
+        }
+        if support.evidence == StructuralEvidence::RuntimeComponent
             && is_predicate_nominalization(pattern)
             && spans.consumed.end < spans.token.end
             && (evidence
