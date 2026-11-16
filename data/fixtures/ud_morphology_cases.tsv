@@ -491,6 +491,14 @@ regression.adnominal-bound-head.dependent-noun-case	것	noun	smart-only-exact	17
 regression.adnominal-bound-head.topic-before-quote	입	noun	smart-only-exact	0	6	입은 ‘것’과 발음이 다르다.
 regression.adnominal-bound-head.copula-topic	노	noun	no-match	10	16	그때는 노는 것이었다.
 regression.adnominal-bound-head.copula-verb	놀다	verb	smart-only-exact	10	16	그때는 노는 것이었다.
+regression.adnominal-bound-head.elapsed-topic	가	noun	no-match	30	36	제일 가까운 병원까지 가는 데 걸리는 시간 좀 알려줘
+regression.adnominal-bound-head.elapsed-verb	가다	verb	smart-only-exact	30	36	제일 가까운 병원까지 가는 데 걸리는 시간 좀 알려줘
+regression.adnominal-bound-head.elapsed-locative-topic	가	noun	no-match	16	22	연습실까지 가는 데에 시간이 걸렸다.
+regression.adnominal-bound-head.elapsed-locative	데	noun	smart-only-exact	23	29	연습실까지 가는 데에 시간이 걸렸다.
+regression.adnominal-bound-head.elapsed-other-topic	노	noun	no-match	13	19	아이들이 노는 데 걸린 시간을 쟀다.
+regression.adnominal-bound-head.elapsed-other-verb	놀다	verb	smart-only-exact	13	19	아이들이 노는 데 걸린 시간을 쟀다.
+regression.adnominal-bound-head.recipient-name	가	noun	smart-only-exact	0	6	가는 데에게 편지를 보냈다.
+regression.adnominal-bound-head.subject-name	가	noun	smart-only-exact	7	13	둑의 가는 데가 칠했다.
 regression.pronoun-object.negative-auxiliary	나	pronoun	smart-only-exact	13	16	아버지는 날 좋아하지 않아.
 regression.pronoun-object.not-happen	나다	verb	no-match	13	16	아버지는 날 좋아하지 않아.
 regression.pronoun-object.not-fly	날다	verb	no-match	13	16	아버지는 날 좋아하지 않아.
