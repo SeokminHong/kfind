@@ -2791,6 +2791,13 @@ regression.bound-prefix.jeong-square-final	형	noun	smart-only-exact	13	19	큰 �
 regression.bound-prefix.jeong-affection	정	noun	smart-only-exact	27	33	오랫동안 함께 일해 정이 들었다.
 regression.bound-prefix.jeong-additive	정	noun	smart-only-exact	17	23	자주 만나면 정도 든다.
 regression.bound-prefix.jeong-focused-homograph	정	noun	smart-only-exact	17	23	돌을 다듬는 정을 골랐다.
+regression.bound-prefix.gun-sweet-potato	군	noun	no-match	40	55	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
+regression.bound-prefix.gun-sweet-potato-whole	군고구마	noun	smart-only-exact	40	55	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
+regression.bound-prefix.gun-chestnut	군	noun	no-match	7	13	이건 군밤이다.
+regression.bound-prefix.gun-dumpling	군	noun	no-match	0	15	군만두부터 먹었다.
+regression.bound-prefix.gun-drool	군	noun	no-match	0	9	군침이 돈다.
+regression.bound-prefix.gun-army	군	noun	smart-only-exact	0	6	군이 나섰다.
+regression.bound-prefix.gun-army-compound	군	noun	smart-only-exact	0	3	군부대 앞을 지나갔다.
 regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.
