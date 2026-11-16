@@ -203,7 +203,7 @@ impl StructureSelection {
         if support.evidence == StructuralEvidence::RuntimeComponent
             && matches!(
                 pattern.fine_pos,
-                DataFinePos::Vv | DataFinePos::Va | DataFinePos::Vx
+                DataFinePos::Vv | DataFinePos::Va | DataFinePos::Vx | DataFinePos::Vcn
             )
             && spans.consumed != spans.token
             && evidence
@@ -253,8 +253,10 @@ impl StructureSelection {
             self,
             Self::NominalSpan { selected, .. } if selected.end == spans.core.start
         ) && !evidence.has_whole_predicate();
-        if !matches!(self, Self::NominalWhole)
-            && !selected_nominal_particle_tail
+        if !matches!(
+            self,
+            Self::NominalWhole | Self::AdnominalDerivation { .. } | Self::NumeralSequence { .. }
+        ) && !selected_nominal_particle_tail
             && compound_predicate
         {
             return true;
