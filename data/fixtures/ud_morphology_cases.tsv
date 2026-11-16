@@ -2052,6 +2052,19 @@ regression.particle.enclosed.quotative-adjacent-predicate	오다	verb	smart-only
 regression.particle.enclosed.quotative-adjacent-nominal-particle	과	noun	no-match	21	24	그는 제목"기관"과 주제를 비교했다.
 regression.particle.enclosed.quotative-unpaired	고	noun	smart-only-exact	16	19	문자 목록: "고, 나, 다.
 regression.particle.enclosed.quotative-unpaired-after-pair	고	noun	smart-only-exact	31	34	제목은 "명단", 본문은 "고, 안, 최 씨가 왔다.
+regression.particle.enclosed.backtick-source-determiner	이	determiner	no-match	133	136	"계량경제학자와 화가 가운데 어떤 직함에 더 욕심이 가느냐"는 우문(愚问)에 기가 막힌 `현답(贤答)`이 돌아왔다.
+regression.particle.enclosed.backtick-source-pronoun	이	pronoun	no-match	133	136	"계량경제학자와 화가 가운데 어떤 직함에 더 욕심이 가느냐"는 우문(愚问)에 기가 막힌 `현답(贤答)`이 돌아왔다.
+regression.particle.enclosed.backtick-source-heading	현답	noun	smart-only-exact	118	124	"계량경제학자와 화가 가운데 어떤 직함에 더 욕심이 가느냐"는 우문(愚问)에 기가 막힌 `현답(贤答)`이 돌아왔다.
+regression.particle.enclosed.backtick-quoted-determiner	이	determiner	smart-only-exact	1	4	`이 설명`을 읽었다.
+regression.particle.enclosed.backtick-matching-runs	이	determiner	no-match	17	20	``이름`모음``이 표시됐다.
+regression.particle.enclosed.backtick-padded-runs	이	determiner	no-match	12	15	`` 이름 ``이 표시됐다.
+regression.particle.enclosed.backtick-reopened	이	determiner	no-match	31	34	`첫 범주`와 `둘째 이름`이 표시됐다.
+regression.particle.enclosed.backtick-unclosed-reopened	이	determiner	smart-only-exact	23	26	`이름` 목록에서 `이 설명을 복사했다.
+regression.particle.enclosed.backtick-mismatched-runs	이	determiner	smart-only-exact	9	12	`이름``이 설명서의 표지에 있다.
+regression.particle.enclosed.backtick-escaped-opening	이	determiner	smart-only-exact	27	30	문자 \`는 표시이고 `이 설명을 읽었다.
+regression.particle.enclosed.backtick-spaced-determiner	이	determiner	smart-only-exact	9	12	`이름` 이 설명서를 읽었다.
+regression.particle.enclosed.backtick-allomorph	이	determiner	smart-only-exact	8	11	`학교`이 문장을 예문으로 골랐다.
+regression.particle.enclosed.backtick-attached-chain	과	noun	no-match	8	14	`기관`과의 협상을 시작했다.
 regression.predicate-terminal-component.quoted-adjective	고	noun	no-match	9	12	그렇다고 말했다.
 regression.predicate-terminal-component.derived-verb	고	noun	no-match	22	25	시설이 확장되었고 주민이 늘었다.
 regression.predicate-terminal-component.quoted-copula	고	noun	no-match	15	18	사건이었다고 주장했다.
