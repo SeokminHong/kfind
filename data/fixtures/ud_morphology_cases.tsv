@@ -2336,6 +2336,12 @@ regression.comparative.degree-adverb	더	adverb	smart-only-exact	29	32	유사점
 regression.comparative.degree-with-measure	더	noun	no-match	45	48	이름 중 케이라가 키에라보다 3배 더 많았다.
 regression.comparative.lower-degree	덜	noun	no-match	20	23	점수가 형보다 덜 높다.
 regression.comparative.lower-degree-adverb	덜	adverb	smart-only-exact	20	23	점수가 형보다 덜 높다.
+regression.comparative.object-before-degree-connective	더	noun	no-match	17	20	입장료를 좀 더 올리더라도 좋다.
+regression.comparative.object-before-degree-adverb	더	adverb	smart-only-exact	17	20	입장료를 좀 더 올리더라도 좋다.
+regression.comparative.object-before-lower-degree	덜	noun	no-match	17	20	우유를 조금 덜 따랐다.
+regression.comparative.object-before-lower-degree-adverb	덜	adverb	smart-only-exact	17	20	우유를 조금 덜 따랐다.
+regression.comparative.omitted-object-may-be-name	더	noun	smart-only-exact	11	14	그는 좀 더 불러 달라고 말했다.
+regression.comparative.title-before-negative	더	noun	smart-only-exact	7	10	책 ‘더 이상’을 읽지 않았다.
 regression.comparative.bare-subject	더	noun	smart-only-exact	10	13	형보다 더 높다.
 regression.comparative.name-with-object-marker	더	noun	smart-only-exact	20	26	형제가 나보다 더를 먼저 불렀다.
 regression.comparative.name-in-title	더	noun	smart-only-exact	17	20	형이 나보다 더 스코츠맨을 자주 읽는다.
