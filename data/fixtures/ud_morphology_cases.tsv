@@ -1971,6 +1971,14 @@ regression.final-ending.adjective-reporting-no-verb	않다	verb	no-match	30	42	�
 regression.final-ending.verb-reporting	않다	verb	smart-only-exact	17	32	열매를 먹지 않는다니까.
 regression.final-ending.compound-component	오다	verb	smart-only-exact	16	19	손님이 올라온 뒤에 문을 닫았다.
 regression.final-ending.adverbial-derivative	남다	verb	no-match	21	33	그 사람은 일을 남다르게 해냈다.
+regression.final-ending.hao-nominal-subject	사다	verb	no-match	4	16	그 사우디가 앞섰다.
+regression.final-ending.hao-proper-locative	베다	verb	no-match	0	21	베오그라드에서 공연했다.
+regression.final-ending.directive-nominal-instrumental	피다	verb	no-match	0	12	피라냐로 불리는 물고기다.
+regression.final-ending.directive-nominal-locative	그다	verb	no-match	0	18	그라운드에서 뛰었다.
+regression.final-ending.directive-nominal-dative	나다	verb	no-match	7	22	다른 나라들에게 부탁했다.
+regression.final-ending.hao-concessive-rieul	떨다	verb	smart-only-exact	7	13	손을 떠오마는 괜찮소.
+regression.final-ending.directive-quotative-adnominal	가다	verb	smart-only-exact	7	16	먼저 가라는 말을 들었다.
+regression.final-ending.propositive-quotative-connective	먹다	verb	smart-only-exact	7	16	먼저 먹자고 권했다.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.

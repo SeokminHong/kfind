@@ -354,38 +354,42 @@ impl MorphMatcher {
         .iter()
         .any(|rule| has_rule(rule));
         let prospective_quotative_topic = has_rule("ending.prospective-quotative");
-        let ending_auxiliary_particles = !declarative_adnominal
-            && !forbids_ending_auxiliary_particles
-            && haystack
-                .get(candidate.consumed.clone())
-                .and_then(|bytes| std::str::from_utf8(bytes).ok())
-                .is_some_and(|ending| {
-                    let ending = ending.nfc().collect::<String>();
-                    let trailing = trailing.nfc().collect::<String>();
-                    if (trailing == "마는" && ends_in_final_ending(candidate, branch))
-                        || (trailing == "그려"
+        let final_concessive_particle =
+            trailing.nfc().eq("마는".chars()) && ends_in_final_ending(candidate, branch);
+        let ending_auxiliary_particles = final_concessive_particle
+            || (!declarative_adnominal
+                && !forbids_ending_auxiliary_particles
+                && haystack
+                    .get(candidate.consumed.clone())
+                    .and_then(|bytes| std::str::from_utf8(bytes).ok())
+                    .is_some_and(|ending| {
+                        let ending = ending.nfc().collect::<String>();
+                        let trailing = trailing.nfc().collect::<String>();
+                        if trailing == "그려"
                             && ending.ends_with('네')
-                            && has_rule("ending.final-ne"))
-                    {
-                        return true;
-                    }
-                    let matched = self
-                        .particle_verifier
-                        .verify_non_nominal_prefix(&ending, &trailing);
-                    matched.consumed_bytes == trailing.len()
-                        && (!prospective_quotative_topic
-                            || matched
-                                .rule_path
-                                .first()
-                                .is_some_and(|rule| rule.as_str() == "particle.topic"))
-                        && matched.rule_path.first().is_some_and(|rule| {
-                            contains_rule(&self.plan.predicate_ending_initial_particle_rules, rule)
-                        })
-                        && matched
-                            .rule_path
-                            .iter()
-                            .all(|rule| contains_rule(&self.plan.auxiliary_particle_rules, rule))
-                });
+                            && has_rule("ending.final-ne")
+                        {
+                            return true;
+                        }
+                        let matched = self
+                            .particle_verifier
+                            .verify_non_nominal_prefix(&ending, &trailing);
+                        matched.consumed_bytes == trailing.len()
+                            && (!prospective_quotative_topic
+                                || matched
+                                    .rule_path
+                                    .first()
+                                    .is_some_and(|rule| rule.as_str() == "particle.topic"))
+                            && matched.rule_path.first().is_some_and(|rule| {
+                                contains_rule(
+                                    &self.plan.predicate_ending_initial_particle_rules,
+                                    rule,
+                                )
+                            })
+                            && matched.rule_path.iter().all(|rule| {
+                                contains_rule(&self.plan.auxiliary_particle_rules, rule)
+                            })
+                    }));
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
@@ -410,6 +414,7 @@ impl MorphMatcher {
                 | kfind_morph::ContinuationState::Future
                 | kfind_morph::ContinuationState::Eu
         ) && !has_adnominal_rule
+            && !ends_in_final_ending(candidate, branch)
             && licensed_source_ending_surface(trailing);
         let normalized_trailing = trailing.nfc().collect::<String>();
         let source_ending_trailing = source_continuation
