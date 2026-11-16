@@ -2424,6 +2424,14 @@ regression.derived-ha.independent-adnominal	하다	verb	smart-only-exact	20	23	�
 regression.derived-ha.marked-object	하다	verb	smart-only-exact	10	16	공사를 해서 길을 막았다.
 regression.derived-ha.auxiliary	하다	verb	smart-only-exact	30	36	학생이 발표를 잘하게 했다.
 regression.derived-ha.joined-auxiliary	하다	verb	smart-only-exact	23	29	그는 아이를 앉게했다.
+regression.derived-ha.homographic-whole-connective	하다	verb	no-match	13	16	계획에 대해 설명했다.
+regression.derived-ha.homographic-whole-adnominal	하다	verb	no-match	13	16	정책에 대한 설명이다.
+regression.derived-ha.homographic-whole-comparison	하다	verb	no-match	13	16	작년에 비해 물가가 올랐다.
+regression.derived-ha.homographic-whole-noun	하다	verb	no-match	16	19	물가가 지난해 떨어졌다.
+regression.derived-ha.lexical-connective	대하다	verb	smart-only-exact	10	16	계획에 대해 설명했다.
+regression.derived-ha.lexical-adnominal	대하다	verb	smart-only-exact	10	16	정책에 대한 설명이다.
+regression.derived-ha.lexical-comparison	비하다	verb	smart-only-exact	10	16	작년에 비해 물가가 올랐다.
+regression.derived-ha.lexical-whole-noun	지난해	noun	smart-only-exact	10	19	물가가 지난해 떨어졌다.
 regression.nominal-boundary.noun-comparative	하다	verb	no-match	6	15	지난해보다 기온이 낮다.
 regression.nominal-boundary.proper-name	하다	verb	no-match	3	6	남해 쪽으로 배가 떠났다.
 regression.nominal-boundary.common-noun-particle	하다	verb	no-match	9	15	항공모함은 길다.
