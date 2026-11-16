@@ -301,12 +301,7 @@ impl PreparedStructuralContext {
 
     #[must_use]
     pub fn has_unaligned_nominal_prefix_before_connective_ji(&self, span: &Range<usize>) -> bool {
-        let token = self.token.as_ref();
         self.has_unaligned_nominal_prefix_before(span, "지")
-            && token.text[..span.end]
-                .chars()
-                .next_back()
-                .is_some_and(crate::hangul::has_final)
     }
 
     #[must_use]
