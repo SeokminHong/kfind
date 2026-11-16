@@ -461,7 +461,7 @@ impl MorphMatcher {
             && candidate.verified.core.start == span.start
             && is_boundary_before(haystack, span.start)
             && is_boundary_after(haystack, span.end)
-            && context::next_word(haystack, span.end).is_some_and(|head| {
+            && context::next_word_with_end(haystack, span.end).is_some_and(|(end, head)| {
                 ADNOMINAL_BOUND_HEADS.iter().any(|&noun| {
                     head.strip_prefix(noun).is_some_and(|suffix| {
                         suffix.is_empty()
@@ -470,7 +470,23 @@ impl MorphMatcher {
                                 verify_copula_surface_after_nominal(last, suffix)
                             })
                     })
-                })
+                }) || (head.strip_prefix("데").is_some_and(|suffix| {
+                    suffix.is_empty()
+                        || self
+                            .particle_verifier
+                            .verify_exact("데", suffix)
+                            .is_some_and(|matched| {
+                                matched
+                                    .rule_path
+                                    .first()
+                                    .is_some_and(|rule| rule.as_str() == "particle.locative")
+                            })
+                }) && context::has_elapsed_time_frame(
+                    haystack,
+                    end,
+                    resolver,
+                    &self.particle_verifier,
+                ))
             })
             && context::normalized_token(haystack, span.clone())
                 .is_some_and(|token| resolver.has_predicate_adnominal_surface(&token))

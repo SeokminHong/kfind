@@ -515,6 +515,45 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn has_elapsed_time_frame(
+    bytes: &[u8],
+    at: usize,
+    resolver: &ConstraintResolver,
+    particles: &kfind_morph::ParticleVerifier,
+) -> bool {
+    let Some((end, first)) = next_word_with_end(bytes, at) else {
+        return false;
+    };
+    let Some(second) = next_word(bytes, end) else {
+        return false;
+    };
+    // 한국어기초사전 걸리다(86940)의 소요 시간 문형.
+    let time = |word: &str| {
+        word.strip_prefix("시간").is_some_and(|suffix| {
+            suffix.is_empty() || particles.verify_exact("시간", suffix).is_some()
+        })
+    };
+    if time(&second) {
+        (first.starts_with("걸리") || matches!(first.as_ref(), "걸린" | "걸릴"))
+            && resolver.has_predicate_adnominal_surface(&first)
+    } else {
+        time(&first)
+            && ["걸리", "걸려", "걸렸"]
+                .iter()
+                .find(|prefix| second.starts_with(**prefix))
+                .is_some_and(|prefix| {
+                    let pos = kfind_morph::PredicatePos::Verb;
+                    resolver.has_exact_predicate_ending_path(&second, pos)
+                        || resolver.supports_predicate_ending_path(
+                            &second,
+                            prefix.len(),
+                            pos,
+                            kfind_morph::DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                })
+    }
+}
+
 pub(super) fn has_attached_ji_ending(
     haystack: &[u8],
     token: &Range<usize>,
