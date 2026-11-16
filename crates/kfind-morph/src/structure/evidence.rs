@@ -171,7 +171,7 @@ impl TokenEvidence {
         } else {
             Box::default()
         };
-        let derivational_suffix_starts = derivational_suffix_starts(&graph, &complete);
+        let derivational_suffix_starts = derivational_suffix_starts(text, &graph, &complete);
         let adnominal_derivation_suffix_starts =
             adnominal_derivation_suffix_starts(text.len(), &graph, &path_facts.nominal_prefix);
         let attached_auxiliary_spans = if include_attached_auxiliary {

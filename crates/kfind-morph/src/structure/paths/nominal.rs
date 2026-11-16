@@ -1,6 +1,10 @@
+use crate::predicate::ha_aspirates_after;
 use crate::structure::graph::EdgeGraph;
 use kfind_data::ComponentPos as StructuralPos;
 use std::ops::Range;
+
+const MECAB_UNWRITTEN_HA_ANALYSES: &[(&str, &[StructuralPos])] =
+    include!("../../../../../data/rules/mecab-unwritten-ha-analyses.rs");
 
 pub(in crate::structure) fn runtime_nominal_derivation_spans(
     graph: &EdgeGraph<'_>,
@@ -131,6 +135,7 @@ pub(in crate::structure) fn nominal_derivation_predicate_prefixes(
 }
 
 pub(in crate::structure) fn derivational_suffix_starts(
+    text: &str,
     graph: &EdgeGraph<'_>,
     complete: &[bool],
 ) -> Box<[usize]> {
@@ -139,17 +144,30 @@ pub(in crate::structure) fn derivational_suffix_starts(
         .iter()
         .enumerate()
         .filter(|(index, edge)| {
+            let positions = graph.positions(edge);
             complete[*index]
-                && graph
-                    .positions(edge)
-                    .first()
-                    .is_some_and(|pos| matches!(*pos, StructuralPos::XSV | StructuralPos::XSA))
+                && matches!(
+                    positions.first().copied(),
+                    Some(StructuralPos::XSV | StructuralPos::XSA)
+                )
+                && (positions.len() == 1
+                    || !ha_aspirates_after(&text[..edge.span.start])
+                    || graph.components(edge).next().is_some()
+                    || !mecab_has_unwritten_ha(&text[edge.span.clone()], positions))
         })
         .map(|(_, edge)| edge.span.start)
         .collect::<Vec<_>>();
     starts.sort_unstable();
     starts.dedup();
     starts.into_boxed_slice()
+}
+
+fn mecab_has_unwritten_ha(surface: &str, positions: &[StructuralPos]) -> bool {
+    let start = MECAB_UNWRITTEN_HA_ANALYSES.partition_point(|&(word, _)| word < surface);
+    MECAB_UNWRITTEN_HA_ANALYSES[start..]
+        .iter()
+        .take_while(|&&(word, _)| word == surface)
+        .any(|&(_, analysis)| analysis == positions)
 }
 
 pub(in crate::structure) fn adnominal_derivation_suffix_starts(

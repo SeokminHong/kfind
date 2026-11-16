@@ -289,6 +289,16 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
         })
     }
 
+    pub(super) fn has_unaligned_nominal_prefix_before_connective_go(
+        &self,
+        span: Range<usize>,
+    ) -> bool {
+        self.current.normalized_span(span).is_some_and(|span| {
+            self.prepared
+                .has_unaligned_nominal_prefix_before_connective_go(&span)
+        })
+    }
+
     pub(super) fn has_compound_nominal_prefix(
         &self,
         span: Range<usize>,

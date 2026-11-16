@@ -1371,14 +1371,20 @@ impl MorphMatcher {
                         .supported
                         .iter()
                         .all(|support| support.evidence == StructuralEvidence::RuntimeComponent)
-                    && context.has_unaligned_nominal_prefix_before_connective_ji(core.clone())
-                    && context::next_word(haystack, whole.end).is_some_and(|next| {
-                        matches_negative_auxiliary_inflection(&next, PredicatePos::AuxiliaryVerb)
-                            || matches_negative_auxiliary_inflection(
+                    && ((context.has_unaligned_nominal_prefix_before_connective_ji(core.clone())
+                        && context::next_word(haystack, whole.end).is_some_and(|next| {
+                            matches_negative_auxiliary_inflection(
+                                &next,
+                                PredicatePos::AuxiliaryVerb,
+                            ) || matches_negative_auxiliary_inflection(
                                 &next,
                                 PredicatePos::AuxiliaryAdjective,
                             )
-                    }))
+                        }))
+                        || (context
+                            .has_unaligned_nominal_prefix_before_connective_go(core.clone())
+                            && context::previous_word(haystack, whole.start)
+                                .is_some_and(|word| resolver.has_object_marked_nominal(&word)))))
         });
         if decision.is_none_or(|decision| {
             matches!(
