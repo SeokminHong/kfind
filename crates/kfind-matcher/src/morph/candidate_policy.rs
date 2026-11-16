@@ -23,6 +23,9 @@ use super::{
 mod competing_analyses;
 mod enclosed_particle;
 
+const ADNOMINAL_BOUND_HEADS: &[&str] =
+    include!("../../../../data/rules/krdict-adnominal-bound-heads.rs");
+
 impl MorphMatcher {
     pub(super) fn accepts_program<'a>(
         &self,
@@ -334,6 +337,7 @@ impl MorphMatcher {
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 self.has_nominal_suffix_after_terminal_na(haystack, candidate, branch, resolver)
+                    || self.has_adnominal_instead_of_topic(haystack, candidate, branch, resolver)
                     || competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
             })
         {
@@ -431,6 +435,40 @@ impl MorphMatcher {
             || (self.plan.composition == QueryComposition::Phrase
                 && self.plan.atoms.len() > 1
                 && self.accepts_joined_nominal_phrase_component(haystack, candidate, branch, atom))
+    }
+
+    fn has_adnominal_instead_of_topic(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        let [rule] = candidate.suffix_rules.as_slice() else {
+            return false;
+        };
+        let span = &candidate.consumed;
+        rule.as_str() == "particle.topic"
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+            && candidate.verified.core.start == span.start
+            && is_boundary_before(haystack, span.start)
+            && is_boundary_after(haystack, span.end)
+            && context::next_word(haystack, span.end).is_some_and(|head| {
+                ADNOMINAL_BOUND_HEADS.iter().any(|&noun| {
+                    head.strip_prefix(noun).is_some_and(|suffix| {
+                        suffix.is_empty()
+                            || self.particle_verifier.verify_exact(noun, suffix).is_some()
+                            || noun.chars().next_back().is_some_and(|last| {
+                                verify_copula_surface_after_nominal(last, suffix)
+                            })
+                    })
+                })
+            })
+            && context::normalized_token(haystack, span.clone())
+                .is_some_and(|token| resolver.has_predicate_adnominal_surface(&token))
     }
 
     fn has_nominal_suffix_after_terminal_na(
