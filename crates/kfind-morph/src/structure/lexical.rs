@@ -386,12 +386,11 @@ pub(super) fn has_copular_adnominal_split(resource: &ComponentResource, current:
         .map(|(offset, _)| offset)
         .skip(1)
         .any(|split| {
-            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && has_exact_sequence(
-                    resource,
-                    &current[split..],
-                    &[StructuralPos::VCP, StructuralPos::ETM],
-                )
+            has_exact_sequence(
+                resource,
+                &current[split..],
+                &[StructuralPos::VCP, StructuralPos::ETM],
+            ) && complete_nominal_host(resource, &current[..split])
         })
 }
 

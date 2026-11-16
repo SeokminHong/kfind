@@ -2445,6 +2445,23 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_copular_adnominal_frame(&self, previous: &str, modifier: &str, head: &str) -> bool {
+        super::lexical::has_copular_adnominal_split(&self.resource, modifier)
+            && (super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+                || super::lexical::complete_derived_adnominal_path(&self.resource, previous))
+            && self.has_independent_nominal_head(head)
+    }
+
+    #[must_use]
+    pub fn has_jeok_nominal_derivation(&self, text: &str) -> bool {
+        // 한국어기초사전 88966의 명사 파생 접미사.
+        text.strip_suffix('적').is_some_and(|host| {
+            self.has_complete_nominal_surface(host)
+                && has_exact_sequence(&self.resource, "적", &[StructuralPos::XSN])
+        })
+    }
+
+    #[must_use]
     pub fn has_attached_adjective_adnominal(&self, text: &str, split: usize) -> bool {
         let Some((left, right)) = text.split_at_checked(split) else {
             return false;
