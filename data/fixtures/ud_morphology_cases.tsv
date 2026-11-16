@@ -1894,6 +1894,12 @@ regression.relative-location.genitive-before-object	일대	determiner	smart-exac
 regression.relative-location.surroundings	주위	adverb	no-match	4	10	코 주위 상처가 아물었다.
 regression.relative-location.middle	중간	adverb	no-match	10	16	운동장 중간 자리가 비었다.
 regression.relative-location.negation	안	adverb	smart-exact	10	13	친구는 안 먹었다.
+regression.adverb.b-irregular.bare-adverb	매우	adverb	smart-only-exact	0	6	매우
+regression.adverb.b-irregular.bare-adjective	맵다	adjective	no-match	0	6	매우
+regression.adverb.b-irregular.conditional-adverb	매우	adverb	no-match	7	16	국이 매우면 물을 조금 넣으세요.
+regression.adverb.b-irregular.conditional-adjective	맵다	adjective	smart-only-exact	7	16	국이 매우면 물을 조금 넣으세요.
+regression.adverb.b-irregular.cooccurring-adverb	매우	adverb	smart-only-exact	7	13	국이 매우 매워서 물을 넣었다.
+regression.adverb.b-irregular.cooccurring-adjective	맵다	adjective	smart-only-exact	14	23	국이 매우 매워서 물을 넣었다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.
