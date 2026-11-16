@@ -1383,8 +1383,9 @@ impl MorphMatcher {
                         }))
                         || (context
                             .has_unaligned_nominal_prefix_before_connective_go(core.clone())
-                            && context::previous_word(haystack, whole.start)
-                                .is_some_and(|word| resolver.has_object_marked_nominal(&word)))))
+                            && context::has_connective_go_verb_frame(
+                                haystack, &whole, core, resolver,
+                            ))))
         });
         if decision.is_none_or(|decision| {
             matches!(
