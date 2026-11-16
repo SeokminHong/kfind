@@ -1195,6 +1195,20 @@ impl MorphMatcher {
         }
         let (licensed_trailing, attached_auxiliary) =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
+        if licensed_trailing.is_some()
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+            && candidate
+                .suffix_rules
+                .last()
+                .is_some_and(|rule| rule.as_str() == "particle.additive")
+            && context::normalized_token(haystack, candidate.consumed.clone())
+                .is_some_and(|host| resolver.has_exact_nominal_surface(&host))
+        {
+            return false;
+        }
         if licensed_trailing.is_none()
             && has_conflicting_whole_predicate(haystack, candidate, branch, resolver)
         {
