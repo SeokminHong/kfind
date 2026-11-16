@@ -126,6 +126,13 @@ pub(in crate::structure) fn runtime_position_is_supported(
             && spans.core.start > spans.token.start
             && spans.consumed == spans.core
             && !evidence.has_whole_analysis(&spans.token);
+    let repeated_adverb_tail = pattern.fine_pos.is_nominal()
+        && !starts_token
+        && spans.consumed == spans.core
+        && spans.core.end == spans.token.end
+        && text[spans.token.start..spans.core.start] == text[spans.core.clone()]
+        && !evidence.has_numeral_sequence
+        && evidence.has_whole(DataFinePos::Mag);
     let glued_dependent_noun =
         pattern.fine_pos == DataFinePos::Nnb && evidence.has_adnominal_ending_at(spans.core.start);
     let terminal_nominal_in_predicate_frame = pattern.fine_pos.is_nominal()
@@ -157,6 +164,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && !trailing_nominal_chain
         && !nominal_after_predicate
         && !unlexicalized_internal_one_syllable_nominal
+        && !repeated_adverb_tail
         && !terminal_nominal_in_predicate_frame
 }
 
