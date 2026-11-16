@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-positives-gsd	gsd:test-s188:4	이윤	noun	true	eb2143775b9d00babc25736aee625c5ce44c10230e146d6750a27e36c6f7db73	contract-negative	gold-alignment-error	4번 토큰은 연극 프루프의 출연자 이윤지(18..27) 한 명을 가리킨다. 출연진 자료와 앞뒤 인명의 병렬을 확인했다. 이윤 18..24는 별도 명사가 아니다.
 explicit-pos	corpus-positives-gsd	gsd:test-s220:8	만	numeral	true	73498b3f4c04892e5fb2c1fa788d28bf702bca0bc4ccb0537aa6f6f457f22846	contract-negative	gold-alignment-error	제품명 두잇을 한정하는 보조사 만에 부사격 조사 으로와 보조사 는이 붙었다.
 explicit-pos	corpus-positives-gsd	gsd:test-s17:7	하다	verb	true	3936ba0493f12ad4d206e8dcc05b95d864e293bb91f289ceb81c1387bfcbd444	contract-negative	gold-alignment-error	주인공 중 한 명은 주인공 집합에서 한 사람을 고른다. 한은 명을 수식하는 수 관형사다.
 explicit-pos	corpus-positives-gsd	gsd:test-s428:9	하다	verb	true	3295fa12109f641de8918a98e0256a7bbbb9dbcad4e25d2469ccad944c1cae39	contract-negative	gold-alignment-error	집 중 한 곳은 커피를 마실 수 있는 집 중 한 장소를 고른다. 한은 곳의 수량을 나타낸다.
