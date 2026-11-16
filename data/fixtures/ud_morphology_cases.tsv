@@ -2823,3 +2823,9 @@ regression.whole-nominal-boundary.payment-tail	불	noun	no-match	13	16	연체된
 regression.whole-nominal-boundary.spaced-dependent-noun	중	noun	smart-only-exact	4	7	이 중 대부분이 중국인이었다.
 regression.whole-nominal-boundary.double-check-tail	중	noun	no-match	3	6	이중 확인이 필요하다.
 regression.whole-nominal-boundary.aligned-compound	차	noun	smart-only-exact	13	16	세계 자동차상을 수상했다.
+regression.fused-copula-boundary.dependent-noun-competing	일	noun	no-match	13	16	일어난 것일 가능성이 높다.
+regression.fused-copula-boundary.dependent-noun-copula	이다	adjective	smart-only-exact	13	16	일어난 것일 가능성이 높다.
+regression.fused-copula-boundary.productive-date-noun	일	noun	smart-only-exact	6	9	납부일 전날을 확인했다.
+regression.fused-copula-boundary.calendar-day	일	noun	smart-only-exact	7	10	11월 1일 열린다.
+regression.fused-copula-boundary.work-noun	일	noun	smart-only-exact	7	10	맡은 일이라면 끝까지 하자.
+regression.fused-copula-boundary.work-copula	이다	adjective	smart-only-exact	10	19	맡은 일이라면 끝까지 하자.
