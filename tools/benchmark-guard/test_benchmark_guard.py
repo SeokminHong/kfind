@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from guard import GuardPaths
+from guard import ExclusiveLock, GuardPaths, LockWaitTimeout
 
 
 TOOL_DIRECTORY = Path(__file__).resolve().parent
@@ -170,11 +170,11 @@ class BenchmarkGuardTest(unittest.TestCase):
         self.assertIn("benchmark lock busy", second_stderr)
 
     def test_wait_timeout_does_not_start_command(self) -> None:
-        owner = self.start_guard(
-            "owner",
-            [sys.executable, "-c", "import time; time.sleep(0.5)"],
-        )
-        self.wait_for_metadata()
+        with mock.patch.dict(os.environ, self.environment):
+            paths = GuardPaths.discover(REPOSITORY)
+        owner = ExclusiveLock(paths.lock)
+        self.addCleanup(owner.close)
+        owner.acquire(wait_timeout=None, status_interval=1.0)
         marker = self.lock_directory / "unexpected.txt"
         contender = self.run_guard(
             "contender",
@@ -182,11 +182,29 @@ class BenchmarkGuardTest(unittest.TestCase):
             "--wait-timeout",
             "0.1",
         )
-        owner.communicate(timeout=5)
-
         self.assertEqual(contender.returncode, 75, contender.stderr)
         self.assertFalse(marker.exists())
         self.assertIn("lock wait timed out", contender.stderr)
+
+    def test_lock_released_after_deadline_is_not_acquired(self) -> None:
+        path = self.lock_directory / "wait-deadline.lock"
+        owner = ExclusiveLock(path)
+        contender = ExclusiveLock(path)
+        self.addCleanup(owner.close)
+        self.addCleanup(contender.close)
+        owner.acquire(wait_timeout=None, status_interval=1.0)
+
+        # The waiter resumes after its deadline with the owner already gone.
+        with (
+            mock.patch("guard.time.monotonic", side_effect=[0.0, 0.01, 0.2]),
+            mock.patch("guard.time.sleep", side_effect=lambda _: owner.close()),
+            self.assertRaises(LockWaitTimeout),
+        ):
+            contender.acquire(wait_timeout=0.1, status_interval=1.0)
+
+        replacement = ExclusiveLock(path)
+        self.addCleanup(replacement.close)
+        replacement.acquire(wait_timeout=0.1, status_interval=1.0)
 
     def test_run_timeout_stops_process_group(self) -> None:
         result = self.run_guard(
