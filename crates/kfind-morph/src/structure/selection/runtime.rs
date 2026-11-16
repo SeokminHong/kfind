@@ -37,6 +37,24 @@ pub(in crate::structure) fn runtime_position_is_supported(
                     )
                     .is_some()
             }));
+    let pronoun_inside_predicate = pattern.fine_pos == DataFinePos::Np
+        && starts_token
+        && spans.consumed == spans.core
+        && spans.core.end < spans.token.end
+        && (evidence
+            .leading_predicate_spans
+            .iter()
+            .any(|predicate| predicate.end > spans.core.end)
+            || evidence
+                .runtime_nominal_derivation_spans
+                .iter()
+                .any(|root| {
+                    root.end > spans.core.end
+                        && evidence
+                            .derivational_suffix_starts
+                            .binary_search(&root.end)
+                            .is_ok()
+                }));
     let predicate = matches!(pattern.continuation, MorphContinuation::Predicate { .. });
     let terminal_predicate_component = matches!(
         pattern.continuation,
@@ -130,6 +148,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
     (!leading_only || starts_token)
         && !modifier_without_nominal_tail
         && !modifier_inside_longer_analysis
+        && !pronoun_inside_predicate
         && !trailing_predicate_subspan
         && !internal_runtime_predicate
         && !competes_with_nominal_copula
