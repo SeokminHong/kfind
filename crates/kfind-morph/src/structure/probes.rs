@@ -116,18 +116,53 @@ fn matches_predicate_inflection(text: &str, forms: &[crate::SurfaceBranchSpec]) 
 
 pub fn matches_negative_auxiliary_inflection(text: &str, pos: PredicatePos) -> bool {
     static FORMS: std::sync::OnceLock<Vec<crate::SurfaceBranchSpec>> = std::sync::OnceLock::new();
+    let Some(initial) = text.chars().next() else {
+        return false;
+    };
+    if NEGATIVE_AUXILIARIES
+        .iter()
+        .any(|&(lemma, auxiliary_pos, _)| {
+            auxiliary_pos == pos && lemma.strip_suffix('다') == Some(text)
+        })
+    {
+        return false;
+    }
     let forms = FORMS.get_or_init(|| {
-        NEGATIVE_AUXILIARIES
+        let (records, _) = kfind_data::parse_predicates_tsv(
+            "data/lexicon/predicates.tsv",
+            include_str!("../../../../data/lexicon/predicates.tsv"),
+        )
+        .expect("valid embedded predicate lexicon");
+        let mut forms: Vec<_> = NEGATIVE_AUXILIARIES
             .iter()
             .flat_map(|&(lemma, pos, alternation)| {
-                let entry = crate::PredicateEntry::new(lemma, pos, alternation);
+                let entry = records
+                    .iter()
+                    .filter(|record| record.lemma == lemma)
+                    .filter_map(crate::PredicateEntry::from_lexicon_record)
+                    .find(|entry| entry.pos == pos)
+                    .unwrap_or_else(|| crate::PredicateEntry::new(lemma, pos, alternation));
                 crate::generate_predicate_branches(&entry).expect("valid dictionary auxiliary")
             })
-            .collect()
+            .collect();
+        forms.sort_unstable_by(|left, right| left.anchor.cmp(&right.anchor));
+        forms
     });
-    forms
+    let start = forms.partition_point(|form| form.anchor.chars().next() < Some(initial));
+    forms[start..]
         .iter()
-        .any(|form| form.pos == pos && matches_predicate_branch(text, form))
+        .take_while(|form| form.anchor.starts_with(initial))
+        .any(|form| {
+            form.pos == pos
+                && matches_predicate_branch_with_ending(text, form, |ending| {
+                    ending.is_none_or(|rule| {
+                        !matches!(
+                            rule.as_str(),
+                            "ending.honorific" | "ending.past" | "ending.future"
+                        )
+                    })
+                })
+        })
 }
 
 fn matches_predicate_branch(text: &str, form: &crate::SurfaceBranchSpec) -> bool {

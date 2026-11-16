@@ -3,14 +3,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use kfind_data::{
-    DataAlternation, DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData,
-    LexiconSources, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons,
-    parse_predicates_tsv, parse_rule_set, validate_predicates,
+    DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData, LexiconSources,
+    RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons, parse_predicates_tsv,
+    parse_rule_set, validate_predicates,
 };
-use kfind_morph::{
-    CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateDerivation, PredicateEntry,
-    PredicateFlags, PredicatePos, RuleId, SurfaceOverride,
-};
+use kfind_morph::{CoarsePos, FinePos, LexicalAlternation, PredicateEntry, PredicatePos, RuleId};
 
 use crate::{
     Analysis, AnalysisSource, Morphology, NominalMorphology, NominalOverride, ParticleMorphology,
@@ -416,53 +413,9 @@ impl MorphologyKind {
 }
 
 fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSource) -> Analysis {
-    let pos = predicate_pos(record.pos);
-    let flags = record
-        .flags
-        .iter()
-        .fold(PredicateFlags::NONE, |flags, flag| {
-            flags
-                | match flag.as_str() {
-                    "EU_DROP" => PredicateFlags::EU_DROP,
-                    "RIEUL_DROP" => PredicateFlags::RIEUL_DROP,
-                    "NO_I_EO_CONTRACTION" => PredicateFlags::NO_I_EO_CONTRACTION,
-                    "NO_DECLARATIVE_CONTINUATION" => PredicateFlags::NO_DECLARATIVE_CONTINUATION,
-                    _ => PredicateFlags::NONE,
-                }
-        });
-    let overrides = record
-        .overrides
-        .iter()
-        .map(|entry| SurfaceOverride {
-            surface: entry.surface.clone().into_boxed_str(),
-            core_len: entry.surface.len(),
-            continuation: match (record.pos, entry.rule_id.as_str()) {
-                (DataFinePos::Vcn, "ending.connective-ra") => ContinuationState::CopulaRa,
-                (_, "ending.past") => ContinuationState::Past,
-                _ => ContinuationState::Terminal,
-            },
-            rule_id: RuleId::from(entry.rule_id.clone()),
-        })
-        .collect();
-    let derivations = record
-        .derivations
-        .iter()
-        .map(|entry| {
-            PredicateDerivation::new(
-                entry.target_lemma.clone(),
-                pos,
-                RuleId::from(entry.rule_id.clone()),
-            )
-        })
-        .collect();
-    let predicate = PredicateEntry {
-        lemma: record.lemma.clone().into_boxed_str(),
-        pos,
-        alternation: data_alternation(record.alternation),
-        flags,
-        overrides,
-        derivations,
-    };
+    let predicate =
+        PredicateEntry::from_lexicon_record(record).expect("predicate POS checked by data parser");
+    let pos = predicate.pos;
     Analysis {
         lemma: predicate.lemma.clone(),
         coarse_pos: pos.coarse(),
@@ -552,7 +505,7 @@ pub(crate) fn predicate_from_derivation(
     rule: &DerivationRule,
     source: AnalysisSource,
 ) -> Option<Analysis> {
-    let predicate_pos = predicate_pos_if_supported(rule.result_pos)?;
+    let predicate_pos = PredicatePos::from_data_fine_pos(rule.result_pos)?;
     let alternation = rule
         .alternation_id
         .as_deref()
@@ -597,36 +550,7 @@ pub(crate) fn data_fine_pos(pos: DataFinePos) -> FinePos {
 }
 
 fn predicate_pos(pos: DataFinePos) -> PredicatePos {
-    predicate_pos_if_supported(pos).expect("predicate POS checked by data parser")
-}
-
-fn predicate_pos_if_supported(pos: DataFinePos) -> Option<PredicatePos> {
-    match pos {
-        DataFinePos::Vv => Some(PredicatePos::Verb),
-        DataFinePos::Va => Some(PredicatePos::Adjective),
-        DataFinePos::Vx => Some(PredicatePos::AuxiliaryVerb),
-        DataFinePos::Vcp => Some(PredicatePos::Copula),
-        DataFinePos::Vcn => Some(PredicatePos::Adjective),
-        _ => None,
-    }
-}
-
-fn data_alternation(value: DataAlternation) -> LexicalAlternation {
-    match value {
-        DataAlternation::Regular => LexicalAlternation::Regular,
-        DataAlternation::DToL => LexicalAlternation::DToL,
-        DataAlternation::DropS => LexicalAlternation::DropS,
-        DataAlternation::BToWa => LexicalAlternation::BToWa,
-        DataAlternation::BToWo => LexicalAlternation::BToWo,
-        DataAlternation::DropH => LexicalAlternation::DropH,
-        DataAlternation::ReuDoubleL => LexicalAlternation::ReuDoubleL,
-        DataAlternation::Reo => LexicalAlternation::Reo,
-        DataAlternation::Ha => LexicalAlternation::Ha,
-        DataAlternation::UToEo => LexicalAlternation::UToEo,
-        DataAlternation::Copula => LexicalAlternation::Copula,
-        DataAlternation::Suppletive => LexicalAlternation::Suppletive,
-        DataAlternation::SurfaceOnly => LexicalAlternation::SurfaceOnly,
-    }
+    PredicatePos::from_data_fine_pos(pos).expect("predicate POS checked by data parser")
 }
 
 fn alternation_from_rule_id(id: &str) -> Option<LexicalAlternation> {
@@ -686,7 +610,7 @@ mod tests {
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
                     pos: DataFinePos::Vv,
-                    alternation: DataAlternation::Regular,
+                    alternation: kfind_data::DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
                     derivations: Vec::new(),
@@ -694,7 +618,7 @@ mod tests {
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
                     pos: DataFinePos::Vx,
-                    alternation: DataAlternation::Regular,
+                    alternation: kfind_data::DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
                     derivations: Vec::new(),
@@ -702,7 +626,7 @@ mod tests {
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
                     pos: DataFinePos::Va,
-                    alternation: DataAlternation::Regular,
+                    alternation: kfind_data::DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
                     derivations: Vec::new(),

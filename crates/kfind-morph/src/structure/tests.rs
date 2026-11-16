@@ -11,7 +11,7 @@ use crate::structure::{
     ProductPolicy, StructuralEvidence,
 };
 use crate::{
-    CandidateSpans, QueryMorphPattern,
+    CandidateSpans, PredicatePos, QueryMorphPattern, matches_negative_auxiliary_inflection,
     {CandidateTokenRelation, ComponentCapability, MorphContinuation},
 };
 use kfind_data::{ComponentPart, ComponentPos as StructuralPos, ComponentResource, DataFinePos};
@@ -21,6 +21,36 @@ use kfind_data::{
 use proptest::prelude::*;
 use std::ops::Range;
 use std::sync::Arc;
+
+#[test]
+fn prohibitive_auxiliary_uses_complete_generated_inflections() {
+    for surface in [
+        "마",
+        "마요",
+        "마라",
+        "마세요",
+        "마십시오",
+        "마시고",
+        "마시라고",
+        "말아라",
+    ] {
+        assert!(
+            matches_negative_auxiliary_inflection(surface, PredicatePos::AuxiliaryVerb),
+            "{surface}",
+        );
+        assert!(
+            !matches_negative_auxiliary_inflection(surface, PredicatePos::AuxiliaryAdjective),
+            "{surface}",
+        );
+    }
+    // Bare stems and a lexical word with the same prefix aren't complete auxiliaries.
+    for surface in ["말", "마시", "마시멜로"] {
+        assert!(
+            !matches_negative_auxiliary_inflection(surface, PredicatePos::AuxiliaryVerb),
+            "{surface}",
+        );
+    }
+}
 
 #[test]
 fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {

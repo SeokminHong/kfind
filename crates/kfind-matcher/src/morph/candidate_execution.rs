@@ -756,6 +756,14 @@ fn has_negative_auxiliary(
     resolver: Option<&ConstraintResolver>,
 ) -> bool {
     use kfind_morph::{ContinuationState, PredicatePos};
+    let auxiliary_pos = if host.is_action() {
+        PredicatePos::AuxiliaryVerb
+    } else {
+        PredicatePos::AuxiliaryAdjective
+    };
+    if matches_negative_auxiliary_inflection(word, auxiliary_pos) {
+        return true;
+    }
     let (anchor, state) = match word.chars().next() {
         Some('않') if word.starts_with("않았") => ("않았", ContinuationState::Past),
         Some('않') if word.starts_with("않아") => ("않아", ContinuationState::AOrEo),
@@ -766,9 +774,6 @@ fn has_negative_auxiliary(
             Some('해') => ("못해", ContinuationState::AOrEo),
             _ => return false,
         },
-        Some('마') if host.is_action() => {
-            return matches!(word, "마" | "마요" | "마라" | "마세요" | "마십시오");
-        }
         Some('말') if host.is_action() => ("말", ContinuationState::StemEnding),
         _ => return false,
     };
@@ -781,21 +786,15 @@ fn has_negative_auxiliary(
         ),
         _ => (anchor, suffix, state),
     };
-    let auxiliary_pos = if host.is_action() {
-        PredicatePos::AuxiliaryVerb
-    } else {
-        PredicatePos::AuxiliaryAdjective
-    };
     (state == ContinuationState::AOrEo || !suffix.is_empty())
-        && (matches_negative_auxiliary_inflection(word, auxiliary_pos)
-            || resolver.is_some_and(|resolver| {
-                !resolver.has_subject_marked_nominal(word)
-                    && resolver.supports_ending_suffix_path(
-                        word,
-                        anchor.len(),
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
-            }))
+        && resolver.is_some_and(|resolver| {
+            !resolver.has_subject_marked_nominal(word)
+                && resolver.supports_ending_suffix_path(
+                    word,
+                    anchor.len(),
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
+        })
 }
 
 fn accepts_left_context(

@@ -1743,6 +1743,8 @@ regression.prohibitive-short.polite	말다	verb	exact	17	23	그렇게 하지 마
 regression.prohibitive-short.uncontracted	말다	verb	exact	13	22	걱정하지 말아라.
 regression.prohibitive-short.noun	말다	verb	no-match	24	27	이 뿌리의 이름은 마.
 regression.prohibitive-short.other-sentence	말다	verb	no-match	11	14	손대지. 마.
+regression.prohibitive-particle.honorific-connective	떠들다	verb	only-exact	0	12	떠들지도 마시고 자리를 뜨지도 마시오.
+regression.prohibitive-particle.honorific-quotative	떠들다	verb	only-exact	0	12	떠들지도 마시라고 부탁드렸다.
 corpus.ud-gsd.test.test-s310.adjective.honorific-neyo	착하다	adjective	smart-exact	71	86	제가 지금 입원 중인데 간호사 선생님들이 다 예쁘고 착하시네요.
 regression.honorific-neyo.consonant	좋다	adjective	smart-exact	23	38	선생님은 기분이 좋으시네요.
 regression.honorific-neyo.rieul	알다	verb	smart-exact	24	36	선생님도 그 일을 아시네요.

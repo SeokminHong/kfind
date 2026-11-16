@@ -3,6 +3,8 @@ use std::fmt;
 use std::ops::{BitOr, BitOrAssign};
 use std::sync::{Arc, OnceLock};
 
+use kfind_data::{DataAlternation, DataFinePos, PredicateRecord};
+
 use crate::predicate::GenerateError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -70,6 +72,17 @@ pub enum PredicatePos {
 }
 
 impl PredicatePos {
+    #[must_use]
+    pub const fn from_data_fine_pos(pos: DataFinePos) -> Option<Self> {
+        match pos {
+            DataFinePos::Vv => Some(Self::Verb),
+            DataFinePos::Va | DataFinePos::Vcn => Some(Self::Adjective),
+            DataFinePos::Vx => Some(Self::AuxiliaryVerb),
+            DataFinePos::Vcp => Some(Self::Copula),
+            _ => None,
+        }
+    }
+
     #[must_use]
     pub const fn coarse(self) -> CoarsePos {
         match self {
@@ -335,6 +348,59 @@ pub struct PredicateEntry {
 
 impl PredicateEntry {
     #[must_use]
+    pub fn from_lexicon_record(record: &PredicateRecord) -> Option<Self> {
+        let pos = PredicatePos::from_data_fine_pos(record.pos)?;
+        let flags = record
+            .flags
+            .iter()
+            .fold(PredicateFlags::NONE, |flags, flag| {
+                flags
+                    | match flag.as_str() {
+                        "EU_DROP" => PredicateFlags::EU_DROP,
+                        "RIEUL_DROP" => PredicateFlags::RIEUL_DROP,
+                        "NO_I_EO_CONTRACTION" => PredicateFlags::NO_I_EO_CONTRACTION,
+                        "NO_DECLARATIVE_CONTINUATION" => {
+                            PredicateFlags::NO_DECLARATIVE_CONTINUATION
+                        }
+                        _ => PredicateFlags::NONE,
+                    }
+            });
+        let overrides = record
+            .overrides
+            .iter()
+            .map(|entry| SurfaceOverride {
+                surface: entry.surface.clone().into_boxed_str(),
+                core_len: entry.surface.len(),
+                continuation: match (record.pos, entry.rule_id.as_str()) {
+                    (DataFinePos::Vcn, "ending.connective-ra") => ContinuationState::CopulaRa,
+                    (_, "ending.past") => ContinuationState::Past,
+                    _ => ContinuationState::Terminal,
+                },
+                rule_id: RuleId::from(entry.rule_id.clone()),
+            })
+            .collect();
+        let derivations = record
+            .derivations
+            .iter()
+            .map(|entry| {
+                PredicateDerivation::new(
+                    entry.target_lemma.clone(),
+                    pos,
+                    RuleId::from(entry.rule_id.clone()),
+                )
+            })
+            .collect();
+        Some(Self {
+            lemma: record.lemma.clone().into_boxed_str(),
+            pos,
+            alternation: data_alternation(record.alternation),
+            flags,
+            overrides,
+            derivations,
+        })
+    }
+
+    #[must_use]
     pub fn new(
         lemma: impl Into<Box<str>>,
         pos: PredicatePos,
@@ -348,6 +414,24 @@ impl PredicateEntry {
             overrides: Box::new([]),
             derivations: Box::new([]),
         }
+    }
+}
+
+fn data_alternation(value: DataAlternation) -> LexicalAlternation {
+    match value {
+        DataAlternation::Regular => LexicalAlternation::Regular,
+        DataAlternation::DToL => LexicalAlternation::DToL,
+        DataAlternation::DropS => LexicalAlternation::DropS,
+        DataAlternation::BToWa => LexicalAlternation::BToWa,
+        DataAlternation::BToWo => LexicalAlternation::BToWo,
+        DataAlternation::DropH => LexicalAlternation::DropH,
+        DataAlternation::ReuDoubleL => LexicalAlternation::ReuDoubleL,
+        DataAlternation::Reo => LexicalAlternation::Reo,
+        DataAlternation::Ha => LexicalAlternation::Ha,
+        DataAlternation::UToEo => LexicalAlternation::UToEo,
+        DataAlternation::Copula => LexicalAlternation::Copula,
+        DataAlternation::Suppletive => LexicalAlternation::Suppletive,
+        DataAlternation::SurfaceOnly => LexicalAlternation::SurfaceOnly,
     }
 }
 
