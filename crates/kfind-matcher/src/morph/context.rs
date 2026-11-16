@@ -515,6 +515,41 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn has_attached_ji_ending(
+    haystack: &[u8],
+    token: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some(word) = normalized_token(haystack, token.clone()) else {
+        return false;
+    };
+    let Some(host) = word.strip_suffix('지') else {
+        return false;
+    };
+    if resolver.has_exact_nominal_surface(&word) || resolver.has_compound_noun_surface(&word) {
+        return false;
+    }
+    if (host.ends_with('는')
+        || host
+            .chars()
+            .next_back()
+            .is_some_and(kfind_morph::hangul::has_rieul_final))
+        && resolver.has_predicate_adnominal_surface(host)
+    {
+        return true;
+    }
+    resolver.has_negative_connective_host(&word)
+        && next_word_on_line(haystack, token.end).is_some_and(|(_, next)| {
+            kfind_morph::matches_negative_auxiliary_inflection(
+                &next,
+                kfind_morph::PredicatePos::AuxiliaryVerb,
+            ) || kfind_morph::matches_negative_auxiliary_inflection(
+                &next,
+                kfind_morph::PredicatePos::AuxiliaryAdjective,
+            )
+        })
+}
+
 pub(super) fn accepts_pronoun_object(
     haystack: &[u8],
     span: &Range<usize>,
