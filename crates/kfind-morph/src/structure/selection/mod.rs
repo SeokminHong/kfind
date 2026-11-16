@@ -382,7 +382,7 @@ impl StructureSelection {
                                     || spans.core.start != spans.token.start
                                     || spans.core.end == spans.token.end
                                     || (!has_whole_adverb_or_adjective_connective
-                                        && !has_unverified_object_suffix(
+                                        && !has_unverified_particle_suffix(
                                             selected, text, evidence,
                                         )
                                         && !has_verbal_go_after_closed_host(
@@ -515,18 +515,27 @@ impl StructureSelection {
     }
 }
 
-fn has_unverified_object_suffix(host: &Range<usize>, text: &str, evidence: &TokenEvidence) -> bool {
-    evidence
+fn has_unverified_particle_suffix(
+    host: &Range<usize>,
+    text: &str,
+    evidence: &TokenEvidence,
+) -> bool {
+    let stem = &text[host.clone()];
+    let suffix = &text[host.end..];
+    let closed_host_before_ji = suffix == "지"
+        && stem
+            .chars()
+            .next_back()
+            .is_some_and(crate::hangul::has_final);
+    evidence.units.starting_at(host.end).iter().any(|unit| {
+        unit.span.end == text.len()
+            && (unit.pos == DataFinePos::Jko || (closed_host_before_ji && unit.pos.is_particle()))
+    }) && evidence
         .units
-        .starting_at(host.end)
+        .starting_at(host.start)
         .iter()
-        .any(|unit| unit.span.end == text.len() && unit.pos == DataFinePos::Jko)
-        && evidence
-            .units
-            .starting_at(host.start)
-            .iter()
-            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-        && !has_grammatical_particle_chain(&text[host.clone()], &text[host.end..])
+        .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+        && !has_grammatical_particle_chain(stem, suffix)
 }
 
 fn has_verbal_go_after_closed_host(
