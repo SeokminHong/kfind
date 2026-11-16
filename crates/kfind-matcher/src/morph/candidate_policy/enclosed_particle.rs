@@ -26,7 +26,7 @@ pub(super) fn rejects(
         '』' => ('『', false),
         '”' => ('“', false),
         '’' => ('‘', false),
-        '\'' | '"' => (close, false),
+        '\'' | '"' | '`' => (close, false),
         _ => return false,
     };
     if !is_boundary_after(haystack, span.end)
@@ -52,7 +52,8 @@ pub(super) fn rejects(
     let Some(suffix) = context::normalized_token(haystack, span.clone()) else {
         return false;
     };
-    let quotative = !supplement && suffix == "고";
+    let backtick = close == '`';
+    let quotative = !supplement && !backtick && suffix == "고";
     if !quotative
         && !particles
             .model()
@@ -62,25 +63,35 @@ pub(super) fn rejects(
     {
         return false;
     }
-    let end = span.start - close.len_utf8();
+    let end = if backtick {
+        span.start
+    } else {
+        span.start - close.len_utf8()
+    };
     let left = valid_utf8_suffix(&haystack[..end]);
     let line = left.rsplit(['\r', '\n']).next().unwrap_or_default();
     let line_start_visible = line.len() < left.len() || left.len() == end;
-    let opener = if open == '"' && line_start_visible {
-        let last = memchr::memrchr(b'"', line.as_bytes());
-        last.filter(|&index| {
-            memchr::memchr_iter(b'"', &line.as_bytes()[..index])
-                .count()
-                .is_multiple_of(2)
-        })
+    let enclosure = if backtick {
+        line_start_visible
+            .then(|| paired_backtick_contents(line))
+            .flatten()
+            .map(|enclosed| ("", enclosed))
     } else {
-        matching_opener(line, open, close)
+        let opener = if open == '"' && line_start_visible {
+            let last = memchr::memrchr(b'"', line.as_bytes());
+            last.filter(|&index| {
+                memchr::memchr_iter(b'"', &line.as_bytes()[..index])
+                    .count()
+                    .is_multiple_of(2)
+            })
+        } else {
+            matching_opener(line, open, close)
+        };
+        opener.map(|opener| (&line[..opener], &line[opener + open.len_utf8()..]))
     };
-    let Some(opener) = opener else {
+    let Some((before, enclosed)) = enclosure else {
         return false;
     };
-    let (before, enclosed) = line.split_at(opener);
-    let enclosed = &enclosed[open.len_utf8()..];
     if !enclosed.chars().any(is_token_character) {
         return false;
     }
@@ -92,6 +103,45 @@ pub(super) fn rejects(
         || verifies_after(tail, &suffix, particles)
         || before_trailing_supplement(enclosed)
             .is_some_and(|host| verifies_after(host, &suffix, particles))
+}
+
+fn paired_backtick_contents(line: &str) -> Option<&str> {
+    let mut cursor = 0;
+    while let Some(mut opener) = next_backtick_run(line, cursor) {
+        cursor = opener.end;
+        let before = &line[..opener.start];
+        if !(before.len() - before.trim_end_matches('\\').len()).is_multiple_of(2) {
+            opener.start += 1;
+        }
+        if opener.is_empty() {
+            continue;
+        }
+        let mut search = opener.end;
+        while let Some(closer) = next_backtick_run(line, search) {
+            search = closer.end;
+            if closer.len() != opener.len() {
+                continue;
+            }
+            if closer.end == line.len() {
+                let enclosed = &line[opener.end..closer.start];
+                return Some(
+                    enclosed
+                        .strip_prefix(' ')
+                        .and_then(|text| text.strip_suffix(' '))
+                        .unwrap_or(enclosed),
+                );
+            }
+            cursor = closer.end;
+            break;
+        }
+    }
+    None
+}
+
+fn next_backtick_run(line: &str, from: usize) -> Option<Range<usize>> {
+    let start = from + memchr::memchr(b'`', &line.as_bytes()[from..])?;
+    let end = line.len() - line[start..].trim_start_matches('`').len();
+    Some(start..end)
 }
 
 fn before_trailing_supplement(enclosed: &str) -> Option<&str> {
