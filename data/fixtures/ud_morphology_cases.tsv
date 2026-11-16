@@ -2138,8 +2138,8 @@ regression.nominal-prefix.progressive-oblique.copula-comma	주	noun	smart-only-e
 regression.nominal-prefix.progressive-oblique.copula-independent	주	noun	smart-only-exact	14	17	이곳은 한 주고 있을 곳은 저기다.
 regression.nominal-prefix.progressive-oblique.desire-copula	자신	noun	smart-only-exact	18	24	나는 그저 나 자신이고 싶다.
 regression.adnominal-closed-nominal.date	날	noun	smart-only-exact	7	10	어느 날, 그가 다시 찾아왔다.
-regression.adnominal-closed-nominal.date-nada	나다	verb	no-match	7	10	어느 날, 그가 다시 찾아왔다.
-regression.adnominal-closed-nominal.date-nalda	날다	verb	no-match	7	10	어느 날, 그가 다시 찾아왔다.
+regression.adnominal-closed-nominal.comma-relative	날다	verb	smart-only-exact	4	7	그 날, 네가 설계한 비행기를 시험장으로 옮기자.
+regression.adnominal-closed-nominal.comma-sprout	나다	verb	smart-only-exact	4	7	그 난, 네가 키운 싹은 어디 갔니?
 regression.adnominal-closed-nominal.future-nada	나다	verb	smart-only-exact	7	10	불이 날 수 있다.
 regression.adnominal-closed-nominal.future-nalda	날다	verb	smart-only-exact	7	10	새가 날 공간은 넓었다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.

@@ -67,7 +67,6 @@ pub(super) fn rejects(
         || nominal::has_nama_proper_name_frame(haystack, candidate, branch, resolver)
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
-        || has_determined_nominal_before_comma(haystack, candidate, branch, resolver)
         || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || crosses_concessive_connective(haystack, candidate, branch, resolver)
@@ -82,45 +81,6 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
-}
-
-fn has_determined_nominal_before_comma(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    resolver: &ConstraintResolver,
-) -> bool {
-    let span = &candidate.consumed;
-    let Some(tail) = haystack.get(span.end..) else {
-        return false;
-    };
-    let comma_len = if tail.starts_with(b",") {
-        1
-    } else if tail.starts_with("，".as_bytes()) {
-        '，'.len_utf8()
-    } else {
-        return false;
-    };
-    is_boundary_before(haystack, span.start)
-        && matches!(
-            branch.consumption,
-            CandidateConsumption::PredicateContinuation { .. }
-                | CandidateConsumption::StructuralPredicateEnding { .. }
-        )
-        && !branch.origins.is_empty()
-        && branch.origins.iter().all(|origin| {
-            candidate
-                .suffix_rules
-                .last()
-                .or_else(|| origin.rule_path.last())
-                .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
-        })
-        && context::previous_word(haystack, span.start)
-            .is_some_and(|word| resolver.has_whole_determiner(&word))
-        && context::normalized_token(haystack, span.clone())
-            .is_some_and(|word| resolver.has_exact_nominal_surface(&word))
-        && context::next_word(haystack, span.end + comma_len)
-            .is_some_and(|word| resolver.has_subject_marked_nominal(&word))
 }
 
 fn has_pronoun_object_instead_of_adnominal(
