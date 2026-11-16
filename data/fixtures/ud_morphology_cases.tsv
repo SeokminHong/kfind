@@ -2814,6 +2814,14 @@ regression.temporal-before.copula-noun	전	noun	smart-only-exact	13	16	교사이
 regression.temporal-before.all-determiner	전	determiner	smart-only-exact	0	3	전 국민이 참여했다.
 regression.temporal-before.comma-determiner	전	determiner	smart-only-exact	8	11	먹기, 전 국민의 기본권이다.
 regression.temporal-before.comma-pronoun	저	pronoun	smart-only-exact	29	32	해야 할 일은 장보기, 전 먼저 시장에 갑니다.
+regression.resultative-negative.nominal-component	전	noun	no-match	120	123	같은 날 후쿠시마현 재해대책본부를 방문하여 보도진에게 「방사능의 리스크가 정확하게 전해지지 않고 있으나, 지금의 수준이라면 요드제의 투여는 불필요하다」라고 강조했다.
+regression.resultative-negative.separate-noun	전	noun	smart-only-exact	13	19	차례상에 전을 올렸다는 소식이 전해지지 않았다.
+regression.resultative-negative.same-surface-noun	전해	noun	no-match	43	49	차례상에 전을 올렸다는 소식이 전해지지 않았다.
+regression.resultative-negative.verb	전하다	verb	smart-only-exact	43	55	차례상에 전을 올렸다는 소식이 전해지지 않았다.
+regression.resultative-negative.actual-noun	전해	noun	smart-only-exact	0	9	전해에 기록을 남겼다.
+regression.resultative-negative.other-nominal-component	권	noun	no-match	33	36	그 영화는 초등학생에게 권해지지 않았다.
+regression.resultative-negative.other-verb	권하다	verb	smart-only-exact	33	45	그 영화는 초등학생에게 권해지지 않았다.
+regression.resultative-negative.actual-homograph-compound	전	noun	smart-only-exact	7	10	낡은 전화로를 치웠다.
 regression.counted-dictionary-noun.century-short	세	noun	no-match	2	5	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-adjective	세다	adjective	no-match	2	11	16세기에 유럽 무역이 확대됐다.
 regression.counted-dictionary-noun.century-whole	세기	noun	smart-only-exact	2	11	16세기에 유럽 무역이 확대됐다.
