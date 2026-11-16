@@ -114,6 +114,22 @@ impl StructureSelection {
         let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && is_predicate_nominalization(pattern)
+            && spans.consumed.end < spans.token.end
+            && (evidence
+                .units
+                .starting_at(spans.token.start)
+                .iter()
+                .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+                || evidence
+                    .nominal_particle_hosts
+                    .iter()
+                    .any(|host| spans.consumed.end < host.end))
+            && !evidence.has_nominal_source_component(&spans.anchor)
+        {
+            return false;
+        }
         if evidence.has_bound_go
             && support.evidence == StructuralEvidence::RuntimeComponent
             && pattern.fine_pos.is_nominal()
