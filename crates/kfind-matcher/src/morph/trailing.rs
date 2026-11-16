@@ -88,9 +88,7 @@ impl MorphMatcher {
             host_len,
             source_positions,
             DEFAULT_LATTICE_NODE_LIMIT,
-        ) && !(aligned
-            && resolver.has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT))
-        {
+        ) {
             return None;
         }
         let conflicting_predicate = if aligned {

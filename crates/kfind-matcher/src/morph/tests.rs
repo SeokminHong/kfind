@@ -232,6 +232,9 @@ fn any_attached_auxiliary_extends_only_a_verified_host() {
         component_entry("해줬으면", "VV+EC+VX+EP+EC", 0),
         component_entry("해줬으면", "XSV+EC+VX+EP+EC", 0),
         component_entry("따라", "VV+EC", 0),
+        component_entry("따라가", "VV", 0),
+        component_entry("가", "VX", 0),
+        component_entry("면", "EC", 0),
         component_entry("간", "VX+ETM", 0),
         component_entry("따라간", "VV+ETM", 0),
         component_entry("따라간", "VV+EC+VX+ETM", 0),
@@ -244,6 +247,7 @@ fn any_attached_auxiliary_extends_only_a_verified_host() {
         ("거", "거뒀기", "거"),
         ("해", "해줬으면", "해줬으면"),
         ("따라", "따라간", "따라"),
+        ("따라", "따라가면", "따라"),
     ] {
         let mut branch = predicate_branch(
             host,
