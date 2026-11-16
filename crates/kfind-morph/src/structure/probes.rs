@@ -4,9 +4,9 @@ use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_connective_path, complete_dependent_noun_particle_suffix, complete_ha_predicate_path,
     complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
-    complete_predicate_ending_path, complete_suffix, exact_analysis_starts_with_pos,
-    has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
-    has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
+    complete_predicate_ending_path, complete_suffix, derived_inflected_path,
+    exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
+    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
     structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
@@ -836,6 +836,12 @@ impl ConstraintResolver {
                     || stem
                         .strip_suffix('하')
                         .is_some_and(|host| self.has_complete_nominal_surface(host))))
+            || derived_inflected_path(
+                &self.resource,
+                text,
+                |_| true,
+                |pos| pos == StructuralPos::EC,
+            )
     }
 
     fn has_exact_predicate_ending_path_matching(

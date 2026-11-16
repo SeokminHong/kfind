@@ -209,7 +209,7 @@ pub(super) fn complete_interrogative_ji_path(resource: &ComponentResource, text:
         || derived_inflected_path(resource, text, |_| true, ending)
 }
 
-fn derived_inflected_path(
+pub(super) fn derived_inflected_path(
     resource: &ComponentResource,
     text: &str,
     accepts_derivation: impl Fn(StructuralPos) -> bool,

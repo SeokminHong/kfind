@@ -2011,6 +2011,16 @@ regression.derived-ha-nominalizer.derived-eum-past-topic	하다	verb	no-match	20
 regression.derived-ha-nominalizer.separate-verb-gi	하다	verb	smart-only-exact	10	19	시험을 하기도 전에 일이 끝났다.
 regression.derived-ha-nominalizer.separate-verb-eum	하다	verb	smart-only-exact	10	22	실험을 함으로써 원인을 확인했다.
 regression.derived-ha-nominalizer.attached-auxiliary	하다	verb	smart-only-exact	27	36	꼭 필요한 정보를 말해준다.
+regression.derived-negative-ji.passive-decline	지	noun	no-match	10	22	능력이 저하되지 않는다는 사실을 확인했다.
+regression.derived-negative-ji.passive-continue	지	noun	no-match	10	22	변화가 지속되지 않도록 했다.
+regression.derived-negative-ji.passive-include	지	noun	no-match	10	22	내용이 포함되지 않았다는 점을 확인했다.
+regression.derived-negative-ji.passive-distinguish	지	noun	no-match	20	32	지역이 뚜렷이 구분되지 않는다.
+regression.derived-negative-ji.passive-other-root	지	noun	no-match	10	22	결과가 전달되지 않아서 확인할 수 없다.
+regression.derived-negative-ji.ha-control	지	noun	no-match	17	29	그는 장비를 사용하지 않았다.
+regression.derived-negative-ji.dependent-time	지	noun	smart-only-exact	27	30	심사 결과가 발표된 지 사흘 됐다.
+regression.derived-negative-ji.nominal-control	도라지	noun	smart-only-exact	0	12	도라지와 더덕을 캤다.
+regression.derived-negative-ji.predicate-control	구분되다	verb	smart-only-exact	20	32	지역이 뚜렷이 구분되지 않는다.
+regression.derived-negative-ji.auxiliary-control	않다	verb	smart-only-exact	33	42	지역이 뚜렷이 구분되지 않는다.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.
