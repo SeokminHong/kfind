@@ -53,6 +53,7 @@ pub(super) fn rejects(
             && !is_boundary_after(haystack, candidate.consumed.end))
         || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
         || has_topic_instead_of_propositive_adnominal(haystack, candidate, resolver)
+        || has_adverb_instead_of_hao_final_u(haystack, candidate, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || has_purpose_motion_frame(haystack, candidate, branch, atom, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
@@ -847,6 +848,33 @@ fn has_nominal_quotative_frame(
             resolver.has_exact_nominal_surface(&nominal.nfc().collect::<String>())
         })
         && follows_predicate_adnominal(haystack, core.start, resolver)
+}
+
+fn has_adverb_instead_of_hao_final_u(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.hao-final-u")
+        && is_boundary_before(haystack, span.start)
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|word| resolver.has_exact_adverb_surface(&word))
+        && !context::previous_word(haystack, span.start)
+            .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+        && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+            resolver.has_independent_final_predicate(&next)
+                || (resolver.has_adjective_adnominal_surface(&next)
+                    && context::next_word_on_line(haystack, end)
+                        .is_some_and(|(_, noun)| resolver.has_subject_marked_nominal(&noun)))
+                || (resolver.has_exact_predicate_connective_path(
+                    &next,
+                    kfind_morph::PredicatePosSet::one(PredicatePos::Adjective),
+                ) && context::next_word_on_line(haystack, end).is_some())
+        })
 }
 
 fn has_competing_hao_connective(
