@@ -2087,6 +2087,16 @@ regression.modifier.derived-root.totality	온	determiner	smart-only-exact	0	3	�
 regression.modifier.derived-root.second-adnominal	온순하다	adjective	smart-only-exact	14	23	온 가족이 온순한 강아지를 돌봤다.
 regression.modifier.derived-root.not-pronoun	저	pronoun	no-match	7	10	그는 저렴한 책을 샀다.
 regression.modifier.derived-root.pronoun	저	pronoun	smart-only-exact	0	6	저는 저렴한 책을 샀다.
+regression.modifier.attached-auxiliary.segmented	이	determiner	no-match	14	17	그는 팀을 이끌어갈 사람이다.
+regression.modifier.attached-auxiliary.compact	이	determiner	no-match	31	34	오랜 협상 끝에 타협을 이뤄낼 수 있었다.
+regression.modifier.attached-auxiliary.determiner	이	determiner	smart-only-exact	0	3	이 팀을 이끌어갈 사람을 찾는다.
+regression.modifier.attached-auxiliary.spaced	이	determiner	smart-only-exact	0	3	이 팀을 이끌어 갈 사람을 찾는다.
+regression.modifier.attached-auxiliary.main-verb	이끌다	verb	smart-only-exact	11	23	이 팀을 이끌어갈 사람을 찾는다.
+regression.modifier.attached-auxiliary.contracted-verb	이루다	verb	smart-only-exact	24	33	이 성과는 우리가 이뤄낸 것이다.
+regression.modifier.attached-auxiliary.auxiliary	내다	verb	smart-only-exact	30	33	이 성과는 우리가 이뤄낸 것이다.
+regression.modifier.attached-auxiliary.passive-pronoun	이	pronoun	no-match	10	13	재배가 이뤄졌다.
+regression.modifier.attached-auxiliary.pronoun	이	pronoun	smart-only-exact	0	6	이로 인해 일정이 바뀌었다.
+regression.modifier.attached-auxiliary.quantity	일	determiner	smart-only-exact	0	3	일 년 동안 문제를 일으켜놓고 나갔다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.
