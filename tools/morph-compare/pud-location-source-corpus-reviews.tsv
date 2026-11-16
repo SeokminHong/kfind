@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01122024:noun:속	속	noun	false	c79d912023e287e0d2ca319ba9dc1f801f57e37a77df8774da5614e98e08da97	contract-positive	aligned-source-component	PUD 원문의 12번 명사 속이 드라마 내부의 위치를 나타내며 범위는 95..98이다.
