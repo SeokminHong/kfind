@@ -1927,6 +1927,16 @@ regression.honorific-neyo.rieul	알다	verb	smart-exact	24	36	선생님도 그 �
 regression.honorific-neyo.vowel	가다	verb	smart-exact	20	32	선생님이 집에 가시네요.
 regression.honorific-neyo.past	오다	verb	smart-exact	20	32	선생님이 벌써 오셨네요.
 regression.honorific-neyo.future	가다	verb	smart-exact	20	35	선생님도 내일 가시겠네요.
+regression.ne-ending.boundary-verb	달다	verb	no-match	0	18	다네비르케는 오래됐다.
+regression.ne-ending.boundary-adjective	달다	adjective	no-match	0	15	다네비크와 후줌을 조사했다.
+regression.ne-ending.plain	달다	adjective	smart-only-exact	15	21	이 과일 참 다네.
+regression.ne-ending.polite	달다	adjective	smart-only-exact	15	24	이 과일 참 다네요.
+regression.ne-ending.concessive-short	달다	adjective	smart-only-exact	15	21	이 과일 참 다네만 너무 무르니 더 못 사겠어.
+regression.ne-ending.concessive	달다	adjective	smart-only-exact	15	21	이 과일 참 다네마는 너무 무르니 더 못 사겠어.
+regression.ne-ending.emphatic	달다	adjective	smart-only-exact	15	21	이 과일 참 다네그려.
+regression.ne-ending.past-emphatic	가다	verb	smart-only-exact	14	20	벌써 집에 갔네그려.
+regression.ne-ending.polite-concessive	달다	adjective	smart-only-exact	15	24	이 과일 참 다네요만 너무 무르군요.
+regression.ne-ending.separate-quotative	달다	adjective	smart-only-exact	17	23	그는 과일이 다네 하며 미소 지었다.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.

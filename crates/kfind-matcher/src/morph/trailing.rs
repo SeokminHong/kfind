@@ -362,6 +362,11 @@ impl MorphMatcher {
                 .is_some_and(|ending| {
                     let ending = ending.nfc().collect::<String>();
                     let trailing = trailing.nfc().collect::<String>();
+                    if (trailing == "마는" || (trailing == "그려" && ending.ends_with('네')))
+                        && has_rule("ending.final-ne")
+                    {
+                        return true;
+                    }
                     let matched = self
                         .particle_verifier
                         .verify_non_nominal_prefix(&ending, &trailing);
@@ -580,6 +585,23 @@ impl MorphMatcher {
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         if consumed.end >= whole.end {
             return false;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation { .. }
+        ) && !branch.origins.is_empty()
+            && branch.origins.iter().all(|origin| {
+                let mut rules = origin.rule_path.iter().chain(&candidate.suffix_rules).rev();
+                match rules.next().map(RuleId::as_str) {
+                    Some("ending.final-ne") => true,
+                    Some("ending.polite-yo") => rules
+                        .next()
+                        .is_some_and(|rule| rule.as_str() == "ending.final-ne"),
+                    _ => false,
+                }
+            })
+        {
+            return true;
         }
         let Some(suffix) = haystack
             .get(consumed.end..whole.end)
