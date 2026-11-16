@@ -2435,6 +2435,15 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("자느니") => {
             &[suffix("자느니", &["ending.quotative-janeuni"])]
         }
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자는") => {
+            &[suffix("자는", &["ending.propositive-quotative-adnominal"])]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시자는") => {
+            &[suffix(
+                "시자는",
+                &["ending.honorific", "ending.propositive-quotative-adnominal"],
+            )]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("자나") => {
             &[suffix("자나", &["ending.propositive-quotation"])]
         }
@@ -3622,6 +3631,7 @@ fn verify_simple_continuation(
                         | "ending.quotative-nyamyeo"
                         | "ending.quotative-daneuni"
                         | "ending.quotative-janeuni"
+                        | "ending.propositive-quotative-adnominal"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
                         | "ending.quotative-danda"
