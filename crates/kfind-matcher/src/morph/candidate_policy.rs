@@ -608,11 +608,11 @@ fn decide_request_dalla(
         })
     };
     if span.start < start {
-        return (!is_request
-            && (token == "달라" || request_quote())
+        return ((token == "달라" || request_quote())
+            && (!is_request || candidate.consumed.end == span.end)
             && context::normalized_token(haystack, span.start..start)
                 .is_some_and(|host| resolver.has_request_auxiliary_host(&host)))
-        .then_some(false);
+        .then_some(is_request);
     }
     if token != "달라" {
         return (!is_request && request_quote()).then_some(false);
