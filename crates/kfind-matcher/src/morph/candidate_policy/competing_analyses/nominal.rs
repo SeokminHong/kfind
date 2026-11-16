@@ -25,7 +25,8 @@ pub(super) fn has_adverb_instead_of_genitive(
         && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
             is_sentence_end_after(haystack, end)
                 && (resolver.has_independent_final_predicate(&next)
-                    || resolver.has_final_adjective_by_ending(&next))
+                    || resolver.has_final_adjective_by_ending(&next)
+                    || resolver.has_existential_final_predicate(&next))
                 && !resolver.has_nominal_with_optional_particles(&next)
                 && !resolver.has_explicit_copula_after_nominal(&next)
         })
