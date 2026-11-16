@@ -1486,6 +1486,17 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_polite_nominal_reply(&self, previous: &str, host: &str, pos: DataFinePos) -> bool {
+        pos.is_nominal()
+            && self.has_whole_determiner(previous)
+            && !has_exact_fine_pos(&self.resource, previous, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
+            && has_exact_fine_pos(&self.resource, host, |candidate| candidate == pos)
+            && has_exact_sequence(&self.resource, "요", &[StructuralPos::JX])
+    }
+
+    #[must_use]
     pub fn has_adnominal_dependent_noun(&self, previous: &str, text: &str) -> bool {
         has_exact_sequence(&self.resource, text, &[StructuralPos::NNB])
             && (super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
