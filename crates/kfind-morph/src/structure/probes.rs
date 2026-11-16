@@ -975,6 +975,20 @@ impl ConstraintResolver {
             )
     }
 
+    #[must_use]
+    pub fn has_negative_resultative_host(&self, text: &str) -> bool {
+        let Some(host) = text.strip_suffix("지지") else {
+            return false;
+        };
+        !self.has_exact_nominal_surface(text)
+            && [PredicatePos::Verb, PredicatePos::Adjective]
+                .into_iter()
+                .any(|pos| {
+                    self.has_exact_predicate_connective_path(host, PredicatePosSet::one(pos))
+                        && self.has_attached_resultative_inflection("지지", pos)
+                })
+    }
+
     fn has_exact_predicate_ending_path_matching(
         &self,
         text: &str,

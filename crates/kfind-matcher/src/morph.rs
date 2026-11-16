@@ -1462,6 +1462,19 @@ impl MorphMatcher {
             ProductPolicy::RecallFirst.accepts(decision)
                 && !(nominal_particle_chain
                     && core.start == whole.start
+                    && core.end == consumed_end
+                    && context::has_negative_resultative_frame(
+                        haystack,
+                        &whole,
+                        core.end,
+                        decision
+                            .supported
+                            .iter()
+                            .all(|support| support.evidence == StructuralEvidence::SourceComponent),
+                        resolver,
+                    ))
+                && !(nominal_particle_chain
+                    && core.start == whole.start
                     && candidate.consumed.end < whole.end
                     && candidate
                         .suffix_rules

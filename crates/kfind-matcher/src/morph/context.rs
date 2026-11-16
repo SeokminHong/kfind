@@ -555,6 +555,28 @@ pub(super) fn has_negative_connective_frame(
     }) && resolver.has_negative_connective_host(word)
 }
 
+pub(super) fn has_negative_resultative_frame(
+    haystack: &[u8],
+    whole: &Range<usize>,
+    core_end: usize,
+    source_component_only: bool,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some(tail) = haystack.get(core_end..whole.end) else {
+        return false;
+    };
+    let suffix = ["지지".as_bytes(), "지지".as_bytes()];
+    suffix.into_iter().any(|suffix| {
+        tail.ends_with(suffix) && (tail.len() == suffix.len() || source_component_only)
+    }) && next_word(haystack, whole.end).is_some_and(|next| {
+        kfind_morph::matches_negative_auxiliary_inflection(
+            &next,
+            kfind_morph::PredicatePos::AuxiliaryVerb,
+        )
+    }) && normalized_token(haystack, whole.clone())
+        .is_some_and(|token| resolver.has_negative_resultative_host(&token))
+}
+
 pub(super) fn accepts_pronoun_object(
     haystack: &[u8],
     span: &Range<usize>,
