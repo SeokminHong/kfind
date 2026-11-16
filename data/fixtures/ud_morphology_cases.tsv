@@ -2815,3 +2815,11 @@ regression.purpose-motion.vowel-competing	갈다	verb	no-match	20	26	은사님�
 regression.purpose-motion.manner-connective	갈다	verb	smart-only-exact	14	23	세게 눌러 간다면 표면이 고르게 닳는다.
 regression.purpose-motion.reo-irregular-connective	갈다	verb	smart-only-exact	17	26	때에 이르러 간다면 표면이 얇아진다.
 regression.purpose-motion.object	갈다	verb	smart-only-exact	10	16	원두를 갈면 향이 진해진다.
+regression.whole-nominal-boundary.shenzhen-competing	전	noun	smart-only-exact	24	30	선전 교통 경찰은 전에 색다른 방법을 채택했다.
+regression.whole-nominal-boundary.shenzhen-whole	선전	noun	smart-only-exact	0	6	선전 교통 경찰은 전에 색다른 방법을 채택했다.
+regression.whole-nominal-boundary.procedure-tail	차	noun	no-match	3	6	절차 중에 문제가 생겼다.
+regression.whole-nominal-boundary.routine-tail	상	noun	no-match	3	6	일상 생활을 기록했다.
+regression.whole-nominal-boundary.payment-tail	불	noun	no-match	13	16	연체된 지불 내역을 확인했다.
+regression.whole-nominal-boundary.spaced-dependent-noun	중	noun	smart-only-exact	4	7	이 중 대부분이 중국인이었다.
+regression.whole-nominal-boundary.double-check-tail	중	noun	no-match	3	6	이중 확인이 필요하다.
+regression.whole-nominal-boundary.aligned-compound	차	noun	smart-only-exact	13	16	세계 자동차상을 수상했다.
