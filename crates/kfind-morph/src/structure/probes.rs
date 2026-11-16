@@ -6,8 +6,8 @@ use crate::structure::lexical::{
     complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
     complete_predicate_ending_path, complete_suffix, derived_inflected_path,
     exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
-    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
-    structural_predicate_pos_matches,
+    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_inflected_path,
+    predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     compound_predicate_pos, has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -811,6 +811,38 @@ impl ConstraintResolver {
             },
             |ending| ending == StructuralPos::ETN,
         )
+    }
+
+    // 한국어기초사전 전(前), 17301의 '-기 전' 결합.
+    #[must_use]
+    pub fn has_temporal_before_frame(&self, previous: &str) -> bool {
+        let nominalizer = |pos| pos == StructuralPos::ETN;
+        previous.ends_with('기')
+            && !self.has_exact_nominal_surface(previous)
+            && has_exact_sequence(&self.resource, "전", &[StructuralPos::NNG])
+            && (predicate_inflected_path(
+                &self.resource,
+                previous,
+                |pos| {
+                    matches!(
+                        pos,
+                        StructuralPos::VV
+                            | StructuralPos::VA
+                            | StructuralPos::VX
+                            | StructuralPos::VCN
+                    )
+                },
+                nominalizer,
+            ) || derived_inflected_path(&self.resource, previous, |_| true, nominalizer)
+                || previous.char_indices().skip(1).any(|(split, _)| {
+                    let (host, copula) = previous.split_at(split);
+                    predicate_inflected_path(
+                        &self.resource,
+                        copula,
+                        |pos| pos == StructuralPos::VCP,
+                        nominalizer,
+                    ) && complete_nominal_host(&self.resource, host)
+                }))
     }
 
     #[must_use]
