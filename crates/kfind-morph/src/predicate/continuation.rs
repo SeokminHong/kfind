@@ -1137,9 +1137,15 @@ macro_rules! rieul_endings {
             $($extension,)*
             suffix(concat!($prefix, "지"), &[$($prior,)* "ending.doubt-rieulji"]),
             suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.doubt-rieulji", "particle.topic"]),
+            suffix(concat!($prefix, "지에"), &[$($prior,)* "ending.doubt-rieulji", "particle.locative"]),
+            suffix(concat!($prefix, "지에는"), &[$($prior,)* "ending.doubt-rieulji", "particle.locative", "particle.topic"]),
+            suffix(concat!($prefix, "지에도"), &[$($prior,)* "ending.doubt-rieulji", "particle.locative", "particle.additive"]),
             suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.doubt-rieulji"]),
             suffix(concat!($prefix, "는지"), &[$($prior,)* "ending.doubt-rieulneunji"]),
             suffix(concat!($prefix, "는지는"), &[$($prior,)* "ending.doubt-rieulneunji", "particle.topic"]),
+            suffix(concat!($prefix, "는지에"), &[$($prior,)* "ending.doubt-rieulneunji", "particle.locative"]),
+            suffix(concat!($prefix, "는지에는"), &[$($prior,)* "ending.doubt-rieulneunji", "particle.locative", "particle.topic"]),
+            suffix(concat!($prefix, "는지에도"), &[$($prior,)* "ending.doubt-rieulneunji", "particle.locative", "particle.additive"]),
             suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
             suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
             suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
@@ -1426,6 +1432,9 @@ macro_rules! nieun_questions {
             suffix(concat!($prefix, "감"), &[$($prior,)* "ending.interrogative-ngam"]),
             suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
             suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.interrogative-nji", "particle.topic"]),
+            suffix(concat!($prefix, "지에"), &[$($prior,)* "ending.interrogative-nji", "particle.locative"]),
+            suffix(concat!($prefix, "지에는"), &[$($prior,)* "ending.interrogative-nji", "particle.locative", "particle.topic"]),
+            suffix(concat!($prefix, "지에도"), &[$($prior,)* "ending.interrogative-nji", "particle.locative", "particle.additive"]),
             suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.interrogative-nji", "ending.polite-yo"]),
         ]
     };
