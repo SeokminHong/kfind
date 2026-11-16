@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-positives-gsd	gsd:test-s220:8	만	numeral	true	73498b3f4c04892e5fb2c1fa788d28bf702bca0bc4ccb0537aa6f6f457f22846	contract-negative	gold-alignment-error	제품명 두잇을 한정하는 보조사 만에 부사격 조사 으로와 보조사 는이 붙었다.
