@@ -9,7 +9,8 @@ use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, No
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
-    ProductPolicy, RuleId, verify_copula_surface_after_nominal, verify_predicate_continuation,
+    PredicatePos, ProductPolicy, RuleId, StructuralEvidence, matches_negative_auxiliary_inflection,
+    verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
 use kfind_query::{
     AnalysisSource, AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision,
@@ -1356,7 +1357,27 @@ impl MorphMatcher {
                 }) && context::has_contrastive_possibility_clause(haystack, &whole, resolver)
             },
         );
-        if decision.as_ref().is_none_or(|decision| {
+        let accepted = decision.as_ref().is_some_and(|decision| {
+            ProductPolicy::RecallFirst.accepts(decision)
+                && !(nominal_particle_chain
+                    && *core == candidate.consumed
+                    && consumed_end == core.end
+                    && core.start == whole.start
+                    && core.end < whole.end
+                    && decision
+                        .supported
+                        .iter()
+                        .all(|support| support.evidence == StructuralEvidence::RuntimeComponent)
+                    && context.has_unaligned_nominal_prefix_before_connective_ji(core.clone())
+                    && context::next_word(haystack, whole.end).is_some_and(|next| {
+                        matches_negative_auxiliary_inflection(&next, PredicatePos::AuxiliaryVerb)
+                            || matches_negative_auxiliary_inflection(
+                                &next,
+                                PredicatePos::AuxiliaryAdjective,
+                            )
+                    }))
+        });
+        if decision.is_none_or(|decision| {
             matches!(
                 decision.outcome,
                 kfind_morph::ConstraintOutcome::Unavailable(_)
@@ -1364,8 +1385,6 @@ impl MorphMatcher {
         }) {
             structural_cache.record_unavailable();
         }
-        let accepted =
-            decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision));
         if accepted && trim_particle {
             candidate.verified.token = candidate.verified.core.clone();
             if !candidate.verified.origins.is_empty() {

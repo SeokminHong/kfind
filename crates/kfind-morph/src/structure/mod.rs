@@ -300,6 +300,19 @@ impl PreparedStructuralContext {
     }
 
     #[must_use]
+    pub fn has_unaligned_nominal_prefix_before_connective_ji(&self, span: &Range<usize>) -> bool {
+        let token = self.token.as_ref();
+        span.start == 0
+            && token.text.get(span.end..) == Some("지")
+            && token.text[..span.end]
+                .chars()
+                .next_back()
+                .is_some_and(crate::hangul::has_final)
+            && token.evidence.leading_predicate_spans.contains(span)
+            && !token.evidence.has_nominal_source_component(span)
+    }
+
+    #[must_use]
     pub fn has_compound_nominal_prefix(&self, span: &Range<usize>) -> bool {
         self.has_compound_nominal_prefix_in(span, false)
     }

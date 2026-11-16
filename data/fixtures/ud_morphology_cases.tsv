@@ -432,6 +432,18 @@ regression.connected-go.counted-final-copula	주	noun	smart-exact	35	38	지금�
 regression.connected-go.copula	학교	noun	smart-only-exact	10	16	여기는 학교고 저기는 도서관이다.
 regression.connected-go.coordination	친구	noun	smart-only-exact	0	6	친구고 동료고 모두 달려왔다.
 regression.connected-go.particle	입	noun	smart-only-exact	0	6	입은 꼭 다물었다.
+regression.negative-ji.noun-before-verb	입	noun	no-match	14	17	큰 부상을 입지 않았으나 괜찮았다.
+regression.negative-ji.verb	입다	verb	smart-only-exact	14	20	큰 부상을 입지 않았으나 괜찮았다.
+regression.negative-ji.noun-before-adjective	적	noun	no-match	10	13	피해가 적지 않았다.
+regression.negative-ji.adjective	적다	adjective	smart-only-exact	10	16	피해가 적지 않았다.
+regression.negative-ji.numeral-competition	팔	noun	no-match	13	16	막걸리는 팔지 않았다.
+regression.negative-ji.sweet	달	noun	no-match	10	13	과자는 달지 않았다.
+regression.negative-ji.whole-noun	입지	noun	smart-only-exact	0	6	입지 조건을 검토했다.
+regression.negative-ji.omitted-copula	학교	noun	smart-only-exact	10	16	여기는 학교지.
+regression.negative-ji.explicit-copula	학생	noun	smart-only-exact	7	13	그는 학생이지 않았다.
+regression.negative-ji.pronominal-copula	나	pronoun	smart-only-exact	31	34	이 사진을 찍은 사람은 나지.
+regression.negative-ji.whole-branch-noun	가지	noun	smart-only-exact	0	6	가지 끝이 아직 푸르다.
+regression.negative-ji.whole-stop-noun	정지	noun	smart-only-exact	0	6	정지 명령을 받았다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
