@@ -2605,3 +2605,19 @@ regression.bound-prefix.distinct-prefix-mi	미	noun	no-match	14	29	이 소설은
 regression.bound-prefix.real-noun-sin	신	noun	smart-only-exact	0	6	신을 믿는 사람이 많다.
 regression.bound-prefix.full-root	대부분	noun	smart-only-exact	0	12	대부분의 학생이 참석했다.
 regression.bound-prefix.partial-particle	대	noun	no-match	0	12	대도시를 방문했다.
+regression.bound-prefix.jeong-square-prefix	정	noun	no-match	4	19	큰 정사각형의 석조가 놓여 있었다.
+regression.bound-prefix.jeong-square-whole	정사각형	noun	smart-only-exact	4	19	큰 정사각형의 석조가 놓여 있었다.
+regression.bound-prefix.jeong-triangle-prefix	정	noun	no-match	16	28	모눈종이에 정삼각형 하나를 그렸다.
+regression.bound-prefix.jeong-triangle-whole	정삼각형	noun	smart-only-exact	16	28	모눈종이에 정삼각형 하나를 그렸다.
+regression.bound-prefix.jeong-employee-prefix	정	noun	no-match	28	43	제 동생은 그 회사의 정직원이다.
+regression.bound-prefix.jeong-employee-whole	정직원	noun	smart-only-exact	28	37	제 동생은 그 회사의 정직원이다.
+regression.bound-prefix.jeong-member-prefix	정	noun	no-match	14	26	협회는 새 정회원을 모집한다.
+regression.bound-prefix.jeong-member-whole	정회원	noun	smart-only-exact	14	26	협회는 새 정회원을 모집한다.
+regression.bound-prefix.jeong-direction-prefix	정	noun	no-match	0	15	정남쪽으로 길을 따라갔다.
+regression.bound-prefix.jeong-direction-whole	정남쪽	noun	smart-only-exact	0	15	정남쪽으로 길을 따라갔다.
+regression.bound-prefix.jeong-aim-prefix	정	noun	no-match	10	22	선수는 정조준을 연습했다.
+regression.bound-prefix.jeong-aim-whole	정조준	noun	smart-only-exact	10	22	선수는 정조준을 연습했다.
+regression.bound-prefix.jeong-square-final	형	noun	smart-only-exact	13	19	큰 정사각형의 석조가 놓여 있었다.
+regression.bound-prefix.jeong-affection	정	noun	smart-only-exact	27	33	오랫동안 함께 일해 정이 들었다.
+regression.bound-prefix.jeong-additive	정	noun	smart-only-exact	17	23	자주 만나면 정도 든다.
+regression.bound-prefix.jeong-focused-homograph	정	noun	smart-only-exact	17	23	돌을 다듬는 정을 골랐다.
