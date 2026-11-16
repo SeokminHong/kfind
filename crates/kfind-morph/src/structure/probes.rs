@@ -690,6 +690,31 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_predicate_nominalization(&self, text: &str) -> bool {
+        self.has_exact_predicate_ending_path_matching(
+            text,
+            |pos| {
+                matches!(
+                    pos,
+                    StructuralPos::VV | StructuralPos::VA | StructuralPos::VX
+                )
+            },
+            |ending| ending == StructuralPos::ETN,
+        )
+    }
+
+    #[must_use]
+    pub fn has_adverbial_copula_predicate(&self, text: &str) -> bool {
+        text.char_indices().skip(1).any(|(split, initial)| {
+            matches!(initial, '이' | '였' | '예' | '여')
+                && text[..split].chars().next_back().is_some_and(|host_end| {
+                    verify_copula_surface_after_nominal(host_end, &text[split..])
+                })
+                && self.has_exact_adverb_surface(&text[..split])
+        })
+    }
+
+    #[must_use]
     pub fn has_negative_copula_after_focus(&self, text: &str) -> bool {
         has_exact_sequence(&self.resource, "가", &[StructuralPos::JX])
             && (self.has_exact_predicate_ending_path_matching(
