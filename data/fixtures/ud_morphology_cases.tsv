@@ -408,6 +408,18 @@ regression.nominalizer-boundary.aligned	쉬다	verb	smart-only-exact	0	3	쉼터�
 regression.nominalizer-boundary.aligned-eum	웃다	verb	smart-only-exact	0	6	웃음소리가 들렸다.
 regression.nominalizer-boundary.aligned-rieul	살다	verb	smart-only-exact	0	3	삶터를 옮겼다.
 regression.nominalizer-boundary.aligned-ki	달리다	verb	smart-only-exact	0	9	달리기대회에 참가했다.
+regression.object-suffix.seoul-prefix	서	noun	no-match	0	3	서울 시내 길이 막힌다.
+regression.object-suffix.seoul-whole	서울	noun	smart-only-exact	0	6	서울 시내 길이 막힌다.
+regression.object-suffix.seoul-particle	서울	noun	smart-only-exact	10	19	민지는 서울을 떠났다.
+regression.object-suffix.aligned-west	서	noun	smart-only-exact	0	3	서쪽에 있다.
+regression.object-suffix.soul-prefix	소	noun	no-match	17	20	이 곡에서는 소울 음악의 영향이 느껴진다.
+regression.object-suffix.soul-whole	소울	noun	smart-only-exact	17	23	이 곡에서는 소울 음악의 영향이 느껴진다.
+regression.object-suffix.saul-prefix	사	noun	no-match	0	3	사울 왕의 이야기를 읽었다.
+regression.object-suffix.mirror-prefix	거	noun	no-match	0	3	거울 앞에서 모자를 써 봤다.
+regression.object-suffix.nominal-compound	철	noun	smart-only-exact	7	10	체내 철분 함량을 측정했다.
+regression.object-suffix.fused-interrogative	뭐	pronoun	smart-only-exact	29	32	대한항공 전화번호가 뭐야
+regression.object-suffix.copula	독	noun	smart-only-exact	10	13	건강에 독일 수 있다.
+regression.object-suffix.valid-object	소	noun	smart-only-exact	13	19	오랫동안 소를 돌봤다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
