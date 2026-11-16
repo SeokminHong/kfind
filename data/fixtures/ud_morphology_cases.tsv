@@ -2218,6 +2218,12 @@ regression.prohibitive-negation.derived-noun	안	noun	no-match	30	33	두 사람�
 regression.prohibitive-negation.irregular-noun	안	noun	no-match	20	23	혼자 걸어서는 안 된다.
 regression.prohibitive-negation.derived-adverb	안	adverb	smart-only-exact	30	33	두 사람이 취임해서는 안 된다고 주장했다.
 regression.prohibitive-negation.proposal	안	noun	smart-only-exact	24	30	자료를 봐서는 이 안이 나아 보인다.
+regression.prohibitive-adnominal.past-adnominal-inflected	알다	verb	no-match	26	29	진열품을 만져서는 안 되겠어요.
+regression.prohibitive-adnominal.past-adnominal-causal	알다	verb	no-match	30	33	여기서 불을 피워서는 안 돼요.
+regression.prohibitive-adnominal.past-adnominal-indirect	알다	verb	no-match	35	38	사무실에서는 떠들어서는 안 된다고 했다.
+regression.prohibitive-adnominal.prohibitive-adverb	안	adverb	smart-only-exact	26	29	진열품을 만져서는 안 되겠어요.
+regression.prohibitive-adnominal.past-adnominal-positive	알다	verb	smart-only-exact	17	20	계약 내용을 안 뒤에 서명했다.
+regression.prohibitive-adnominal.noun-inside	안	noun	smart-only-exact	4	10	집 안이 조용하다.
 regression.adverb.b-irregular.bare-adverb	매우	adverb	smart-only-exact	0	6	매우
 regression.adverb.b-irregular.bare-adjective	맵다	adjective	no-match	0	6	매우
 regression.adverb.b-irregular.conditional-adverb	매우	adverb	no-match	7	16	국이 매우면 물을 조금 넣으세요.
