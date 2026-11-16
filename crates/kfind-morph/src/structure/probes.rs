@@ -1758,6 +1758,11 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_dependent_noun_surface(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::NNB])
+    }
+
+    #[must_use]
     pub fn has_polite_nominal_reply(&self, previous: &str, host: &str, pos: DataFinePos) -> bool {
         pos.is_nominal()
             && self.has_whole_determiner(previous)
