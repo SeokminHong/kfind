@@ -316,6 +316,19 @@ corpus.ud-gsd.test.test-s468.adjective.무관하다	무관하다	adjective	match
 corpus.ud-gsd.test.test-s551.verb.찾다	찾다	verb	match	20	32	석양 이미지를 찾으시오
 corpus.ud-gsd.test.test-s682.verb.쓰다	쓰다	verb	smart-exact	33	45	순리를 벗어난 무리수를 써가면서 강행한 그 폐해를 잊지 말아야 한다.
 corpus.ud-gsd.test.test-s806.verb.시작되다	시작되다	verb	smart-exact	21	39	6시 30분 회의가 시작되자마자 격론이 벌어졌다.
+corpus.ud-pud.test.n01099035.compact-clock-first	시	noun	smart-exact	32	35	나중에 오전 시장(오전 6시30분-10시)에 가서 쌀 막대사탕, 말벌 고치(번데기는 이 시장의 별미이다), 버펄로 허파, 빈랑나무 껍질과 잎, 생 두꺼비와 메기를 둘러보았다.
+corpus.ud-pud.test.n01099035.compact-clock-last	시	noun	smart-exact	43	46	나중에 오전 시장(오전 6시30분-10시)에 가서 쌀 막대사탕, 말벌 고치(번데기는 이 시장의 별미이다), 버펄로 허파, 빈랑나무 껍질과 잎, 생 두꺼비와 메기를 둘러보았다.
+regression.compact-calendar.clock-first	시	noun	smart-only-exact	8	11	오전 6시30분에 출발했다.
+regression.compact-calendar.clock-particle	분	noun	smart-only-exact	13	19	오전 6시30분에 출발했다.
+regression.compact-calendar.date-year	년	noun	smart-only-exact	4	7	2026년11월16일에 개장했다.
+regression.compact-calendar.date-month	월	noun	smart-only-exact	9	12	2026년11월16일에 개장했다.
+regression.compact-calendar.date-day	일	noun	smart-only-exact	14	20	2026년11월16일에 개장했다.
+regression.compact-calendar.clock-seconds	초	noun	smart-only-exact	18	27	오전 6시30분15초에도 추웠다.
+regression.compact-calendar.noun-before-copula	분	noun	smart-only-exact	13	16	오전 6시30분이었다.
+regression.compact-calendar.copula	이다	adjective	smart-only-exact	16	25	오전 6시30분이었다.
+regression.compact-calendar.compound	시	noun	no-match	8	11	오전 6시30분기 예상치다.
+regression.compact-calendar.other-unit	분	noun	no-match	6	9	6시30분98팀
+regression.compact-calendar.reverse	시	noun	no-match	6	9	30분6시에도 열었다.
 regression.progression-myeonseo.spaced	쓰다	verb	smart-exact	20	23	필요한 내용을 써 가면서 정리했다.
 regression.progression-myeonseo.state	크다	adjective	smart-exact	10	22	나무가 커가면서 그늘도 넓어진다.
 regression.immediate.honorific	듣다	verb	smart-exact	10	28	소식을 들으시자마자 달려오셨다.
