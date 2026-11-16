@@ -510,6 +510,11 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn calendar_chain_last_unit(text: &str, unit: Range<usize>) -> Option<Range<usize>> {
+        super::lexical::calendar_chain_last_unit(text, Some(unit))
+    }
+
+    #[must_use]
     pub fn has_numeric_unit_surface(&self, text: &str) -> bool {
         let digits = text.bytes().take_while(u8::is_ascii_digit).count();
         let prefix_len = if digits == 0 {
@@ -528,6 +533,13 @@ impl ConstraintResolver {
             return false;
         }
         Self::is_dictionary_numeric_unit(&text[prefix_len..])
+            || (digits != 0
+                && text
+                    .as_bytes()
+                    .get(prefix_len + 3)
+                    .is_some_and(u8::is_ascii_digit)
+                && super::lexical::calendar_chain_last_unit(text, None)
+                    .is_some_and(|unit| unit.end == text.len()))
             || numeric_unit_path_at(&self.resource, text, prefix_len).is_some_and(|path| {
                 path.dependent_tail.as_ref().unwrap_or(&path.unit).end == text.len()
                     && exact_analysis_starts_with_pos(&self.resource, &text[path.unit], |pos| {

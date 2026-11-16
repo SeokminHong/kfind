@@ -104,6 +104,35 @@ fn select_numeric_unit_path(selected: &mut Option<NumericUnitPath>, candidate: N
     }
 }
 
+pub(super) fn calendar_chain_last_unit(
+    text: &str,
+    target: Option<Range<usize>>,
+) -> Option<Range<usize>> {
+    const UNITS: [char; 6] = ['년', '월', '일', '시', '분', '초'];
+    let mut end = 0;
+    let mut next_rank = 0;
+    let mut matched = target.is_none();
+    let mut count = 0;
+    let mut unit = 0..0;
+    while text.as_bytes().get(end).is_some_and(u8::is_ascii_digit) {
+        let number = text.as_bytes()[end..]
+            .iter()
+            .take_while(|byte| byte.is_ascii_digit())
+            .count();
+        let start = end + number;
+        let character = text[start..].chars().next()?;
+        let rank = UNITS[next_rank..]
+            .iter()
+            .position(|&item| item == character)?;
+        next_rank += rank + 1;
+        end = start + character.len_utf8();
+        unit = start..end;
+        matched |= target.as_ref() == Some(&unit);
+        count += 1;
+    }
+    (count > 1 && matched).then_some(unit)
+}
+
 pub(super) fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {
     let surface_shape = text.ends_with("는") || text.ends_with("던");
     surface_shape

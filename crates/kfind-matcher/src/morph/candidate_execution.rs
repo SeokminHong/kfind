@@ -575,7 +575,8 @@ impl MorphMatcher {
                                 return false;
                             }
                             (whole.start == core.start
-                                || (is_numeric_unit_prefix(&haystack[whole.start..core.start])
+                                || ((haystack[whole.start].is_ascii_digit()
+                                    || is_numeric_unit_prefix(&haystack[whole.start..core.start]))
                                     && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                                         context::normalized_token(haystack, whole.start..core.end)
                                             .is_some_and(|host| {

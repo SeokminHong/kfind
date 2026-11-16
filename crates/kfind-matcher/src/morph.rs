@@ -1414,6 +1414,32 @@ impl MorphMatcher {
         let Some(unit) = context::normalized_token(haystack, core.clone()) else {
             return false;
         };
+        if prefix.first().is_some_and(u8::is_ascii_digit)
+            && unit.chars().count() == 1
+            && whole.len() <= MAX_CONSUMPTION_BYTES
+            && (haystack.get(core.end).is_some_and(u8::is_ascii_digit) || !digits(prefix))
+            && let Some(token) = context::normalized_token(haystack, whole.clone())
+            && let Some(before) = context::normalized_token(haystack, whole.start..core.start)
+            && let Some(last) = ConstraintResolver::calendar_chain_last_unit(
+                &token,
+                before.len()..before.len() + unit.len(),
+            )
+        {
+            let host = &token[last.clone()];
+            let suffix = &token[last.end..];
+            if complete || last.start != before.len() {
+                return suffix.is_empty()
+                    || self.particle_verifier.verify_exact(host, suffix).is_some()
+                    || (last.start != before.len()
+                        && host.chars().next_back().is_some_and(|last| {
+                            verify_copula_surface_after_nominal(last, suffix)
+                        }));
+            }
+            return host
+                .chars()
+                .next_back()
+                .is_some_and(|last| verify_copula_surface_after_nominal(last, suffix));
+        }
         if complete
             && prefix.is_empty()
             && context::previous_word(haystack, whole.start)
