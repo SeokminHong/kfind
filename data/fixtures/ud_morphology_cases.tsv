@@ -1984,6 +1984,14 @@ regression.final-ending.hao-u-adverb-before-connective	매다	verb	no-match	10	1
 regression.final-ending.hao-u-adverb-before-final	매다	verb	no-match	13	19	목소리가 매우 좋다.
 regression.final-ending.hao-u-adverb-before-derived-past	매다	verb	no-match	10	16	가족도 매우 감탄하였다.
 regression.final-ending.hao-u-adverb-before-prefinals	매다	verb	no-match	10	16	그분도 매우 만족하셨겠지.
+regression.final-ending.hao-u-adverb-before-final-copula	매다	verb	no-match	10	16	가격은 매우 합리적이다.
+regression.final-ending.hao-u-adverb-before-derived-copula	매다	verb	no-match	14	20	그가 겪은 매우 이례적인 사건을 기억한다.
+regression.final-ending.hao-u-adverb-before-derived-copula-positive	매우	adverb	smart-exact	14	20	그가 겪은 매우 이례적인 사건을 기억한다.
+regression.final-ending.hao-u-adverb-between-derived-adnominals	매다	verb	no-match	23	29	누구나 기억하는 매우 현실적인 대안이 나왔다.
+regression.final-ending.hao-u-adverb-in-quoted-phrase	매다	verb	no-match	10	16	그는 “매우 현실적”이라고 평가했다.
+regression.final-ending.hao-u-adverb-in-quoted-phrase-positive	매우	adverb	smart-exact	10	16	그는 “매우 현실적”이라고 평가했다.
+regression.final-ending.hao-u-postposed-derived-copula	매다	verb	smart-only-exact	7	13	끈을 매우 공적인 용도로.
+regression.final-ending.hao-u-quoted-single-predicate	매다	verb	smart-only-exact	10	16	“끈을 매우.”라고 했다.
 regression.final-ending.quotative-before-derived-past	오다	verb	no-match	14	20	그 영향이 오래 지속되었습니다.
 regression.final-ending.genitive-before-existential	거	noun	no-match	13	19	코멘트가 거의 없었다.
 regression.final-ending.genitive-before-nominal-and-existential	거	noun	smart-only-exact	4	10	내 거의 뚜껑은 없었다.

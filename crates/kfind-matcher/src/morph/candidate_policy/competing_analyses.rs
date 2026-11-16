@@ -11,7 +11,7 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
     bounded_surrounding_token_span, is_boundary_after, is_boundary_before, is_sentence_end_after,
-    surrounding_token_span,
+    next_character_with_end, previous_character, surrounding_token_span,
 };
 
 use super::super::{
@@ -856,25 +856,59 @@ fn has_adverb_instead_of_hao_final_u(
     resolver: &ConstraintResolver,
 ) -> bool {
     let span = &candidate.consumed;
-    candidate
+    if !candidate
         .suffix_rules
         .last()
         .is_some_and(|rule| rule.as_str() == "ending.hao-final-u")
-        && is_boundary_before(haystack, span.start)
-        && context::normalized_token(haystack, span.clone())
+        || !is_boundary_before(haystack, span.start)
+        || !context::normalized_token(haystack, span.clone())
             .is_some_and(|word| resolver.has_exact_adverb_surface(&word))
-        && !context::previous_word(haystack, span.start)
-            .is_some_and(|word| resolver.has_object_marked_nominal(&word))
-        && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
-            resolver.has_independent_final_predicate(&next)
-                || (resolver.has_adjective_adnominal_surface(&next)
-                    && context::next_word_on_line(haystack, end)
-                        .is_some_and(|(_, noun)| resolver.has_subject_marked_nominal(&noun)))
-                || (resolver.has_exact_predicate_connective_path(
-                    &next,
-                    kfind_morph::PredicatePosSet::one(PredicatePos::Adjective),
-                ) && context::next_word_on_line(haystack, end).is_some())
-        })
+    {
+        return false;
+    }
+    let previous = context::previous_word(haystack, span.start);
+    if previous
+        .as_deref()
+        .is_some_and(|word| resolver.has_object_marked_nominal(word))
+    {
+        return false;
+    }
+    context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+        (next.ends_with("이다")
+            && is_sentence_end_after(haystack, end)
+            && resolver.has_final_copula_after_nominal(&next))
+            || resolver.has_independent_final_predicate(&next)
+            || (resolver.has_adjective_adnominal_surface(&next)
+                && context::next_word_on_line(haystack, end)
+                    .is_some_and(|(_, noun)| resolver.has_subject_marked_nominal(&noun)))
+            || (previous.as_deref().is_some_and(|word| {
+                context::next_word_on_line(haystack, end).is_some_and(|(_, noun)| {
+                    resolver.has_copular_adnominal_frame(word, &next, &noun)
+                })
+            }))
+            || (resolver.has_exact_predicate_connective_path(
+                &next,
+                kfind_morph::PredicatePosSet::one(PredicatePos::Adjective),
+            ) && context::next_word_on_line(haystack, end).is_some())
+            || (has_direct_quote_with_irago(haystack, span.start, end)
+                && resolver.has_jeok_nominal_derivation(&next))
+    })
+}
+
+fn has_direct_quote_with_irago(haystack: &[u8], start: usize, end: usize) -> bool {
+    next_character_with_end(haystack, end).is_some_and(|(after_quote, close)| {
+        matches!(
+            (previous_character(haystack, start), close),
+            (Some('"'), '"') | (Some('\''), '\'') | (Some('“'), '”') | (Some('‘'), '’')
+        ) && bounded_surrounding_token_span(
+            haystack,
+            after_quote..after_quote,
+            MAX_CONSUMPTION_BYTES,
+        )
+        .ok()
+        .and_then(|span| context::normalized_token(haystack, span))
+        .is_some_and(|word| word.starts_with("이라고"))
+    })
 }
 
 fn has_competing_hao_connective(
