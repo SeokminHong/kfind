@@ -67,9 +67,7 @@ pub(super) fn rejects(
         || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || crosses_concessive_connective(haystack, candidate, branch, resolver)
-        || has_pronoun_topic_instead_of_inferred_adnominal(
-            haystack, candidate, branch, atom, resolver,
-        )
+        || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
@@ -187,7 +185,7 @@ fn crosses_concessive_connective(
         })
 }
 
-fn has_pronoun_topic_instead_of_inferred_adnominal(
+fn has_pronoun_topic_instead_of_adnominal(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -196,6 +194,41 @@ fn has_pronoun_topic_instead_of_inferred_adnominal(
 ) -> bool {
     let span = &candidate.consumed;
     let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation { .. }
+            | CandidateConsumption::StructuralPredicateEnding { .. }
+    ) || core.start != span.start
+        || core.end >= span.end
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+        || !context::normalized_token(haystack, core.end..span.end)
+            .is_some_and(|suffix| suffix == "는")
+        || !context::normalized_token(haystack, core.clone())
+            .is_some_and(|host| resolver.has_exact_pronoun_surface(&host))
+    {
+        return false;
+    }
+    let independent_predicate = |end, word: &str| {
+        is_sentence_end_after(haystack, end)
+            && !resolver.has_exact_noun_with_optional_particles(word)
+            && !resolver.has_whole_modifier(word)
+            && (resolver.has_independent_final_predicate(word)
+                || resolver
+                    .has_attached_auxiliary_final_predicate(word, DEFAULT_LATTICE_NODE_LIMIT))
+            && !resolver.has_explicit_copula_after_nominal(word)
+    };
+    if context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+        (resolver.has_exact_conjunctive_adverb(&next)
+            && !resolver.has_exact_noun_with_optional_particles(&next))
+            || independent_predicate(end, &next)
+            || (resolver.has_exact_adverb_surface(&next)
+                && !resolver.has_exact_noun_with_optional_particles(&next)
+                && context::next_word_on_line(haystack, end)
+                    .is_some_and(|(end, word)| independent_predicate(end, &word)))
+    }) {
+        return true;
+    }
     !branch.origins.is_empty()
         && branch.origins.iter().all(|origin| {
             atom.analyses
@@ -205,14 +238,6 @@ fn has_pronoun_topic_instead_of_inferred_adnominal(
                     if predicate.flags.contains(PredicateFlags::FORCED_INFLECTED_ALIAS))
                 })
         })
-        && core.start == span.start
-        && core.end < span.end
-        && is_boundary_before(haystack, span.start)
-        && is_boundary_after(haystack, span.end)
-        && context::normalized_token(haystack, core.end..span.end)
-            .is_some_and(|suffix| suffix == "는")
-        && context::normalized_token(haystack, core.clone())
-            .is_some_and(|host| resolver.has_exact_pronoun_surface(&host))
         && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
             resolver.has_topic_marked_nominal(&token)
                 && !resolver.has_exact_predicate_ending_path(&token, PredicatePos::Verb)
