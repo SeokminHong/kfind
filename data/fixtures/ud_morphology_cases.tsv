@@ -2450,6 +2450,13 @@ regression.derived-ha.independent-adnominal	하다	verb	smart-only-exact	20	23	�
 regression.derived-ha.marked-object	하다	verb	smart-only-exact	10	16	공사를 해서 길을 막았다.
 regression.derived-ha.auxiliary	하다	verb	smart-only-exact	30	36	학생이 발표를 잘하게 했다.
 regression.derived-ha.joined-auxiliary	하다	verb	smart-only-exact	23	29	그는 아이를 앉게했다.
+regression.derived-ha.yeo-nominal-past	하다	verb	no-match	45	60	학생들은 지난달 프로젝트에 참여하였습니다.
+regression.derived-ha.yeo-nominal-contraction	하다	verb	no-match	36	39	학생들이 정책 마련에 기여해 주셨습니다.
+regression.derived-ha.yeo-nominal-fused	하다	verb	no-match	29	35	담당자가 자격을 부여했다.
+regression.derived-ha.yeo-full-lemma	참여하다	verb	smart-only-exact	23	35	아이들이 행사에 참여하고 있습니다.
+regression.derived-ha.yeo-marked-object	하다	verb	smart-only-exact	20	26	공모전 참여를 하고 후기를 남겼다.
+regression.derived-ha.a-connective-auxiliary	하다	verb	smart-only-exact	26	32	아이가 음악을 좋아하고 책을 읽었다.
+regression.derived-ha.eo-connective-auxiliary	하다	verb	smart-only-exact	26	32	동생은 청소를 싫어했다.
 regression.derived-ha.homographic-whole-connective	하다	verb	no-match	13	16	계획에 대해 설명했다.
 regression.derived-ha.homographic-whole-adnominal	하다	verb	no-match	13	16	정책에 대한 설명이다.
 regression.derived-ha.homographic-whole-comparison	하다	verb	no-match	13	16	작년에 비해 물가가 올랐다.

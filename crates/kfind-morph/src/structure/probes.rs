@@ -1467,7 +1467,7 @@ impl ConstraintResolver {
         anchor: Range<usize>,
         source_positions: PredicatePosSet,
     ) -> bool {
-        let Some(suffix) = text.get(anchor.start..) else {
+        let Some((host, suffix)) = text.split_at_checked(anchor.start) else {
             return false;
         };
         if !self.has_inflected_ha_suffix(suffix, false) {
@@ -1496,7 +1496,9 @@ impl ConstraintResolver {
                             })
                     });
             });
-        derived_root && !aligned_compound_predicate
+        derived_root
+            && !aligned_compound_predicate
+            && !(host.ends_with("하여") && complete_connective_path(&self.resource, host))
     }
 
     #[must_use]
