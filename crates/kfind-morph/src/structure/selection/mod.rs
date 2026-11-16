@@ -206,14 +206,20 @@ impl StructureSelection {
                 DataFinePos::Vv | DataFinePos::Va | DataFinePos::Vx
             )
             && spans.consumed != spans.token
-            && evidence.has_whole(DataFinePos::Nnp)
+            && evidence
+                .units
+                .starting_at(spans.token.start)
+                .iter()
+                .any(|unit| {
+                    unit.evidence == StructuralEvidence::Whole
+                        && matches!(unit.pos, DataFinePos::Nng | DataFinePos::Nnp)
+                })
             && !evidence
                 .units
                 .starting_at(spans.token.start)
                 .iter()
                 .any(|unit| unit.span == spans.token && unit.pos.is_predicate())
             && !(compound_predicate && text[..spans.core.start].ends_with(['아', '어', '여']))
-            && !runtime::attached_auxiliary_is_supported(pattern, spans, evidence)
         {
             return false;
         }

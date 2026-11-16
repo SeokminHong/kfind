@@ -1969,6 +1969,16 @@ regression.proper-name.complete-negative	박다	verb	smart-only-exact	7	13	못�
 regression.proper-name.complete-final	길다	adjective	smart-only-exact	11	17	이 줄은 기네.
 regression.proper-name.complete-connective	몰다	verb	smart-only-exact	10	16	택시를 모나 손님은 적다.
 regression.proper-name.complete-compound	내다	verb	smart-only-exact	24	30	흙 속의 감자를 캐냈다.
+regression.whole-noun.partial-future-adnominal	지다	verb	smart-only-exact	56	62	선거는 인질 문제가 계속되던 가운데 치러졌다.
+regression.whole-noun.partial-past-adnominal	지다	verb	no-match	13	16	그들은 사진 인쇄의 초안을 검토했다.
+regression.whole-noun.partial-consonant-connective	서다	verb	no-match	6	12	액세서리, 가방과 신발이 진열되어 있었다.
+regression.whole-noun.partial-auxiliary-name	나다	verb	no-match	3	9	캐나다 혈액원에서 결과를 발표했다.
+regression.whole-noun.partial-concessive-name	나다	verb	no-match	3	9	파나마 지협을 건넜다.
+regression.whole-noun.partial-propositive	가다	verb	no-match	0	6	가자미, 넙치와 고등어가 있었다.
+regression.whole-noun.partial-nominal-adverb	살다	verb	no-match	10	16	그것은 사실상 불가능하다.
+regression.whole-noun.partial-final-syllable	차다	verb	no-match	3	6	주차 안내를 받았다.
+regression.whole-noun.valid-go-auxiliary	나다	verb	smart-only-exact	17	23	공경을 받고 나니 감사했다.
+regression.whole-noun.valid-contracted-passive	지다	verb	smart-only-exact	23	26	달이 구름에 가려진 밤이었다.
 corpus.ud-pud.test.w03010100.noun.partial-alternative-particle	지	noun	no-match	81	87	그는 휴가 동안 이 젊은 여성과 혼외 정사를 시작했으며얼마 지나지 않아 이를 인정하였다.
 regression.doubt-topic.past-honorific	가다	verb	smart-exact	0	15	가셨을지는 모르겠다.
 regression.doubt-topic.rieul-neunji	먹다	verb	smart-exact	0	15	먹을는지는 모르겠다.
