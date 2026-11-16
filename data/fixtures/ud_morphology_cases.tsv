@@ -2084,6 +2084,13 @@ regression.particle.enclosed.backtick-escaped-opening	이	determiner	smart-only-
 regression.particle.enclosed.backtick-spaced-determiner	이	determiner	smart-only-exact	9	12	`이름` 이 설명서를 읽었다.
 regression.particle.enclosed.backtick-allomorph	이	determiner	smart-only-exact	8	11	`학교`이 문장을 예문으로 골랐다.
 regression.particle.enclosed.backtick-attached-chain	과	noun	no-match	8	14	`기관`과의 협상을 시작했다.
+regression.particle.percent-decimal-verb	가다	verb	no-match	17	20	응답률은 6.3%가 넘었다.
+regression.particle.percent-noun	가	noun	no-match	13	16	찬성표 60%가 필요하다.
+regression.particle.percent-fullwidth-noun	가	noun	no-match	22	25	규정에는 ５０％가 기준이라고 쓰였다.
+regression.particle.percent-additive-noun	도	noun	no-match	31	34	다음 행사에 오려면 100%도 충분하다.
+regression.particle.percent-separated-verb	가다	verb	smart-only-exact	37	40	수치가 60%에 도달하면 집에 가.
+regression.particle.percent-separated-noun	가	noun	smart-only-exact	25	28	표의 60% 다음 행은 가 등급이다.
+regression.particle.percent-copula	이다	verb	smart-only-exact	16	22	참여율이 60%였다.
 regression.particle.additive-copula.degree-past	정	noun	no-match	10	16	실망할 정도였다.
 regression.particle.additive-copula.degree-past-noun	정도	noun	smart-only-exact	10	16	실망할 정도였다.
 regression.particle.additive-copula.degree-relative	정	noun	no-match	21	27	신청자는 열 명 정도인 것으로 집계됐다.
