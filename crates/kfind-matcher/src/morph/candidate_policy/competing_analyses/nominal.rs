@@ -2,9 +2,34 @@ use kfind_morph::{CoarsePos, ConstraintResolver, RuleId};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
-use crate::boundary::{is_boundary_after, is_boundary_before, surrounding_token_span};
+use crate::boundary::{
+    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+};
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, context};
+
+pub(super) fn has_adverb_instead_of_genitive(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let [rule] = candidate.suffix_rules.as_slice() else {
+        return false;
+    };
+    let span = &candidate.consumed;
+    rule.as_str() == "particle.genitive"
+        && is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|token| resolver.has_exact_adverb_surface(&token))
+        && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
+            is_sentence_end_after(haystack, end)
+                && (resolver.has_independent_final_predicate(&next)
+                    || resolver.has_final_adjective_by_ending(&next))
+                && !resolver.has_nominal_with_optional_particles(&next)
+                && !resolver.has_explicit_copula_after_nominal(&next)
+        })
+}
 
 pub(super) fn has_prohibitive_negation(
     haystack: &[u8],

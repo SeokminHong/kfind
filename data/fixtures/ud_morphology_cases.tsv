@@ -376,6 +376,14 @@ regression.directional-genitive.dative	친구	noun	smart-exact	0	18	친구에게
 regression.directional-genitive.reciprocal	서	noun	no-match	0	9	서로의 차이점을 인정했다.
 regression.directional-genitive.currency	유	noun	no-match	0	9	유로의 환율이 올랐다.
 regression.directional-genitive.rail	선	noun	no-match	0	9	선로의 완공을 기다렸다.
+regression.adverb-genitive.present	거	noun	no-match	13	19	완성품이 거의 없다.
+regression.adverb-genitive.past	거	noun	no-match	10	16	질문이 거의 없었다.
+regression.adverb-genitive.verb	거	noun	no-match	7	13	비가 거의 그쳤다.
+regression.adverb-genitive.embedded-predicate	거	noun	smart-only-exact	4	10	그 거의 부러졌다 싶었던 부분만 수리했다.
+regression.adverb-genitive.head	거	noun	smart-only-exact	4	10	그 거의 색이 달라졌다.
+regression.adverb-genitive.modifier	거	noun	smart-only-exact	4	10	저 거의 빨간 손잡이가 부러졌다.
+regression.adverb-genitive.copula	거	noun	smart-only-exact	4	10	저 거의 주인이었다.
+regression.adverb-genitive.adverb	거의	adverb	smart-only-exact	10	16	질문이 거의 없었다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
