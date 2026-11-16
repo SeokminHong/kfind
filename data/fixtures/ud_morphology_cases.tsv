@@ -1937,6 +1937,19 @@ regression.negation.connective-verb	덮이다	verb	smart-only-exact	14	23	땅이
 regression.elapsed.ji-noun-count	지	noun	smart-only-exact	17	20	친구가 떠난 지 사흘이 지났다.
 regression.elapsed.ji-noun-amount	지	noun	smart-only-exact	17	20	친구가 떠난 지 얼마 되지 않았다.
 regression.indirect-question.competing-compound-noun	지	noun	smart-only-exact	19	22	측량용 수준일지 몰라서 먼저 서식을 찾아보았다.
+regression.indirect-question.ji-derived-past	지	noun	no-match	19	22	그가 이혼했는지 모른다.
+regression.indirect-question.ji-past	지	noun	no-match	16	19	그가 먹었는지 모른다.
+regression.indirect-question.ji-past-verb	먹다	verb	smart-only-exact	7	19	그가 먹었는지 모른다.
+regression.indirect-question.ji-past-prospective	지	noun	no-match	16	19	그가 먹었을지 모른다.
+regression.indirect-question.ji-past-polite	지	noun	no-match	16	19	그가 먹었는지요?
+regression.indirect-question.ji-past-polite-verb	먹다	verb	smart-only-exact	7	22	그가 먹었는지요?
+regression.indirect-question.ji-honorific-past	지	noun	no-match	22	25	보호자가 오셨는지 살펴보았다.
+regression.indirect-question.ji-retrospective	지	noun	no-match	26	29	그가 얼마나 먹었던지 기억한다.
+regression.indirect-question.ji-consonant-adjective	지	noun	no-match	26	29	경사가 얼마나 높은지 모른다.
+regression.indirect-question.ji-fused-adjective	지	noun	no-match	16	19	어디가 아픈지 모른다.
+regression.indirect-question.ji-conjecture	지	noun	no-match	16	19	누가 알겠는지 들었다.
+regression.elapsed.ji-noun-with-particle	지	noun	smart-only-exact	17	23	무지개를 본 지가 벌써 사흘이다.
+corpus.ud-pud.test.w01143015.noun.spaced-elapsed-ji	지	noun	smart-only-exact	46	49	여배우인 글로리아 홀덴과 이혼한 지 얼마 되지 않았지만 결혼 생활이 파탄이 난 후 짝사랑을 했다.
 regression.negative-connective.alternative-particle	지	noun	no-match	7	13	얼마 지나지 않아 소식이 왔다.
 regression.negative-connective.alternative-predicate	지나다	verb	smart-only-exact	7	16	얼마 지나지 않아 소식이 왔다.
 regression.negative-connective.alternative-inability	지	noun	no-match	10	16	시간이 지나지 못하고 멈춘 듯했다.

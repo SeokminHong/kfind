@@ -518,27 +518,24 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
 pub(super) fn has_attached_ji_ending(
     haystack: &[u8],
     token: &Range<usize>,
+    ending_end: usize,
     resolver: &ConstraintResolver,
 ) -> bool {
-    let Some(word) = normalized_token(haystack, token.clone()) else {
-        return false;
-    };
-    let Some(host) = word.strip_suffix('지') else {
+    let Some(word) = normalized_token(haystack, token.start..ending_end) else {
         return false;
     };
     if resolver.has_exact_nominal_surface(&word) || resolver.has_compound_noun_surface(&word) {
         return false;
     }
-    if (host.ends_with('는')
-        || host
-            .chars()
-            .next_back()
-            .is_some_and(kfind_morph::hangul::has_rieul_final))
-        && resolver.has_predicate_adnominal_surface(host)
+    if ending_end < token.end
+        && normalized_token(haystack, token.clone()).is_some_and(|whole| {
+            resolver.has_exact_nominal_surface(&whole) || resolver.has_compound_noun_surface(&whole)
+        })
     {
-        return true;
+        return false;
     }
-    has_negative_connective_frame(haystack, token.end, &word, resolver)
+    resolver.has_interrogative_ji_ending(&word)
+        || has_negative_connective_frame(haystack, token.end, &word, resolver)
 }
 
 pub(super) fn has_negative_connective_frame(
