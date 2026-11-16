@@ -1974,6 +1974,19 @@ regression.indirect-question.case-past	지나다	verb	smart-only-exact	20	35	시
 regression.indirect-question.case-adjective	크다	adjective	smart-only-exact	10	19	얼마나 큰지에 따라 달라진다.
 regression.indirect-question.case-topic	살다	verb	smart-only-exact	17	29	어떤 곳에서 살지에는 관심이 없다.
 regression.indirect-question.case-separate-noun	떠나다	verb	smart-only-exact	7	13	그가 떠난 지 사흘 만이다.
+regression.indirect-question.coordinate-present	알다	verb	smart-only-exact	30	42	선생님은 학생이 답을 아는지와 풀이를 설명할 수 있는지 물었다.
+regression.indirect-question.coordinate-past	묵다	verb	smart-only-exact	10	25	어디서 묵었는지와 몇 시에 출발했는지 확인했다.
+regression.indirect-question.coordinate-adjective	쉽다	adjective	smart-only-exact	17	29	어느 문제가 쉬운지와 누가 먼저 풀었는지 물었다.
+regression.indirect-question.coordinate-future	가다	verb	smart-only-exact	7	16	언제 갈지와 어디에 묵을지 물었다.
+regression.indirect-question.coordinate-competing-noun	달다	adjective	smart-only-exact	17	26	물이 얼마나 단지와 온도가 어떤지를 확인했다.
+regression.indirect-question.coordinate-noun	단지	noun	smart-only-exact	0	9	단지와 뚜껑을 씻었다.
+regression.indirect-question.coordinate-noun-no-adjective	달다	adjective	no-match	0	9	단지와 뚜껑을 씻었다.
+regression.indirect-question.coordinate-after-separate-clause	달다	adjective	no-match	0	9	단지와 뚜껑을 씻고 얼마나 말랐는지 봤다.
+regression.indirect-question.coordinate-adjectival-right	달다	adjective	smart-only-exact	0	9	단지와 쓴지를 알려 주세요.
+regression.indirect-question.lexical-noun-particle	편지	noun	smart-only-exact	10	19	택배로 편지를 보냈다.
+regression.indirect-question.lexical-noun-no-adnominal	펴다	verb	no-match	10	19	택배로 편지를 보냈다.
+regression.indirect-question.elapsed-time-adnominal	오다	verb	smart-only-exact	10	13	친구가 온 지 사흘이 지났다.
+regression.indirect-question.elapsed-time-noun	지	noun	smart-only-exact	14	17	친구가 온 지 사흘이 지났다.
 regression.indirect-question.internal-noun	지	noun	no-match	23	26	누가 언제 찾아올지 아직 정하지 않았다.
 regression.indirect-question.internal-noun-verb	찾아오다	verb	smart-only-exact	14	26	누가 언제 찾아올지 아직 정하지 않았다.
 regression.negation.connective-not-noun	지	noun	no-match	20	23	땅이 물에 덮이지 않은 곳을 찾아보자.

@@ -828,6 +828,19 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if candidate.consumed.end == whole.end
+            && matches!(candidate.suffix_rules.as_slice(), [.., ending, particle]
+                if particle.as_str() == "particle.comitative" && matches!(ending.as_str(),
+                    "ending.interrogative-nji" | "ending.doubt-rieulji" | "ending.doubt-rieulneunji"))
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+                token
+                    .strip_suffix('와')
+                    .is_some_and(|host| resolver.has_exact_nominal_surface(host))
+            })
+            && !context::has_interrogative_coordination(haystack, &whole, resolver)
+        {
+            return false;
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }

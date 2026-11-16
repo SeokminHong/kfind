@@ -382,6 +382,20 @@ impl MorphMatcher {
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
+        let supports_ji_with_particles =
+            |token: &str, core_len, ending_len, source_pos: kfind_morph::PredicatePos| {
+                let Some(head) = token.get(..ending_len + '지'.len_utf8()) else {
+                    return false;
+                };
+                !resolver.has_exact_nominal_surface(head)
+                    && (resolver.supports_adnominal_dependent_noun_particle_path(
+                        token,
+                        core_len,
+                        ending_len,
+                        source_pos,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    ) || resolver.has_exact_predicate_ending_path(token, source_pos))
+            };
         let adnominal_interrogative = trailing.nfc().eq("가".chars()) && has_adnominal_rule;
         let source_continuation = matches!(
             continuation,
@@ -488,13 +502,7 @@ impl MorphMatcher {
                         })
                     } else if adnominal_dependent_noun_particle {
                         source_positions.iter().any(|source_pos| {
-                            resolver.supports_adnominal_dependent_noun_particle_path(
-                                token,
-                                core.len(),
-                                ending.len(),
-                                source_pos,
-                                DEFAULT_LATTICE_NODE_LIMIT,
-                            ) || resolver.has_exact_predicate_ending_path(token, source_pos)
+                            supports_ji_with_particles(token, core.len(), ending.len(), source_pos)
                         })
                     } else {
                         source_positions.iter().any(|source_pos| {
@@ -539,13 +547,7 @@ impl MorphMatcher {
                     })
                 } else if adnominal_dependent_noun_particle {
                     source_positions.iter().any(|source_pos| {
-                        resolver.supports_adnominal_dependent_noun_particle_path(
-                            &normalized,
-                            core_len,
-                            ending_len,
-                            source_pos,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        ) || resolver.has_exact_predicate_ending_path(&normalized, source_pos)
+                        supports_ji_with_particles(&normalized, core_len, ending_len, source_pos)
                     })
                 } else {
                     source_positions.iter().any(|source_pos| {
