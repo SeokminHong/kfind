@@ -1887,6 +1887,15 @@ regression.particle.enclosed.quotative-predicate	오다	verb	smart-only-exact	24
 regression.particle.enclosed.quotative-quoted-noun	고	noun	smart-only-exact	10	13	그는 “고 씨가 왔다”고 말했다.
 regression.particle.enclosed.quotative-separate-name	고	noun	smart-only-exact	0	3	고 씨가 “비가 온다”고 말했다.
 regression.particle.enclosed.quotative-spaced-name	고	noun	smart-only-exact	24	27	“비가 내린다.” 고 씨가 창문을 닫았다.
+regression.predicate-terminal-component.quoted-adjective	고	noun	no-match	9	12	그렇다고 말했다.
+regression.predicate-terminal-component.derived-verb	고	noun	no-match	22	25	시설이 확장되었고 주민이 늘었다.
+regression.predicate-terminal-component.quoted-copula	고	noun	no-match	15	18	사건이었다고 주장했다.
+regression.predicate-terminal-component.contracted-copula	고	noun	no-match	15	18	안식처였다고 설명했다.
+regression.predicate-terminal-component.predicate-span	많다	adjective	smart-only-exact	7	16	양은 많다고 말했다.
+regression.predicate-terminal-component.nominal-component	고	noun	smart-only-exact	6	9	과학고 학생이었다.
+regression.predicate-terminal-component.whole-noun	사고	noun	smart-only-exact	0	9	사고가 있었다.
+regression.predicate-terminal-component.homographic-verb	사다	verb	smart-only-exact	0	6	사고 싶었다.
+regression.predicate-terminal-component.glued-dependent-noun	수	noun	smart-only-exact	29	32	어떤 서비스도 제공할수 있다.
 regression.particle.enclosed.spaced-predicate	가다	verb	smart-only-exact	28	31	계단으로(뛰지 말고) 가.
 regression.particle.enclosed.restrictive-not-numeral	만	numeral	no-match	26	38	멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
 regression.particle.enclosed.standalone-numeral	만	numeral	smart-only-exact	30	39	입장객 수를 오천에서 만으로 높였다.
