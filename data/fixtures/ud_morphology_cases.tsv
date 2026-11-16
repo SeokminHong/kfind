@@ -442,6 +442,15 @@ regression.negative-ji.whole-noun	입지	noun	smart-only-exact	0	6	입지 조건
 regression.negative-ji.omitted-copula	학교	noun	smart-only-exact	10	16	여기는 학교지.
 regression.negative-ji.explicit-copula	학생	noun	smart-only-exact	7	13	그는 학생이지 않았다.
 regression.negative-ji.pronominal-copula	나	pronoun	smart-only-exact	31	34	이 사진을 찍은 사람은 나지.
+regression.nominal.verified-suffix.suspension-prefix	정	noun	no-match	13	19	직무집행 정지 결정이 나왔다.
+regression.nominal.verified-suffix.suspension-whole	정지	noun	smart-only-exact	13	19	직무집행 정지 결정이 나왔다.
+regression.nominal.verified-suffix.detection-prefix	감	noun	no-match	7	13	연기 감지 체계를 점검했다.
+regression.nominal.verified-suffix.detection-whole	감지	noun	smart-only-exact	7	13	연기 감지 체계를 점검했다.
+regression.nominal.verified-suffix.solstice-prefix	동	noun	no-match	10	16	그날은 동지, 내일은 휴일이다.
+regression.nominal.verified-suffix.solstice-whole	동지	noun	smart-only-exact	10	16	그날은 동지, 내일은 휴일이다.
+regression.nominal.verified-suffix.actor-prefix	이윤	noun	no-match	18	27	배우 강혜정, 이윤지, 남명렬, 정원중 등이 참여했다.
+regression.nominal.verified-suffix.actor-whole	이윤지	noun	smart-only-exact	18	27	배우 강혜정, 이윤지, 남명렬, 정원중 등이 참여했다.
+regression.nominal.verified-suffix.profit-noun	이윤	noun	smart-only-exact	10	19	회사는 이윤을 남겼다.
 regression.negative-ji.whole-branch-noun	가지	noun	smart-only-exact	0	6	가지 끝이 아직 푸르다.
 regression.negative-ji.whole-stop-noun	정지	noun	smart-only-exact	0	6	정지 명령을 받았다.
 regression.adnominal-bound-head.injury-topic	입	noun	no-match	10	16	피해를 입은 것으로 알려졌다.
