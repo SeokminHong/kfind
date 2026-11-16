@@ -10,6 +10,8 @@ use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, context, has_counted_unit_cop
 
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
+const PARTITIVE_PLACE_GROUPS: &[&str] =
+    include!("../../../../../../data/rules/krdict-partitive-place-groups.rs");
 
 pub(super) fn has_counted_unit_copula(
     haystack: &[u8],
@@ -215,20 +217,19 @@ pub(super) fn has_partitive_count_frame(
     let Some((start, previous)) = context::previous_word_with_start(haystack, span.start) else {
         return false;
     };
-    let partitive = previous == "그중"
-        || (previous == "중"
-            && context::previous_word_with_start(haystack, start).is_some_and(
-                |(group_start, group)| {
-                    !haystack[group_start..start]
-                        .iter()
-                        .any(|byte| matches!(byte, b'\r' | b'\n'))
-                        && (resolver.has_nominal_with_optional_particles(&group)
-                            || resolver.has_quantity_expression(&group, None))
-                        && !context::previous_word(haystack, group_start)
-                            .is_some_and(|word| resolver.has_object_marked_nominal(&word))
-                },
-            ));
-    partitive
+    let group = (previous == "중")
+        .then(|| context::previous_word_with_start(haystack, start))
+        .flatten()
+        .filter(|(group_start, group)| {
+            !haystack[*group_start..start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                && (resolver.has_nominal_with_optional_particles(group)
+                    || resolver.has_quantity_expression(group, None))
+                && !context::previous_word(haystack, *group_start)
+                    .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+        });
+    (previous == "그중" || group.is_some())
         && !haystack[start..span.start]
             .iter()
             .any(|byte| matches!(byte, b'\r' | b'\n'))
@@ -238,6 +239,16 @@ pub(super) fn has_partitive_count_frame(
                 && context::next_word_on_line(haystack, span.end).is_some_and(|(end, next)| {
                     haystack.get(end) != Some(&b'(')
                         && (resolver.has_inflected_counted_unit(&count, &next)
+                            || (next.starts_with("곳")
+                                && ((previous == "그중"
+                                    && !context::previous_word(haystack, start).is_some_and(
+                                        |word| resolver.has_object_marked_nominal(&word),
+                                    ))
+                                    || group.as_ref().is_some_and(|(_, group)| {
+                                        let head = group.strip_suffix('들').unwrap_or(group);
+                                        PARTITIVE_PLACE_GROUPS.binary_search(&head).is_ok()
+                                    }))
+                                && resolver.has_counted_place_surface(&count, &next))
                             || next.char_indices().skip(1).any(|(split, _)| {
                                 let (unit, ending) = next.split_at(split);
                                 unit.chars().next_back().is_some_and(|last| {

@@ -1880,6 +1880,13 @@ regression.partitive-count.copular-count	하다	verb	no-match	11	14	친구 중 �
 regression.partitive-count.relative-clause	하다	verb	smart-only-exact	20	23	우리가 연습을 한 곳은 학교 강당이었다.
 regression.partitive-count.temporal-predicate	하다	verb	smart-exact	34	37	우리가 주문을 하는 중에 한 말이다.
 regression.partitive-count.temporal-name	하다	verb	smart-only-exact	25	28	그 실험을 수업 중 한 마리(Marie)에게 결과를 물었다.
+regression.partitive-place.house	하다	verb	no-match	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
+regression.partitive-place.house-determiner	한	determiner	smart-only-exact	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
+regression.partitive-place.plural	하다	verb	no-match	14	17	카페들 중 한 곳에서 커피를 마셨다.
+regression.partitive-place.copular	하다	verb	no-match	11	14	식당 중 한 곳이었다.
+regression.partitive-place.temporal	하다	verb	smart-only-exact	11	14	수업 중 한 곳은 운동장이었다.
+regression.partitive-place.temporal-category	하다	verb	smart-only-exact	11	14	건설 중 한 곳의 사진을 찍었다.
+regression.partitive-place.relative-object	하다	verb	smart-only-exact	21	24	그 실험을 그중 한 곳은 연구소였다.
 regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어왔다.
 regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
 regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개신교 선교사들이 방문했다.	structurally-indistinguishable-homograph

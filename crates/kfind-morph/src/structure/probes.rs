@@ -6,8 +6,8 @@ use crate::structure::lexical::{
     complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
     complete_predicate_ending_path, complete_suffix, exact_analysis_starts_with_pos,
     has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
-    has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
-    structural_predicate_pos_matches,
+    has_exact_sequence, has_grammatical_particle_chain, numeric_unit_path_at,
+    predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     compound_predicate_pos, has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -1931,6 +1931,16 @@ impl ConstraintResolver {
             || complete_nominal_particle_host(&self.resource, text)
                 .is_some_and(|host| self.has_counted_unit_frame(previous, &text[host]))
             || self.has_counted_unit_frame(previous, text)
+    }
+
+    #[must_use]
+    pub fn has_counted_place_surface(&self, count: &str, text: &str) -> bool {
+        text.strip_prefix("곳").is_some_and(|suffix| {
+            self.is_counter_quantity(count)
+                && has_exact_sequence(&self.resource, "곳", &[StructuralPos::NNG])
+                && (has_grammatical_particle_chain("곳", suffix)
+                    || verify_copula_surface_after_nominal('곳', suffix))
+        })
     }
 
     #[must_use]

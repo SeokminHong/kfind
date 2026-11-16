@@ -1,8 +1,14 @@
-use crate::PredicatePos;
 use crate::predicate::ha_aspirates_after;
 use crate::structure::BoundedTokenContext;
+use crate::{ParticleVerifier, PredicatePos};
 use kfind_data::{ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use std::ops::Range;
+use std::sync::LazyLock;
+
+pub(super) fn has_grammatical_particle_chain(host: &str, particle: &str) -> bool {
+    static VERIFIER: LazyLock<ParticleVerifier> = LazyLock::new(ParticleVerifier::default);
+    VERIFIER.verify_exact(host, particle).is_some()
+}
 
 pub(super) fn predicate_pos_matches(actual: &str, expected: PredicatePos) -> bool {
     match expected {

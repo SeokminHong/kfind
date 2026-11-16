@@ -6,15 +6,14 @@ use crate::structure::lexical::{
     complete_predicate_ending_path, complete_suffix, copular_frame, exact_analysis_ends_with_pos,
     exact_analysis_starts_with_pos, has_adnominal_result_complement, has_auxiliary_adnominal_split,
     has_complete_object_phrase, has_complete_subject_phrase, has_copular_adnominal_split,
-    has_exact_fine_pos, has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
-    nominal_particle_hosts,
+    has_exact_fine_pos, has_exact_sequence, has_grammatical_particle_chain,
+    has_unambiguous_proper_name, has_verb_nominalization, nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
-    compound_predicate_component_is_supported, has_grammatical_particle_chain,
-    has_grammatical_particle_component, modifier_led_nominal_component_is_on_preferred_path,
-    nominal_component_is_supported, proper_noun_dependent_noun_frame,
-    runtime_nominal_component_is_supported,
+    compound_predicate_component_is_supported, has_grammatical_particle_component,
+    modifier_led_nominal_component_is_on_preferred_path, nominal_component_is_supported,
+    proper_noun_dependent_noun_frame, runtime_nominal_component_is_supported,
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
