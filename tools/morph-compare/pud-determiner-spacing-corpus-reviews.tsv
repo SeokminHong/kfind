@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:w01130101:noun:세	세	noun	false	b7d941fd3d5cd0a254bccfc8a0d99980dda5d28e7cc62b09d442bbc7ad16eed4	excluded	nonstandard-input	18번 작곡한과 19번 세/DT의 경계 135에서 공백이 빠졌다. 제2항에 따라 독립 관형사 세를 앞 용언의 관형형과 띄어 쓴다.
