@@ -2078,6 +2078,15 @@ regression.adverb.b-irregular.conditional-adverb	매우	adverb	no-match	7	16	국
 regression.adverb.b-irregular.conditional-adjective	맵다	adjective	smart-only-exact	7	16	국이 매우면 물을 조금 넣으세요.
 regression.adverb.b-irregular.cooccurring-adverb	매우	adverb	smart-only-exact	7	13	국이 매우 매워서 물을 넣었다.
 regression.adverb.b-irregular.cooccurring-adjective	맵다	adjective	smart-only-exact	14	23	국이 매우 매워서 물을 넣었다.
+regression.modifier.derived-root.connective	저	determiner	no-match	10	13	가격이 저렴하고 품질도 좋다.
+regression.modifier.derived-root.determiner	저	determiner	smart-only-exact	0	3	저 책은 가격이 저렴한 편이다.
+regression.modifier.derived-root.adnominal	저렴하다	adjective	smart-only-exact	21	30	저 책은 가격이 저렴한 편이다.
+regression.modifier.derived-root.quantity	세	determiner	smart-only-exact	0	3	세 사람이 자료를 세밀하게 검토했다.
+regression.modifier.derived-root.adverbial-ending	세밀하다	adjective	smart-only-exact	24	36	세 사람이 자료를 세밀하게 검토했다.
+regression.modifier.derived-root.totality	온	determiner	smart-only-exact	0	3	온 가족이 온순한 강아지를 돌봤다.
+regression.modifier.derived-root.second-adnominal	온순하다	adjective	smart-only-exact	14	23	온 가족이 온순한 강아지를 돌봤다.
+regression.modifier.derived-root.not-pronoun	저	pronoun	no-match	7	10	그는 저렴한 책을 샀다.
+regression.modifier.derived-root.pronoun	저	pronoun	smart-only-exact	0	6	저는 저렴한 책을 샀다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.

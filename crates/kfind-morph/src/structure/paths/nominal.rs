@@ -5,6 +5,7 @@ use std::ops::Range;
 pub(in crate::structure) fn runtime_nominal_derivation_spans(
     graph: &EdgeGraph<'_>,
     complete: &[bool],
+    ending_suffix: &[bool],
 ) -> Box<[Range<usize>]> {
     let edges = graph.edges();
     let mut spans = graph
@@ -13,14 +14,21 @@ pub(in crate::structure) fn runtime_nominal_derivation_spans(
             let edge = &edges[index];
             let positions = graph.positions(edge);
             complete[index]
-                && positions.last().is_some_and(|pos| pos.is_nominal())
-                && graph.starting_range(edge.span.end).any(|next_index| {
-                    let next = &edges[next_index];
-                    complete[next_index]
-                        && graph.positions(next).first().is_some_and(|pos| {
-                            pos.is_predicate_tag()
-                                || matches!(*pos, StructuralPos::XSV | StructuralPos::XSA)
+                && positions.last().is_some_and(|pos| match *pos {
+                    StructuralPos::XR => {
+                        has_complete_derivational_ending(edge.span.end, graph, ending_suffix)
+                    }
+                    pos if pos.is_nominal() => {
+                        graph.starting_range(edge.span.end).any(|next_index| {
+                            let next = &edges[next_index];
+                            complete[next_index]
+                                && graph.positions(next).first().is_some_and(|pos| {
+                                    pos.is_predicate_tag()
+                                        || matches!(*pos, StructuralPos::XSV | StructuralPos::XSA)
+                                })
                         })
+                    }
+                    _ => false,
                 })
         })
         .map(|index| edges[index].span.clone())
@@ -28,6 +36,24 @@ pub(in crate::structure) fn runtime_nominal_derivation_spans(
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+fn has_complete_derivational_ending(
+    start: usize,
+    graph: &EdgeGraph<'_>,
+    ending_suffix: &[bool],
+) -> bool {
+    graph.starting_at(start).iter().any(|edge| {
+        graph
+            .positions(edge)
+            .split_first()
+            .is_some_and(|(&first, endings)| {
+                matches!(first, StructuralPos::XSV | StructuralPos::XSA)
+                    && ending_suffix[edge.span.end]
+                    && (!endings.is_empty() || edge.span.end + 1 < ending_suffix.len())
+                    && endings.iter().all(|pos| pos.is_ending())
+            })
+    })
 }
 
 #[derive(Clone, Copy)]
@@ -95,15 +121,7 @@ pub(in crate::structure) fn nominal_derivation_predicate_prefixes(
     let mut prefixes = (0..text_len)
         .filter(|&end| {
             nominal_prefix[end][NominalDerivationState::DerivedNominal as usize]
-                && graph.starting_at(end).iter().any(|edge| {
-                    let mut positions = graph.positions(edge).iter().copied();
-                    matches!(
-                        positions.next(),
-                        Some(StructuralPos::XSV | StructuralPos::XSA)
-                    ) && positions.clone().all(StructuralPos::is_ending)
-                        && ending_suffix[edge.span.end]
-                        && (positions.next().is_some() || edge.span.end < text_len)
-                })
+                && has_complete_derivational_ending(end, graph, ending_suffix)
         })
         .map(|end| 0..end)
         .collect::<Vec<_>>();
