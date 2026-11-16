@@ -2804,3 +2804,14 @@ regression.counted-dictionary-noun.age	세	noun	smart-only-exact	12	15	그때는
 regression.counted-dictionary-noun.tax	세	noun	smart-only-exact	13	19	가게에서 세를 냈다.
 regression.counted-dictionary-noun.machine	기	noun	smart-only-exact	8	14	기계 3기가 작동했다.
 regression.counted-dictionary-noun.gigabyte	기가	noun	smart-only-exact	11	17	용량은 3기가였다.
+regression.purpose-motion.honorific-motion	가다	verb	smart-only-exact	17	26	고기 드시러 간다면 실망스러울 수 있다.
+regression.purpose-motion.honorific-competing	갈다	verb	no-match	17	26	고기 드시러 간다면 실망스러울 수 있다.
+regression.purpose-motion.future-motion	가다	verb	smart-only-exact	24	30	친구와 밥 먹으러 갈까?
+regression.purpose-motion.future-competing	갈다	verb	no-match	24	30	친구와 밥 먹으러 갈까?
+regression.purpose-motion.derived-competing	갈다	verb	no-match	23	29	주말에 공부하러 갈까?
+regression.purpose-motion.bieup-irregular-competing	갈다	verb	no-match	20	29	채소를 주우러 간다면 봉지를 챙겨라.
+regression.purpose-motion.digeut-irregular-competing	갈다	verb	no-match	31	40	걷기 좋은 길을 걸으러 간다면 산책로를 추천한다.
+regression.purpose-motion.vowel-competing	갈다	verb	no-match	20	26	은사님을 뵈러 가니 설렜다.
+regression.purpose-motion.manner-connective	갈다	verb	smart-only-exact	14	23	세게 눌러 간다면 표면이 고르게 닳는다.
+regression.purpose-motion.reo-irregular-connective	갈다	verb	smart-only-exact	17	26	때에 이르러 간다면 표면이 얇아진다.
+regression.purpose-motion.object	갈다	verb	smart-only-exact	10	16	원두를 갈면 향이 진해진다.
