@@ -2231,3 +2231,11 @@ regression.nominalization-adverb.noun	좀	noun	smart-only-exact	11	17	이 옷에
 regression.nominalization-adverb.nominal-particle	잠들다	verb	smart-only-exact	7	16	그가 잠듦을 확인했다.
 regression.nominalization-adverb.particle-contrast	그렇다	adjective	smart-only-exact	0	12	그럼에도 불구하고 인생은 가치가 있다.
 regression.nominalization-adverb.nominalization	잠들다	verb	smart-only-exact	14	20	일곱 시에 잠듦.
+regression.pronoun-topic.clause-adverb	나다	verb	no-match	0	6	나는 어쨌든 결정을 내렸다.
+regression.pronoun-topic.second-clause-adverb	날다	verb	no-match	0	6	나는 또한 비밀번호를 알아냈다.
+regression.pronoun-topic.finite-past	나다	verb	no-match	0	6	나는 걸었다.
+regression.pronoun-topic.finite-past-with-adverb	나다	verb	no-match	0	6	나는 일부러 늦었다.
+regression.pronoun-topic.pronoun	나	pronoun	smart-only-exact	0	6	나는 또한 비밀번호를 알아냈다.
+regression.pronoun-topic.adnominal-copula-head	나다	verb	smart-only-exact	7	13	땀이 나는 날이었다.
+regression.pronoun-topic.stacked-adnominal	날다	verb	smart-only-exact	10	16	하늘을 나는 아주 작은 새를 보았다.
+regression.pronoun-topic.explicit-copula	날다	verb	smart-only-exact	23	29	주인공은 하늘을 나는 친구이었다.
