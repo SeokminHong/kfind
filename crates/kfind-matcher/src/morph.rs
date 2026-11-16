@@ -1193,6 +1193,35 @@ impl MorphMatcher {
         {
             return false;
         }
+        if candidate.consumed.end < whole.end
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation { .. }
+            )
+        {
+            let requires_ending_boundary = |rule: &RuleId| {
+                matches!(
+                    rule.as_str(),
+                    "ending.connective-ni"
+                        | "ending.interrogative-ni"
+                        | "ending.hao-respectful-connective"
+                )
+            };
+            if candidate.suffix_rules.last().map_or_else(
+                || {
+                    !branch.origins.is_empty()
+                        && branch.origins.iter().all(|origin| {
+                            origin
+                                .rule_path
+                                .last()
+                                .is_some_and(requires_ending_boundary)
+                        })
+                },
+                requires_ending_boundary,
+            ) {
+                return false;
+            }
+        }
         let (licensed_trailing, attached_auxiliary) =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_some()
