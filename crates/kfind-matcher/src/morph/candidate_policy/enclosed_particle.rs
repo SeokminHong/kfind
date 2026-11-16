@@ -1,0 +1,119 @@
+use std::ops::Range;
+
+use kfind_morph::{CoarsePos, FinePos, ParticleVerifier};
+use kfind_query::{AtomPlan, CandidateConsumption, CandidateDecision, CandidateProgram};
+
+use crate::boundary::{is_boundary_after, is_token_character, previous_character};
+
+use super::super::{context, valid_utf8_suffix};
+
+pub(super) fn rejects(
+    haystack: &[u8],
+    span: &Range<usize>,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    particles: &ParticleVerifier,
+) -> bool {
+    let Some(close) = previous_character(haystack, span.start) else {
+        return false;
+    };
+    let (open, supplement) = match close {
+        ')' => ('(', true),
+        ']' => ('[', true),
+        '〉' => ('〈', false),
+        '》' => ('《', false),
+        '」' => ('「', false),
+        '』' => ('『', false),
+        '”' => ('“', false),
+        '’' => ('‘', false),
+        '\'' | '"' => (close, false),
+        _ => return false,
+    };
+    if !is_boundary_after(haystack, span.end)
+        || (matches!(branch.consumption, CandidateConsumption::Anchor)
+            && matches!(branch.decision, CandidateDecision::Boundary(_)))
+        || !branch.origins.iter().all(|origin| {
+            let analysis = &atom.analyses[usize::from(origin.analysis_index)];
+            analysis.fine_pos != FinePos::Copula
+                && matches!(
+                    analysis.coarse_pos,
+                    CoarsePos::Noun
+                        | CoarsePos::Pronoun
+                        | CoarsePos::Numeral
+                        | CoarsePos::Determiner
+                        | CoarsePos::Adverb
+                        | CoarsePos::Verb
+                        | CoarsePos::Adjective
+                )
+        })
+    {
+        return false;
+    }
+    let Some(suffix) = context::normalized_token(haystack, span.clone()) else {
+        return false;
+    };
+    if !particles
+        .model()
+        .allomorphs
+        .iter()
+        .any(|form| suffix.starts_with(form.surface.as_ref()))
+    {
+        return false;
+    }
+    let end = span.start - close.len_utf8();
+    let left = valid_utf8_suffix(&haystack[..end]);
+    let line = left.rsplit(['\r', '\n']).next().unwrap_or_default();
+    let Some(opener) = matching_opener(line, open, close) else {
+        return false;
+    };
+    let (before, enclosed) = line.split_at(opener);
+    let enclosed = &enclosed[open.len_utf8()..];
+    if !enclosed.chars().any(is_token_character) {
+        return false;
+    }
+    let tail = enclosed.trim_end_matches([')', ']']);
+    (supplement && verifies_after(before, &suffix, particles))
+        || verifies_after(tail, &suffix, particles)
+        || before_trailing_supplement(enclosed)
+            .is_some_and(|host| verifies_after(host, &suffix, particles))
+}
+
+fn before_trailing_supplement(enclosed: &str) -> Option<&str> {
+    let close = enclosed.chars().next_back()?;
+    let open = match close {
+        ')' => '(',
+        ']' => '[',
+        _ => return None,
+    };
+    let start = matching_opener(&enclosed[..enclosed.len() - close.len_utf8()], open, close)?;
+    Some(&enclosed[..start])
+}
+
+fn matching_opener(line: &str, open: char, close: char) -> Option<usize> {
+    if open == close {
+        let index = line.rfind(open)?;
+        return line[..index]
+            .chars()
+            .next_back()
+            .is_none_or(|character| !is_token_character(character))
+            .then_some(index);
+    }
+    let mut nested = 0;
+    for (index, character) in line.char_indices().rev() {
+        if character == close {
+            nested += 1;
+        } else if character == open {
+            if nested == 0 {
+                return Some(index);
+            }
+            nested -= 1;
+        }
+    }
+    None
+}
+
+fn verifies_after(host: &str, suffix: &str, particles: &ParticleVerifier) -> bool {
+    host.chars().next_back().is_some_and(is_token_character)
+        && context::normalized_token(host.as_bytes(), 0..host.len())
+            .is_some_and(|normalized| particles.verify_exact(&normalized, suffix).is_some())
+}

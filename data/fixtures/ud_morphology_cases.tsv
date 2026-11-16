@@ -1840,6 +1840,17 @@ regression.particle.deun.consonant-without-i	책	noun	no-match	0	6	책든 고르
 regression.particle.deun.proper-name	고	noun	no-match	7	13	조셉 고든 레빗이 출연했다.
 regression.particle.deun.parenthesized-name	가	noun	no-match	17	23	예바 부에나 가든(Yerba Buena Garden)을 방문했다.
 regression.particle.deun.parenthesized-explanation	누구	pronoun	smart-exact	0	9	누구든(나이 제한 없음) 지원할 수 있다.
+regression.particle.enclosed.supplement-verb	가다	verb	no-match	12	15	해(1446년)가 달랐다.
+regression.particle.enclosed.supplement-noun	가	noun	no-match	12	15	해(1446년)가 달랐다.
+regression.particle.enclosed.supplement-determiner	이	determiner	no-match	23	26	국제항공그룹(IAG)이 기여했다.
+regression.particle.enclosed.supplement-chain	과	noun	no-match	14	20	기관(Agency)과의 협상을 시작했다.
+regression.particle.enclosed.nested-supplement	가다	verb	no-match	20	23	해(창제(1443년))가 달랐다.
+regression.particle.enclosed.quoted-title	가다	verb	no-match	12	15	《월보》가 발행되었다.
+regression.particle.enclosed.supplement-inside-quote	과	noun	no-match	20	26	“기관(Agency)”과의 협상을 시작했다.
+regression.particle.enclosed.straight-open-quote	가다	verb	smart-only-exact	11	14	편지에 "가"라고만 적혀 있었다.
+regression.particle.enclosed.spaced-predicate	가다	verb	smart-only-exact	28	31	계단으로(뛰지 말고) 가.
+regression.particle.enclosed.restrictive-not-numeral	만	numeral	no-match	26	38	멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
+regression.particle.enclosed.standalone-numeral	만	numeral	smart-only-exact	30	39	입장객 수를 오천에서 만으로 높였다.
 regression.ending.euryeodeun	먹다	verb	smart-exact	11	23	죽도 못 먹으려든 하물며 쌀밥이라니.
 regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 같다.
 regression.pronominal-short.uri-ambiguous	우리	pronoun	smart-exact	0	3	울 아이가 먼저 나왔어요.
