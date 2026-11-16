@@ -396,6 +396,18 @@ regression.repeated-adverb.aligned-nominal-head	군데	noun	smart-exact	7	13	벽
 regression.repeated-adverb.aligned-nominal-tail	군데	noun	smart-exact	13	19	벽이 군데군데 갈라졌다.
 regression.repeated-adverb.counted-tail	일	noun	smart-only-exact	3	6	일일 이용권으로 입장했다.
 regression.repeated-adverb.whole-nominal	일일	noun	smart-only-exact	0	6	일일 이용권으로 입장했다.
+regression.nominalizer-boundary.competing-verb	나다	verb	no-match	16	19	문화유산이 남아 있는 도시다.
+regression.nominalizer-boundary.complete-verb	남다	verb	smart-only-exact	16	22	문화유산이 남아 있는 도시다.
+regression.nominalizer-boundary.atomic-noun	타다	verb	no-match	0	3	탐사 로봇이 왔다.
+regression.nominalizer-boundary.whole-noun	탐사	noun	smart-only-exact	0	6	탐사 로봇이 왔다.
+regression.nominalizer-boundary.ki-in-noun	대다	verb	no-match	0	6	대기업 계열사를 조사했다.
+regression.nominalizer-boundary.consonant	서다	verb	no-match	0	3	섬유 유통 기업을 조사했다.
+regression.nominalizer-boundary.particle	나다	verb	smart-only-exact	26	32	컴퓨터에서 소리가 남을 확인했다.
+regression.nominalizer-boundary.standalone	나다	verb	smart-only-exact	33	36	고음에서 찢어지는 소리 남
+regression.nominalizer-boundary.aligned	쉬다	verb	smart-only-exact	0	3	쉼터에서 기다렸다.
+regression.nominalizer-boundary.aligned-eum	웃다	verb	smart-only-exact	0	6	웃음소리가 들렸다.
+regression.nominalizer-boundary.aligned-rieul	살다	verb	smart-only-exact	0	3	삶터를 옮겼다.
+regression.nominalizer-boundary.aligned-ki	달리다	verb	smart-only-exact	0	9	달리기대회에 참가했다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
