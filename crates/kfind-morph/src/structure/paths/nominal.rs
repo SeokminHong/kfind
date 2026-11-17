@@ -257,7 +257,7 @@ pub(in crate::structure) fn nominal_copula_hosts(
     if !text
         .char_indices()
         .skip(1)
-        .any(|(_, character)| matches!(character, '이' | '입'))
+        .any(|(start, _)| copula_surface_begins_at(text, start))
     {
         return Box::default();
     }
@@ -267,8 +267,16 @@ pub(in crate::structure) fn nominal_copula_hosts(
     suffix[text_len][CopulaSuffixState::Particle as usize] = true;
     for start in (0..text_len).rev() {
         for edge in graph.starting_at(start) {
+            let positions = graph.positions(edge);
+            // An unaligned dictionary tag must not supply an ending on the bare stem.
+            if positions.len() > 1
+                && positions[0] == StructuralPos::VCP
+                && matches!(text.get(edge.span.clone()), Some("이" | "입"))
+            {
+                continue;
+            }
             for state in copula_suffix_states() {
-                let Some(next) = advance_copula_suffix(state, graph.positions(edge)) else {
+                let Some(next) = advance_copula_suffix(state, positions) else {
                     continue;
                 };
                 suffix[start][state as usize] |= suffix[edge.span.end][next as usize];
@@ -292,7 +300,7 @@ pub(in crate::structure) fn nominal_copula_hosts(
 
 pub(in crate::structure) fn copula_surface_begins_at(text: &str, start: usize) -> bool {
     text.get(start..)
-        .is_some_and(|suffix| suffix.starts_with('이') || suffix.starts_with('입'))
+        .is_some_and(|suffix| suffix.len() > '이'.len_utf8() && suffix.starts_with(['이', '입']))
 }
 
 const fn copula_suffix_states() -> [CopulaSuffixState; COPULA_SUFFIX_STATE_COUNT] {
@@ -311,7 +319,10 @@ fn advance_copula_suffix(
     for &pos in positions {
         state = match (state, pos) {
             (CopulaSuffixState::Start, StructuralPos::VCP) => CopulaSuffixState::Copula,
-            (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos) if pos.is_ending() => {
+            (CopulaSuffixState::Copula, StructuralPos::EP) => CopulaSuffixState::Copula,
+            (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos)
+                if pos != StructuralPos::EP && pos.is_ending() =>
+            {
                 CopulaSuffixState::Ending
             }
             (CopulaSuffixState::Ending | CopulaSuffixState::Particle, pos) if pos.is_particle() => {
