@@ -1284,6 +1284,42 @@ fn nominal_copula_hosts_do_not_skip_or_overlap_the_copula() {
 }
 
 #[test]
+fn nominal_copula_hosts_require_a_surface_ending_after_the_stem_and_prefinals() {
+    let resolver = resolver_from_entries([
+        atomic("나", "NP"),
+        atomic("나이", "NNG"),
+        atomic("이", "VCP"),
+        atomic("이", "VCP+EF"),
+        atomic("입", "VCP"),
+        atomic("입", "VCP+EF"),
+        atomic("이었", "VCP+EP"),
+        atomic("었", "EP"),
+        atomic("다", "EF"),
+        atomic("니다", "EF"),
+        atomic("도", "JX"),
+    ]);
+    for (text, expected) in [
+        ("나이", false),
+        ("나입", false),
+        ("나이도", false),
+        ("나이었", false),
+        ("나이었도", false),
+        ("나이다", true),
+        ("나입니다", true),
+        ("나이었다", true),
+    ] {
+        let prepared = resolver
+            .prepare_context_for_candidate(BoundedTokenContext::current(text), 128, true, false)
+            .expect("bounded token");
+        assert_eq!(
+            prepared.has_nominal_copula_host(&(0.."나".len())),
+            expected,
+            "{text}"
+        );
+    }
+}
+
+#[test]
 fn whole_adverb_still_rejects_a_copula_suffix() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vcp, "이").with_candidate_contract(
