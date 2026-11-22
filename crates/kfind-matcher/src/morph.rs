@@ -128,7 +128,7 @@ impl MorphMatcher {
             .atoms
             .iter()
             .enumerate()
-            .find(|(_, atom)| atom.programs.is_empty())
+            .find(|(_, atom)| atom.programs.is_empty() && !atom.analyses.is_empty())
         {
             return Err(MorphMatcherBuildError::EmptyAtom { atom_index });
         }

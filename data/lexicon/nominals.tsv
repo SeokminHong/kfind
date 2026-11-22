@@ -9,3 +9,4 @@ lemma	pos	flags	overrides
 사용자	NNG		
 저	NP		particle.subject=제가;particle.genitive=제
 기술	NNG	DERIVABLE	
+자신	NNG	CURATED_POS	

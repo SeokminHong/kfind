@@ -24,6 +24,8 @@
   적용된 오류를 stderr에 쓰되 파일 경로와 decoder 오류의 control character escape 정책을
   유지한다.
 - 전역 `--pos`와 atom 태그를 함께 사용하면 같은 품사일 때만 허용하고, 다르면 컴파일 오류를 낸다.
+- 기본 사전에서 품사가 확정된 `자신`을 대명사로 지정한 형태 질의는 일치하지 않는다.
+  `--pos noun 자신`은 조사와 복수 표지가 붙은 명사를 검색한다.
 - `--literal`은 `--expand literal --pos literal`의 단축 옵션이며 상충하는 `--expand` 또는 `--pos`와 함께 사용할 수 없다.
 - `--embedded`는 full POS lexicon과 enriched 용언 데이터를 resolve하거나 읽지 않는다. compact
   component resource의 로드 여부는 `CandidateProgram`이 선언한 resource capability로

@@ -3181,6 +3181,41 @@ fn nominal_particle_canonical_candidates_keep_the_whole_syllable() {
 }
 
 #[test]
+fn dictionary_pos_excludes_invalid_expansion_and_preserves_query_composition() {
+    let text = "자신의 문서와 완료 표식";
+    for boundary in [
+        BoundaryPolicy::Smart,
+        BoundaryPolicy::Token,
+        BoundaryPolicy::Any,
+    ] {
+        let options = CompileOptions {
+            boundary,
+            ..CompileOptions::default()
+        };
+        let wrong_pos = compile("pro:자신", options.clone());
+        assert!(wrong_pos.find_span_at(text.as_bytes(), 0).is_none());
+
+        let phrase = compile("pro:자신 lit:완료", options.clone());
+        assert!(phrase.find_span_at(text.as_bytes(), 0).is_none());
+
+        let alternative = compile("pro:자신 | lit:완료", options.clone());
+        let span = alternative
+            .find_span_at(text.as_bytes(), 0)
+            .expect("the literal alternative must remain searchable");
+        assert_eq!(&text[span], "완료");
+
+        let surface = compile(
+            "pro:자신",
+            CompileOptions {
+                expand: ExpandMode::Literal,
+                ..options
+            },
+        );
+        assert!(surface.find_span_at("자신".as_bytes(), 0).is_some());
+    }
+}
+
+#[test]
 fn predicate_canonical_candidates_keep_the_whole_syllable() {
     let matcher = compile_with_full_pos(
         "오다",
