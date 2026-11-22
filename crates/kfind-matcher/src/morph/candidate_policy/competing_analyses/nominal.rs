@@ -6,7 +6,7 @@ use crate::boundary::{
     is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
 };
 
-use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, context};
+use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
 pub(super) fn has_adverb_instead_of_genitive(
     haystack: &[u8],
@@ -30,6 +30,53 @@ pub(super) fn has_adverb_instead_of_genitive(
                 && !resolver.has_nominal_with_optional_particles(&next)
                 && !resolver.has_explicit_copula_after_nominal(&next)
         })
+}
+
+pub(super) fn has_degree_adverb_before_quantity(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || !haystack
+        .get(core.end..)
+        .is_some_and(|tail| tail.starts_with("의".as_bytes()) || tail.starts_with("의".as_bytes()))
+        || !is_boundary_before(haystack, core.start)
+    {
+        return false;
+    }
+    let Ok(whole) = crate::boundary::bounded_surrounding_token_span(
+        haystack,
+        core.clone(),
+        MAX_CONSUMPTION_BYTES,
+    ) else {
+        return false;
+    };
+    context::normalized_token(haystack, core.end..whole.end).as_deref() == Some("의")
+        && context::normalized_token(haystack, whole.clone())
+            .is_some_and(|token| resolver.has_exact_adverb_surface(&token))
+        && context::next_word_on_line(haystack, whole.end)
+            .is_some_and(|(_, next)| resolver.has_complete_attached_counted_unit(&next))
+        && context::normalized_token(haystack, core.clone())
+            .is_some_and(|core| resolver.has_exact_dependent_noun_surface(&core))
+        && context::previous_word_with_start(haystack, core.start).is_some_and(
+            |(start, previous)| {
+                !haystack[start..core.start]
+                    .iter()
+                    .any(|byte| matches!(byte, b'\r' | b'\n'))
+                    && (resolver.has_subject_marked_nominal(&previous)
+                        || resolver.has_object_marked_nominal(&previous)
+                        || resolver.has_topic_marked_nominal(&previous)
+                        || resolver.has_nominal_oblique(&previous)
+                        || previous
+                            .strip_suffix(['은', '는'])
+                            .is_some_and(|host| resolver.has_nominal_oblique(host)))
+            },
+        )
 }
 
 pub(super) fn has_competing_nominal_with_gu(

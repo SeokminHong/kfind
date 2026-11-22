@@ -6,8 +6,8 @@ use crate::structure::lexical::{
     complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
     complete_predicate_ending_path, complete_suffix, derived_inflected_path,
     exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
-    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_inflected_path,
-    predicate_pos_matches, structural_predicate_pos_matches,
+    has_exact_fine_pos, has_exact_sequence, numeric_unit_path, numeric_unit_path_at,
+    predicate_inflected_path, predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     compound_predicate_pos, has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -592,6 +592,13 @@ impl ConstraintResolver {
     pub fn has_complete_dictionary_numeric_unit_path(&self, text: &str) -> bool {
         numeric_unit_path_at(&self.resource, text, 0).is_some_and(|path| {
             path.dependent_tail.is_none() && Self::is_dictionary_numeric_unit(&text[path.unit])
+        })
+    }
+
+    #[must_use]
+    pub fn has_complete_attached_counted_unit(&self, text: &str) -> bool {
+        numeric_unit_path(&self.resource, text).is_some_and(|path| {
+            path.dependent_tail.is_none() && self.has_exact_numeric_unit(&text[path.unit])
         })
     }
 
