@@ -89,7 +89,7 @@ pub(super) fn rejects(
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
-        || crosses_competing_connective(haystack, candidate, branch, resolver)
+        || overlaps_competing_ending(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
         || has_pronoun_object_instead_of_adnominal(haystack, candidate, branch, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
@@ -349,7 +349,7 @@ fn has_nominal_head_instead_of_resultative_adnominal(
         })
 }
 
-fn crosses_competing_connective(
+fn overlaps_competing_ending(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -368,10 +368,12 @@ fn crosses_competing_connective(
     let Some(tail) = context::normalized_token(haystack, span.start..span.end) else {
         return false;
     };
-    let endings: &[&str] = match tail.as_ref() {
+    let tail = tail.as_ref();
+    let endings: &[&str] = match tail {
         "만" => &["지만", "건만"],
         "마는" => &["지마는", "건마는"],
         "나" => &["으나", "거나"],
+        _ if tail.starts_with("는다") => std::slice::from_ref(&tail),
         _ => return false,
     };
     let whole = surrounding_token_span(haystack, span.clone());
@@ -381,7 +383,7 @@ fn crosses_competing_connective(
     let Some(token) = context::normalized_token(haystack, whole) else {
         return false;
     };
-    // The candidate starts inside the connective, after its first syllable.
+    // The candidate covers a competing ending or its final syllables.
     endings
         .iter()
         .find_map(|ending| token.strip_suffix(ending).map(|host| (host, *ending)))

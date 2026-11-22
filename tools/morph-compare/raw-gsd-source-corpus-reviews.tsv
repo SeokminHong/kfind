@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	raw-gsd	gsd:test-s427:6	늘다	verb	true	aca1e63d1c7950162a26977ebf2269a5de28b2072405a5d056a6ee3e8136d041	confirmed	implementation-target	안목이가 주어인 늘었으리라 44..59는 동사 늘다의 활용이다. 믿는다의 는다 63..69는 믿다의 종결 어미다.
 explicit-pos	raw-gsd	gsd:test-s95:13	하다	verb	true	6686d9ee99a6a05178a814c581f4112cc944695901b9d1688776517e63a20be4	confirmed	implementation-target	13번 하고 96..102가 동사 하다다. 앞의 한 층 더에서는 정도 부사 한층이 띄어 쓰였다.
 explicit-pos	raw-gsd	gsd:test-s243:24	하다	verb	true	4fae06f75bfc06c85d1439fad72ad86c581167f2c475d64b85ee4dc1c3058408	confirmed	implementation-target	24번 하고 195..201이 커팅을 목적어로 취한다. 한 신입사원의 한은 신입사원의 수를 나타낸다.
 explicit-pos	raw-gsd	gsd:test-s283:17	하다	verb	true	7a66f495389fe43968bcd5f32cd338a67c1de84faf939fe68b14a46a1f216183	confirmed	implementation-target	17번 할 144..147이 행동만을 목적어로 취한다. 유닛·턴·번 앞의 한은 각각 수량을 지정한다.

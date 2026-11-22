@@ -15,6 +15,9 @@ regression.competing-connective.eu-na	나다	verb	smart-only-exact	33	39	아픔�
 regression.competing-connective.geo-na	나다	verb	smart-only-exact	30	39	문이 열리거나 연기가 나거나 하면 즉시 신고한다.
 regression.competing-connective.conjugated-target	나다	verb	smart-only-exact	17	26	비록 피해가 났으나 인명 손실은 없었다.
 regression.competing-connective.bare-target	나다	verb	smart-only-exact	23	26	주전자에서 김이 나.
+regression.competing-ending.declarative	늘다	verb	smart-only-exact	20	35	아이의 실력이 늘었으리라 믿는다.
+regression.competing-ending.quotative	늘다	verb	smart-only-exact	23	32	겨울에도 강물이 는다고 믿는다.
+regression.competing-ending.direct-target	늘다	verb	smart-only-exact	43	49	아이는 경험을 쌓으면서 실력이 는다.
 regression.any-attached-auxiliary.contracted	알리다	verb	only-exact	0	9	알려줘.
 regression.any-attached-auxiliary.homograph-prefinal	하다	verb	only-exact	7	19	일을 해줬으면 좋겠다.
 regression.any-attached-auxiliary.homograph-intention	보이다	verb	only-exact	11	23	이걸 좀 보여줄래?
