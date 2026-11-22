@@ -12,7 +12,7 @@ const digest = text => createHash('sha256').update(text).digest('hex');
 assert.equal(digest(corpus), '55f9c8d465400e070664c5319091d31ce35a16ec220b0bebc5e3c9b12f530948');
 assert.equal(digest(negatives), '482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54');
 
-const targets = new Set(['수', '중', '것']);
+const targets = new Set(['수', '중', '것', '거']);
 const withoutSpace = text => text.replace(/\s/gu, '');
 const sentences = new Map();
 for (const block of corpus.trimEnd().split(/\n\n+/u)) {
