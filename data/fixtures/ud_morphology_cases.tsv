@@ -3055,6 +3055,14 @@ regression.aligned-nominal-tail.calendar-day	일	noun	smart-only-exact	17	20	연
 regression.aligned-nominal-tail.weekday-component	요일	noun	smart-only-exact	24	33	연극은 6월 10일 토요일에 상연된다.
 regression.aligned-nominal-tail.weekday-extra	일	noun	no-match	6	12	토요일에 문을 연다.
 regression.aligned-nominal-tail.sunday-first	일	noun	smart-only-exact	0	3	일요일에 만나자.
+regression.adjacent-determiner.list-comma	수	noun	smart-only-exact	0	3	수, 목에 근무한다.
+regression.adjacent-determiner.list-middle-dot	일	noun	smart-only-exact	0	3	일·월에 출근한다.
+regression.adjacent-determiner.count-as-noun	수	noun	no-match	0	3	수 시간 동안 눈이 내렸다.
+regression.adjacent-determiner.count-as-determiner	수	determiner	smart-only-exact	0	3	수 시간 동안 눈이 내렸다.
+regression.adjacent-determiner.coordinated-noun-not-predicate	보다	verb	no-match	0	6	보건, 노동 및 환경 기준을 높인다.
+regression.adjacent-determiner.paused-adverb-not-predicate	사다	verb	no-match	17	23	그 이야기는 사실, 믿기 어렵다.
+regression.adjacent-determiner.elliptic-prefix-not-noun	전	noun	smart-only-exact	39	45	전, 후기의 두 우승 팀이 결승전을 치렀다.
+regression.adjacent-determiner.elliptic-prefix-middle-dot	전	noun	no-match	0	3	전·후기 1위 팀끼리 겨룬다.
 regression.aligned-nominal-tail.fruit-extra	일	noun	no-match	16	19	신선한 생과일 주스를 샀다.
 regression.aligned-nominal-tail.fruit-component	과일	noun	smart-only-exact	13	19	신선한 생과일 주스를 샀다.
 regression.aligned-nominal-tail.office-extra	정	noun	no-match	13	22	그는 좌의정까지 올랐다.

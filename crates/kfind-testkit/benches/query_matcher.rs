@@ -430,6 +430,7 @@ fn structural_constraint(criterion: &mut Criterion) {
                 previous: None,
                 current: "매일",
                 next: Some("보고"),
+                next_separated_by_list_punctuation: false,
             },
             CandidateSpans {
                 core: 0.."매일".len(),
@@ -444,6 +445,7 @@ fn structural_constraint(criterion: &mut Criterion) {
                 previous: Some("아니라"),
                 current: "매일",
                 next: Some("수도"),
+                next_separated_by_list_punctuation: false,
             },
             CandidateSpans {
                 core: 0.."매".len(),
@@ -655,6 +657,7 @@ fn structural_constraint(criterion: &mut Criterion) {
                 previous: None,
                 current: &dense_selection_text,
                 next: None,
+                next_separated_by_list_punctuation: false,
             },
             Arc::clone(&dense_selection_graph),
         )
@@ -667,6 +670,7 @@ fn structural_constraint(criterion: &mut Criterion) {
                         previous: None,
                         current: black_box(&dense_selection_text),
                         next: None,
+                        next_separated_by_list_punctuation: false,
                     },
                     Arc::clone(black_box(&dense_selection_graph)),
                 )
@@ -681,6 +685,7 @@ fn structural_constraint(criterion: &mut Criterion) {
                         previous: None,
                         current: black_box(&dense_selection_text),
                         next: None,
+                        next_separated_by_list_punctuation: false,
                     },
                     DEFAULT_LATTICE_NODE_LIMIT,
                     false,

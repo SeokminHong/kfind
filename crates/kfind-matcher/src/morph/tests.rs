@@ -424,6 +424,26 @@ fn repeated_structural_contexts_preserve_each_absolute_span() {
 }
 
 #[test]
+fn structural_determiner_evidence_stops_at_punctuation() {
+    let resource = Arc::new(component_resource());
+    let weekday = component_matcher("수", Arc::clone(&resource));
+    let count = component_matcher("두", resource);
+    for (matcher, text, expected) in [
+        (&weekday, "수, 목", Some(0.."수".len())),
+        (&weekday, "수·목", Some(0.."수".len())),
+        (&weekday, "수 시간", None),
+        (&count, "두 사람", None),
+    ] {
+        let actual = matcher
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .map(|matched| matched.span)
+            .collect::<Vec<_>>();
+        assert_eq!(actual, Vec::from_iter(expected), "{text}");
+    }
+}
+
+#[test]
 fn nominal_particle_host_rejects_a_component_crossing_substring() {
     let matcher = component_matcher("사과", Arc::new(component_resource()));
 
@@ -1320,6 +1340,9 @@ fn component_resource() -> ComponentResource {
         component_expression_entry("대학교", "XPN+NNG", "대/XPN/*+학교/NNG/*", -5_000),
         component_entry("역", "NNG", 5_000),
         component_entry("목", "NNG", 5_000),
+        component_entry("수", "NNG", 0),
+        component_entry("수", "MM", 0),
+        component_entry("시간", "NNBC", 0),
         component_entry("역사", "NNG", -5_000),
         component_entry("사과", "NNG", 5_000),
         component_entry("과목", "NNG", -5_000),
@@ -1339,6 +1362,7 @@ fn component_resource() -> ComponentResource {
         component_entry("둘", "NR", -5_000),
         component_entry("다", "MAG", -5_000),
         component_entry("두", "MM", -5_000),
+        component_entry("두", "NNG", 0),
         component_entry("사람", "NNG", -5_000),
         component_entry("경계", "NNG", 0),
         component_entry("안", "NNG", 1_500),

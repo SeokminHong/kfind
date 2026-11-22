@@ -603,6 +603,7 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
         previous: None,
         current: "매일",
         next: Some("보고"),
+        next_separated_by_list_punctuation: false,
     };
 
     let noun = resolver.resolve_candidate(
@@ -637,6 +638,7 @@ fn determiner_accepts_a_dependent_counter_before_derivational_homographs() {
             previous: Some("지난"),
             current: "몇",
             next: Some("년"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."몇".len(), 0.."몇".len()),
         &[whole_pattern(DataFinePos::Mm, "몇")],
@@ -865,6 +867,7 @@ fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
         previous: None,
         current: "못",
         next: Some("하겠어요"),
+        next_separated_by_list_punctuation: false,
     };
     let other_predicate_context = BoundedTokenContext {
         next: Some("박았어요"),
@@ -901,6 +904,7 @@ fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
         previous: None,
         current: "못",
         next: Some("했어요"),
+        next_separated_by_list_punctuation: false,
     };
     let noun_before_past = resolver.resolve_candidate(
         past_context,
@@ -923,6 +927,7 @@ fn whole_adverb_outranks_a_graph_built_nominal_particle_host() {
             previous: None,
             current: "너무",
             next: Some("보고"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."너무".len(), 0.."너무".len()),
         &[whole_pattern(DataFinePos::Mag, "너무")],
@@ -940,6 +945,7 @@ fn copular_arrangement_selects_the_nominal_prefix_over_the_adverb() {
         previous: Some("아니라"),
         current: "매일",
         next: Some("수도"),
+        next_separated_by_list_punctuation: false,
     };
 
     let noun = resolver.resolve_candidate(
@@ -1356,6 +1362,7 @@ fn whole_adverb_still_rejects_a_copula_suffix() {
             previous: None,
             current: "매일",
             next: Some("보고"),
+            next_separated_by_list_punctuation: false,
         },
         CandidateSpans {
             core: 3..6,
@@ -2129,6 +2136,7 @@ fn adnominal_frame_selects_a_dependent_noun_over_a_homographic_predicate() {
         previous: Some("하는"),
         current: "걸",
         next: Some("보고"),
+        next_separated_by_list_punctuation: false,
     };
     let noun = resolver.resolve_candidate(
         context,
@@ -2179,6 +2187,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: Some("한"),
             current: "박자",
             next: Some("늦게"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."박자".len(), 0.."박자".len()),
         &[whole_pattern(DataFinePos::Nng, "박자")],
@@ -2195,6 +2204,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: Some("한"),
             current: "박자",
             next: Some("늦게"),
+            next_separated_by_list_punctuation: false,
         },
         predicate_spans.clone(),
         &[predicate_pattern(DataFinePos::Vv, "박")],
@@ -2205,6 +2215,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: Some("못을"),
             current: "박자",
             next: Some("바로"),
+            next_separated_by_list_punctuation: false,
         },
         predicate_spans,
         &[predicate_pattern(DataFinePos::Vv, "박")],
@@ -2221,6 +2232,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: None,
             current: "주지",
             next: Some("스님이"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."주지".len(), 0.."주지".len()),
         &[whole_pattern(DataFinePos::Nng, "주지")],
@@ -2231,6 +2243,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: None,
             current: "주지",
             next: Some("스님이"),
+            next_separated_by_list_punctuation: false,
         },
         connective_spans.clone(),
         &[predicate_pattern(DataFinePos::Vv, "주")],
@@ -2241,6 +2254,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: None,
             current: "주지",
             next: Some("말자"),
+            next_separated_by_list_punctuation: false,
         },
         connective_spans,
         &[predicate_pattern(DataFinePos::Vv, "주")],
@@ -2251,6 +2265,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: None,
             current: "나서",
             next: Some("흥화문"),
+            next_separated_by_list_punctuation: false,
         },
         CandidateSpans {
             core: 0.."나".len(),
@@ -2266,6 +2281,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: None,
             current: "단지",
             next: Some("바람"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."단지".len(), 0.."단지".len()),
         &[whole_pattern(DataFinePos::Mag, "단지")],
@@ -2276,6 +2292,7 @@ fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
             previous: Some("놀자던"),
             current: "젊은",
             next: Some("대원"),
+            next_separated_by_list_punctuation: false,
         },
         spans(0.."젊".len(), 0.."젊은".len()),
         &[predicate_pattern(DataFinePos::Va, "젊")],
