@@ -3027,6 +3027,10 @@ regression.attached-result-state.independent-possibility	있다	adjective	smart-
 regression.quantity-adverb.dependent-object-and-adverb	거	noun	smart-only-exact	11	14	알게 된 걸 떠올리니 사람들은 거의 3년을 기다렸다.
 regression.quantity-adverb.topic-on-oblique	거	noun	no-match	13	19	지역에는 거의 12년 동안 수해가 없었다.
 regression.quantity-adverb.possessive-modifies-dependent-noun	거	noun	smart-only-exact	4	10	네 거의 3장이 남았다.
+regression.quantity-adverb.before-adnominal	거	noun	no-match	17	23	남은 물건은 거의 없는 상태다.
+regression.quantity-adverb.corrected-pud-adnominal	거	noun	no-match	45	51	당연히 옷은 많고 먹을 만한 것은 거의 없는 것이 그 사무실 풍경이다.
+regression.quantity-adverb.genitive-before-adnominal	거	noun	smart-only-exact	4	10	네 거의 낡은 덮개를 교체했다.
+regression.quantity-adverb.dependent-with-adnominal-modifier	거	noun	smart-only-exact	11	17	네가 준 거의 낡은 덮개를 교체했다.
 regression.degree-adverb.spaced-layer-and-verb	하다	verb	smart-only-exact	25	31	한 층 더 좋아지게 하고 있다.
 regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	36	42	그 사이 한 층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
