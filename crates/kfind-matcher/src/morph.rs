@@ -1995,14 +1995,29 @@ fn has_productive_nominal_component(
     patterns: &[kfind_morph::QueryMorphPattern],
     resolver: &ConstraintResolver,
 ) -> bool {
-    core.start > whole.start
+    if core.start <= whole.start {
+        return false;
+    }
+    let prefix = &haystack[whole.start..core.start];
+    if prefix.len() >= 2
+        && prefix.iter().all(u8::is_ascii_uppercase)
         && patterns.iter().any(|pattern| {
-            pattern.fine_pos == DataFinePos::Nng
-                && pattern.component_capability.allows_runtime()
-                && ConstraintResolver::is_productive_nominal_head(&pattern.lexical_form)
+            pattern.fine_pos == DataFinePos::Nng && pattern.component_capability.allows_runtime()
         })
-        && context::normalized_token(haystack, whole.start..core.start)
-            .is_some_and(|prefix| resolver.has_productive_nominal_head_prefix(&prefix))
+        && context::normalized_token(haystack, core.clone()).is_some_and(|head| {
+            head.chars().nth(1).is_some()
+                && head.chars().all(|syllable| matches!(syllable, '가'..='힣'))
+                && resolver.has_exact_nominal_surface(&head)
+        })
+    {
+        return true;
+    }
+    patterns.iter().any(|pattern| {
+        pattern.fine_pos == DataFinePos::Nng
+            && pattern.component_capability.allows_runtime()
+            && ConstraintResolver::is_productive_nominal_head(&pattern.lexical_form)
+    }) && context::normalized_token(haystack, whole.start..core.start)
+        .is_some_and(|prefix| resolver.has_productive_nominal_head_prefix(&prefix))
 }
 
 fn has_conflicting_whole_predicate(
