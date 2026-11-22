@@ -2980,3 +2980,7 @@ regression.competing-copula-host.predicate-intent	죽	noun	no-match	10	19	해충
 regression.competing-copula-host.predicate-affirmative	죽이다	verb	smart-only-exact	10	19	사람을 죽이는 건 범죄다.
 regression.competing-copula-host.copula-affirmative	죽	noun	smart-only-exact	10	13	아침은 죽이다.
 regression.competing-copula-host.foreign-compound-prefix	아	noun	no-match	0	15	아이웨어를 새로 맞췄다.
+regression.adnominal-object.nominal-prefix	거	noun	no-match	10	16	숙성을 거친 음식이다.
+regression.adnominal-object.verb-reading	거치다	verb	smart-only-exact	10	16	과정을 거친 지원자만 남았다.
+regression.adnominal-object.adjective-reading	거칠다	adjective	smart-only-exact	0	6	거친 천을 사용했다.
+regression.adnominal-object.dependent-noun	거	noun	smart-only-exact	4	10	내 거는 여기 있다.

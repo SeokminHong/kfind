@@ -329,7 +329,12 @@ impl StructureSelection {
                     && (pattern.fine_pos == DataFinePos::Vv
                         || (!only_adnominal && pattern.fine_pos == DataFinePos::Nnp))
             }
-            Self::VerbAdnominal => !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn),
+            Self::VerbAdnominal => {
+                !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn)
+                    && (!pattern.fine_pos.is_nominal()
+                        || support.evidence != StructuralEvidence::RuntimeComponent
+                        || runtime_position_is_supported(pattern, spans, text, evidence))
+            }
             Self::ConnectiveJiNominalFrame { .. } | Self::SourceAlignedConnective { .. } => {
                 unreachable!("handled before shared rules")
             }
