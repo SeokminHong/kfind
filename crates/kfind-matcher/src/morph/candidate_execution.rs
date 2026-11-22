@@ -363,6 +363,18 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
+                // A trailing jamo can belong to the last syllable of the host.
+                if matches!(&consumption_anchor, Cow::Owned(_))
+                    && consumption_anchor
+                        .chars()
+                        .next_back()
+                        .zip(consumption_following.chars().next())
+                        .is_some_and(|(last, next)| {
+                            unicode_normalization::char::compose(last, next).is_some()
+                        })
+                {
+                    return None;
+                }
                 let adverb_host = *allowed_rule_ids == self.plan.auxiliary_particle_rules;
                 if adverb_host
                     && branch.origins.iter().any(|origin| {
@@ -423,18 +435,6 @@ impl MorphMatcher {
                     }
                 }
                 let mut matched = if adverb_host {
-                    // A trailing jamo can belong to the last syllable of the adverb.
-                    if matches!(&consumption_anchor, Cow::Owned(_))
-                        && consumption_anchor
-                            .chars()
-                            .next_back()
-                            .zip(consumption_following.chars().next())
-                            .is_some_and(|(last, next)| {
-                                unicode_normalization::char::compose(last, next).is_some()
-                            })
-                    {
-                        return None;
-                    }
                     self.particle_verifier
                         .verify_non_nominal_prefix(&consumption_anchor, &consumption_following)
                 } else {
