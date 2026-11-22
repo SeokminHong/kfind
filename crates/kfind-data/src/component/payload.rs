@@ -186,7 +186,9 @@ fn structural_analysis(
     })
 }
 
-fn encode_strings<'a>(values: impl Iterator<Item = &'a String>) -> Result<Vec<u8>, DataError> {
+pub(super) fn encode_strings<'a>(
+    values: impl Iterator<Item = &'a String>,
+) -> Result<Vec<u8>, DataError> {
     let values = values.collect::<Vec<_>>();
     let mut output = Vec::new();
     output.extend_from_slice(
@@ -210,7 +212,7 @@ fn encode_strings<'a>(values: impl Iterator<Item = &'a String>) -> Result<Vec<u8
 
 #[derive(Clone, Debug)]
 pub(super) struct StringLayout {
-    count: u32,
+    pub(super) count: u32,
     offsets_start: usize,
     values_start: usize,
 }

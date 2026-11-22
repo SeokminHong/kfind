@@ -19,7 +19,8 @@ pub use binary::{
 pub use component::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, COMPONENT_RESOURCE_VERSION, ComponentAnalysis,
     ComponentAnalysisRef, ComponentPart, ComponentPos, ComponentResource, ComponentResourceStats,
-    MAX_COMPONENT_RESOURCE_BYTES, decode_component_resource, encode_component_resource,
+    MAX_COMPONENT_RESOURCE_BYTES, NominalRole, decode_component_resource,
+    encode_component_resource, encode_component_resource_with_nominal_roles,
 };
 pub use copula::{
     COPULA_RA_SUFFIXES, COPULA_REPORTING_AND_RO_ENDINGS, COPULA_STEM_ENDINGS, CopulaOmission,

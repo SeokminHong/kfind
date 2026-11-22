@@ -20,7 +20,9 @@ use super::super::{
     has_quotative_adnominal_head,
 };
 
+mod argument;
 mod nominal;
+mod partitive;
 mod quantity;
 
 const DROP_RIEUL_OBJECT_CONTRASTS: &[(&str, &str)] =
@@ -56,6 +58,11 @@ pub(super) fn rejects(
         || has_adverb_instead_of_hao_final_u(haystack, candidate, resolver)
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || has_purpose_motion_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_independent_entry_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_counted_circuit_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_late_schedule_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_directive_with_origin_and_direction(haystack, candidate, branch, resolver)
+        || argument::has_volitional_clause(haystack, candidate, branch, atom, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)
         || has_prohibitive_negation(haystack, candidate, branch, atom, resolver)
         || nominal::has_bound_nominal_prefix(haystack, candidate, branch, resolver)
@@ -66,13 +73,16 @@ pub(super) fn rejects(
         || quantity::has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_comparative_adverb_frame(haystack, candidate, branch, atom, resolver)
+        || quantity::has_quoted_name_instead_of_degree(haystack, candidate, branch, atom, resolver)
         || quantity::has_object_before_han_and_final_copula(
             haystack, candidate, branch, atom, resolver,
         )
+        || partitive::rejects_han(haystack, candidate, branch, atom, resolver)
         || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
         || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
         || nominal::has_nama_proper_name_frame(haystack, candidate, branch, resolver)
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
+        || has_humble_transitive_frame(haystack, candidate, branch, atom, resolver)
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
@@ -82,6 +92,7 @@ pub(super) fn rejects(
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
+        || quantity::has_concessive_particle_frame(haystack, candidate, branch, resolver)
         || nominal::has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
         || nominal::has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
@@ -765,6 +776,63 @@ fn accusative_verb_competitor(branch: &CandidateProgram, atom: &AtomPlan) -> Opt
     contrasts
         .all(|other| other == Some(contrast))
         .then_some(contrast)
+}
+
+fn has_humble_transitive_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !resolver.has_nominal_roles() {
+        return false;
+    }
+    let Some(contrast) = accusative_verb_competitor(branch, atom) else {
+        return false;
+    };
+    if !branch.origins.iter().any(|origin| {
+        origin
+            .rule_path
+            .iter()
+            .chain(&candidate.suffix_rules)
+            .any(|rule| rule.as_str() == "ending.archaic-naida")
+    }) && !matches!(candidate.suffix_rules.as_slice(),
+            [rule] if rule.as_str() == "structural.ending-path"
+                && context::normalized_token(haystack, candidate.consumed.clone())
+                    .is_some_and(|token| token.ends_with("나이다") || token.ends_with("나이까")))
+    {
+        return false;
+    }
+    let token = surrounding_token_span(haystack, candidate.verified.core.clone());
+    if candidate.verified.core.start != token.start || candidate.consumed.end != token.end {
+        return false;
+    }
+    let Some((start, word)) =
+        context::previous_non_adverb_with_start_on_line(haystack, token.start, resolver)
+    else {
+        return false;
+    };
+    let Some(host) = word.strip_suffix(['을', '를']) else {
+        return false;
+    };
+    if !resolver.has_object_marked_nominal(&word) {
+        return false;
+    }
+    let count = context::previous_word(haystack, start);
+    !resolver.has_elapsed_measure(host, count.as_deref())
+        && !resolver.is_temporal_nominal(host)
+        && !resolver.has_quantity_expression(host, None)
+        && !count
+            .as_deref()
+            .is_some_and(|count| resolver.has_inflected_counted_unit(count, host))
+        && context::normalized_token(haystack, token).is_some_and(|word| {
+            has_competitor_inflection(contrast, &word, |base, tail| {
+                base.iter()
+                    .chain(tail)
+                    .any(|rule| rule.as_str() == "ending.archaic-naida")
+            })
+        })
 }
 
 fn has_competitor_inflection(

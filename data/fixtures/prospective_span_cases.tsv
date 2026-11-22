@@ -51,7 +51,7 @@ stdict.으렷다:10	읽다	verb	exact	24	39	지금쯤은 책을 다 읽었으렷
 stdict.으렷다:11	꿇다	verb	exact	17	29	냉큼 무릎을 꿇으렷다.
 stdict.으렷다:12	묶다	verb	exact	21	33	당장 그 죄인을 묶으렷다.
 garya-copula-positive	이다	adjective	smart-exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
-garya-copula-context	이다	adjective	smart-exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
+garya-copula-context	이다	adjective	no-match	43	49	눈보라가 치는데 내가 거기까지 가랴?
 garya-verb-context	가다	verb	exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
 garya-verb-positive	가다	verb	exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
 garyeotda-copula-positive	이다	adjective	smart-exact	31	40	이름의 첫 글자가 분명 가렷다.

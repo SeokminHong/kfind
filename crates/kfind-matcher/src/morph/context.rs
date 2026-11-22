@@ -477,6 +477,10 @@ pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     previous_word_with_start(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn is_locative_pronoun(word: &str) -> bool {
+    matches!(word, "여기" | "거기" | "저기" | "어디")
+}
+
 pub(super) fn has_connective_go_verb_frame(
     haystack: &[u8],
     whole: &Range<usize>,
@@ -520,6 +524,14 @@ pub(super) fn previous_non_adverb_on_line<'a>(
     at: usize,
     resolver: &ConstraintResolver,
 ) -> Option<Cow<'a, str>> {
+    previous_non_adverb_with_start_on_line(bytes, at, resolver).map(|(_, word)| word)
+}
+
+pub(super) fn previous_non_adverb_with_start_on_line<'a>(
+    bytes: &'a [u8],
+    at: usize,
+    resolver: &ConstraintResolver,
+) -> Option<(usize, Cow<'a, str>)> {
     let limit = at.saturating_sub(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
     let mut end = at;
     while let Some((start, word)) = previous_word_with_start(bytes, end) {
@@ -531,7 +543,7 @@ pub(super) fn previous_non_adverb_on_line<'a>(
             break;
         }
         if !resolver.has_exact_adverb_surface(&word) {
-            return Some(word);
+            return Some((start, word));
         }
         end = start;
     }

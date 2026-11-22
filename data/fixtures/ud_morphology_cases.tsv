@@ -2308,6 +2308,7 @@ regression.counted-ordinal.whole	통	noun	smart-exact	10	13	상자를 통째로 
 regression.partitive-count.person-determiner	한	determiner	smart-only-exact	14	17	주인공 중 한 명은 꼭 죽음을 맞이했다.
 regression.partitive-count.animal-determiner	한	determiner	smart-only-exact	7	10	그중 한 마리가 먼저 달아났다.
 regression.partitive-count.copular-determiner	한	determiner	smart-only-exact	11	14	친구 중 한 명이었다.
+regression.partitive-count.copular-not-verb	하다	verb	no-match	11	14	친구 중 한 명이었다.
 regression.partitive-count.relative-clause	하다	verb	smart-only-exact	20	23	우리가 연습을 한 곳은 학교 강당이었다.
 regression.partitive-count.temporal-predicate	하다	verb	smart-exact	34	37	우리가 주문을 하는 중에 한 말이다.
 regression.partitive-count.temporal-name	하다	verb	smart-only-exact	25	28	그 실험을 수업 중 한 마리(Marie)에게 결과를 물었다.
@@ -2316,6 +2317,9 @@ regression.partitive-count.song-verb	하다	verb	smart-only-exact	11	14	공연 �
 regression.partitive-count.speech-verb	하다	verb	smart-only-exact	11	14	수업 중 한 말은 기억난다.
 regression.partitive-count.work-verb	하다	verb	smart-only-exact	11	14	회의 중 한 일을 기록했다.
 regression.partitive-place.house-determiner	한	determiner	smart-only-exact	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
+regression.partitive-count.person-not-verb	하다	verb	no-match	14	17	주인공 중 한 명은 꼭 죽음을 맞이했다.
+regression.partitive-place.house-not-verb	하다	verb	no-match	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
+regression.partitive-resultative.not-count	한	determiner	no-match	33	36	창밖의 풍경을 배경으로 한 실내 초상화는 독일 낭만주의 작가 카스파르 다비트 프리드리히가 처음 시도한 이래 화가들이 즐겨 채택한 구도로 자리 잡았다.
 regression.partitive-place.plural-determiner	한	determiner	smart-only-exact	14	17	카페들 중 한 곳에서 커피를 마셨다.
 regression.partitive-place.copular-determiner	한	determiner	smart-only-exact	11	14	공원 중 한 곳이었다.
 regression.partitive-place.relative-partitive	하다	verb	smart-only-exact	14	17	내가 그중 한 곳은 이 건물이다.
@@ -2916,6 +2920,19 @@ regression.nominal-before-enumerative-yo.whole-modifier	주	noun	no-match	33	36	
 regression.nominal-before-enumerative-yo.punctuated	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
 regression.nominal-before-enumerative-yo.aligned-component	주	noun	smart-only-exact	9	15	네바다주의 주요 산업은 관광, 광업, 기계, 인쇄 및 출판, 식품가공 및 전기 장비이다.
 regression.pronominal-genitive.scope-before-genitive	나	pronoun	smart-only-exact	11	14	학교 내 내 시설을 확인했습니다.
+regression.count-concessive.object-phrase	이다	adjective	no-match	0	12	영화라도 한 편 보자.
+regression.count-concessive.with-do	이다	adjective	no-match	6	15	산책이라도 하자.
+regression.count-concessive.other-counter	이다	adjective	no-match	3	12	책이라도 한 권 읽자.
+regression.count-concessive.explicit-subject	이다	adjective	smart-only-exact	7	19	이게 영화라도 한 편 보자.
+regression.count-concessive.clause-pause	이다	adjective	smart-only-exact	0	12	영화라도, 한 편 보자.
+regression.motion-directive.origin-and-direction	이다	adjective	no-match	37	46	길 안내원이 여기서 옆길로 새라면 그대로 가면 돼.
+regression.progressive-entry.destination	듣다	verb	no-match	23	35	사람들이 방으로 들어갔다.
+regression.progressive-entry.motion	들어가다	verb	smart-only-exact	23	35	사람들이 방으로 들어갔다.
+regression.progressive-entry.instrument	듣다	verb	smart-only-exact	26	38	학생이 이어폰으로 들어갔다.
+regression.progressive-entry.object	듣다	verb	smart-only-exact	55	67	학생은 녹음된 강의를 첫 회부터 한 편씩 들어갔다.
+regression.quoted-name.not-degree	더	adverb	no-match	37	40	드라마 부문 여우주연상은 '더 클로저'의 카이라 세드윅에게 돌아갔다.
+regression.quoted-name.nominal-component	더	noun	smart-only-exact	10	13	영화 ‘더 클로저’를 다시 보았다.
+regression.quoted-name.degree-before-adverb	더	adverb	smart-only-exact	3	6	‘더 멀리 간다’라고 답했다.
 regression.whole-nominal-boundary.shenzhen-competing	전	noun	smart-only-exact	24	30	선전 교통 경찰은 전에 색다른 방법을 채택했다.
 regression.whole-nominal-boundary.shenzhen-whole	선전	noun	smart-only-exact	0	6	선전 교통 경찰은 전에 색다른 방법을 채택했다.
 regression.whole-nominal-boundary.procedure-tail	차	noun	no-match	3	6	절차 중에 문제가 생겼다.
