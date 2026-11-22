@@ -100,7 +100,46 @@ pub(super) fn rejects(
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
+        || has_attached_result_state_auxiliary(haystack, candidate, branch, atom, resolver)
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_attached_result_state_auxiliary(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let CandidateConsumption::PredicateContinuation {
+        source_positions, ..
+    } = branch.consumption
+    else {
+        return false;
+    };
+    let span = &candidate.consumed;
+    if source_positions != kfind_morph::PredicatePosSet::one(PredicatePos::Adjective)
+        || is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)]
+                .lemma
+                .as_ref()
+                == "있다"
+        })
+    {
+        return false;
+    }
+    bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES).is_ok_and(
+        |whole| {
+            context::normalized_token(haystack, whole.start..span.start).is_some_and(|host| {
+                context::normalized_token(haystack, span.clone()).is_some_and(|auxiliary| {
+                    resolver.has_result_state_auxiliary_frame(&host, &auxiliary)
+                })
+            })
+        },
+    )
 }
 
 fn has_purpose_motion_frame(
