@@ -121,3 +121,10 @@ artifact_sha256 = "e18aa638a1f88d2e51f663ce0be621d486fd135968e9d6c104b8cd123dc65
 sources = ["krdict", "stdict", "opendict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "scripts/audit-nikl-attached-nominal-suffixes.sh"
+
+[[artifact]]
+path = "rules/stdict-nominal-prefix-components.csv"
+artifact_sha256 = "a69e83dabf7c22cef568b08038a8969704d3d42922df07c32b2bbac5b1005f1f"
+sources = ["stdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_prefixes.py --stdict <stdict> --cache-dir <cache> --component"

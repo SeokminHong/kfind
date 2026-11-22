@@ -116,6 +116,9 @@ relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 
 동형 표제어를 대조합니다. `--stdict`에 고정 ZIP, `--cache-dir`에 사전 캐시를 지정하면
 `대-` 결합 명사와 해당 표제어 번호를 TSV로 출력합니다. 이 값은
 [`stdict-bound-dae-prefix-usages.rs`](../../data/rules/stdict-bound-dae-prefix-usages.rs)에 대응합니다.
+`--component`는 첫 성분의 접사 표제어와 원어가 일치하는 결합 명사를
+[`stdict-nominal-prefix-components.csv`](../../data/rules/stdict-nominal-prefix-components.csv)로
+출력합니다. CSV의 표제어 번호와 정렬된 품사 `XPN`을 component 빌드에 사용합니다.
 
 `audit_hanja_nominalizer_hosts.py`는 MeCab의 합성 명사 분절을 표준국어대사전의
 첫 성분 원어와 대조합니다. `--mecab`에 원본 CSV 디렉터리, `--stdict`에 고정

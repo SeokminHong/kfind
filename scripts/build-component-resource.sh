@@ -32,7 +32,9 @@ cargo run --release --locked --package kfind-data --bin kfind-data-build-compone
   "${resource}" \
   "${FULL_POS_SOURCE_SHA256}" \
   "${repo_root}/data/rules" \
-  "${source_directory}"/*.csv
+  "${source_directory}"/*.csv \
+  "${repo_root}/data/rules/stdict-nominal-prefix-components.csv" \
+  "${repo_root}/data/rules/attested-nominal-compound-components.csv"
 
 resource_sha=$(sha256_file "${resource}")
 if [[ "${refresh_checksum}" == 1 ]]; then
@@ -55,6 +57,9 @@ source_license = "Apache-2.0"
 nominal_roles_source = "krdict"
 nominal_roles_source_sha256 = "a8ab7d044d4f6341e0f217db63f38f4d18beed3e1f153130f6cb4e9494fea1d6"
 nominal_roles_license = "CC-BY-SA-2.0-KR"
+nominal_prefixes_source = "stdict"
+nominal_prefixes_source_sha256 = "880b31447146df5879c076012b21d4cc3c0c24e70fd91be7fc73f7ff7da34d52"
+nominal_prefixes_license = "CC-BY-SA-2.0-KR"
 component_sha256 = "${resource_sha}"
 builder = "kfind-data-build-component"
 EOF

@@ -448,6 +448,43 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_source_nominal_prefix(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::XPN])
+    }
+
+    #[must_use]
+    pub fn has_aligned_nominal_prefix(&self, prefix: &str, text: &str) -> bool {
+        if prefix.is_empty() || !text.starts_with(prefix) {
+            return false;
+        }
+        let mut matched = false;
+        self.resource
+            .common_prefix_analysis_refs(text.as_bytes(), |end, analysis| {
+                if matched
+                    || !matches!(
+                        analysis.positions(),
+                        [StructuralPos::XPN, StructuralPos::XR]
+                            | [StructuralPos::XPN, StructuralPos::XR, StructuralPos::NNG]
+                    )
+                    || !analysis
+                        .components()
+                        .next()
+                        .is_some_and(|first| first.span == (0..prefix.len()) && first.pos == "XPN")
+                {
+                    return;
+                }
+                let (nominal, tail) = text.split_at(end);
+                matched = tail.is_empty()
+                    || super::lexical::has_grammatical_particle_chain(nominal, tail)
+                    || nominal
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail));
+            });
+        matched
+    }
+
+    #[must_use]
     pub fn is_productive_nominal_head(head: &str) -> bool {
         PRODUCTIVE_NOMINAL_HEADS.contains(&head)
     }
