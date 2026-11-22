@@ -377,8 +377,11 @@ impl PreparedStructuralContext {
                 span.start == host.start
                     && span.end < host.end
                     && !evidence.nominal_particle_hosts.contains(host)
-                    && evidence::minimum_unit_path(span, evidence, |pos| pos == DataFinePos::Nng)
+                    && (evidence::minimum_unit_path(span, evidence, |pos| pos == DataFinePos::Nng)
                         == Some(1)
+                        || evidence.units.starting_at(span.start).iter().any(|unit| {
+                            unit.span == *span && unit.pos == DataFinePos::Nnp && unit.aligned_pos
+                        }))
                     && evidence.units.starting_at(span.end).iter().any(|unit| {
                         unit.pos == DataFinePos::Nng
                             && unit.span.end <= host.end
