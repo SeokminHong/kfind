@@ -55,9 +55,11 @@ node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positive
 python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --residual
 ```
 
-원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 고정 음성에서 계약 양성으로
-검토된 행의 정답 범위가 기계 판독 데이터에 없는 경우에는 행 단위로 반환 유무를
-집계합니다. 같은 행의 추가 오탐 범위는 전체 반환 목록과 원문을 대조해 확인합니다.
+원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 고정 음성의 계약 양성에
+`source_spans`가 기록되어 있으면 모든 정답 범위가 반환되어야 합니다. `reviewed_ranges`는
+이 검사를 적용한 행 수와 누락·추가 범위를 집계합니다. 정답 범위가 빠진 행은 FNᶜ에
+포함되며, 추가 범위는 별도 집계에 기록됩니다. 기존 계약 양성 중 구조화된 정답 범위가
+없는 행은 반환 유무로 집계합니다.
 
 ## Raw와 contract-adjusted
 

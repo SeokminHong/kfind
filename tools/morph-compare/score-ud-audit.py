@@ -23,6 +23,47 @@ FIXTURES = {
 }
 
 
+def compare_reviewed_ranges(
+    cases: list[dict[str, object]],
+    spans: dict[str, list[dict[str, int]]],
+    adjusted: dict[str, bool],
+    registry: Path,
+) -> dict[str, object]:
+    source_reviews = {}
+    for review in load_cases(registry):
+        if "source_spans" not in review:
+            continue
+        if review["id"] in source_reviews:
+            raise ValueError(f"duplicate source ranges: {review['id']}")
+        source_reviews[review["id"]] = review
+
+    verified_rows = missing_count = extra_count = 0
+    differences = []
+    for case in cases:
+        case_id = case["id"]
+        review = source_reviews.get(case_id)
+        if review is None:
+            continue
+        if case.get("contract_expected") is not True or case["text"] != review["source_text"]:
+            raise ValueError(f"source range review identity differs: {case_id}")
+        expected = {(part["byte_start"], part["byte_end"]) for part in review["source_spans"]}
+        actual = {(part["byte_start"], part["byte_end"]) for part in spans[case_id]}
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        adjusted[case_id] = not missing
+        verified_rows += 1
+        missing_count += len(missing)
+        extra_count += len(extra)
+        if missing or extra:
+            differences.append({"id": case_id, "missing": missing, "extra": extra})
+    return {
+        "verified_rows": verified_rows,
+        "missing": missing_count,
+        "extra": extra_count,
+        "differences": differences,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="공개 UD 고정 감사 입력의 Smart 결과를 채점합니다."
@@ -66,6 +107,9 @@ def main() -> int:
             else bool(row["spans"])
         )
     adjusted = contract_span_predictions(cases, predictions, spans)
+    reviewed_ranges = compare_reviewed_ranges(
+        cases, spans, adjusted, review_dir / "contract-contrast-evidence.jsonl"
+    )
     report = {
         "fixture": {"split": split, "sha256": checksum, "rows": len(cases)},
         "resources": {
@@ -78,6 +122,7 @@ def main() -> int:
         },
         "raw": quality_metrics(cases, predictions),
         "contract": contract_quality_metrics(cases, adjusted),
+        "reviewed_ranges": reviewed_ranges,
     }
     if args.residual:
         report["residual"] = [
