@@ -1746,6 +1746,13 @@ regression.nominal-suffix.person-component-particle	자	noun	no-match	6	9	이민
 regression.nominal-suffix.dependent-copula	자	noun	smart-only-exact	27	30	사고에 책임이 있는 자인지는 조사가 끝나야 알 수 있다.
 regression.nominal-suffix.subsidiary	자	noun	smart-only-exact	0	3	자회사들이 경쟁한다.
 regression.nominal-suffix.ruler	자	noun	smart-only-exact	14	20	길이를 잴 자를 가져왔다.
+regression.nominal-suffix.aligned-plural-with-dependent	자	noun	smart-only-exact	43	49	가담자들은 숨었고 직접 가담한 자만 남았다.
+regression.nominal-suffix.aligned-plural-noun	가담자	noun	smart-only-exact	0	15	가담자들은 증언했다.
+regression.nominal-suffix.aligned-genitive	자	noun	no-match	6	9	유권자의 결정은 유효하다.
+regression.nominal-suffix.aligned-genitive-noun	유권자	noun	smart-only-exact	0	12	유권자의 결정은 유효하다.
+regression.nominal-suffix.aligned-copula	자	noun	no-match	16	19	이번에 경력자인 친구를 만났다.
+regression.nominal-suffix.aligned-copula-noun	경력자	noun	smart-only-exact	10	19	이번에 경력자인 친구를 만났다.
+regression.nominal-suffix.aligned-bare	자	noun	no-match	6	9	합격자 명단을 보관했다.
 regression.nominal-tail-copula.song-copula	곡	noun	smart-exact	17	20	이 곡은 합창곡이다.
 regression.nominal-tail-copula.fishing-copula	터	noun	smart-exact	16	19	이곳은 낚시터였다.
 regression.nominal-tail-copula.title-copula	명	noun	smart-exact	33	36	안내판에 적힌 것은 작품명이다.
