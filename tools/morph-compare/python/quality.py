@@ -67,6 +67,10 @@ def contract_span_predictions(
 ) -> dict[str, bool]:
     adjusted = predictions.copy()
     for case in cases:
+        if case["expected"] and case.get("contract_expected") is False:
+            case_id = str(case["id"])
+            adjusted[case_id] = bool(matches[case_id])
+            continue
         if case["expected"] or case.get("contract_expected") is not True:
             continue
         start, end = case.get("gold_byte_start"), case.get("gold_byte_end")
