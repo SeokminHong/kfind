@@ -62,8 +62,9 @@ python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --resi
 셉니다. 한 행에서 두 가지 오류가 동시에 발생하면 둘 다 집계합니다. `--residual`
 출력은 오류 유형과 독립적으로 확인한 정답 범위의 차이를 보여 줍니다.
 `contract`는 기존 적중 여부 행렬입니다.
-`zero_target_verified`는 관측된 오류가 없고 고정 음성의 계약 양성 범위를
-모두 확인했을 때 참입니다.
+`zero_target_verified`는 관측된 오류가 없고 검토 대기 범위가 없을 때 참입니다.
+정답 하나만 주석된 원래 양성의 다른 반환은 `unverified`로 잔여 목록에 기록합니다.
+전체 정답 범위가 확인될 때까지 해당 반환을 오류로 확정하지 않습니다.
 
 ## Raw와 contract-adjusted
 
