@@ -49,10 +49,14 @@ makaseoya-first-positive	막다	verb	exact	26	38	통행을 차단봉으로 막�
 makaseoya-first-context	막다	verb	exact	24	36	경찰이 차량 앞을 막아서야 행진을 지킬 수 있다.
 makaseoya-second-context	막아서다	verb	exact	26	38	통행을 차단봉으로 막아서야 아이들이 안전하게 길을 건널 수 있었다.
 makaseoya-second-positive	막아서다	verb	exact	24	36	경찰이 차량 앞을 막아서야 행진을 지킬 수 있다.
-doraseoya-first-positive	돌다	verb	exact	24	36	경기장을 한 바퀴 돌아서야 결승선에 도착했다.
+doraseoya-first-positive	돌다	verb	smart-only-exact	24	36	경기장을 한 바퀴 돌아서야 결승선에 도착했다.
 doraseoya-first-context	돌다	verb	exact	50	62	처음엔 외면하던 사람도 우리 편으로 돌아서야 변화를 만들 수 있다.
-doraseoya-second-context	돌아서다	verb	exact	24	36	경기장을 한 바퀴 돌아서야 결승선에 도착했다.
+doraseoya-second-context	돌아서다	verb	no-match	24	36	경기장을 한 바퀴 돌아서야 결승선에 도착했다.
 doraseoya-second-positive	돌아서다	verb	exact	50	62	처음엔 외면하던 사람도 우리 편으로 돌아서야 변화를 만들 수 있다.
+circuit-variant	돌다	verb	smart-only-exact	21	33	동네를 두 바퀴 돌아서야 길을 외웠다.
+circuit-variant-competitor	돌아서다	verb	no-match	21	33	동네를 두 바퀴 돌아서야 길을 외웠다.
+circuit-distributive-competitor	돌아서다	verb	no-match	27	36	연습장을 세 바퀴씩 돌아서 피곤했다.
+circuit-no-route	돌아서다	verb	smart-only-exact	21	33	선수는 한 바퀴 돌아서야 감독을 볼 수 있었다.
 naseoya-first-positive	나다	verb	exact	7	16	땀이 나서야 비로소 몸의 열이 내렸다.
 naseoya-first-context	나다	verb	exact	14	23	네가 직접 나서야 일이 풀린다.
 naseoya-second-context	나서다	verb	exact	7	16	땀이 나서야 비로소 몸의 열이 내렸다.

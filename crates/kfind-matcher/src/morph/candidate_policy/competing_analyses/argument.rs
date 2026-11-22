@@ -5,6 +5,53 @@ use crate::boundary::{is_sentence_end_after, surrounding_token_span};
 
 use super::{ExecutedCandidate, context};
 
+pub(super) fn has_counted_circuit_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    // 돌다 takes an accusative route and a lap count (KRDict 75006).
+    // 돌아서다 has no accusative frame (Standard Korean Dictionary 417035).
+    let core = &candidate.verified.core;
+    if (!haystack[core.start..].starts_with("돌아서".as_bytes())
+        && !haystack[core.start..].starts_with("돌아서".as_bytes()))
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)]
+                .lemma
+                .as_ref()
+                == "돌아서다"
+        })
+    {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, core.clone());
+    if core.start != whole.start
+        || !context::normalized_token(haystack, whole.clone())
+            .is_some_and(|word| ConstraintResolver::has_circling_connective(&word))
+    {
+        return false;
+    }
+    let Some((unit_start, unit)) =
+        context::previous_non_adverb_with_start_on_line(haystack, whole.start, resolver)
+    else {
+        return false;
+    };
+    context::previous_word_with_start(haystack, unit_start).is_some_and(|(start, count)| {
+        resolver.has_lap_count(&count, &unit)
+            && context::previous_word_with_start(haystack, start).is_some_and(
+                |(route_start, route)| {
+                    !haystack[route_start..unit_start]
+                        .iter()
+                        .any(|byte| matches!(byte, b'\r' | b'\n'))
+                        && resolver.has_object_marked_nominal(&route)
+                },
+            )
+    })
+}
+
 pub(super) fn has_independent_entry_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,

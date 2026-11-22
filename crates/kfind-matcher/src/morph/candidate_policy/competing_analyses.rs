@@ -59,6 +59,7 @@ pub(super) fn rejects(
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || has_purpose_motion_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_independent_entry_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_counted_circuit_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_late_schedule_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_directive_with_origin_and_direction(haystack, candidate, branch, resolver)
         || argument::has_volitional_clause(haystack, candidate, branch, atom, resolver)
