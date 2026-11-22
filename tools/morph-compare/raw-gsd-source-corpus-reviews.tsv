@@ -1,4 +1,9 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	raw-gsd	gsd:test-s26:1	최나연	noun	true	03005f940ebba02719735959c170c559738b7cd5dc3673c72f1f007ca91c1174	confirmed	implementation-target	동반 조사와 결합한 최나연과, 지정사 앞의 최나연을 각각 보존한다.
+explicit-pos	raw-gsd	gsd:test-s84:23	기록	noun	true	04787cd9546abb7df0d817387d3227769fa5683a0f8aff2337f8832cf434c6ec	confirmed	implementation-target	순이익을 목적어로 받는 파생 동사 기록하다의 첫 성분과 실적의 뒤 독립 명사를 확인했다.
+explicit-pos	raw-gsd	gsd:test-s127:7	의궤	noun	true	146e92499bac69160f4a2a3ae1bb186baca35447a0d9d08d7ec622dc7c92eaba	confirmed	implementation-target	두 인용절에서 의궤는 각각 주격 조사와 결합한 독립 명사다.
+explicit-pos	raw-gsd	gsd:test-s181:7	때	noun	true	5f81992f14efeecd1226f5e2bc6b89ed2e2d5e8087fbf3526f63f456eb436fb0	confirmed	implementation-target	앞의 때는 관형사 그 뒤의 명사이고, 뒤의 때도는 그리울이 꾸미는 명사와 보조사다.
+explicit-pos	raw-gsd	gsd:test-s293:6	다르다	adjective	true	255819a08a36104445457cc57046820f4b40f454a9ff27a997ce359a57e360bf	confirmed	implementation-target	다른은 곳을 꾸미는 관형형이고 다르게는 뒤 절을 꾸미는 부사형이다.
 explicit-pos	raw-gsd	gsd:test-s427:6	늘다	verb	true	aca1e63d1c7950162a26977ebf2269a5de28b2072405a5d056a6ee3e8136d041	confirmed	implementation-target	안목이가 주어인 늘었으리라 44..59는 동사 늘다의 활용이다. 믿는다의 는다 63..69는 믿다의 종결 어미다.
 explicit-pos	raw-gsd	gsd:test-s95:13	하다	verb	true	6686d9ee99a6a05178a814c581f4112cc944695901b9d1688776517e63a20be4	confirmed	implementation-target	13번 하고 96..102가 동사 하다다. 앞의 한 층 더에서는 정도 부사 한층이 띄어 쓰였다.
 explicit-pos	raw-gsd	gsd:test-s243:24	하다	verb	true	4fae06f75bfc06c85d1439fad72ad86c581167f2c475d64b85ee4dc1c3058408	confirmed	implementation-target	24번 하고 195..201이 커팅을 목적어로 취한다. 한 신입사원의 한은 신입사원의 수를 나타낸다.
