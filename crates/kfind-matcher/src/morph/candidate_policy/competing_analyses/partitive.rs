@@ -55,8 +55,12 @@ pub(super) fn rejects_han(
             else {
                 return false;
             };
+            let prior = context::previous_word(haystack, group_start);
+            if resolver.has_same_partitive_counter(&group, prior.as_deref(), &next) {
+                return true;
+            }
             let group = group.strip_suffix('들').unwrap_or(&group);
-            !context::previous_word(haystack, group_start).is_some_and(|word| {
+            !prior.is_some_and(|word| {
                 resolver.has_subject_marked_nominal(&word)
                     || resolver.has_object_marked_nominal(&word)
             }) && ((resolver.is_person_nominal(group)

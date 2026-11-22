@@ -2510,6 +2510,46 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_same_partitive_counter(
+        &self,
+        total: &str,
+        previous: Option<&str>,
+        selected: &str,
+    ) -> bool {
+        let unit = total.trim_start_matches(|ch: char| ch.is_ascii_digit());
+        if unit == total
+            && !previous.is_some_and(|count| {
+                (self.is_counter_quantity(count) || Self::is_mixed_cardinal(count))
+                    && !self.has_predicate_adnominal_surface(count)
+            })
+        {
+            return false;
+        }
+        let Some(tail) = selected.strip_prefix(unit) else {
+            return false;
+        };
+        if !self.has_exact_counter(unit) {
+            return false;
+        }
+        // The ratio suffix attaches to the unit without changing which unit is counted.
+        // https://www.korean.go.kr/common/download.do?c_file_name=f7222492-4580-40c6-864f-b66caeeeab3c_0.pdf&file_path=reportData
+        let host = if tail.starts_with("꼴")
+            && has_exact_sequence(&self.resource, "꼴", &[StructuralPos::XSN])
+        {
+            &selected[..unit.len() + "꼴".len()]
+        } else {
+            unit
+        };
+        let tail = &selected[host.len()..];
+        tail.is_empty()
+            || super::lexical::has_grammatical_particle_chain(host, tail)
+            || host
+                .chars()
+                .next_back()
+                .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
+    }
+
+    #[must_use]
     pub fn has_counted_unit_with_copula(&self, count: &str, text: &str) -> bool {
         self.is_counter_quantity(count)
             && text.char_indices().skip(1).any(|(split, _)| {

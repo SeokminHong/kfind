@@ -2409,6 +2409,12 @@ regression.partitive-count.song-determiner	한	determiner	smart-only-exact	11	14
 regression.partitive-count.song-verb	하다	verb	smart-only-exact	11	14	공연 중 한 곡을 다시 들었다.
 regression.partitive-count.speech-verb	하다	verb	smart-only-exact	11	14	수업 중 한 말은 기억난다.
 regression.partitive-count.work-verb	하다	verb	smart-only-exact	11	14	회의 중 한 일을 기록했다.
+regression.partitive-count.same-unit.spaced	하다	verb	smart-only-exact	43	49	두 권 중 한 권은 대출 중이라고 한다.
+regression.partitive-count.same-unit.digits	하다	verb	smart-only-exact	66	72	실험에서는 23회 중 한 회에만 측정하지 못했다고 했다.
+regression.partitive-count.same-unit.mixed-count	하다	verb	no-match	13	16	3천 명 중 한 명의 응답이 누락됐다.
+regression.partitive-count.same-unit.ratio	하다	verb	no-match	34	37	그것은 신생아 35,000명 중 한 명꼴로 발생하는 가장 흔한 신생아 종양이다.
+regression.partitive-count.same-unit.ratio-determiner	한	determiner	smart-only-exact	34	37	그것은 신생아 35,000명 중 한 명꼴로 발생하는 가장 흔한 신생아 종양이다.
+regression.partitive-count.different-unit.speech	하다	verb	smart-only-exact	19	22	연습 두 회 중 한 말은 기억한다.
 regression.partitive-place.house-determiner	한	determiner	smart-only-exact	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
 regression.partitive-count.person-not-verb	하다	verb	no-match	14	17	주인공 중 한 명은 꼭 죽음을 맞이했다.
 regression.partitive-place.house-not-verb	하다	verb	no-match	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
