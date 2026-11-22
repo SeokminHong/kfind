@@ -3031,8 +3031,8 @@ regression.quantity-adverb.before-adnominal	거	noun	no-match	17	23	남은 물�
 regression.quantity-adverb.corrected-pud-adnominal	거	noun	no-match	45	51	당연히 옷은 많고 먹을 만한 것은 거의 없는 것이 그 사무실 풍경이다.
 regression.quantity-adverb.genitive-before-adnominal	거	noun	smart-only-exact	4	10	네 거의 낡은 덮개를 교체했다.
 regression.quantity-adverb.dependent-with-adnominal-modifier	거	noun	smart-only-exact	11	17	네가 준 거의 낡은 덮개를 교체했다.
-regression.degree-adverb.spaced-layer-and-verb	하다	verb	smart-only-exact	25	31	한 층 더 좋아지게 하고 있다.
-regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	36	42	그 사이 한 층 더 빨라지게 하고 있다.
+regression.degree-adverb.standard-layer-and-verb	하다	verb	smart-only-exact	24	30	한층 더 좋아지게 하고 있다.
+regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	35	41	그 사이 한층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
 regression.aligned-prefix.compound-with-partitive	중	noun	smart-only-exact	26	29	박물관은 중무장포 중 두 문을 보존했다.
 regression.aligned-prefix.source-noun	중	noun	no-match	10	13	영국의 중무장 부대가 출발했다.
@@ -3053,8 +3053,8 @@ regression.pronoun-tail.pronoun-with-topic	그곳	pronoun	smart-only-exact	0	9	�
 regression.pronoun-tail.another-head-with-locative	쪽	noun	smart-only-exact	14	20	저쪽에 빈 쪽이 있다.
 regression.pronoun-tail.aligned-noun-compound	섬	noun	smart-only-exact	6	12	화산섬을 찾았다.
 regression.aligned-royal-title.japanese-genitive	왕	noun	smart-only-exact	3	9	일왕의 이름이 기록에 남았다.
-regression.aligned-royal-title.german-comitative	왕	noun	smart-only-exact	39	45	왕건은 왕관을 내려놓고 독일왕과 만났다.
-regression.aligned-royal-title.overlapping-country	일왕	noun	no-match	3	12	독일왕의 이름이 기록에 남았다.
+regression.aligned-royal-title.german-comitative	왕	noun	smart-only-exact	40	46	왕건은 왕관을 내려놓고 독일 왕과 만났다.
+regression.aligned-royal-title.overlapping-country	일왕	noun	no-match	3	13	독일 왕의 이름이 기록에 남았다.
 regression.derived-passive.age-and-lexical-passive	되다	verb	smart-only-exact	15	18	그녀는 2살 된 딸의 살인 미수 혐의로도 기소되었다.
 regression.derived-passive.connective-with-topic	되다	verb	smart-only-exact	125	131	집행부는 정부 수반으로서 국무장관으로 구성되며 국무장관은 5인으로 구성된 정부의 주재가 된다.
 regression.derived-passive.auxiliary	되다	verb	smart-only-exact	33	42	오랜만에 친구를 만나게 되었다.

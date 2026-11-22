@@ -1,6 +1,6 @@
 # 국사편찬위원회 한국 현대 사료 DB FRUS 자료, 1950년 6월 14일 무쵸 대사 전문의 중무장포.
 # 중무장(重武裝)의 첫 성분 경계는 표준국어대사전 310049를 따른다.
 중무장포,0,0,0,XPN+XR+NNG,https://db.history.go.kr/contemp/level.do?itemId=frus&levelId=frus_006r_0010_0530,F,중무장포,Compound,XPN,NNG,중/XPN/*+무장/XR/*+포/NNG/*
-# 국명과 왕의 결합은 PUD w01095092·w01095093의 일왕과 w01010048의 독일왕 분절을 따른다.
+# 일왕의 분절은 PUD w01095092·w01095093, 표기는 국립국어원 새국어소식 2005년 2월호를 따른다.
+# https://www.korean.go.kr/nkview/nknews/200502/79_11.html
 일왕,0,0,0,NNG,pud:w01095093,T,일왕,Compound,NNP,NNG,일/NNP/*+왕/NNG/*
-독일왕,0,0,0,NNG,pud:w01010048,T,독일왕,Compound,NNP,NNG,독일/NNP/*+왕/NNG/*
