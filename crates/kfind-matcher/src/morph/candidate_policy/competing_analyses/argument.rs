@@ -1,9 +1,11 @@
 use kfind_morph::{CoarsePos, ConstraintResolver};
 use kfind_query::{AtomPlan, CandidateProgram};
 
-use crate::boundary::{is_sentence_end_after, surrounding_token_span};
+use crate::boundary::{
+    bounded_surrounding_token_span, is_sentence_end_after, surrounding_token_span,
+};
 
-use super::{ExecutedCandidate, context};
+use super::{ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
 pub(super) fn has_counted_circuit_frame(
     haystack: &[u8],
@@ -83,21 +85,44 @@ pub(super) fn has_independent_entry_frame(
     {
         return false;
     }
-    let whole = surrounding_token_span(haystack, core.clone());
+    let Ok(whole) = bounded_surrounding_token_span(haystack, core.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
+    if whole.start != core.start {
+        return false;
+    }
     let Some((destination_start, destination)) =
         context::previous_non_adverb_with_start_on_line(haystack, whole.start, resolver)
     else {
         return false;
     };
-    resolver.has_spatial_destination(&destination)
-        && context::normalized_token(haystack, whole)
-            .is_some_and(|predicate| ConstraintResolver::has_enter_inflection(&predicate))
-        && context::previous_non_adverb_on_line(haystack, destination_start, resolver).is_none_or(
-            |previous| {
-                resolver.has_subject_marked_nominal(&previous)
-                    || resolver.has_topic_marked_nominal(&previous)
-            },
+    if !destination.ends_with(['에', '로']) {
+        return false;
+    }
+    let Some(predicate) = context::normalized_token(haystack, whole.clone()) else {
+        return false;
+    };
+    let previous = || context::previous_non_adverb_on_line(haystack, destination_start, resolver);
+    if resolver.has_spatial_destination(&destination)
+        && ConstraintResolver::has_enter_inflection(&predicate)
+        && previous().is_none_or(|word| {
+            resolver.has_subject_marked_nominal(&word) || resolver.has_topic_marked_nominal(&word)
+        })
+    {
+        return true;
+    }
+    // 듣다 + continuative 오다 cannot supply the completed change
+    // denoted by -어 있다, even when the -에 nominal lacks a spatial role.
+    destination.ends_with('에')
+        && resolver.has_nominal_oblique(&destination)
+        && resolver.has_entry_result_state(
+            &predicate,
+            context::next_word_on_line(haystack, whole.end)
+                .as_ref()
+                .map(|(_, word)| word.as_ref()),
         )
+        && previous().is_none_or(|word| !resolver.has_object_marked_nominal(&word))
 }
 
 pub(super) fn has_late_schedule_frame(

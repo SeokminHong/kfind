@@ -1474,12 +1474,7 @@ impl ConstraintResolver {
             });
         let connective = |pos| pos == StructuralPos::EC;
         is_vowel_connective
-            && self.has_matching_vowel_auxiliary_inflection(
-                auxiliary,
-                PredicatePos::Verb,
-                |lemma| lemma == "있다",
-                |_| true,
-            )
+            && self.has_result_state_auxiliary_inflection(auxiliary)
             && (self.has_exact_predicate_connective_path(
                 host,
                 PredicatePosSet::one(PredicatePos::Verb),
@@ -1497,6 +1492,31 @@ impl ConstraintResolver {
                         |pos| pos == StructuralPos::XSV,
                         connective,
                     )))
+    }
+
+    fn has_result_state_auxiliary_inflection(&self, text: &str) -> bool {
+        let is_result_state = |lemma: &str| lemma == "있다";
+        self.has_matching_vowel_auxiliary_inflection(
+            text,
+            PredicatePos::Verb,
+            is_result_state,
+            |_| true,
+        ) || text.char_indices().skip(1).any(|(split, _)| {
+            let (inflection, particle) = text.split_at(split);
+            self.has_matching_vowel_auxiliary_inflection(
+                inflection,
+                PredicatePos::Verb,
+                is_result_state,
+                |ending| {
+                    ending.is_some_and(|rule| {
+                        matches!(
+                            rule.as_str(),
+                            "ending.nominalizer" | "ending.nominalizer-gi"
+                        )
+                    })
+                },
+            ) && complete_suffix(&self.resource, particle, StructuralPos::is_particle)
+        })
     }
 
     #[must_use]
@@ -2228,7 +2248,7 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_spatial_destination(&self, text: &str) -> bool {
         text.strip_suffix("으로")
-            .or_else(|| text.strip_suffix('로'))
+            .or_else(|| text.strip_suffix(['로', '에']))
             .is_some_and(|noun| self.is_spatial_nominal(noun) && self.has_nominal_oblique(text))
     }
 
@@ -2282,19 +2302,36 @@ impl ConstraintResolver {
         self.resource.has_nominal_role(noun, role)
     }
 
-    /// Checks the independent lexical motion verb 들어가다 (KRDict 67877).
+    /// Checks lexical entry-motion inflections of 들어가다 and 들어오다.
     #[must_use]
     pub fn has_enter_inflection(text: &str) -> bool {
         static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
             std::sync::LazyLock::new(|| {
-                let entry = crate::PredicateEntry::new(
-                    "들어가다",
-                    PredicatePos::Verb,
-                    LexicalAlternation::Regular,
-                );
-                crate::generate_predicate_branches(&entry).expect("valid motion predicate")
+                ["들어가다", "들어오다"]
+                    .into_iter()
+                    .flat_map(|lemma| {
+                        let entry = crate::PredicateEntry::new(
+                            lemma,
+                            PredicatePos::Verb,
+                            LexicalAlternation::Regular,
+                        );
+                        crate::generate_predicate_branches(&entry).expect("valid motion predicate")
+                    })
+                    .collect()
             });
         text.starts_with("들어") && matches_predicate_inflection(text, &FORMS)
+    }
+
+    #[must_use]
+    pub fn has_entry_result_state(&self, motion: &str, following: Option<&str>) -> bool {
+        let has_state = |host, auxiliary| {
+            Self::has_enter_inflection(host)
+                && self.has_result_state_auxiliary_frame(host, auxiliary)
+        };
+        motion
+            .find('있')
+            .is_some_and(|split| has_state(&motion[..split], &motion[split..]))
+            || following.is_some_and(|auxiliary| has_state(motion, auxiliary))
     }
 
     #[must_use]
