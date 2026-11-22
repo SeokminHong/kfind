@@ -34,12 +34,18 @@ UD 2.18의 [Korean-GSD test](https://github.com/UniversalDependencies/UD_Korean-
 
 ```sh
 node tools/morph-compare/generate-ud-audit-fixtures.mjs "$gsd" "$pud" target/ud-audit
+node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positives.jsonl \
+  > target/ud-audit/corrected-positives.jsonl
 ```
+
+교정 양성은 원본 양성에 검토된 문장, 형태, 표적 범위와 제외를 적용한 9,298행입니다.
+교정 도구는 원본과 최종 입력의 체크섬을 검사합니다.
 
 | 파일 | SHA-256 |
 | --- | --- |
 | `positives.jsonl` | `eaafbae7757dbb62c9a0ca6b370dadf0f41b53c3e3d044f21b191c2aab8e3682` |
 | `negatives.jsonl` | `482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54` |
+| `corrected-positives.jsonl` | `cd3a8e532e67ba0748875311d10eba91c5fcb0d644e5c541bf3a4d22ac7c5a37` |
 
 ## Raw와 contract-adjusted
 

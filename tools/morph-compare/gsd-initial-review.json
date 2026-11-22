@@ -1,0 +1,41 @@
+{
+  "sentences": {
+    "test-s14": "기본기에 충실하지 않고, 그때그때 아쉬운 대로 득점하기에만 급급하다면, 탁구 당구 같은 종목에서도 고수가 되기 어렵다.",
+    "test-s209": "문경 가면 꼭 들러보세요.",
+    "test-s465": "이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 \"순두부찌개 맛의 비결은 남편에게도 비밀\"이라며 맛에 대한 자신감을 드러냈다.",
+    "test-s469": "일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요",
+    "test-s818": "이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 \"순두부찌개 맛의 비결은 남편에게도 비밀\"이라며 맛에 대한 자신감을 드러냈다."
+  },
+  "annotations": {
+    "gsd:test-s14:6": {"gold_byte_end":56,"form":"아쉬운","lemma":"아쉽+ㄴ","xpos":"VA+ETM"},
+    "gsd:test-s14:7": {"gold_byte_start":64,"gold_byte_end":82},
+    "gsd:test-s14:8": {"gold_byte_start":83,"gold_byte_end":98},
+    "gsd:test-s14:10": {"gold_byte_start":100,"gold_byte_end":106},
+    "gsd:test-s14:11": {"gold_byte_start":107,"gold_byte_end":113},
+    "gsd:test-s14:12": {"gold_byte_start":114,"gold_byte_end":120},
+    "gsd:test-s14:13": {"gold_byte_start":121,"gold_byte_end":136},
+    "gsd:test-s14:14": {"gold_byte_start":137,"gold_byte_end":146},
+    "gsd:test-s14:15": {"gold_byte_start":147,"gold_byte_end":153},
+    "gsd:test-s14:16": {"gold_byte_start":154,"gold_byte_end":163},
+    "gsd:test-s15:2": {"query":"들다","lemma":"들+시+러","xpos":"VV+EP+EC"},
+    "gsd:test-s73:3": {"text":"친구들 모임이었는데 갈만하네요","gold_byte_end":32,"form":"갈","lemma":"가+ㄹ","xpos":"VV+ETM"},
+    "gsd:test-s93:14": {"query":"달다","pos":"verb","lemma":"달+라","xpos":"VV+EF"},
+    "gsd:test-s115:4": {"gold_byte_end":30},
+    "gsd:test-s209:1": {"gold_byte_end":6,"form":"문경","lemma":"문경","xpos":"NNP"},
+    "gsd:test-s209:2": {"gold_byte_start":14,"gold_byte_end":17},
+    "gsd:test-s209:3": {"query":"들르다","gold_byte_start":18,"gold_byte_end":33,"form":"들러보세요","lemma":"들르+어+보+세요"},
+    "gsd:test-s246:3": {"query":"원","gold_byte_end":19,"lemma":"원+이+ㄴ가요","xpos":"NNBC+VCP+EF"},
+    "gsd:test-s356:9": {"gold_byte_end":77,"xpos":"NNG+VCP+EF"},
+    "gsd:test-s414:9": {"query":"무언가","pos":"pronoun","lemma":"무언가+와+도","xpos":"NP+JKB+JX"},
+    "gsd:test-s465:9": {"query":"순두부찌개","form":"순두부찌개","lemma":"순두부찌개","xpos":"NNG"},
+    "gsd:test-s469:5": {"form":"알았는데","lemma":"알+았+는데"},
+    "gsd:test-s469:6": {"query":"기대","pos":"noun","lemma":"기대","xpos":"NNG"},
+    "gsd:test-s469:7": {"query":"이하","pos":"noun","gold_byte_end":66,"lemma":"이하+이+군요","xpos":"NNG+VCP+EF"},
+    "gsd:test-s533:2": {"gold_byte_end":22},
+    "gsd:test-s643:17": {"gold_byte_end":158},
+    "gsd:test-s778:7": {"gold_byte_end":72},
+    "gsd:test-s778:11": {"gold_byte_end":109},
+    "gsd:test-s818:9": {"query":"순두부찌개","form":"순두부찌개","lemma":"순두부찌개","xpos":"NNG"},
+    "gsd:test-s931:2": {"query":"들다","lemma":"들+시+러","xpos":"VV+EP+EC"}
+  }
+}
