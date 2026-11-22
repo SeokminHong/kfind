@@ -372,8 +372,12 @@ pub(super) fn has_bound_nominal_prefix(
         return false;
     }
     context::normalized_token(haystack, core.clone()).is_some_and(|prefix| {
-        ConstraintResolver::has_attested_nominal_prefix(&prefix)
+        (ConstraintResolver::has_attested_nominal_prefix(&prefix)
+            || resolver.has_source_nominal_prefix(&prefix))
             && context::normalized_token(haystack, surrounding_token_span(haystack, core.clone()))
-                .is_some_and(|text| resolver.has_bound_nominal_prefix(&prefix, &text))
+                .is_some_and(|text| {
+                    resolver.has_bound_nominal_prefix(&prefix, &text)
+                        || resolver.has_aligned_nominal_prefix(&prefix, &text)
+                })
     })
 }

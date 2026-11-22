@@ -3026,5 +3026,9 @@ regression.quantity-adverb.possessive-modifies-dependent-noun	거	noun	smart-onl
 regression.degree-adverb.spaced-layer-and-verb	하다	verb	smart-only-exact	25	31	한 층 더 좋아지게 하고 있다.
 regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	36	42	그 사이 한 층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
+regression.aligned-prefix.compound-with-partitive	중	noun	smart-only-exact	26	29	박물관은 중무장포 중 두 문을 보존했다.
+regression.aligned-prefix.source-noun	중	noun	no-match	10	13	영국의 중무장 부대가 출발했다.
+regression.aligned-prefix.independent-noun	중	noun	smart-only-exact	0	6	중이 길을 걸었다.
+regression.aligned-prefix.independent-alongside-compound	남	noun	smart-only-exact	13	19	남동생과 남을 돕는 일을 했다.
 regression.degree-adverb.cardinal-layer	한	determiner	smart-only-exact	7	10	벽을 한 층 더 쌓았다.
 regression.degree-adverb.relative-clause-with-implicit-object	하다	verb	smart-only-exact	20	23	지난번에 직접 한 층 더 위에는 분전반이 있다.

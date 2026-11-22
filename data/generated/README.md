@@ -12,3 +12,7 @@
 `morphology-component-compact.sha256`은 component resource 생성물의 고정
 SHA-256입니다. Resource build와 site build가 같은 값을 읽으며 실제 생성물이
 달라질 때만 갱신합니다.
+
+`scripts/build-component-resource.sh`는 MeCab-Ko 사전과 명사 역할 자료,
+표준국어대사전의 접두사 분석 및 [별도 출처의 합성어 분석](../rules/attested-nominal-compound-components.csv)을
+합쳐 component resource를 생성합니다.

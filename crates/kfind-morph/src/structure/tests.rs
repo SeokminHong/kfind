@@ -122,6 +122,27 @@ fn edge_graph_iterates_source_components_from_resource_records() {
 }
 
 #[test]
+fn aligned_nominal_prefix_requires_source_extent_and_grammatical_tail() {
+    let resolver = resolver_from_entries([
+        atomic("중", "XPN"),
+        expression("중무장", "XPN+XR", "중/XPN/*+무장/XR/*"),
+        expression("중무장포", "XPN+XR+NNG", "중/XPN/*+무장/XR/*+포/NNG/*"),
+        expression("재무장", "XPN+XR", "재/XPN/*+무장/XR/*"),
+        atomic("관", "JKB+JX"),
+        atomic("으로서", "JKB"),
+        expression("대나무", "NNG", "대/NNG/*+나무/NNG/*"),
+    ]);
+
+    assert!(resolver.has_source_nominal_prefix("중"));
+    assert!(resolver.has_aligned_nominal_prefix("중", "중무장"));
+    assert!(resolver.has_aligned_nominal_prefix("중", "중무장포는"));
+    assert!(!resolver.has_aligned_nominal_prefix("중무", "중무장포는"));
+    assert!(!resolver.has_aligned_nominal_prefix("재", "중무장포는"));
+    assert!(!resolver.has_aligned_nominal_prefix("재", "재무장관으로서"));
+    assert!(!resolver.has_aligned_nominal_prefix("대", "대나무는"));
+}
+
+#[test]
 fn edge_graph_stops_allocating_after_the_node_limit() {
     let resolver = resolver_from_entries([atomic("가", "NNG"), atomic("가", "NNP")]);
 
