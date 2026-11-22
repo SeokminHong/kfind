@@ -89,7 +89,7 @@ pub(super) fn rejects(
         || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
         || has_nominal_head_instead_of_resultative_adnominal(haystack, candidate, resolver)
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
-        || crosses_concessive_connective(haystack, candidate, branch, resolver)
+        || crosses_competing_connective(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
         || has_pronoun_object_instead_of_adnominal(haystack, candidate, branch, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
@@ -349,7 +349,7 @@ fn has_nominal_head_instead_of_resultative_adnominal(
         })
 }
 
-fn crosses_concessive_connective(
+fn crosses_competing_connective(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -368,9 +368,12 @@ fn crosses_concessive_connective(
     let Some(tail) = context::normalized_token(haystack, span.start..span.end) else {
         return false;
     };
-    if !matches!(tail.as_ref(), "만" | "마는") {
-        return false;
-    }
+    let endings: &[&str] = match tail.as_ref() {
+        "만" => &["지만", "건만"],
+        "마는" => &["지마는", "건마는"],
+        "나" => &["으나", "거나"],
+        _ => return false,
+    };
     let whole = surrounding_token_span(haystack, span.clone());
     if whole.len() > MAX_CONSUMPTION_BYTES {
         return false;
@@ -379,7 +382,7 @@ fn crosses_concessive_connective(
         return false;
     };
     // The candidate starts inside the connective, after its first syllable.
-    ["지만", "지마는", "건만", "건마는"]
+    endings
         .iter()
         .find_map(|ending| token.strip_suffix(ending).map(|host| (host, *ending)))
         .is_some_and(|(host, ending)| {
