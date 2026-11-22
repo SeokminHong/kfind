@@ -619,6 +619,23 @@ impl MorphMatcher {
         if particle_shaped {
             return true;
         }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && matches!(normalized.as_str(), "서" | "서도" | "서는")
+            && candidate
+                .suffix_rules
+                .last()
+                .is_some_and(|rule| rule.as_str() == "particle.comitative")
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+                let connective = token.strip_suffix(['도', '는']).unwrap_or(&token);
+                resolver.has_complete_connective_path(connective)
+                    && !resolver.has_exact_nominal_surface(&token)
+                    && !resolver.has_explicit_copula_after_nominal(&token)
+            })
+        {
+            return true;
+        }
         let CandidateConsumption::PredicateContinuation {
             source_positions,
             nominal_particle_transition,

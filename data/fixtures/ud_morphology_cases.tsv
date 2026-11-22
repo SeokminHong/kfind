@@ -3008,3 +3008,7 @@ regression.demonstrative-cause.determiner	이	determiner	no-match	0	3	이 때문
 regression.demonstrative-cause.common-noun	이	noun	smart-only-exact	0	3	이 때문에 치과에 갔다.
 regression.demonstrative-cause.ordinary-modifier	그	determiner	smart-only-exact	0	3	그 이유 때문에 늦었다.
 regression.demonstrative-cause.ordinary-modifier-not-pronoun	그	pronoun	no-match	0	3	그 이유 때문에 늦었다.
+regression.comitative-connective.partial-pronoun	나	pronoun	no-match	14	23	그는 먼저 나와서 사람들을 기다렸다.
+regression.comitative-connective.additive-tail	나	pronoun	no-match	14	26	잠시 밖에 나와서도 이야기를 계속했다.
+regression.comitative-connective.independent-pronoun	나	pronoun	smart-only-exact	0	6	나와 함께 끝까지 걸었다.
+regression.comitative-connective.pronoun-with-topic	나	pronoun	smart-only-exact	0	9	나와는 연락하지 않았다.
