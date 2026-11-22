@@ -909,6 +909,17 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_relative_time_head(&self, text: &str) -> bool {
+        const HEADS: &[&str] = &["이전", "이후", "직전", "직후", "전", "후"];
+        HEADS.iter().any(|head| {
+            text.strip_prefix(head).is_some_and(|tail| {
+                self.has_exact_nominal_surface(head)
+                    && complete_suffix(&self.resource, tail, StructuralPos::is_particle)
+            })
+        })
+    }
+
+    #[must_use]
     pub fn has_ki_nominalization(&self, previous: &str) -> bool {
         let nominalizer = |pos| pos == StructuralPos::ETN;
         previous.ends_with('기')
