@@ -65,8 +65,11 @@ class ContractContrastTests(unittest.TestCase):
                 if review.case_id not in paired:
                     key = (name, review.case_id)
                     self.assertIn(key, by_key, f"missing contrast example: {key}")
+                    example = by_key.pop(key)
+                    if "source_spans" in example and review.contract_status == "confirmed":
+                        self.assertTrue(review.strict_expected)
                     self.assert_contrast(
-                        by_key.pop(key), review.text_sha256, review.contract_reason
+                        example, review.text_sha256, review.contract_reason
                     )
 
         for fixture in (
@@ -96,7 +99,7 @@ class ContractContrastTests(unittest.TestCase):
                 self.assertTrue(row[f"{role}_surface"].strip())
                 self.assertIn(row[f"{role}_surface"], row[f"{role}_text"])
             if "source_spans" in row:
-                self.assertEqual(reason, "aligned-source-component")
+                self.assertIn(reason, {"aligned-source-component", "implementation-target"})
                 text = row["source_text"].encode()
                 previous_end = 0
                 self.assertTrue(row["source_spans"])

@@ -24,20 +24,26 @@ FIXTURES = {
 }
 
 
-def compare_reviewed_ranges(
-    cases: list[dict[str, object]],
-    spans: dict[str, list[dict[str, int]]],
-    adjusted: dict[str, bool],
+def source_ranges_for_reviews(
     registry: Path,
-) -> tuple[dict[str, object], dict[str, list[tuple[int, int]]]]:
+    selected: set[tuple[str, str]],
+) -> dict[str, dict[str, object]]:
     source_reviews = {}
     for review in load_cases(registry):
-        if "source_spans" not in review:
+        if "source_spans" not in review or (review["registry"], review["id"]) not in selected:
             continue
         if review["id"] in source_reviews:
             raise ValueError(f"duplicate source ranges: {review['id']}")
         source_reviews[review["id"]] = review
+    return source_reviews
 
+
+def compare_reviewed_ranges(
+    cases: list[dict[str, object]],
+    spans: dict[str, list[dict[str, int]]],
+    adjusted: dict[str, bool],
+    source_reviews: dict[str, dict[str, object]],
+) -> tuple[dict[str, object], dict[str, list[tuple[int, int]]]]:
     annotated = defaultdict(set)
     for case in cases:
         if case["expected"] and contract_expected(case) is True:
@@ -93,12 +99,14 @@ def score_contract(
     cases: list[dict[str, object]],
     predictions: dict[str, bool],
     spans: dict[str, list[dict[str, int]]],
-    registry: Path,
+    source_reviews: dict[str, dict[str, object]],
     *,
     include_residual: bool,
 ) -> dict[str, object]:
     adjusted = contract_span_predictions(cases, predictions, spans)
-    reviewed_ranges, unverified_ranges = compare_reviewed_ranges(cases, spans, adjusted, registry)
+    reviewed_ranges, unverified_ranges = compare_reviewed_ranges(
+        cases, spans, adjusted, source_reviews
+    )
     range_errors = {entry["id"]: entry for entry in reviewed_ranges["differences"]}
     contract = contract_quality_metrics(cases, adjusted)
     fpc = contract["contract_fp"] + sum(bool(entry["extra"]) for entry in range_errors.values())
@@ -182,12 +190,20 @@ def main() -> int:
         parser.error(str(error))
 
     review_dir = Path(__file__).resolve().parent
-    reviews = [
-        review
-        for registry in sorted(review_dir.glob("*-corpus-reviews.tsv"))
-        for review in load_contract_reviews(registry)
-    ]
+    reviews = []
+    source_keys = set()
+    for registry in sorted(review_dir.glob("*-corpus-reviews.tsv")):
+        entries = load_contract_reviews(registry)
+        reviews.extend(entries)
+        source_keys.update(
+            (f"tools/morph-compare/{registry.name}", review.case_id)
+            for review in entries
+            if review.query_mode == "explicit-pos" and review.split == split
+        )
     apply_contract_reviews(cases, reviews, query_mode="explicit-pos", split=split)
+    source_reviews = source_ranges_for_reviews(
+        review_dir / "contract-contrast-evidence.jsonl", source_keys
+    )
 
     predictions = {}
     spans = {}
@@ -217,7 +233,7 @@ def main() -> int:
             cases,
             predictions,
             spans,
-            review_dir / "contract-contrast-evidence.jsonl",
+            source_reviews,
             include_residual=args.residual,
         ),
     }

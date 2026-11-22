@@ -34,7 +34,7 @@ class UDAuditScoringTests(unittest.TestCase):
                 case = self.positive_case(case_id, self.reviews[case_id]["source_text"])
                 matches = [{"byte_start": start, "byte_end": end} for start, end in spans]
                 result = SCORE_CONTRACT(
-                    [case], {case_id: True}, {case_id: matches}, REGISTRY, include_residual=True
+                    [case], {case_id: True}, {case_id: matches}, self.reviews, include_residual=True
                 )
                 self.assertEqual(result["contract"]["contract_fp"], 0)
                 self.assertEqual(result["contract"]["contract_fn"], expected_fnc)
@@ -60,7 +60,7 @@ class UDAuditScoringTests(unittest.TestCase):
         case = self.positive_case("unverified", "보이는 것")
         result = SCORE_CONTRACT(
             [case], {"unverified": True}, {"unverified": [{"byte_start": 10, "byte_end": 13}]},
-            REGISTRY, include_residual=False,
+            {}, include_residual=False,
         )
         self.assertEqual(result["reviewed_ranges"]["unverified_positive_rows"], 1)
         self.assertTrue(result["contract_errors"]["zero_errors_observed"])
@@ -83,7 +83,7 @@ class UDAuditScoringTests(unittest.TestCase):
         for matches in ([gold], [gold, additional]):
             with self.subTest(matches=matches):
                 result = SCORE_CONTRACT(
-                    [case], {case_id: True}, {case_id: matches}, REGISTRY, include_residual=True
+                    [case], {case_id: True}, {case_id: matches}, {}, include_residual=True
                 )
                 pending = len(matches) - 1
                 self.assertEqual(result["contract"]["contract_tp"], 1)
@@ -117,12 +117,43 @@ class UDAuditScoringTests(unittest.TestCase):
         }
         result = SCORE_CONTRACT(
             [case], {case_id: True}, {case_id: review["source_spans"]},
-            REGISTRY, include_residual=True,
+            self.reviews, include_residual=True,
         )
         self.assertEqual(result["reviewed_ranges"]["verified_rows"], 1)
         self.assertEqual(result["reviewed_ranges"]["unverified_raw_positive_rows"], 0)
         self.assertTrue(result["contract_errors"]["zero_target_verified"])
         self.assertEqual(result["residual"], [])
+
+    def test_raw_and_corrected_ranges_use_their_own_registered_review(self) -> None:
+        case_id = "gsd:test-s95:13"
+        source_ranges = AUDIT["source_ranges_for_reviews"]
+        raw = source_ranges(REGISTRY, {
+            ("tools/morph-compare/raw-gsd-source-corpus-reviews.tsv", case_id),
+        })
+        corrected = source_ranges(REGISTRY, {
+            ("tools/morph-compare/gsd-positive-corpus-reviews.tsv", case_id),
+        })
+        raw_gold = {"byte_start": 96, "byte_end": 102}
+        corrected_gold = {"byte_start": 94, "byte_end": 100}
+        self.assertEqual(raw[case_id]["source_spans"], [raw_gold])
+        self.assertEqual(corrected[case_id]["source_spans"], [corrected_gold])
+
+        case = {
+            "id": case_id,
+            "query": "하다",
+            "pos": "verb",
+            "text": raw[case_id]["source_text"],
+            "expected": True,
+            "gold_byte_start": 96,
+            "gold_byte_end": 102,
+        }
+        spans = {case_id: [raw_gold, {"byte_start": 11, "byte_end": 14}]}
+        result = SCORE_CONTRACT([case], {case_id: True}, spans, raw, include_residual=True)
+        self.assertEqual(result["contract"]["contract_tp"], 1)
+        self.assertEqual(result["contract_errors"]["fpc"], 1)
+        self.assertEqual(result["residual"][0]["extra"], [(11, 14)])
+        with self.assertRaisesRegex(ValueError, "source range review identity differs"):
+            SCORE_CONTRACT([case], {case_id: True}, spans, corrected, include_residual=True)
 
     def test_runner_output_is_bound_to_the_input_bytes_and_query_mode(self) -> None:
         case = {"id": "same", "query": "회사", "text": "회사가 있다"}
@@ -170,7 +201,7 @@ class UDAuditScoringTests(unittest.TestCase):
                 result = SCORE_CONTRACT(
                     [first, peer], {"first": True, "second": True},
                     {"first": matches, "second": matches[1:]},
-                    REGISTRY, include_residual=True,
+                    {}, include_residual=True,
                 )
                 self.assertEqual(result["reviewed_ranges"]["reused_raw_positive_spans"], int(reusable))
                 self.assertEqual(
