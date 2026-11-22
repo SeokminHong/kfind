@@ -122,13 +122,29 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && pattern.lexical_form.chars().count() == 1
         && spans.consumed.end > spans.core.end
         && evidence.has_predicate_ending_at(spans.core.start);
-    let unlexicalized_internal_one_syllable_nominal =
-        matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
-            && pattern.lexical_form.chars().count() == 1
-            && matches!(pattern.continuation, MorphContinuation::NominalParticles)
-            && spans.core.start > spans.token.start
-            && spans.consumed == spans.core
-            && !evidence.has_whole_analysis(&spans.token);
+    let unsupported_internal_nominal = pattern.fine_pos.is_nominal()
+        && pattern.lexical_form.chars().count() == 1
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && !starts_token
+        && spans.consumed == spans.core
+        && {
+            let mut whole = evidence
+                .units
+                .starting_at(spans.token.start)
+                .iter()
+                .filter(|unit| {
+                    unit.span == spans.token && unit.evidence == StructuralEvidence::Whole
+                });
+            match whole.next() {
+                Some(unit) => {
+                    unit.pos.is_modifier()
+                        && (evidence.has_whole(DataFinePos::Mag)
+                            || evidence.has_whole(DataFinePos::Maj))
+                        && whole.all(|unit| unit.pos.is_modifier())
+                }
+                None => matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp),
+            }
+        };
     let repeated_adverb_tail = pattern.fine_pos.is_nominal()
         && !starts_token
         && spans.consumed == spans.core
@@ -166,7 +182,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && !trailing_exact_subspan
         && !trailing_nominal_chain
         && !nominal_after_predicate
-        && !unlexicalized_internal_one_syllable_nominal
+        && !unsupported_internal_nominal
         && !repeated_adverb_tail
         && !terminal_nominal_in_predicate_frame
 }
