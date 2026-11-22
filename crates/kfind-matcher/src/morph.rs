@@ -697,7 +697,20 @@ impl MorphMatcher {
             let span = &candidate.verified.token;
             return self.accepts_token_boundary(haystack, &candidate.verified, branch)
                 && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
-                    context::next_word(haystack, span.end).is_some_and(|next| {
+                    context::next_word_with_end(haystack, span.end).is_some_and(|(end, next)| {
+                        if next == token
+                            && !haystack[span.end..end]
+                                .iter()
+                                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                            && resolver.has_scope_dependent_noun(&token)
+                            && context::previous_word(haystack, span.start)
+                                .is_some_and(|host| resolver.has_scope_nominal_host(&host))
+                            && context::next_word_on_line(haystack, end).is_some_and(|(_, head)| {
+                                resolver.has_independent_nominal_head(&head)
+                            })
+                        {
+                            return false;
+                        }
                         (resolver.has_nominal_with_optional_particles(&next)
                             || resolver.has_explicit_copula_after_nominal(&next))
                             && (!resolver.has_whole_determiner(&next)
@@ -840,6 +853,23 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start == whole.start
+            && core.end < whole.end
+            && context::normalized_token(haystack, core.end..whole.end)
+                .is_some_and(|tail| tail == "요")
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+                resolver.has_whole_modifier(&token) || resolver.has_exact_nominal_surface(&token)
+            })
+            && context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
+                resolver.has_independent_nominal_head(&next)
+                    || resolver.has_explicit_copula_after_nominal(&next)
+            })
+        {
+            return false;
+        }
         if candidate.consumed.end == whole.end
             && matches!(candidate.suffix_rules.as_slice(), [.., ending, particle]
                 if particle.as_str() == "particle.comitative" && matches!(ending.as_str(),
