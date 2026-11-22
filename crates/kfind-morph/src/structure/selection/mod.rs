@@ -45,6 +45,7 @@ pub(in crate::structure) enum StructureSelection {
         preserves_elapsed_noun: bool,
     },
     NominalWhole,
+    DeterminedNominal,
     NominalOrContinuedPredicate,
     RelativeLocationNoun {
         preserves_determiner: bool,
@@ -235,7 +236,7 @@ impl StructureSelection {
             return false;
         }
         let selected_nominal = match self {
-            Self::NominalWhole => Some(&spans.token),
+            Self::NominalWhole | Self::DeterminedNominal => Some(&spans.token),
             Self::NominalSpan { selected, .. } => Some(selected),
             Self::RuntimeCompatible {
                 graph_nominal_host: Some(selected),
@@ -302,7 +303,10 @@ impl StructureSelection {
         ) && !evidence.has_whole_predicate();
         if !matches!(
             self,
-            Self::NominalWhole | Self::AdnominalDerivation { .. } | Self::NumeralSequence { .. }
+            Self::NominalWhole
+                | Self::DeterminedNominal
+                | Self::AdnominalDerivation { .. }
+                | Self::NumeralSequence { .. }
         ) && !selected_nominal_particle_tail
             && compound_predicate
         {
@@ -336,11 +340,20 @@ impl StructureSelection {
                     ) && (!excludes_pronoun || pattern.fine_pos != DataFinePos::Np)
                         && (!excludes_predicate || !pattern.fine_pos.is_predicate()))
             }
-            Self::NominalWhole | Self::NominalOrAdverbWhole => {
-                support.evidence == StructuralEvidence::Whole
+            Self::NominalWhole | Self::DeterminedNominal | Self::NominalOrAdverbWhole => {
+                (support.evidence == StructuralEvidence::Whole
                     && (pattern.fine_pos.is_nominal()
                         || (matches!(self, Self::NominalOrAdverbWhole)
-                            && pattern.fine_pos == DataFinePos::Mag))
+                            && pattern.fine_pos == DataFinePos::Mag)))
+                    || (matches!(self, Self::DeterminedNominal)
+                        && support.evidence == StructuralEvidence::SourceComponent
+                        && matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
+                        && spans.consumed == spans.core
+                        && evidence.has_unambiguous_nominal_source_component(
+                            &spans.token,
+                            &spans.core,
+                            pattern.fine_pos,
+                        ))
             }
             Self::NominalOrContinuedPredicate => {
                 (support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal())
@@ -1062,7 +1075,7 @@ pub(in crate::structure) fn select_structure(
                     )
             }))
     {
-        return StructureSelection::NominalWhole;
+        return StructureSelection::DeterminedNominal;
     }
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()
