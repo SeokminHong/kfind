@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n02081019:noun:거	거	noun	false	723005fb5d9309354d8d76554f401526e209677e621d3d1691a8a2fda2092a5b	excluded	nonstandard-input	37번 거/NNB 299..302 앞 공백이 누락됐다. 제공 원출처와 한글 맞춤법 제42항에 맞춰 작동할 거라고로 복원한 별도 양성의 표적은 300..303이다.
 explicit-pos	corpus-negatives	pud:n01014003:noun:수	수	noun	false	b58af5881653b1b0a9a44e2b07a63d1cd9558ce5b9bf5f043858dbf6cd45b117	excluded	nonstandard-input	수/NNB 앞 공백이 누락된 원문 범위는 19번 155..158이다. 제42항에 맞춰 관형형과 의존 명사를 띄어 쓴다.
 explicit-pos	corpus-negatives	pud:n01017008:noun:수	수	noun	false	b4ce9b394650ff1e720ef20ac4e9195ef81b71fcc218dc502539e02d76b10d85	excluded	nonstandard-input	수/NNB 앞 공백이 누락된 원문 범위는 25번 132..135이다. 제42항에 맞춰 관형형과 의존 명사를 띄어 쓴다.
 explicit-pos	corpus-negatives	pud:n01022005:noun:수	수	noun	false	d762cc7f675e3e6ad3627199f78ac7409b50a16395812f0c78ba76031e312ba6	excluded	nonstandard-input	수/NNB 앞 공백이 누락된 원문 범위는 14번 131..134이다. 제42항에 맞춰 관형형과 의존 명사를 띄어 쓴다.

@@ -1,4 +1,8 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01005024:noun:거	거	noun	false	817bbaaa16e3c9b4cc28e34d3e2ed92055ceb8a86c534f33bcc2aebab640e298	contract-positive	aligned-source-component	12번 거/NNB 92..95는 관형형 있을 뒤에서 생략 지정사와 인용형 라고에 이어지는 의존 명사다.
+explicit-pos	corpus-negatives	pud:n01014003:noun:거	거	noun	false	b58af5881653b1b0a9a44e2b07a63d1cd9558ce5b9bf5f043858dbf6cd45b117	contract-positive	aligned-source-component	21번 거/NNB 166..169는 관형형 있을 뒤에서 생략 지정사와 인용형 라고에 이어지는 의존 명사다.
+explicit-pos	corpus-negatives	pud:n01070017:noun:거	거	noun	false	29e9079f8bdb44046ca0f25ea15e1d0c8959bf934c2be8beb4b134cc3d1ea5e4	contract-positive	aligned-source-component	9번 거/NNB 68..71은 관형형 많을 뒤에서 추측 구성을 만들고 생략 지정사와 인용형 라고에 이어진다.
+explicit-pos	corpus-negatives	pud:n01079015:noun:거	거	noun	false	c55145b947fc33d8e145c35e782297c0dc0291f812714a84fd58c9c9a70e82ae	contract-positive	aligned-source-component	17번 거/NNB 132..135는 관형형 보좌관일의 수식을 받고 생략 지정사와 관형형 라는에 이어진다.
 explicit-pos	corpus-negatives	pud:n01002058:noun:수	수	noun	false	20f7bcd8ac684ed80cd8cbb0514d741685e208ce9173f5f0f13dc3a7ef837a85	contract-positive	aligned-source-component	PUD 원문의 의존 명사 범위는 10번 NNB/nsubj 66..69이다.
 explicit-pos	corpus-negatives	pud:n01005024:noun:수	수	noun	false	817bbaaa16e3c9b4cc28e34d3e2ed92055ceb8a86c534f33bcc2aebab640e298	contract-positive	aligned-source-component	PUD 원문의 의존 명사 범위는 10번 NNB/nsubj 81..84이다.
 explicit-pos	corpus-negatives	pud:n01007012:noun:수	수	noun	false	eb2141d0787fc6e4436615c5275597fc617a576d91e80d4a4a8ae91027417cae	contract-positive	aligned-source-component	PUD 원문의 의존 명사 범위는 10번 NNB/nsubj 78..81이다.
