@@ -95,6 +95,20 @@ class ContractContrastTests(unittest.TestCase):
             for role in ("source", "contrast"):
                 self.assertTrue(row[f"{role}_surface"].strip())
                 self.assertIn(row[f"{role}_surface"], row[f"{role}_text"])
+            if "source_spans" in row:
+                self.assertEqual(reason, "aligned-source-component")
+                text = row["source_text"].encode()
+                previous_end = 0
+                self.assertTrue(row["source_spans"])
+                for span in row["source_spans"]:
+                    start, end = span["byte_start"], span["byte_end"]
+                    self.assertIs(type(start), int)
+                    self.assertIs(type(end), int)
+                    self.assertTrue(previous_end <= start < end <= len(text))
+                    matched = text[start:end].decode("utf-8")
+                    self.assertTrue(matched.strip())
+                    self.assertIn(matched, row["source_surface"])
+                    previous_end = end
             if reason in {"same-pos-homograph", "structurally-indistinguishable-homograph"}:
                 self.assertEqual(row["source_surface"], row["contrast_surface"])
 
