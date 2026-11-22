@@ -2294,6 +2294,12 @@ regression.particle.additive-copula.robber-past-noun	강도	noun	smart-only-exac
 regression.particle.additive-copula.capital-relative	수	noun	no-match	13	19	프랑스의 수도인 파리를 방문했다.
 regression.particle.additive-copula.capital-relative-noun	수도	noun	smart-only-exact	13	19	프랑스의 수도인 파리를 방문했다.
 regression.particle.additive-copula.independent-additive	정	noun	smart-only-exact	17	23	자주 만나면 정도 든다.
+regression.particle.additive-degree.indefinite	정	noun	no-match	17	23	경계를 어느 정도 모호하게 만들 수 있다.
+regression.particle.additive-degree.count-and-independent	정	noun	smart-only-exact	39	45	모임에 열 명 정도 왔고 서로 정도 들었다.
+regression.particle.additive-degree.counted-noun	정도	noun	smart-only-exact	18	24	모임에 열 명 정도 왔고 서로 정이 들었다.
+regression.particle.additive-degree.currency	정	noun	no-match	21	27	예산은 백만 원 정도 남았다.
+regression.particle.additive-degree.mixed-cardinal	정	noun	no-match	19	25	그는 1천만 명 정도 모였다고 말했다.
+regression.particle.additive-degree.corrected-currency-range	정	noun	no-match	71	77	일산은 마두동 백마삼환극동 중대형이 500만~1000만 원 정도 내렸다.
 regression.particle.additive-copula.predicate-additive	강	noun	smart-only-exact	17	23	마을 앞에는 강도 있다.
 regression.particle.additive-copula.focus-copula	나	pronoun	smart-only-exact	30	36	그 일을 할 수 있는 건 나뿐이었다.
 regression.particle.additive-copula.locative-copula	고객	noun	smart-only-exact	21	33	그 혜택은 단골 고객에게다.

@@ -12,6 +12,42 @@ use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
 
+pub(super) fn has_approximation_head(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !matches!(haystack.get(candidate.verified.core.clone()), Some(surface)
+        if surface == "정".as_bytes() || surface == "정".as_bytes())
+        || !matches!(candidate.suffix_rules.as_slice(), [rule] if rule.as_str() == "particle.additive")
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+        || !resolver.has_exact_nominal_surface("정도")
+    {
+        return false;
+    }
+    let Some((start, preceding)) = context::previous_word_with_start(haystack, span.start) else {
+        return false;
+    };
+    if haystack[start..span.start]
+        .iter()
+        .any(|byte| matches!(byte, b'\r' | b'\n'))
+    {
+        return false;
+    }
+    preceding == "어느"
+        || resolver.has_numeric_unit_surface(&preceding)
+        || context::previous_word_with_start(haystack, start).is_some_and(|(count_start, count)| {
+            !haystack[count_start..start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                && (resolver.has_standalone_counted_unit(&count, &preceding)
+                    || (ConstraintResolver::is_mixed_cardinal(&count)
+                        && resolver.has_exact_counter(&preceding)))
+        })
+}
+
 pub(super) fn has_object_before_han_and_final_copula(
     haystack: &[u8],
     candidate: &ExecutedCandidate,

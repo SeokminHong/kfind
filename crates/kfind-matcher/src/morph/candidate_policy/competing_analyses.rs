@@ -75,6 +75,7 @@ pub(super) fn rejects(
         || quantity::has_spaced_dictionary_numeric_unit(haystack, candidate, branch, resolver)
         || quantity::has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
+        || quantity::has_approximation_head(haystack, candidate, resolver)
         || quantity::has_comparative_adverb_frame(haystack, candidate, branch, atom, resolver)
         || quantity::has_quoted_name_instead_of_degree(haystack, candidate, branch, atom, resolver)
         || quantity::has_object_before_han_and_final_copula(
