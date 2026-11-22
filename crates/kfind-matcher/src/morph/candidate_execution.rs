@@ -89,7 +89,9 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                if ends_inside_normalized_syllable(&consumption_anchor, &consumption_following) {
+                if let Cow::Owned(normalized_anchor) = &consumption_anchor
+                    && ends_inside_normalized_syllable(normalized_anchor, &consumption_following)
+                {
                     return None;
                 }
                 let matched = verify_predicate_continuation_with_prefinal_context(
@@ -366,7 +368,9 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                if ends_inside_normalized_syllable(&consumption_anchor, &consumption_following) {
+                if let Cow::Owned(normalized_anchor) = &consumption_anchor
+                    && ends_inside_normalized_syllable(normalized_anchor, &consumption_following)
+                {
                     return None;
                 }
                 let adverb_host = *allowed_rule_ids == self.plan.auxiliary_particle_rules;
@@ -740,14 +744,13 @@ fn normalized_consumption_text<'a>(
     )
 }
 
-fn ends_inside_normalized_syllable(anchor: &Cow<'_, str>, following: &str) -> bool {
+fn ends_inside_normalized_syllable(anchor: &str, following: &str) -> bool {
     // A trailing jamo can still belong to the last syllable of the anchor.
-    matches!(anchor, Cow::Owned(_))
-        && anchor
-            .chars()
-            .next_back()
-            .zip(following.chars().next())
-            .is_some_and(|(last, next)| unicode_normalization::char::compose(last, next).is_some())
+    anchor
+        .chars()
+        .next_back()
+        .zip(following.chars().next())
+        .is_some_and(|(last, next)| unicode_normalization::char::compose(last, next).is_some())
 }
 
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
