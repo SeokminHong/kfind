@@ -102,6 +102,25 @@ Docker image를 만든 뒤 benchmark container는 `--network none`으로 실행�
 full-POS artifact의 checksum이 맞지 않으면 embedded profile로 대체하지 않고
 실패합니다.
 
+### Smart 기준선과 후보 성능 비교
+
+macOS 또는 Linux에서 같은 release 설정으로 빌드한 두 runner와 각 버전의 실제
+리소스를 준비합니다. 저장소 root에서 [고정 감사 입력](#gsdpud-고정-감사-입력)을
+한 개씩 실행합니다. 같은 runner와 리소스를 양쪽에 주면 실행 환경의 반복 변동을
+측정할 수 있습니다.
+
+```sh
+python3 tools/morph-compare/measure-smart.py "$fixture" "$new_output_dir" \
+  --baseline "$baseline_runner" "$baseline_revision" "$baseline_full_pos" "$baseline_component" "$baseline_enriched" \
+  --candidate "$candidate_runner" "$candidate_revision" "$candidate_full_pos" "$candidate_component" "$candidate_enriched"
+```
+
+측정군별 새 프로세스로 워밍업 1회 뒤 실행 순서를 번갈아 바꾸며 5회 측정합니다.
+`summary.json`에 초기화, 처리량, p50·p95 지연 시간과 최대 RSS의 중앙값·최솟값·최댓값,
+그리고 fixture·실행 파일·리소스와 전체 반환 범위의 체크섬을 남깁니다. 실행별
+runner 출력과 로그는 같은 디렉터리에 있습니다. 최대 RSS는 macOS의
+`/usr/bin/time -l` 또는 Linux runner의 `VmHWM`에서 수집합니다.
+
 로컬 Python test는 이 디렉터리에서 실행합니다.
 
 ```sh
