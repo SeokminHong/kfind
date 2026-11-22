@@ -50,7 +50,8 @@ pub(super) fn rejects_han(
                 resolver.has_subject_marked_nominal(&word)
                     || resolver.has_object_marked_nominal(&word)
             }) && ((resolver.is_person_nominal(group)
-                && resolver.has_inflected_counted_unit("한", &next))
+                && (resolver.has_inflected_counted_unit("한", &next)
+                    || resolver.has_counted_unit_with_copula("한", &next)))
                 || (resolver.is_spatial_nominal(group)
                     && resolver.has_counted_place_surface("한", &next)))
         }

@@ -75,7 +75,7 @@ generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict>
 
 [[artifact]]
 path = "rules/krdict-person-nouns.tsv"
-artifact_sha256 = "8bfc34c1a8800511ddb766d9e63c7f03b46ba8ef54acfab4c5043506f26592b8"
+artifact_sha256 = "1b10c1deebc958a3b320bccb3d6858e71e4d67f2491f5573e0680543d2d96e8b"
 sources = ["krdict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role person"

@@ -51,7 +51,8 @@ def has_nominal_role(entry, lemma, role):
             )
         )
     if role == "person":
-        return category in PERSON_CATEGORIES
+        definition = direct_feat(entry.find("./Sense"), "definition") or ""
+        return category in PERSON_CATEGORIES or definition.endswith(("사람.", "인물."))
     definition = direct_feat(entry.find("./Sense"), "definition") or ""
     return category in SPATIAL_CATEGORIES and SPATIAL_DEFINITION_HEAD.search(definition)
 

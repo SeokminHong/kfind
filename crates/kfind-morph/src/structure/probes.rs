@@ -2228,6 +2228,19 @@ impl ConstraintResolver {
         self.is_counter_quantity(count) && self.has_exact_counter(unit)
     }
 
+    #[must_use]
+    pub fn has_counted_unit_with_copula(&self, count: &str, text: &str) -> bool {
+        self.is_counter_quantity(count)
+            && text.char_indices().skip(1).any(|(split, _)| {
+                let (unit, ending) = text.split_at(split);
+                self.has_exact_counter(unit)
+                    && unit
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, ending))
+            })
+    }
+
     /// 곳 is both a place noun and a place-counting unit (KRDict 18661).
     #[must_use]
     pub fn has_counted_place_surface(&self, count: &str, text: &str) -> bool {
