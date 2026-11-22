@@ -33,10 +33,12 @@ fn exercise(data: &[u8]) {
     let previous = token(data, 8, "가");
     let next = token(data, 16, "보고");
     let control = data.first().copied().unwrap_or(0);
+    let include_next = control & 2 != 0;
     let context = BoundedTokenContext {
         previous: (control & 1 != 0).then_some(previous.as_str()),
         current: &current,
-        next: (control & 2 != 0).then_some(next.as_str()),
+        next: include_next.then_some(next.as_str()),
+        next_separated_by_list_punctuation: include_next && control & 16 != 0,
     };
     let node_limit = usize::from(data.get(1).copied().unwrap_or(127) % 64) + 1;
     let include_nominal_copula = control & 4 != 0;
