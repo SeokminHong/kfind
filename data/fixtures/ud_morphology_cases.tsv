@@ -2005,6 +2005,12 @@ regression.final-ending.hao-concessive	가다	verb	smart-only-exact	14	20	나는
 regression.final-ending.hao-u	가다	verb	smart-only-exact	14	20	나는 먼저 가우.
 regression.final-ending.hao-u-adverb-before-adnominal	매다	verb	no-match	10	16	점성이 매우 높은 경향이 있다.
 regression.final-ending.hao-u-adverb-before-adnominal-positive	매우	adverb	smart-exact	10	16	점성이 매우 높은 경향이 있다.
+regression.final-ending.hao-u-adverb-before-object	매다	verb	no-match	0	6	매우 높은 담을 허물었다.
+regression.final-ending.hao-u-adverb-before-nominal-modifier	매다	verb	smart-only-exact	59	65	매우 작은 나무 상자를 골랐다. 끈을 단단히 매우.
+regression.final-ending.hao-u-adverb-before-technical-noun	매다	verb	no-match	23	29	안테나를 사용해 매우 높은 각 해상도를 얻었다.
+regression.final-ending.hao-u-adverb-before-technical-noun-positive	매우	adverb	smart-only-exact	23	29	안테나를 사용해 매우 높은 각 해상도를 얻었다.
+regression.final-ending.hao-u-adverb-before-determined-subject	매다	verb	no-match	0	6	매우 높은 어떤 산봉우리가 보였다.
+corpus.ud-pud.test.w01105055.corrected-hao-u-adverb	매다	verb	no-match	49	55	알바레즈의 양극성 안테나를 사용해 매우 높은 각 해상도를 얻게 됨으로써 GCA는 특수한 정밀 디스플레이를 보는 지상 기반 레이더 운용자가 조종사에게 구두로 명령을 전송하여 항공기가 활주로에 착륙하도록 유도할 수 있다.
 regression.final-ending.hao-u-adverb-before-connective	매다	verb	no-match	10	16	고기가 매우 좋고 값도 싸다.
 regression.final-ending.hao-u-adverb-before-final	매다	verb	no-match	13	19	목소리가 매우 좋다.
 regression.final-ending.hao-u-adverb-before-derived-past	매다	verb	no-match	10	16	가족도 매우 감탄하였다.
