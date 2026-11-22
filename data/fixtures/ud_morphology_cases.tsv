@@ -2297,6 +2297,8 @@ regression.particle.additive-copula.capital-relative	수	noun	no-match	13	19	프
 regression.particle.additive-copula.capital-relative-noun	수도	noun	smart-only-exact	13	19	프랑스의 수도인 파리를 방문했다.
 regression.particle.additive-copula.independent-additive	정	noun	smart-only-exact	17	23	자주 만나면 정도 든다.
 regression.particle.additive-degree.indefinite-town	정	noun	smart-only-exact	21	27	군에 속한 어느 정도 참여하지 않았다.
+regression.particle.additive-degree.indefinite-adjective	정	noun	no-match	17	23	경계를 어느 정도 모호하게 만들 수 있다.
+regression.particle.additive-degree.demonstrative-adjective	정	noun	no-match	14	20	온도를 이 정도 높게 유지한다.
 regression.particle.additive-degree.count-and-independent	정	noun	smart-only-exact	39	45	모임에 열 명 정도 왔고 서로 정도 들었다.
 regression.particle.additive-degree.counted-noun	정도	noun	smart-only-exact	18	24	모임에 열 명 정도 왔고 서로 정이 들었다.
 regression.particle.additive-degree.currency	정	noun	no-match	21	27	예산은 백만 원 정도 남았다.
@@ -3072,6 +3074,8 @@ regression.attached-result-state.independent-possibility	있다	adjective	smart-
 regression.quantity-adverb.dependent-object-and-adverb	거	noun	smart-only-exact	11	14	알게 된 걸 떠올리니 사람들은 거의 3년을 기다렸다.
 regression.quantity-adverb.topic-on-oblique	거	noun	no-match	13	19	지역에는 거의 12년 동안 수해가 없었다.
 regression.quantity-adverb.possessive-modifies-dependent-noun	거	noun	smart-only-exact	4	10	네 거의 3장이 남았다.
+regression.quantity-adverb.spaced-cardinal	거	noun	no-match	10	16	종이는 거의 세 장이 남았다.
+regression.quantity-adverb.spaced-digit	거	noun	no-match	10	16	종이는 거의 3 장 남았다.
 regression.quantity-adverb.before-adnominal	거	noun	no-match	17	23	남은 물건은 거의 없는 상태다.
 regression.quantity-adverb.corrected-pud-adnominal	거	noun	no-match	45	51	당연히 옷은 많고 먹을 만한 것은 거의 없는 것이 그 사무실 풍경이다.
 regression.quantity-adverb.genitive-before-adnominal	거	noun	smart-only-exact	4	10	네 거의 낡은 덮개를 교체했다.
@@ -3086,6 +3090,8 @@ regression.aligned-prefix.independent-alongside-compound	남	noun	smart-only-exa
 regression.degree-adverb.cardinal-layer	한	determiner	smart-only-exact	7	10	벽을 한 층 더 쌓았다.
 regression.han-frame.limit-before-adverb	하다	verb	smart-only-exact	21	27	가능한 한 빨리 하자.
 regression.han-frame.limit-before-attributive	하다	verb	smart-only-exact	38	44	가능한 한 빠른 시일에 다시 하자.
+regression.han-frame.present-verb-limit	하다	verb	smart-only-exact	34	40	규정이 허락하는 한 빨리 하자.
+regression.han-frame.present-adjective-limit	하다	verb	no-match	20	23	계약이 유효한 한 계속 진행한다.
 regression.han-frame.exclusive-frequency	하다	verb	smart-only-exact	28	31	오직 한 번의 선언만 할 수 있다.
 regression.han-frame.exclusive-counted-volume	하다	verb	smart-only-exact	41	47	단 한 방울의 물만 확인하기로 했다.
 regression.han-frame.relative-with-accusative	하다	verb	smart-only-exact	17	20	오직 증언을 한 목격자만 남았다.

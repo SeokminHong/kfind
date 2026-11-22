@@ -2171,7 +2171,7 @@ impl ConstraintResolver {
     }
 
     #[must_use]
-    pub fn has_comparative_nominal_after_quantity(&self, text: &str, shorter_host: &str) -> bool {
+    pub fn has_comparative_nominal_expansion(&self, text: &str, shorter_host: &str) -> bool {
         COMPARATIVE_NOMINALS.iter().any(|&noun| {
             noun.len() > shorter_host.len()
                 && noun.starts_with(shorter_host)
@@ -2567,7 +2567,8 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
-            && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
+            && ((!previous.is_empty() && previous.bytes().all(|byte| byte.is_ascii_digit()))
+                || has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
                 || Self::is_mixed_cardinal(previous)
                 || (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Mm)
                     && !(has_exact_fine_pos(&self.resource, unit, |pos| pos == DataFinePos::Vx)
