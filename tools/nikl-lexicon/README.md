@@ -112,6 +112,11 @@ relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 
 대조합니다. 기본 출력은 검색에 사용하는 Rust 목록이고, `--format fixture`는 명사
 질의의 음성 회귀 TSV를 출력합니다.
 
+`audit_bound_nominal_prefixes.py`는 표준국어대사전의 붙임표, 원어, 품사와
+동형 표제어를 대조합니다. `--stdict`에 고정 ZIP, `--cache-dir`에 사전 캐시를 지정하면
+`대-` 결합 명사와 해당 표제어 번호를 TSV로 출력합니다. 이 값은
+[`stdict-bound-dae-prefix-usages.rs`](../../data/rules/stdict-bound-dae-prefix-usages.rs)에 대응합니다.
+
 `audit_hanja_nominalizer_hosts.py`는 MeCab의 합성 명사 분절을 표준국어대사전의
 첫 성분 원어와 대조합니다. `--mecab`에 원본 CSV 디렉터리, `--stdict`에 고정
 ZIP, `--cache-dir`에 사전 캐시를 지정하면 확인한 표제어와 식별자를 TSV로 출력합니다.

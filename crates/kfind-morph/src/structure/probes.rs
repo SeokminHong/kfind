@@ -25,6 +25,8 @@ const PRODUCTIVE_NOMINAL_HEADS: &[&str] =
     include!("../../../../data/rules/nikl-productive-nominal-heads.rs");
 const BOUND_NOMINAL_PREFIX_USAGES: &[(&str, &[&str])] =
     include!("../../../../data/rules/nikl-bound-nominal-prefix-usages.rs");
+const STDICT_BOUND_DAE_PREFIX_USAGES: &[&str] =
+    include!("../../../../data/rules/stdict-bound-dae-prefix-usages.rs");
 
 include!("../../../../data/rules/krdict-nominal-frames.rs");
 include!("../../../../data/rules/krdict-auxiliary-frames.rs");
@@ -411,16 +413,38 @@ impl ConstraintResolver {
         else {
             return false;
         };
-        BOUND_NOMINAL_PREFIX_USAGES[index].1.iter().any(|&noun| {
-            text.strip_prefix(noun).is_some_and(|tail| {
-                tail.is_empty()
-                    || complete_suffix(&self.resource, tail, StructuralPos::is_particle)
-                    || noun
-                        .chars()
-                        .next_back()
-                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
-            })
-        })
+        let accepts_tail = |noun: &str, tail: &str| {
+            tail.is_empty()
+                || complete_suffix(&self.resource, tail, StructuralPos::is_particle)
+                || noun
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
+        };
+        if BOUND_NOMINAL_PREFIX_USAGES[index].1.iter().any(|&noun| {
+            text.strip_prefix(noun)
+                .is_some_and(|tail| accepts_tail(noun, tail))
+        }) {
+            return true;
+        }
+        if prefix != "대" {
+            return false;
+        }
+        let mut attested = STDICT_BOUND_DAE_PREFIX_USAGES;
+        for (start, character) in text.char_indices().skip(1) {
+            let (noun, tail) = text.split_at(start + character.len_utf8());
+            attested = &attested[attested.partition_point(|&word| word < noun)..];
+            let Some(first) = attested.first() else {
+                return false;
+            };
+            if !first.starts_with(noun) {
+                return false;
+            }
+            if *first == noun && accepts_tail(noun, tail) {
+                return true;
+            }
+        }
+        false
     }
 
     #[must_use]
