@@ -2835,6 +2835,10 @@ regression.bound-prefix.noun-prefix-earthquake	대	noun	no-match	0	15	대지진�
 regression.bound-prefix.noun-prefix-copula	대	noun	no-match	17	32	오늘은 정월 대보름이다.
 regression.bound-prefix.nominal-compound-with-particle	대	noun	smart-only-exact	0	3	대나무가 자랐다.
 regression.bound-prefix.nominal-compound-no-particle	대	noun	smart-only-exact	0	3	대나무 숲을 걸었다.
+regression.bound-prefix.dictionary-court	대	noun	no-match	0	15	대법원으로 보냈다.
+regression.bound-prefix.dictionary-title	대	noun	no-match	0	12	대주교도 축하했다.
+regression.bound-prefix.dictionary-against-country	대	noun	no-match	0	12	대프랑스 동맹을 맺었다.
+regression.bound-prefix.dictionary-independent-counter	대	noun	smart-only-exact	8	14	차 두 대가 들어왔다.
 regression.bound-prefix.discrete-counter	대	noun	smart-only-exact	8	14	차 한 대를 샀다.
 regression.bound-prefix.distinct-prefix-sin	신	noun	no-match	10	22	선수가 신기록을 세웠다.
 regression.bound-prefix.distinct-prefix-mi	미	noun	no-match	14	29	이 소설은 미완성이다.
