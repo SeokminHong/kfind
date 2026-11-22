@@ -48,7 +48,13 @@ def compare_reviewed_ranges(
     for case in cases:
         if case["expected"] and contract_expected(case) is True:
             key = (case["text"], case["query"], case["pos"])
-            annotated[key].add((case["gold_byte_start"], case["gold_byte_end"]))
+            review = source_reviews.get(case["id"])
+            if review is None:
+                annotated[key].add((case["gold_byte_start"], case["gold_byte_end"]))
+            else:
+                annotated[key].update(
+                    (part["byte_start"], part["byte_end"]) for part in review["source_spans"]
+                )
 
     verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
     verified_excluded_rows = partially_excluded_positive_rows = 0
