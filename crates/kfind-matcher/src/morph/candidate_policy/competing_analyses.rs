@@ -84,7 +84,7 @@ pub(super) fn rejects(
         || partitive::rejects_han(haystack, candidate, branch, atom, resolver)
         || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
         || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
-        || nominal::has_nominal_time_frame_for_alternating(haystack, candidate, branch, resolver)
+        || nominal::has_nominal_head_after_alternating(haystack, candidate, branch, resolver)
         || nominal::has_nama_proper_name_frame(haystack, candidate, branch, resolver)
         || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
         || has_humble_transitive_frame(haystack, candidate, branch, atom, resolver)

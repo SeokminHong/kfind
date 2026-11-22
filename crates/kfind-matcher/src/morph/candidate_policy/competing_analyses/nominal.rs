@@ -8,7 +8,7 @@ use crate::boundary::{
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
-pub(super) fn has_nominal_time_frame_for_alternating(
+pub(super) fn has_nominal_head_after_alternating(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -38,7 +38,7 @@ pub(super) fn has_nominal_time_frame_for_alternating(
         && context::normalized_token(haystack, span.clone())
             .is_some_and(|nominal| resolver.has_exact_nominal_surface(&nominal))
         && context::next_word_on_line(haystack, span.end)
-            .is_some_and(|(_, next)| resolver.has_relative_time_head(&next))
+            .is_some_and(|(_, next)| resolver.has_nominal_with_optional_particles(&next))
         && !context::previous_word(haystack, span.start)
             .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
 }

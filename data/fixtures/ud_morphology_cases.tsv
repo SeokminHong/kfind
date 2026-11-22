@@ -1473,6 +1473,8 @@ regression.alternating-rak.rieul	울다	verb	exact	10	16	아이는 울락 웃으
 regression.alternating-rak.nominal-before-time	몰다	verb	no-match	10	16	왕조의 몰락 전에 사람들이 떠났다.
 regression.alternating-rak.nominal-before-immediate-time	몰다	verb	no-match	26	32	투자자들은 시장의 몰락 직후에 자금을 회수했다.
 regression.alternating-rak.vowel-nominal-before-time	추다	verb	no-match	10	16	비행기 추락 이후에 수색을 시작했다.
+regression.alternating-rak.nominal-before-time-of-event	몰다	verb	no-match	10	16	왕조의 몰락 당시 기록이 남았다.
+regression.alternating-rak.nominal-before-cause	추다	verb	no-match	10	16	비행기 추락 원인을 조사했다.
 regression.alternating-rak.object-before-time	몰다	verb	smart-only-exact	17	23	목동이 양을 몰락 전처럼 풀어 주락 했다.
 regression.alternating-rak.nominal-with-case	몰락	noun	smart-only-exact	10	16	왕조의 몰락 전에 사람들이 떠났다.
 regression.near-rieulrak.vowel	들리다	verb	exact	10	19	파도가 들릴락 말락 했다.
