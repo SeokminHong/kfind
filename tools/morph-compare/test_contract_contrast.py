@@ -107,7 +107,10 @@ class ContractContrastTests(unittest.TestCase):
                     self.assertTrue(previous_end <= start < end <= len(text))
                     matched = text[start:end].decode("utf-8")
                     self.assertTrue(matched.strip())
-                    self.assertIn(matched, row["source_surface"])
+                    if "surface" in span:
+                        self.assertEqual(matched, span["surface"])
+                    else:
+                        self.assertIn(matched, row["source_surface"])
                     previous_end = end
             if reason in {"same-pos-homograph", "structurally-indistinguishable-homograph"}:
                 self.assertEqual(row["source_surface"], row["contrast_surface"])
