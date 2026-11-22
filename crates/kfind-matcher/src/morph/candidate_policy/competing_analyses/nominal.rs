@@ -226,6 +226,7 @@ pub(super) fn has_nominal_frame_for_volitional(
             .all(|origin| origin.rule_path.last() == Some(rule)))
         && (context::next_word_on_line(haystack, whole.end)
             .is_some_and(|(_, next)| resolver.has_causal_nominal_surface(&next))
+            || super::selection::has_content_topic(haystack, &whole, resolver)
             || context::previous_word(haystack, whole.start).is_some_and(|previous| {
                 resolver.has_predicate_adnominal_surface(&previous)
                     || resolver.has_nominal_genitive_surface(&previous)

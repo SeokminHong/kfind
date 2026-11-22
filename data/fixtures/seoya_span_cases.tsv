@@ -59,9 +59,14 @@ circuit-distributive-competitor	돌아서다	verb	no-match	27	36	연습장을 �
 circuit-no-route	돌아서다	verb	smart-only-exact	21	33	선수는 한 바퀴 돌아서야 감독을 볼 수 있었다.
 naseoya-first-positive	나다	verb	exact	7	16	땀이 나서야 비로소 몸의 열이 내렸다.
 naseoya-first-context	나다	verb	exact	14	23	네가 직접 나서야 일이 풀린다.
-naseoya-second-context	나서다	verb	exact	7	16	땀이 나서야 비로소 몸의 열이 내렸다.
+naseoya-second-context	나서다	verb	no-match	7	16	땀이 나서야 비로소 몸의 열이 내렸다.
 naseoya-second-positive	나서다	verb	exact	14	23	네가 직접 나서야 일이 풀린다.
 balgaseoya-first-positive	밝다	verb	exact	17	29	우리는 날이 밝아서야 그곳을 떠날 수 있었다.
-balgaseoya-first-context	밝다	verb	exact	30	42	휴대폰 화면이 그렇게 밝아서야 눈이 편하겠어요?
+balgaseoya-first-context	밝다	verb	no-match	30	42	휴대폰 화면이 그렇게 밝아서야 눈이 편하겠어요?
 balgaseoya-second-context	밝다	adjective	exact	17	29	우리는 날이 밝아서야 그곳을 떠날 수 있었다.
 balgaseoya-second-positive	밝다	adjective	exact	30	42	휴대폰 화면이 그렇게 밝아서야 눈이 편하겠어요?
+emission-liquid	나서다	verb	no-match	10	19	눈물이 나서야 마음이 편해졌다.
+emission-liquid-positive	나다	verb	smart-only-exact	10	19	눈물이 나서야 마음이 편해졌다.
+display-degree	밝다	verb	no-match	20	32	모니터가 아주 밝아서야 눈이 편할까?
+display-degree-positive	밝다	adjective	smart-only-exact	20	32	모니터가 아주 밝아서야 눈이 편할까?
+brightness-change	밝다	verb	smart-only-exact	34	46	불빛이 번져 방이 환하게 밝아서야 물건이 보였다.

@@ -52,11 +52,11 @@ stdict.으렷다:11	꿇다	verb	exact	17	29	냉큼 무릎을 꿇으렷다.
 stdict.으렷다:12	묶다	verb	exact	21	33	당장 그 죄인을 묶으렷다.
 garya-copula-positive	이다	adjective	smart-exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
 garya-copula-context	이다	adjective	no-match	43	49	눈보라가 치는데 내가 거기까지 가랴?
-garya-verb-context	가다	verb	exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
+garya-verb-context	가다	verb	no-match	36	42	세 글자 중 첫 글자가 정녕 가랴?
 garya-verb-positive	가다	verb	exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
 garyeotda-copula-positive	이다	adjective	smart-exact	31	40	이름의 첫 글자가 분명 가렷다.
 garyeotda-copula-context	이다	adjective	no-match	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
-garyeotda-verb-context	가다	verb	exact	31	40	이름의 첫 글자가 분명 가렷다.
+garyeotda-verb-context	가다	verb	no-match	31	40	이름의 첫 글자가 분명 가렷다.
 garyeotda-verb-positive	가다	verb	exact	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
 garya-directed-not-copula	이다	adjective	no-match	24	30	내가 관아로 곧장 가랴?
 garya-directed-verb	가다	verb	exact	24	30	내가 관아로 곧장 가랴?
@@ -65,3 +65,6 @@ oryeotda-directed-verb	오다	verb	exact	24	33	너도 곧장 관아로 오렷다
 garya-directional-adverb-not-copula	이다	adjective	no-match	30	36	내가 마을로 부지런히 가랴?
 garya-directional-adverb-verb	가다	verb	exact	30	36	내가 마을로 부지런히 가랴?
 oryeotda-letter-copula	이다	adjective	smart-exact	31	40	도장의 첫 글자가 분명 오렷다.
+orthographic-label	가다	verb	no-match	21	30	두 번째 문자가 가렷다.
+orthographic-label-positive	이다	adjective	smart-only-exact	21	30	두 번째 문자가 가렷다.
+orthographic-motion	가다	verb	smart-only-exact	24	30	첫 글자가 옆으로 가랴?

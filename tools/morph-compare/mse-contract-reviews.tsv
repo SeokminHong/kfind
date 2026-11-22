@@ -1,5 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
-explicit-pos	mse	gamse-verb-context	가다	verb	false	9eed4d07985bc2caa5daec003cdea7b77c579457981b7d762c5f0f0bd5171249	contract-positive	structurally-indistinguishable-homograph	세금을 줄이는 명사와 이동을 뜻하는 동사 활용이 같은 표면을 갖는다.
+explicit-pos	mse	gamse-verb-context	가다	verb	false	9eed4d07985bc2caa5daec003cdea7b77c579457981b7d762c5f0f0bd5171249	confirmed	implementation-target	관형절이 한정한 내용 단위의 주제에 명사 술어가 대응한다. 한국어기초사전 대목 62541, 국립국어원 지정사 생략 308010.
 explicit-pos	mse	gamse-noun-context	감세	noun	false	bcf14804c1099a3f485987e0f4dcfa7e52d78ebab60ac71a70c984df3a3c8b4c	confirmed	implementation-target	화자가 명시된 절에서 의지 종결형과 장소 성분 또는 앞 발화의 명령형을 확인했다.
 explicit-pos	mse	samse-verb-context	사다	verb	false	a18de373646c2f742a7050fbda3bec1e2d881c15d47119845e3c0283d17351c4	confirmed	implementation-target	관형형 말하는의 수식을 받는 삼세 개념은 명사구다.
 explicit-pos	mse	samse-noun-context	삼세	noun	false	129dd48701e60a34db0acbf461ac844e59183525990fdf603e3776ebe2139f3c	confirmed	implementation-target	화자가 명시된 절에서 의지 종결형과 장소 성분 또는 앞 발화의 명령형을 확인했다.

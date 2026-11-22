@@ -100,14 +100,14 @@ opendict.잡:1	좇다	verb	exact	17	32	스승의 뜻을 좇잡나이다.
 opendict.잡:2	받다	verb	exact	17	26	폐하의 명을 받잡고 소신 먼 길을 떠나왔습니다.
 binaida-pray	빌다	verb	exact	36	48	일월성신께 백성의 안녕을 비나이다.
 binaida-empty-context	비다	verb	no-match	36	48	일월성신께 백성의 안녕을 비나이다.
-binaida-pray-context	빌다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
+binaida-pray-context	빌다	verb	no-match	28	40	물이 새니 독이 자꾸 비나이다.
 binaida-empty	비다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
 binaida-empty-duration	비다	verb	exact	24	36	이 별채는 닷새를 비나이다.
 binaida-weekend-duration	비다	verb	smart-only-exact	24	36	이 별채는 주말을 비나이다.
 binaida-summer-duration	비다	verb	smart-only-exact	24	36	이 별채는 여름을 비나이다.
 biopnaida-pray	빌다	verb	exact	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
 biopnaida-empty-context	비다	verb	no-match	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
-biopnaida-pray-context	빌다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
+biopnaida-pray-context	빌다	verb	no-match	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
 biopnaida-empty	비다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
 biopnaida-empty-autumn	비다	verb	smart-only-exact	26	41	가을이면 사랑채가 비옵나이다.
 biopnaida-empty-duration	비다	verb	exact	27	42	동쪽 객방은 보름을 비옵나이다.
@@ -132,3 +132,7 @@ doesanaida-repurchase-not-revival	되살다	verb	no-match	18	33	제가 그 땅�
 jonaida-liquid-volume	졸다	verb	smart-exact	31	43	약탕기의 물이 한 홉을 조나이다.
 jonaida-duration	졸다	verb	smart-exact	25	37	그 아이는 십 분을 조나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
+empty-container	빌다	verb	no-match	34	49	물이 빠지니 항아리가 텅 비옵나이다.
+empty-container-positive	비다	verb	smart-only-exact	34	49	물이 빠지니 항아리가 텅 비옵나이다.
+empty-quarters	빌다	verb	no-match	57	69	손님이 떠날 때마다 숙소가 하루가 다르게 비나이다.
+empty-quarters-positive	비다	verb	smart-only-exact	57	69	손님이 떠날 때마다 숙소가 하루가 다르게 비나이다.
