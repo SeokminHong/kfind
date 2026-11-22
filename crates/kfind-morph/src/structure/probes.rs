@@ -479,7 +479,20 @@ impl ConstraintResolver {
                     || nominal
                         .chars()
                         .next_back()
-                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail));
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
+                    || tail.strip_prefix('간').is_some_and(|particles| {
+                        let unit = &nominal[prefix.len()..];
+                        let duration_host = self.has_duration_suffix_host(nominal, None, false)
+                            || self.has_duration_suffix_host(unit, Some(prefix), true)
+                            || (DURATION_UNITS.contains(&unit)
+                                && self.is_temporal_nominal(nominal)
+                                && has_exact_fine_pos(&self.resource, prefix, |pos| {
+                                    pos == DataFinePos::Mm
+                                }));
+                        duration_host
+                            && (particles.is_empty()
+                                || super::lexical::has_grammatical_particle_chain("간", particles))
+                    });
             });
         matched
     }

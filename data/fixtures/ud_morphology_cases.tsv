@@ -3065,6 +3065,14 @@ regression.adjacent-determiner.list-comma	수	noun	smart-only-exact	0	3	수, 목
 regression.adjacent-determiner.list-middle-dot	일	noun	smart-only-exact	0	3	일·월에 출근한다.
 regression.adjacent-determiner.count-as-noun	수	noun	no-match	0	3	수 시간 동안 눈이 내렸다.
 regression.adjacent-determiner.count-as-determiner	수	determiner	smart-only-exact	0	3	수 시간 동안 눈이 내렸다.
+regression.aligned-nominal-prefix.duration-with-particle	수	noun	no-match	0	3	수개월간은 같은 자리를 지킨다.
+regression.aligned-nominal-prefix.weekday-and-duration	수	noun	smart-only-exact	0	3	수요일에는 쉬고 수개월간 근무했다.
+regression.aligned-nominal-prefix.duration-host	수개월	noun	smart-only-exact	23	32	수요일에는 쉬고 수개월간 근무했다.
+regression.aligned-nominal-prefix.duration-unit	개월	noun	smart-only-exact	26	32	수요일에는 쉬고 수개월간 근무했다.
+regression.aligned-nominal-prefix.duration-and-half-noun	반	noun	smart-only-exact	34	40	반달간 휴가를 썼고 아직 반이 남았다.
+regression.aligned-nominal-prefix.half-century-prefix	반	noun	no-match	0	3	반세기간 이곳에서 연구가 이어졌다.
+regression.aligned-nominal-prefix.half-century-host	반세기	noun	smart-only-exact	0	9	반세기간 이곳에서 연구가 이어졌다.
+corpus.ud-pud.test.w01009027.corrected-duration-prefix	수	noun	no-match	26	29	몬순은 계절풍으로 수개월간 지속되며 해당 지역의 우기를 관장한다.
 regression.adjacent-determiner.coordinated-noun-not-predicate	보다	verb	no-match	0	6	보건, 노동 및 환경 기준을 높인다.
 regression.adjacent-determiner.paused-adverb-not-predicate	사다	verb	no-match	17	23	그 이야기는 사실, 믿기 어렵다.
 regression.adjacent-determiner.elliptic-prefix-not-noun	전	noun	smart-only-exact	39	45	전, 후기의 두 우승 팀이 결승전을 치렀다.
