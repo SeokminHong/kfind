@@ -555,6 +555,13 @@ fn has_directional_adverbial_frame(
     let Some((start, adjacent)) = context::previous_word_with_start(haystack, at) else {
         return false;
     };
+    if adjacent.strip_suffix("까지").is_some_and(|host| {
+        // Place pronouns here express the endpoint of motion.
+        context::is_locative_pronoun(host)
+            && resolver.has_nominal_with_optional_particles(&adjacent)
+    }) {
+        return true;
+    }
     let is_directional = |word: &str| word.ends_with('로') && resolver.has_nominal_oblique(word);
     context::previous_word(haystack, start).is_some_and(|previous| {
         (is_directional(&adjacent) && resolver.has_exact_adverb_surface(&previous))

@@ -16,7 +16,7 @@ use crate::structure::roman_numeral::{is_roman_digit, is_roman_numeral};
 use crate::{
     LexicalAlternation, PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal,
 };
-use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
+use kfind_data::{ComponentPos as StructuralPos, DataFinePos, NominalRole};
 use std::ops::Range;
 
 const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
@@ -622,7 +622,11 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_subject_marked_nominal(&self, text: &str) -> bool {
-        text.strip_suffix(['이', '가']).is_some_and(|host| {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NP, StructuralPos::JKS],
+        ) || text.strip_suffix(['이', '가']).is_some_and(|host| {
             self.has_complete_nominal_surface(host)
                 && has_exact_sequence(&self.resource, &text[host.len()..], &[StructuralPos::JKS])
         })
@@ -1997,6 +2001,73 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_spatial_destination(&self, text: &str) -> bool {
+        text.strip_suffix("으로")
+            .or_else(|| text.strip_suffix('로'))
+            .is_some_and(|noun| self.is_spatial_nominal(noun) && self.has_nominal_oblique(text))
+    }
+
+    #[must_use]
+    pub fn is_spatial_nominal(&self, noun: &str) -> bool {
+        self.resource.has_nominal_role(noun, NominalRole::Spatial)
+    }
+
+    #[must_use]
+    pub fn is_person_nominal(&self, noun: &str) -> bool {
+        self.resource.has_nominal_role(noun, NominalRole::Person)
+    }
+
+    #[must_use]
+    pub fn is_scheduled_nominal(&self, noun: &str) -> bool {
+        self.resource.has_nominal_role(noun, NominalRole::Scheduled)
+    }
+
+    /// Verifies the independent verb 늦다 (KRDict 61181).
+    #[must_use]
+    pub fn has_late_arrival_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "늦다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid arrival predicate")
+            });
+        text.starts_with('늦') && matches_predicate_inflection(text, &FORMS)
+    }
+
+    #[must_use]
+    pub fn is_temporal_nominal(&self, noun: &str) -> bool {
+        self.resource.has_nominal_role(noun, NominalRole::Temporal)
+    }
+
+    #[must_use]
+    pub fn is_attested_do_object(&self, noun: &str) -> bool {
+        self.resource.has_nominal_role(noun, NominalRole::DoObject)
+    }
+
+    #[must_use]
+    pub fn has_nominal_roles(&self) -> bool {
+        self.resource.has_nominal_roles()
+    }
+
+    /// Checks the independent lexical motion verb 들어가다 (KRDict 67877).
+    #[must_use]
+    pub fn has_enter_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "들어가다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid motion predicate")
+            });
+        text.starts_with("들어") && matches_predicate_inflection(text, &FORMS)
+    }
+
+    #[must_use]
     pub fn has_derived_ha_past(&self, host: &str, ending: &str) -> bool {
         let Some(noun) = host.strip_suffix('하') else {
             return false;
@@ -2155,6 +2226,18 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_standalone_counted_unit(&self, count: &str, unit: &str) -> bool {
         self.is_counter_quantity(count) && self.has_exact_counter(unit)
+    }
+
+    /// 곳 is both a place noun and a place-counting unit (KRDict 18661).
+    #[must_use]
+    pub fn has_counted_place_surface(&self, count: &str, text: &str) -> bool {
+        self.is_counter_quantity(count)
+            && text.strip_prefix("곳").is_some_and(|suffix| {
+                suffix.is_empty()
+                    || complete_nominal_particle_host(&self.resource, text)
+                        .is_some_and(|host| &text[host] == "곳")
+                    || verify_copula_surface_after_nominal('곳', suffix)
+            })
     }
 
     fn is_counter_quantity(&self, count: &str) -> bool {
@@ -2633,6 +2716,36 @@ impl ConstraintResolver {
         })
     }
 
+    /// Verifies the action stem in the volitional -ㅁ세/-음세 (KRDict 78483).
+    #[must_use]
+    pub fn has_volitional_verb_surface(&self, text: &str) -> bool {
+        use crate::hangul::{
+            JONG_MIEUM, JONG_NONE, JONG_RIEUL, JONG_RIEUL_MIEUM, decompose_syllable, replace_final,
+        };
+        let Some(host) = text.strip_suffix('세') else {
+            return false;
+        };
+        if let Some(stem) = host.strip_suffix('음')
+            && self.has_exact_action_predicate_surface(stem)
+        {
+            return true;
+        }
+        let Some((start, last)) = host.char_indices().next_back() else {
+            return false;
+        };
+        let Some(syllable) = decompose_syllable(last) else {
+            return false;
+        };
+        let final_sound = match syllable.jongseong {
+            JONG_MIEUM => JONG_NONE,
+            JONG_RIEUL_MIEUM => JONG_RIEUL,
+            _ => return false,
+        };
+        replace_final(last, final_sound).is_some_and(|last| {
+            self.has_exact_action_predicate_surface(&format!("{}{last}", &host[..start]))
+        })
+    }
+
     #[must_use]
     pub fn has_exact_adjective_surface(&self, text: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, text, |pos| pos == StructuralPos::VA)
@@ -2647,7 +2760,7 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_predicate(&self, text: &str) -> bool {
-        self.independent_final_predicate::<false>(text).0 != PredicatePosSet::EMPTY
+        self.independent_final_predicate::<false>(text, false).0 != PredicatePosSet::EMPTY
     }
 
     #[must_use]
@@ -2689,20 +2802,47 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_adjective(&self, text: &str) -> bool {
-        self.independent_final_predicate::<false>(text).0
+        self.independent_final_predicate::<false>(text, false).0
             == PredicatePosSet::one(PredicatePos::Adjective)
     }
 
     #[must_use]
     pub fn has_independent_final_predicate_without_object(&self, text: &str) -> bool {
-        let (positions, excludes_object) = self.independent_final_predicate::<true>(text);
+        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, false);
         positions == PredicatePosSet::one(PredicatePos::Adjective) || excludes_object
     }
 
     #[must_use]
     pub fn has_independent_final_verb_with_object(&self, text: &str) -> bool {
-        let (positions, excludes_object) = self.independent_final_predicate::<true>(text);
+        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, false);
         positions.contains(PredicatePos::Verb) && !excludes_object
+    }
+
+    /// Finds a final verb analysis when the caller has identified an object in the clause.
+    #[must_use]
+    pub fn has_final_verb_after_object(&self, text: &str) -> bool {
+        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, true);
+        positions.contains(PredicatePos::Verb) && !excludes_object
+    }
+
+    #[must_use]
+    pub fn has_propositive_do_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry =
+                    crate::PredicateEntry::new("하다", PredicatePos::Verb, LexicalAlternation::Ha);
+                crate::generate_predicate_branches(&entry).expect("valid action predicate")
+            });
+        FORMS.iter().any(|form| {
+            matches_predicate_branch_with_ending(text, form, |rule| {
+                rule.is_some_and(|ending| {
+                    matches!(
+                        ending.as_str(),
+                        "ending.propositive-ja" | "ending.propositive" | "ending.propositive-se"
+                    )
+                })
+            })
+        })
     }
 
     #[must_use]
@@ -2725,6 +2865,7 @@ impl ConstraintResolver {
     fn independent_final_predicate<const CHECK_OBJECT: bool>(
         &self,
         text: &str,
+        has_object_context: bool,
     ) -> (PredicatePosSet, bool) {
         let has_final_ending = |length: usize, endings: &[StructuralPos]| {
             complete_inflected_ending(&self.resource, endings, &text[length..], |pos| {
@@ -2779,8 +2920,8 @@ impl ConstraintResolver {
                 }
             });
         if positions_found == PredicatePosSet::EMPTY
-            || has_final_auxiliary
-            || self.has_exact_nominal_surface(text)
+            || (!has_object_context
+                && (has_final_auxiliary || self.has_exact_nominal_surface(text)))
         {
             return (PredicatePosSet::EMPTY, false);
         }

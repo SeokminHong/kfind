@@ -3,7 +3,8 @@ use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
-    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+    is_boundary_after, is_boundary_before, is_sentence_end_after, next_character_with_end,
+    previous_character, surrounding_token_span,
 };
 
 use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
@@ -249,6 +250,123 @@ pub(super) fn has_comparative_adverb_frame(
                 resolver.has_independent_final_verb_with_object(&next)
                     || resolver.has_accusative_verb_connective(&next)
             }))
+}
+
+pub(super) fn has_concessive_particle_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !(branch.consumption.composes_copula_host()
+        || matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: PredicatePos::Copula,
+                ..
+            } | CandidateConsumption::StructuralPredicateEnding {
+                pos: PredicatePos::Copula,
+                ..
+            }
+        ))
+    {
+        return false;
+    }
+    let span = surrounding_token_span(haystack, candidate.verified.core.clone());
+    if candidate.consumed.end != span.end {
+        return false;
+    }
+    let Some(token) = context::normalized_token(haystack, span.clone()) else {
+        return false;
+    };
+    let Some(host) = token
+        .strip_suffix("이라도")
+        .or_else(|| token.strip_suffix("라도"))
+    else {
+        return false;
+    };
+    if !resolver.has_complete_nominal_surface(host)
+        || context::has_preceding_subject_or_topic(haystack, span.start, resolver)
+    {
+        return false;
+    }
+    let Some((end, count)) = context::next_word_on_line(haystack, span.end) else {
+        return false;
+    };
+    if is_sentence_end_after(haystack, end)
+        && ConstraintResolver::has_propositive_do_inflection(&count)
+        && resolver.is_attested_do_object(host)
+    {
+        return true;
+    }
+    let Some((end, unit)) = context::next_word_on_line(haystack, end) else {
+        return false;
+    };
+    resolver.has_postnominal_object_count(&count, Some(&unit))
+        && context::next_word_on_line(haystack, end).is_some_and(|(end, verb)| {
+            is_sentence_end_after(haystack, end) && resolver.has_final_verb_after_object(&verb)
+        })
+}
+
+pub(super) fn has_quoted_name_instead_of_degree(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some(&(word, _)) = COMPARATIVE_ADVERBS.iter().find(|(nfc, nfd)| {
+        branch.anchor.as_ref() == nfc.as_bytes() || branch.anchor.as_ref() == nfd.as_bytes()
+    }) else {
+        return false;
+    };
+    let core = &candidate.verified.core;
+    if *core != candidate.consumed
+        || !is_boundary_before(haystack, core.start)
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)].coarse_pos == CoarsePos::Adverb
+        })
+    {
+        return false;
+    }
+    let Some((end, name)) = context::next_word_on_line(haystack, core.end) else {
+        return false;
+    };
+    if !resolver.has_exact_nominal_surface(word)
+        || !resolver.has_unambiguous_proper_name_surface(&name)
+    {
+        return false;
+    }
+    let Some((_, close)) = next_character_with_end(haystack, end) else {
+        return false;
+    };
+    let open = match close {
+        '>' => '<',
+        '〉' => '〈',
+        '》' => '《',
+        '’' => '‘',
+        '”' => '“',
+        '\'' | '"' => close,
+        _ => return false,
+    };
+    let limit = core
+        .start
+        .saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = core.start;
+    while before > limit {
+        let Some(character) = previous_character(haystack, before) else {
+            break;
+        };
+        if character == open {
+            return true;
+        }
+        if character == close || matches!(character, '\r' | '\n' | '.' | '!' | '?') {
+            break;
+        }
+        before -= character.len_utf8();
+    }
+    false
 }
 
 fn has_marked_comparison_participants(
