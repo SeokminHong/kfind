@@ -253,7 +253,13 @@ pub(in crate::structure) fn runtime_nominal_component_is_supported(
     graph_nominal_host: Option<&Range<usize>>,
 ) -> bool {
     let Some(host) = graph_nominal_host else {
-        return true;
+        return !(matches!(
+            pattern.fine_pos,
+            DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+        ) && spans.core == spans.consumed
+            && spans.core.start > spans.token.start
+            && !evidence.has_numeral_sequence
+            && evidence.has_whole(DataFinePos::Maj));
     };
     if !pattern.fine_pos.is_nominal()
         || spans.core == *host
