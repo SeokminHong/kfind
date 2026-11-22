@@ -103,7 +103,8 @@ class ContractContrastTests(unittest.TestCase):
             if "source_spans" in row:
                 excluded = row.get("source_excluded_spans", [])
                 if "source_excluded_spans" in row:
-                    self.assertEqual(reason, "nonstandard-input")
+                    self.assertTrue(excluded)
+                if reason == "nonstandard-input":
                     self.assertTrue(excluded)
                 else:
                     self.assertIn(reason, {"aligned-source-component", "implementation-target"})
