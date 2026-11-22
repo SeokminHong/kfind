@@ -2347,6 +2347,10 @@ regression.comparative.object-before-lower-degree-adverb	덜	adverb	smart-only-e
 regression.comparative.object-before-other-adverb	더	noun	no-match	14	17	물을 약간 더 마시자.
 regression.comparative.object-before-other-adverb-lower	덜	noun	no-match	14	17	물을 약간 덜 마시자.
 regression.comparative.marked-name-subject	더	noun	smart-only-exact	7	13	책을 더가 가져갔다.
+regression.comparative.name-and-degree	더	noun	smart-only-exact	0	6	더가 더 빠르다.
+regression.comparative.degree-after-name	더	adverb	smart-only-exact	7	10	더가 더 빠르다.
+regression.comparative.name-and-lower-degree	덜	noun	smart-only-exact	0	6	덜이 덜 느렸다.
+regression.comparative.lower-degree-after-name	덜	adverb	smart-only-exact	7	10	덜이 덜 느렸다.
 regression.comparative.omitted-object-may-be-name	더	noun	smart-only-exact	11	14	그는 좀 더 불러 달라고 말했다.
 regression.comparative.title-before-negative	더	noun	smart-only-exact	7	10	책 ‘더 이상’을 읽지 않았다.
 regression.comparative.bare-subject	더	noun	smart-only-exact	10	13	형보다 더 높다.

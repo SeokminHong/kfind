@@ -238,18 +238,21 @@ pub(super) fn has_comparative_adverb_frame(
     {
         return false;
     }
-    (has_marked_comparison_participants(haystack, core.start, resolver)
-        && context::next_word_on_line(haystack, core.end).is_some_and(|(_, next)| {
-            resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
-                || resolver.has_final_adjective_by_ending(&next)
-                || resolver.has_adjective_adnominal_surface(&next)
-        }))
-        || (context::previous_non_adverb_on_line(haystack, core.start, resolver)
-            .is_some_and(|word| resolver.has_object_marked_nominal(&word))
-            && context::next_word_on_line(haystack, core.end).is_some_and(|(_, next)| {
-                resolver.has_independent_final_verb_with_object(&next)
-                    || resolver.has_accusative_verb_connective(&next)
-            }))
+    let Some((_, next)) = context::next_word_on_line(haystack, core.end) else {
+        return false;
+    };
+    let previous = context::previous_non_adverb_on_line(haystack, core.start, resolver);
+    ((has_marked_comparison_participants(haystack, core.start, resolver)
+        || (previous
+            .as_ref()
+            .is_some_and(|word| resolver.has_subject_marked_nominal(word))
+            && !resolver.has_exact_nominal_surface(&next)))
+        && (resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
+            || resolver.has_final_adjective_by_ending(&next)
+            || resolver.has_adjective_adnominal_surface(&next)))
+        || (previous.is_some_and(|word| resolver.has_object_marked_nominal(&word))
+            && (resolver.has_independent_final_verb_with_object(&next)
+                || resolver.has_accusative_verb_connective(&next)))
 }
 
 pub(super) fn has_concessive_particle_frame(
