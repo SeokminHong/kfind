@@ -2197,6 +2197,10 @@ regression.whole-noun.valid-contracted-passive	지다	verb	smart-only-exact	23	2
 regression.nominal-path.proper-name-adjective	길다	adjective	no-match	7	13	한국 기네스 기록을 세웠다.
 regression.nominal-path.proper-name-topic	말다	verb	no-match	6	12	미시마는 소설을 썼다.
 regression.nominal-path.plural-topic	듣다	verb	no-match	6	12	사람들은 반대 의사를 밝혔다.
+regression.nominal-path.plural-compound-topic	듣다	verb	no-match	9	15	건물주들은 모래주머니 등으로 차단벽을 세우고 있다.
+regression.nominal-path.plural-compound-match	건물주	noun	smart-only-exact	0	15	건물주들은 모래주머니 등으로 차단벽을 세우고 있다.
+regression.nominal-path.plural-compound-and-predicate	듣다	verb	smart-only-exact	26	32	상점주들은 안내를 들은 뒤 나갔다.
+regression.nominal-path.hearing-compound	알아듣다	verb	smart-only-exact	27	39	나는 마지막 문장을 알아들은 뒤 설명을 들었다.
 regression.nominal-path.negative-copula	들다	verb	no-match	22	25	예술적이든 아니든 불편함을 줄일 수 있다.
 regression.nominal-path.common-noun-topic	감다	verb	no-match	6	12	기대감은 시장에 영향을 주었다.
 regression.nominal-path.compound-color	검다	adjective	no-match	0	6	검은색 양복을 샀다.
