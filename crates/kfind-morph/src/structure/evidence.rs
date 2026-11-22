@@ -186,7 +186,13 @@ impl TokenEvidence {
             Box::default()
         };
         let nominal_copula_hosts = if include_nominal_copula {
-            nominal_copula_hosts(text, &graph, &path_facts, &nominal_paths.particle_hosts)
+            nominal_copula_hosts(
+                text,
+                &graph,
+                &path_facts,
+                &nominal_paths.particle_hosts,
+                leading_predicate_spans.last(),
+            )
         } else {
             Box::default()
         };
