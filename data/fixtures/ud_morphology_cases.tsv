@@ -2925,6 +2925,11 @@ regression.bound-prefix.distinct-prefix-mi	미	noun	no-match	14	29	이 소설은
 regression.bound-prefix.real-noun-sin	신	noun	smart-only-exact	0	6	신을 믿는 사람이 많다.
 regression.bound-prefix.full-root	대부분	noun	smart-only-exact	0	12	대부분의 학생이 참석했다.
 regression.bound-prefix.partial-particle	대	noun	no-match	0	12	대도시를 방문했다.
+regression.nominal-prefix.proper-before-compound-head	전남	noun	smart-only-exact	0	6	전남도지사 후보를 만났다.
+regression.nominal-prefix.proper-before-library-head	충남	noun	smart-only-exact	0	6	충남도서관이 문을 열었다.
+regression.nominal-prefix.proper-before-product-head	윤조	noun	smart-only-exact	0	6	윤조에센스를 써 봤다.
+regression.nominal-prefix.proper-before-spaced-head	경남	noun	smart-only-exact	0	6	경남 도지사 후보를 만났다.
+regression.nominal-prefix.proper-with-additive-particle	경남	noun	smart-only-exact	23	32	전남이 지원했고 경남도 지원했다.
 regression.bound-prefix.jeong-square-prefix	정	noun	no-match	4	19	큰 정사각형의 석조가 놓여 있었다.
 regression.bound-prefix.jeong-square-whole	정사각형	noun	smart-only-exact	4	19	큰 정사각형의 석조가 놓여 있었다.
 regression.bound-prefix.jeong-triangle-prefix	정	noun	no-match	16	28	모눈종이에 정삼각형 하나를 그렸다.
