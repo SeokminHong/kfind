@@ -71,6 +71,8 @@ class UDAuditScoringTests(unittest.TestCase):
         case_id = "gsd:test-s1:1"
         case = {
             "id": case_id,
+            "query": "현대증권",
+            "pos": "noun",
             "text": "현대증권 배성영 수석연구원은 말했다.",
             "expected": True,
             "gold_byte_start": 0,
@@ -106,6 +108,8 @@ class UDAuditScoringTests(unittest.TestCase):
         review = self.reviews[case_id]
         case = {
             "id": case_id,
+            "query": "거",
+            "pos": "noun",
             "text": review["source_text"],
             "expected": True,
             "gold_byte_start": 131,
@@ -138,6 +142,45 @@ class UDAuditScoringTests(unittest.TestCase):
                 validate({**result, "fixture_sha256": changed_checksum}, checksum, [case])
         with self.assertRaisesRegex(ValueError, "명시 품사"):
             validate({**result, "query_mode": "untagged"}, checksum, [case])
+
+    def test_repeated_raw_positives_reuse_only_compatible_annotated_ranges(self) -> None:
+        first = {
+            "id": "first",
+            "query": "길",
+            "pos": "noun",
+            "text": "그 길 저 길",
+            "expected": True,
+            "gold_byte_start": 4,
+            "gold_byte_end": 7,
+        }
+        second = {**first, "id": "second", "gold_byte_start": 12, "gold_byte_end": 15}
+        matches = [{"byte_start": 4, "byte_end": 7}, {"byte_start": 12, "byte_end": 15}]
+        for peer, reusable in (
+            (second, True),
+            ({**second, "text": "그 길 이 길"}, False),
+            ({**second, "query": "다른 질의"}, False),
+            ({**second, "pos": "verb"}, False),
+            ({
+                **second,
+                "contract_expected": False,
+                "contract_reason": "gold-alignment-error",
+            }, False),
+        ):
+            with self.subTest(peer=peer):
+                result = SCORE_CONTRACT(
+                    [first, peer], {"first": True, "second": True},
+                    {"first": matches, "second": matches[1:]},
+                    REGISTRY, include_residual=True,
+                )
+                self.assertEqual(result["reviewed_ranges"]["reused_raw_positive_spans"], int(reusable))
+                self.assertEqual(
+                    result["reviewed_ranges"]["unverified_raw_positive_rows"], int(not reusable)
+                )
+                if not reusable:
+                    unresolved = next(row for row in result["residual"] if row["id"] == "first")
+                    self.assertEqual(unresolved["unverified"], [(12, 15)])
+                else:
+                    self.assertEqual(result["residual"], [])
 
     @staticmethod
     def positive_case(case_id: str, text: str) -> dict:
