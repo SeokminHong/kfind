@@ -991,6 +991,21 @@ impl ConstraintResolver {
         matches_predicate_inflection(text, &FORMS)
     }
 
+    /// Verifies the independent possession predicate 가지다 (KRDict 65234).
+    #[must_use]
+    pub fn has_possession_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "가지다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid possession predicate")
+            });
+        matches_predicate_inflection(text, &FORMS)
+    }
+
     #[must_use]
     pub fn has_negative_connective_host(&self, text: &str) -> bool {
         let Some(stem) = text.strip_suffix('지') else {

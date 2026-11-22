@@ -61,6 +61,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             "emptyable" => NominalRole::Emptyable,
             "content-unit" => NominalRole::ContentUnit,
             "audible-phenomenon" => NominalRole::AudiblePhenomenon,
+            "ownership-asset" => NominalRole::OwnershipAsset,
+            "animal" => NominalRole::Animal,
             _ => return Err("unknown frame noun role".into()),
         };
         roles.push((noun, role));

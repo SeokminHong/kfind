@@ -34,6 +34,8 @@ FOOD_CATEGORIES = {"과일", "곡류", "채소", "음식", "음료", "식재료"
 def frame_nominal_roles(entry):
     category = direct_feat(entry, "semanticCategory") or ""
     definitions = [direct_feat(sense, "definition") or "" for sense in entry.findall("./Sense")]
+    if category == "동식물 > 동물류":
+        yield "animal"
     if any(re.search(r"영상이 나타나는 면\.$|(?:컴퓨터|텔레비전|카메라).*화면\.$|영화.*비추.*막\.$", text) for text in definitions):
         yield "display-surface"
     if category == "주생활 > 생활 용품":
@@ -66,6 +68,14 @@ def frame_nominal_roles(entry):
         for text in definitions
     ):
         yield "audible-phenomenon"
+    if (category == FINANCIAL_CATEGORY and any(
+        re.search(r"(?:돈|자금|증권|화폐|재산|금액|권리|돈으로 바꿀 수 있는 것)\.$", text)
+        for text in definitions
+    )) or any(
+        re.search(r"(?:자기의 것으로.*사용하는 권리|옮길 수 없는 재산|금융 기관에 돈을 맡김.*그 돈)\.$", text)
+        for text in definitions
+    ):
+        yield "ownership-asset"
 
 
 def has_nominal_role(entry, lemma, role):

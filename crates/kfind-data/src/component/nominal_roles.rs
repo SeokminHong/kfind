@@ -21,6 +21,8 @@ pub enum NominalRole {
     Emptyable = 1024,
     ContentUnit = 2048,
     AudiblePhenomenon = 4096,
+    OwnershipAsset = 8192,
+    Animal = 16384,
 }
 
 const KNOWN_ROLES: u16 = (NominalRole::Spatial as u16)
@@ -35,7 +37,9 @@ const KNOWN_ROLES: u16 = (NominalRole::Spatial as u16)
     | (NominalRole::OrthographicUnit as u16)
     | (NominalRole::Emptyable as u16)
     | (NominalRole::ContentUnit as u16)
-    | (NominalRole::AudiblePhenomenon as u16);
+    | (NominalRole::AudiblePhenomenon as u16)
+    | (NominalRole::OwnershipAsset as u16)
+    | (NominalRole::Animal as u16);
 const MASK_OFFSET: u32 = b'A' as u32;
 
 pub(super) fn encode(roles: &[(&str, NominalRole)]) -> Result<Vec<u8>, DataError> {

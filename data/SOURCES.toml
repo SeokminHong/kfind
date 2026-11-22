@@ -103,7 +103,7 @@ generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict>
 
 [[artifact]]
 path = "rules/krdict-frame-nouns.tsv"
-artifact_sha256 = "fad748ad9eaa74fa38330f087e6026682bf5e0046f35cc6629dbe3f9ae13b7c9"
+artifact_sha256 = "fdb7667666cc9e2e3aeb2599c34815821ec5abe9bab5c148a6b47f43cd619807"
 sources = ["krdict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --frame-nouns"

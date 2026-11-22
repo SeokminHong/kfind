@@ -24,7 +24,7 @@ pub(super) fn has_incompatible_argument(
     };
     if !matches!(
         lemma,
-        "살다" | "나서다" | "있다" | "밝다" | "늦다" | "크다" | "가다" | "빌다" | "날다"
+        "살다" | "나서다" | "있다" | "밝다" | "늦다" | "크다" | "가다" | "빌다" | "날다" | "되다"
     ) || !analyses.all(|analysis| analysis == (lemma, CoarsePos::Verb))
     {
         return false;
@@ -174,6 +174,20 @@ pub(super) fn has_incompatible_argument(
             }
             false
         }
+        // 가다 licenses an accusative path, duration or purpose (27500).
+        // A financial asset instead supports the lexical possession verb.
+        "가다" if word.starts_with("가지") => {
+            branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .chain(&candidate.suffix_rules)
+                    .any(|rule| rule.as_str() == "ending.auxiliary-jida")
+            }) && previous.strip_suffix(['을', '를']).is_some_and(|noun| {
+                resolver.has_nominal_role(noun, NominalRole::OwnershipAsset)
+                    && resolver.has_object_marked_nominal(&previous)
+            }) && ConstraintResolver::has_possession_inflection(&word)
+        }
         // A subject that denotes an orthographic unit can be identified
         // by a syllable followed by reduced 이다. Motion requires separate
         // evidence when the subject names a character rather than an agent.
@@ -183,8 +197,66 @@ pub(super) fn has_incompatible_argument(
             }) && marked_subject(&previous, NominalRole::OrthographicUnit)
                 && !has_direction_before_subject(haystack, start, resolver)
         }
+        "되다" => {
+            branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .chain(&candidate.suffix_rules)
+                    .any(|rule| rule.as_str() == "ending.auxiliary-jida")
+            }) && has_parallel_animal_labels(haystack, whole.end, &word, &previous, resolver)
+        }
         _ => false,
     }
+}
+
+fn has_parallel_animal_labels(
+    haystack: &[u8],
+    end: usize,
+    word: &str,
+    previous: &str,
+    resolver: &ConstraintResolver,
+) -> bool {
+    // NIKL 327663: a vowel-final nominal can omit 이- before -고.
+    // Parallel deictic topics and two animal labels anchor that reading.
+    let is_deictic_topic = |word: &str| {
+        word.strip_suffix(['은', '는']).is_some_and(|host| {
+            context::is_locative_pronoun(host)
+                || host
+                    .strip_suffix('쪽')
+                    .is_some_and(|stem| matches!(stem, "이" | "그" | "저"))
+        }) && resolver.has_topic_marked_nominal(word)
+    };
+    if !is_deictic_topic(previous)
+        || haystack.get(end) != Some(&b',')
+        || !["고요", "고"].into_iter().any(|ending| {
+            word.strip_suffix(ending).is_some_and(|host| {
+                resolver.has_nominal_role(host, NominalRole::Animal)
+                    && resolver.has_exact_nominal_surface(host)
+                    && host
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| !kfind_morph::hangul::has_final(last))
+            })
+        })
+    {
+        return false;
+    }
+    context::next_word_on_line(haystack, end + 1).is_some_and(|(topic_end, topic)| {
+        topic != previous
+            && is_deictic_topic(&topic)
+            && context::next_word_on_line(haystack, topic_end).is_some_and(|(end, predicate)| {
+                is_sentence_end_after(haystack, end)
+                    && predicate.char_indices().skip(1).any(|(split, _)| {
+                        let (label, copula) = predicate.split_at(split);
+                        resolver.has_nominal_role(label, NominalRole::Animal)
+                            && matches!(copula, "예요" | "이에요" | "입니다" | "이다")
+                            && label.chars().next_back().is_some_and(|last| {
+                                verify_copula_surface_after_nominal(last, copula)
+                            })
+                    })
+            })
+    })
 }
 
 fn has_direction_before_subject(
