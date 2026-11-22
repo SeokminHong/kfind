@@ -68,3 +68,4 @@ oryeotda-letter-copula	이다	adjective	smart-exact	31	40	도장의 첫 글자�
 orthographic-label	가다	verb	no-match	21	30	두 번째 문자가 가렷다.
 orthographic-label-positive	이다	adjective	smart-only-exact	21	30	두 번째 문자가 가렷다.
 orthographic-motion	가다	verb	smart-only-exact	24	30	첫 글자가 옆으로 가랴?
+orthographic-motion-fronted-direction	가다	verb	smart-only-exact	31	37	다음 칸으로 첫 글자가 가랴?

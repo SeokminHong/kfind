@@ -136,3 +136,4 @@ empty-container	빌다	verb	no-match	34	49	물이 빠지니 항아리가 텅 비
 empty-container-positive	비다	verb	smart-only-exact	34	49	물이 빠지니 항아리가 텅 비옵나이다.
 empty-quarters	빌다	verb	no-match	57	69	손님이 떠날 때마다 숙소가 하루가 다르게 비나이다.
 empty-quarters-positive	비다	verb	smart-only-exact	57	69	손님이 떠날 때마다 숙소가 하루가 다르게 비나이다.
+quarters-as-praying-group	빌다	verb	smart-only-exact	34	49	온 병영이 장군의 무사를 비옵나이다.

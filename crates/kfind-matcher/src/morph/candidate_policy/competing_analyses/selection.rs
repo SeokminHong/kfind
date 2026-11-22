@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use kfind_data::NominalRole;
 use kfind_morph::{CoarsePos, ConstraintResolver, verify_copula_surface_after_nominal};
 use kfind_query::{AtomPlan, CandidateProgram};
@@ -40,13 +42,7 @@ pub(super) fn has_incompatible_argument(
     else {
         return false;
     };
-    let prior = |at| {
-        context::previous_word_with_start(haystack, at).filter(|(start, _)| {
-            !haystack[*start..at]
-                .iter()
-                .any(|byte| matches!(byte, b'\n' | b'\r'))
-        })
-    };
+    let prior = |at| preceding_words(haystack, at).next();
     let marked_subject = |text: &str, role| {
         text.strip_suffix(['이', '가'])
             .or_else(|| text.strip_suffix(['은', '는']))
@@ -69,16 +65,21 @@ pub(super) fn has_incompatible_argument(
         // 살다 licenses an accusative for the life, term or capacity lived
         // (KRDict 69579). A concrete food object in a purchase frame selects
         // 사다 (49419). Keep clauses without an overt object ambiguous.
-        "살다" if word.starts_with("산다") && previous.ends_with("에서") => {
-            resolver.has_nominal_oblique(&previous)
-                && context::previous_non_adverb_on_line(haystack, start, resolver).is_some_and(
-                    |object| {
-                        object.strip_suffix(['을', '를']).is_some_and(|noun| {
-                            resolver.has_nominal_role(noun, NominalRole::Food)
-                                && resolver.has_object_marked_nominal(&object)
-                        })
-                    },
-                )
+        "살다" => {
+            for (_, argument) in preceding_words(haystack, whole.start) {
+                if argument.strip_suffix(['을', '를']).is_some_and(|noun| {
+                    resolver.has_nominal_role(noun, NominalRole::Food)
+                        && resolver.has_object_marked_nominal(&argument)
+                }) {
+                    return ConstraintResolver::has_purchase_inflection(&word);
+                }
+                if !resolver.has_nominal_oblique(&argument)
+                    && !resolver.has_exact_adverb_surface(&argument)
+                {
+                    break;
+                }
+            }
+            false
         }
         // The secretion subject belongs to the emission frame of 나다
         // (62210), not the active or sought-entity frames of 나서다 (61183).
@@ -91,9 +92,7 @@ pub(super) fn has_incompatible_argument(
         // motion with an overt path or goal in the predicate phrase.
         "날다" if word.starts_with("난다") => {
             marked_subject(&previous, NominalRole::AudiblePhenomenon)
-                && !prior(start).is_some_and(|(_, word)| {
-                    word.ends_with('로') && resolver.has_nominal_oblique(&word)
-                })
+                && !has_direction_before_subject(haystack, start, resolver)
         }
         // The container or occupancy subject takes 비다 (KRDict 15680).
         // A preceding temporal measure clause can modify its rate of change.
@@ -103,17 +102,13 @@ pub(super) fn has_incompatible_argument(
                 "비나이다" | "비옵나이다" | "비나이까" | "비옵나이까"
             ) =>
         {
-            let limit = whole
-                .start
-                .saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
-            let mut before = whole.start;
             let mut has_measure_predicate = false;
-            while let Some((start, word)) = prior(before) {
-                if start < limit {
-                    break;
-                }
+            for (start, word) in preceding_words(haystack, whole.start) {
                 if marked_subject(&word, NominalRole::Emptyable) {
-                    return true;
+                    return !prior(start).is_some_and(|(_, leading)| {
+                        resolver.has_subject_marked_nominal(&leading)
+                            || resolver.has_topic_marked_nominal(&leading)
+                    });
                 }
                 if resolver.has_exact_adverb_surface(&word) {
                     has_measure_predicate |= word
@@ -126,7 +121,6 @@ pub(super) fn has_incompatible_argument(
                 {
                     break;
                 }
-                before = start;
             }
             false
         }
@@ -138,7 +132,7 @@ pub(super) fn has_incompatible_argument(
                 resolver.has_standalone_counted_unit(&count, &previous)
                     && prior(start).is_some_and(|(start, subject)| {
                         resolver.has_subject_marked_nominal(&subject)
-                            && locative_before_subject(start, prior, resolver)
+                            && locative_before_subject(haystack, start, resolver)
                     })
             }),
         // A degree reading on a display surface describes emitted light
@@ -160,15 +154,11 @@ pub(super) fn has_incompatible_argument(
             (time == Some("시간") || time.is_some_and(|noun| resolver.is_temporal_nominal(noun)))
                 && (resolver.has_subject_marked_nominal(&previous)
                     || resolver.has_topic_marked_nominal(&previous))
-                && prior(start).is_some_and(|(_, standard)| standard_nominal_clause(&standard))
+                && context::previous_non_adverb_on_line(haystack, start, resolver)
+                    .is_some_and(|standard| standard_nominal_clause(&standard))
         }
         "크다" if shares_stative_ending("크") && standard_nominal_clause(&previous) => {
-            let limit = start.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
-            let mut before = start;
-            while let Some((start, word)) = prior(before) {
-                if start < limit {
-                    break;
-                }
+            for (_, word) in preceding_words(haystack, start) {
                 if marked_subject(&word, NominalRole::HouseholdArticle) {
                     return true;
                 }
@@ -181,7 +171,6 @@ pub(super) fn has_incompatible_argument(
                 {
                     break;
                 }
-                before = start;
             }
             false
         }
@@ -192,22 +181,38 @@ pub(super) fn has_incompatible_argument(
             word.strip_prefix('가').is_some_and(|ending| {
                 matches!(ending, "랴" | "렷다") && verify_copula_surface_after_nominal('가', ending)
             }) && marked_subject(&previous, NominalRole::OrthographicUnit)
+                && !has_direction_before_subject(haystack, start, resolver)
         }
         _ => false,
     }
 }
 
-fn locative_before_subject<'a>(
+fn has_direction_before_subject(
+    haystack: &[u8],
     start: usize,
-    prior: impl Fn(usize) -> Option<(usize, std::borrow::Cow<'a, str>)>,
     resolver: &ConstraintResolver,
 ) -> bool {
-    let limit = start.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
-    let mut before = start;
-    while let Some((start, word)) = prior(before) {
-        if start < limit {
+    for (_, word) in preceding_words(haystack, start) {
+        if (word.ends_with('로') || word.ends_with("까지"))
+            && (resolver.has_nominal_oblique(&word)
+                || resolver.has_nominal_with_optional_particles(&word))
+        {
+            return true;
+        }
+        if !resolver.has_whole_determiner(&word)
+            && !resolver.has_nominal_genitive_surface(&word)
+            && !resolver.has_pronominal_genitive_surface(&word)
+            && !resolver.has_predicate_adnominal_surface(&word)
+            && !resolver.has_exact_adverb_surface(&word)
+        {
             break;
         }
+    }
+    false
+}
+
+fn locative_before_subject(haystack: &[u8], start: usize, resolver: &ConstraintResolver) -> bool {
+    for (_, word) in preceding_words(haystack, start) {
         let locative = word.strip_suffix('는').unwrap_or(&word);
         if locative.ends_with('에') && resolver.has_nominal_oblique(locative) {
             return true;
@@ -217,7 +222,6 @@ fn locative_before_subject<'a>(
         {
             break;
         }
-        before = start;
     }
     false
 }
@@ -232,23 +236,13 @@ pub(super) fn has_content_topic(
     if !is_sentence_end_after(haystack, predicate.end) {
         return false;
     }
-    let limit = predicate
-        .start
-        .saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
-    let mut before = predicate.start;
-    while let Some((start, word)) = context::previous_word_with_start(haystack, before) {
-        if start < limit
-            || haystack[start..before]
-                .iter()
-                .any(|byte| matches!(byte, b'\n' | b'\r'))
-        {
-            break;
-        }
+    let mut words = preceding_words(haystack, predicate.start);
+    while let Some((_, word)) = words.next() {
         if word.strip_suffix(['은', '는']).is_some_and(|host| {
             resolver.has_nominal_role(host, NominalRole::ContentUnit)
                 && resolver.has_topic_marked_nominal(&word)
         }) {
-            return context::previous_word(haystack, start).is_some_and(|modifier| {
+            return words.next().is_some_and(|(_, modifier)| {
                 resolver.has_predicate_adnominal_surface(&modifier)
                     || resolver.has_derived_predicate_adnominal_surface(&modifier)
             });
@@ -258,7 +252,23 @@ pub(super) fn has_content_topic(
         {
             break;
         }
-        before = start;
     }
     false
+}
+
+fn preceding_words(haystack: &[u8], at: usize) -> impl Iterator<Item = (usize, Cow<'_, str>)> {
+    let limit = at.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = at;
+    std::iter::from_fn(move || {
+        let (start, word) = context::previous_word_with_start(haystack, before)?;
+        if start < limit
+            || haystack[start..before]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+        {
+            return None;
+        }
+        before = start;
+        Some((start, word))
+    })
 }

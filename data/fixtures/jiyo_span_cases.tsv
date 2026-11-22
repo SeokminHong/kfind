@@ -129,5 +129,6 @@ physical-fit	크다	verb	no-match	48	57	그 프린터는 좁은 칸에 넣기엔
 physical-fit-positive	크다	adjective	smart-only-exact	48	57	그 프린터는 좁은 칸에 넣기엔 아주 크지요.
 suitability-time	늦다	verb	no-match	33	39	전화하기엔 시각이 너무 늦죠.
 suitability-time-positive	늦다	adjective	smart-only-exact	33	39	전화하기엔 시각이 너무 늦죠.
+suitability-time-with-adverb	늦다	verb	no-match	40	46	전화하기엔 지금 시각이 너무 늦죠.
 botanical-count	있다	verb	no-match	44	53	뜰에는 작은 매화나무가 두 그루 있지요.
 botanical-count-positive	있다	adjective	smart-only-exact	44	53	뜰에는 작은 매화나무가 두 그루 있지요.

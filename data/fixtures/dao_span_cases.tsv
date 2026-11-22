@@ -57,3 +57,8 @@ purchase-food-positive	사다	verb	smart-only-exact	37	46	상인이 쌀을 장�
 live-time-object	살다	verb	smart-only-exact	55	64	고향을 떠난 그는 긴 세월을 이 도시에서 산다오.
 audible-phenomenon	날다	verb	no-match	40	49	빈 복도에서 갑자기 발소리가 난다오.
 audible-phenomenon-positive	나다	verb	smart-only-exact	40	49	빈 복도에서 갑자기 발소리가 난다오.
+purchase-after-location	살다	verb	no-match	30	39	가족이 장터에서 쌀을 산다오.
+purchase-formal	살다	verb	no-match	27	36	그는 쌀을 장터에서 삽니다.
+purchase-formal-positive	사다	verb	smart-only-exact	27	36	그는 쌀을 장터에서 삽니다.
+purchase-directive	살다	verb	no-match	20	29	시장에서 쌀을 사세요.
+purchase-directive-positive	사다	verb	smart-only-exact	20	29	시장에서 쌀을 사세요.
