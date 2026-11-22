@@ -1,5 +1,8 @@
 use crate::predicate::ha_aspirates_after;
 use crate::structure::graph::EdgeGraph;
+use crate::structure::lexical::has_grammatical_particle_chain;
+use crate::structure::paths::CommonPathFacts;
+use crate::verify_copula_surface_after_nominal;
 use kfind_data::ComponentPos as StructuralPos;
 use std::ops::Range;
 
@@ -252,7 +255,8 @@ const COPULA_SUFFIX_STATE_COUNT: usize = 4;
 pub(in crate::structure) fn nominal_copula_hosts(
     text: &str,
     graph: &EdgeGraph<'_>,
-    common_nominal_prefix: &[[bool; 2]],
+    paths: &CommonPathFacts,
+    particle_hosts: &[Range<usize>],
 ) -> Box<[Range<usize>]> {
     if !text
         .char_indices()
@@ -284,18 +288,47 @@ pub(in crate::structure) fn nominal_copula_hosts(
         }
     }
 
-    common_nominal_prefix
+    let mut longer_particle_host = None;
+    paths
+        .nominal_prefix
         .iter()
         .enumerate()
         .skip(1)
         .take(text_len.saturating_sub(1))
         .filter_map(|(end, states)| {
-            (states.iter().any(|&reachable| reachable)
-                && copula_surface_begins_at(text, end)
-                && suffix[end][CopulaSuffixState::Start as usize])
+            if !states.iter().any(|&reachable| reachable)
+                || !copula_surface_begins_at(text, end)
+                || !suffix[end][CopulaSuffixState::Start as usize]
+            {
+                return None;
+            }
+            let longer_particle_end = *longer_particle_host.get_or_insert_with(|| {
+                particle_hosts
+                    .iter()
+                    .rev()
+                    .take_while(|host| host.end > end)
+                    .find(|host| {
+                        has_grammatical_particle_chain(&text[..host.end], &text[host.end..])
+                    })
+                    .map_or(0, |host| host.end)
+            });
+            (longer_particle_end <= end || copula_surface_is_complete(text, end, paths))
                 .then_some(0..end)
         })
         .collect()
+}
+
+fn copula_surface_is_complete(text: &str, start: usize, paths: &CommonPathFacts) -> bool {
+    let Some(last) = text[..start].chars().next_back() else {
+        return false;
+    };
+    let verifies = |end| verify_copula_surface_after_nominal(last, &text[start..end]);
+    verifies(text.len())
+        || text[start..]
+            .char_indices()
+            .skip(1)
+            .map(|(offset, _)| start + offset)
+            .any(|end| paths.particle_suffix[end] && verifies(end))
 }
 
 pub(in crate::structure) fn copula_surface_begins_at(text: &str, start: usize) -> bool {
