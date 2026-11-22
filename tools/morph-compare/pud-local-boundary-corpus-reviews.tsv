@@ -1,4 +1,7 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01064113:noun:나	나	noun	false	ffcbd4c08f284f9f54b48b9f641ce437b236710dbaac21aef22f594ee628e681	excluded	nonstandard-input	2017년 외래어 표기법 개정 안내에 따라 나일 강을 나일강으로 교정한다. 원문의 지명 56..66에서만 제외하고, 교정 지명 내부에서 나를 반환하지 않는다.
+explicit-pos	corpus-negatives	pud:n01064113:pronoun:나	나	pronoun	false	ffcbd4c08f284f9f54b48b9f641ce437b236710dbaac21aef22f594ee628e681	excluded	nonstandard-input	2017년 외래어 표기법 개정 안내에 따라 나일 강을 나일강으로 교정한다. 원문의 지명 56..66에서만 제외하고, 교정 지명 내부에서 나를 반환하지 않는다.
+explicit-pos	corpus-negatives	pud:w01028004:noun:것	것	noun	false	75e130e4e1c8baffc163962b70037e11d85875d809da0315c8491ba660ad6b78	excluded	nonstandard-input	관형형 중요한 뒤 의존 명사 것은을 띄어 쓴다. 원문의 7..22를 교정 범위로 기록한다. 교정문의 것은 범위는 17..23이다.
 explicit-pos	corpus-negatives	pud:w01010048:noun:왕	왕	noun	false	1265e64bb2d2ff1a9bedc4fd7a41bbaf45cf7e1468387d69c0de9e9c4f2d4758	excluded	nonstandard-input	원문의 독일왕이 16..28에서 국명과 직함 사이를 띄운다. 교정문의 독일 왕이에서 왕이의 범위는 23..29다.
 explicit-pos	corpus-negatives	pud:n01017008:verb:하다	하다	verb	false	b4ce9b394650ff1e720ef20ac4e9195ef81b71fcc218dc502539e02d76b10d85	excluded	nonstandard-input	PUD 원문 79의 타개하고·뭔(16·17번) 경계에 ToDoOrigText의 단어 사이 공백을 복원했다.
 explicit-pos	corpus-negatives	pud:n01029006:noun:시	시	noun	false	f74fc9e991df9eb1467f42f3325920d1d49b0209cd19853d51ed0777fdd1c181	excluded	nonstandard-input	PUD 원문 114의 표현한·시갈의(16·17번) 경계에 ToDoOrigText의 단어 사이 공백을 복원했다.
