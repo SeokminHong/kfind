@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import defaultdict
 from pathlib import Path
 
 from python.quality import (
@@ -37,7 +38,13 @@ def compare_reviewed_ranges(
             raise ValueError(f"duplicate source ranges: {review['id']}")
         source_reviews[review["id"]] = review
 
-    verified_rows = unverified_positive_rows = missing_count = extra_count = 0
+    annotated = defaultdict(set)
+    for case in cases:
+        if case["expected"] and contract_expected(case) is True:
+            key = (case["text"], case["query"], case["pos"])
+            annotated[key].add((case["gold_byte_start"], case["gold_byte_end"]))
+
+    verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
     differences = []
     unverified_ranges = {}
     for case in cases:
@@ -47,12 +54,14 @@ def compare_reviewed_ranges(
             if contract_expected(case) is True:
                 if case["expected"]:
                     gold = (case["gold_byte_start"], case["gold_byte_end"])
-                    other = sorted({
+                    other = {
                         (part["byte_start"], part["byte_end"])
                         for part in spans[case_id]
-                    } - {gold})
-                    if other:
-                        unverified_ranges[case_id] = other
+                    } - {gold}
+                    pending = other - annotated[case["text"], case["query"], case["pos"]]
+                    reused_ranges += len(other) - len(pending)
+                    if pending:
+                        unverified_ranges[case_id] = sorted(pending)
                 else:
                     unverified_positive_rows += 1
             continue
@@ -73,6 +82,7 @@ def compare_reviewed_ranges(
         "unverified_positive_rows": unverified_positive_rows,
         "unverified_raw_positive_rows": len(unverified_ranges),
         "unverified_raw_positive_spans": sum(map(len, unverified_ranges.values())),
+        "reused_raw_positive_spans": reused_ranges,
         "missing": missing_count,
         "extra": extra_count,
         "differences": differences,
