@@ -358,6 +358,11 @@ kfind와 외부 제품의 모든 품질 표·차트는 raw와 contract-adjusted�
 합치거나 raw 오류를 숨기지 않는다. Contract review가 없는 fixture는 raw confusion matrix를
 contract-adjusted 값으로 복사하고 `reviewed_cases=0`을 기록한다. 성능 지표에는 정답 계약을
 적용하지 않으며 initialization, 처리량, 지연 시간과 RSS를 workload별 단위로 기록한다.
+
+Smart 형태 판정의 [측정 조건과 회귀 정책](../../specs/verification.md#204-회귀-정책)은
+교정 GSD의 표적 회수와 고정 음성의 경쟁 후보 판정처럼 비용이 다른 입력에 각각 적용한다.
+질의별 p95는 실행마다 최근접 순위로 계산한다. macOS 네이티브 runner는 RSS를
+`/usr/bin/time -l`로 수집하며, Linux runner의 `VmHWM`과 수집 범위를 구분해 기록한다.
 Site의 Canonical, query matrix와 Robust explicit-POS 절은 각각 kfind
 `embedded/full-POS × any/smart` 4개 profile과 외부 분석기 고정 설정을 같은 순서로 표시한다.
 각 절은 F1 chart, raw·contract-adjusted confusion matrix와 같은 fixture의 성능 표를 함께
