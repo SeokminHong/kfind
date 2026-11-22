@@ -3181,6 +3181,37 @@ fn nominal_particle_canonical_candidates_keep_the_whole_syllable() {
 }
 
 #[test]
+fn predicate_canonical_candidates_keep_the_whole_syllable() {
+    let matcher = compile_with_full_pos(
+        "오다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            normalization: NormalizationMode::Canonical,
+            ..Default::default()
+        },
+    );
+    for (surface, expected) in [
+        ("왔는가", true),
+        ("왔는가를", true),
+        ("와서", true),
+        ("왓슨", false),
+    ] {
+        let decomposed: String = surface.nfd().collect();
+        let diagnostics = kfind_matcher::SearchDiagnostics::default();
+        let matched = matcher.find_span_at_with_diagnostics(decomposed.as_bytes(), 0, &diagnostics);
+        assert_eq!(
+            matched,
+            expected.then_some(0..decomposed.len()),
+            "{surface}"
+        );
+        assert!(
+            !diagnostics.structural_verification_incomplete(),
+            "{surface}"
+        );
+    }
+}
+
+#[test]
 fn numeric_distributive_accepts_a_decomposed_unit_and_suffix() {
     let matcher = compile_embedded_with_resource(
         "n:개",

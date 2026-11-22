@@ -89,6 +89,9 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
+                if ends_inside_normalized_syllable(&consumption_anchor, &consumption_following) {
+                    return None;
+                }
                 let matched = verify_predicate_continuation_with_prefinal_context(
                     *continuation,
                     *pos,
@@ -300,7 +303,7 @@ impl MorphMatcher {
                     .nfc()
                     .collect::<String>()
                     .len();
-                let suffix = normalized_token.get(normalized_anchor.len()..)?;
+                let suffix = normalized_token.strip_prefix(&normalized_anchor)?;
                 // This fallback starts at the token boundary. A causal copula needs a host.
                 if *pos == kfind_morph::PredicatePos::Copula && suffix.ends_with("므로") {
                     return None;
@@ -363,16 +366,7 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                // A trailing jamo can belong to the last syllable of the host.
-                if matches!(&consumption_anchor, Cow::Owned(_))
-                    && consumption_anchor
-                        .chars()
-                        .next_back()
-                        .zip(consumption_following.chars().next())
-                        .is_some_and(|(last, next)| {
-                            unicode_normalization::char::compose(last, next).is_some()
-                        })
-                {
+                if ends_inside_normalized_syllable(&consumption_anchor, &consumption_following) {
                     return None;
                 }
                 let adverb_host = *allowed_rule_ids == self.plan.auxiliary_particle_rules;
@@ -744,6 +738,16 @@ fn normalized_consumption_text<'a>(
         Cow::Owned(anchor.nfc().collect()),
         Cow::Owned(following.nfc().collect()),
     )
+}
+
+fn ends_inside_normalized_syllable(anchor: &Cow<'_, str>, following: &str) -> bool {
+    // A trailing jamo can still belong to the last syllable of the anchor.
+    matches!(anchor, Cow::Owned(_))
+        && anchor
+            .chars()
+            .next_back()
+            .zip(following.chars().next())
+            .is_some_and(|(last, next)| unicode_normalization::char::compose(last, next).is_some())
 }
 
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
