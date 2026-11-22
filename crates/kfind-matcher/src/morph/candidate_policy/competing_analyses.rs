@@ -1034,8 +1034,7 @@ fn has_adverb_instead_of_hao_final_u(
             && resolver.has_final_copula_after_nominal(&next))
             || resolver.has_independent_final_predicate(&next)
             || (resolver.has_adjective_adnominal_surface(&next)
-                && context::next_word_on_line(haystack, end)
-                    .is_some_and(|(_, noun)| resolver.has_subject_marked_nominal(&noun)))
+                && has_adnominal_argument_on_line(haystack, end, resolver))
             || (previous.as_deref().is_some_and(|word| {
                 context::next_word_on_line(haystack, end).is_some_and(|(_, noun)| {
                     resolver.has_copular_adnominal_frame(word, &next, &noun)
@@ -1048,6 +1047,29 @@ fn has_adverb_instead_of_hao_final_u(
             || (has_direct_quote_with_irago(haystack, span.start, end)
                 && resolver.has_jeok_nominal_derivation(&next))
     })
+}
+
+fn has_adnominal_argument_on_line(
+    haystack: &[u8],
+    end: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some((end, nominal)) = context::next_word_on_line(haystack, end) else {
+        return false;
+    };
+    let is_argument = |end, head: &str| {
+        resolver.has_subject_marked_nominal(head)
+            || (resolver.has_object_marked_nominal(head)
+                && context::next_word_on_line(haystack, end).is_some_and(|(_, predicate)| {
+                    resolver.has_independent_final_predicate(&predicate)
+                        || resolver.has_complete_connective_path(&predicate)
+                }))
+    };
+    is_argument(end, &nominal)
+        || ((resolver.has_whole_determiner(&nominal)
+            || resolver.has_exact_nominal_surface(&nominal))
+            && context::next_word_on_line(haystack, end)
+                .is_some_and(|(end, head)| is_argument(end, &head)))
 }
 
 fn has_direct_quote_with_irago(haystack: &[u8], start: usize, end: usize) -> bool {
