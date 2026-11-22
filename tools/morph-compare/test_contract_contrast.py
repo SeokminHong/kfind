@@ -107,7 +107,12 @@ class ContractContrastTests(unittest.TestCase):
                 if reason == "nonstandard-input":
                     self.assertTrue(excluded)
                 else:
-                    self.assertIn(reason, {"aligned-source-component", "implementation-target"})
+                    self.assertIn(reason, {
+                        "aligned-source-component",
+                        "implementation-target",
+                        "same-pos-homograph",
+                        "structurally-indistinguishable-homograph",
+                    })
                     self.assertTrue(row["source_spans"])
                 text = row["source_text"].encode()
                 for ranges in (row["source_spans"], excluded):
