@@ -2201,6 +2201,11 @@ regression.nominal-path.plural-compound-topic	듣다	verb	no-match	9	15	건물�
 regression.nominal-path.plural-compound-match	건물주	noun	smart-only-exact	0	15	건물주들은 모래주머니 등으로 차단벽을 세우고 있다.
 regression.nominal-path.plural-compound-and-predicate	듣다	verb	smart-only-exact	26	32	상점주들은 안내를 들은 뒤 나갔다.
 regression.nominal-path.hearing-compound	알아듣다	verb	smart-only-exact	27	39	나는 마지막 문장을 알아들은 뒤 설명을 들었다.
+regression.nominal-path.compound-particle-and-verb	하다	verb	smart-only-exact	138	147	3월 12일 미야기현에서 지진해일로 떠내려간 81명이 탄 선박을 자위대 소속 헬기가 발견하여 구조하기도 하였다.
+regression.nominal-path.subject-compound-and-verb	하다	verb	smart-only-exact	46	55	지진해일이 밀려와서 구조 작업을 하였다.
+regression.nominal-path.compound-particle-noun	해일	noun	smart-only-exact	6	15	지진해일이 밀려와서 구조 작업을 하였다.
+regression.nominal-path.separated-technical-term	하다	verb	no-match	7	10	지진 해일로 구조 작업이 지연됐다.
+regression.nominal-path.compound-and-auxiliary	하다	verb	smart-only-exact	39	42	폭풍해일을 막으려고 수리를 해 봤다.
 regression.nominal-path.negative-copula	들다	verb	no-match	22	25	예술적이든 아니든 불편함을 줄일 수 있다.
 regression.nominal-path.common-noun-topic	감다	verb	no-match	6	12	기대감은 시장에 영향을 주었다.
 regression.nominal-path.compound-color	검다	adjective	no-match	0	6	검은색 양복을 샀다.

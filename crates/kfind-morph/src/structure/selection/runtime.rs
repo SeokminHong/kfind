@@ -284,16 +284,20 @@ pub(in crate::structure) fn attached_auxiliary_is_supported(
         })
 }
 
-fn whole_predicate_continuation(
+pub(super) fn whole_predicate_continuation(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
     evidence: &TokenEvidence,
 ) -> bool {
-    evidence.units.all().iter().any(|unit| {
-        unit.span == (spans.core.start..spans.token.end)
-            && unit.pos == pattern.fine_pos
-            && unit.pos.is_predicate()
-    })
+    evidence
+        .units
+        .starting_at(spans.core.start)
+        .iter()
+        .any(|unit| {
+            unit.span.end == spans.token.end
+                && unit.pos == pattern.fine_pos
+                && unit.pos.is_predicate()
+        })
 }
 
 fn copula_has_complete_nominal_host(

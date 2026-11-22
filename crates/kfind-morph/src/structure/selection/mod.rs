@@ -19,7 +19,7 @@ use crate::structure::selection::components::{
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
     nominal_derivation_before_predicate, nominalization_conflicts_with_nominal_host,
-    query_nominal_particle_path, runtime_position_is_supported,
+    query_nominal_particle_path, runtime_position_is_supported, whole_predicate_continuation,
 };
 use crate::structure::{BoundedTokenContext, ConstraintSupport, StructuralEvidence};
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
@@ -242,6 +242,42 @@ impl StructureSelection {
             } if *selected == spans.token => Some(selected),
             _ => None,
         };
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && matches!(
+                pattern.continuation,
+                MorphContinuation::Predicate {
+                    state: crate::ContinuationState::AOrEo,
+                    ..
+                }
+            )
+            && spans.core == spans.anchor
+            && spans.core.start > spans.token.start
+            && !(compound_predicate && text[..spans.core.start].ends_with(['아', '어', '여']))
+            && !evidence
+                .leading_predicate_spans
+                .iter()
+                .any(|stem| stem.end >= spans.core.end)
+            && let Some(host) = evidence.complete_nominal_particle_host.as_ref()
+            && !whole_predicate_continuation(pattern, spans, evidence)
+            && evidence
+                .units
+                .starting_at(spans.core.start)
+                .iter()
+                .any(|unit| {
+                    matches!(unit.pos, DataFinePos::Nng | DataFinePos::Nnp)
+                        && unit.aligned_pos
+                        && spans.core.end < unit.span.end
+                        && unit.span.end <= host.end
+                        && evidence
+                            .units
+                            .contains_on_preferred_path(&unit.span, host, |part| {
+                                matches!(part.pos, DataFinePos::Nng | DataFinePos::Nnp)
+                            })
+                })
+            && !evidence.has_whole_predicate()
+        {
+            return false;
+        }
         if support.evidence == StructuralEvidence::RuntimeComponent
             && matches!(
                 pattern.fine_pos,
