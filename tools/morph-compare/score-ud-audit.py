@@ -137,6 +137,19 @@ def score_contract(
     return report
 
 
+def validate_runner_output(
+    result: dict[str, object], checksum: str, cases: list[dict[str, object]]
+) -> None:
+    if result.get("fixture_sha256") != checksum:
+        raise ValueError("runner가 읽은 입력의 SHA-256이 등록된 fixture와 다릅니다.")
+    if (result["profile"], result["boundary"], result.get("query_mode")) != (
+        "full-pos", "smart", "explicit-pos"
+    ):
+        raise ValueError("boundary full-pos smart 명시 품사 runner 출력이 필요합니다.")
+    if [row["id"] for row in result["results"]] != [case["id"] for case in cases]:
+        raise ValueError("runner 출력의 행 수 또는 질의 순서가 입력과 다릅니다.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="공개 UD 고정 감사 입력의 Smart 결과를 채점합니다."
@@ -153,10 +166,10 @@ def main() -> int:
         parser.error(f"등록된 UD 입력의 SHA-256과 일치하지 않습니다: {checksum}")
     cases = load_cases(args.fixture)
     result = json.loads(args.runner_output.read_text(encoding="utf-8"))
-    if (result["profile"], result["boundary"]) != ("full-pos", "smart"):
-        parser.error("boundary full-pos smart runner 출력이 필요합니다.")
-    if [row["id"] for row in result["results"]] != [case["id"] for case in cases]:
-        parser.error("runner 출력의 행 수 또는 질의 순서가 입력과 다릅니다.")
+    try:
+        validate_runner_output(result, checksum, cases)
+    except ValueError as error:
+        parser.error(str(error))
 
     review_dir = Path(__file__).resolve().parent
     reviews = [

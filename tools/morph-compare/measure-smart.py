@@ -82,10 +82,11 @@ def main() -> int:
             payload = json.loads(result.read_text(encoding="utf-8"))
             if (
                 (payload["profile"], payload["boundary"]) != ("full-pos", "smart")
+                or payload.get("fixture_sha256", source_sha256) != source_sha256
                 or any(payload[key] != expected for key, expected in artifacts.items())
                 or [case["id"] for case in payload["results"]] != case_ids
             ):
-                raise ValueError(f"{result}: 실행 모드, 리소스 또는 질의 순서 불일치")
+                raise ValueError(f"{result}: 입력, 실행 모드, 리소스 또는 질의 순서 불일치")
             spans = [case["spans"] for case in payload["results"]]
             span_sha256 = hashlib.sha256(json.dumps(spans, sort_keys=True).encode()).hexdigest()
             if span_hashes.setdefault(arm, span_sha256) != span_sha256:

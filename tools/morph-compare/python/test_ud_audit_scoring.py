@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import runpy
 import unittest
 from pathlib import Path
@@ -9,7 +11,8 @@ from python.validation import load_cases
 
 BENCHMARK = Path(__file__).resolve().parents[1]
 REGISTRY = BENCHMARK / "contract-contrast-evidence.jsonl"
-SCORE_CONTRACT = runpy.run_path(str(BENCHMARK / "score-ud-audit.py"))["score_contract"]
+AUDIT = runpy.run_path(str(BENCHMARK / "score-ud-audit.py"))
+SCORE_CONTRACT = AUDIT["score_contract"]
 
 
 class UDAuditScoringTests(unittest.TestCase):
@@ -116,6 +119,25 @@ class UDAuditScoringTests(unittest.TestCase):
         self.assertEqual(result["reviewed_ranges"]["unverified_raw_positive_rows"], 0)
         self.assertTrue(result["contract_errors"]["zero_target_verified"])
         self.assertEqual(result["residual"], [])
+
+    def test_runner_output_is_bound_to_the_input_bytes_and_query_mode(self) -> None:
+        case = {"id": "same", "query": "회사", "text": "회사가 있다"}
+        checksum = hashlib.sha256(json.dumps(case).encode()).hexdigest()
+        result = {
+            "fixture_sha256": checksum,
+            "profile": "full-pos",
+            "boundary": "smart",
+            "query_mode": "explicit-pos",
+            "results": [{"id": "same"}],
+        }
+        validate = AUDIT["validate_runner_output"]
+        validate(result, checksum, [case])
+        for changed in ({**case, "query": "직원"}, {**case, "text": "직원이 있다"}):
+            changed_checksum = hashlib.sha256(json.dumps(changed).encode()).hexdigest()
+            with self.assertRaisesRegex(ValueError, "SHA-256"):
+                validate({**result, "fixture_sha256": changed_checksum}, checksum, [case])
+        with self.assertRaisesRegex(ValueError, "명시 품사"):
+            validate({**result, "query_mode": "untagged"}, checksum, [case])
 
     @staticmethod
     def positive_case(case_id: str, text: str) -> dict:

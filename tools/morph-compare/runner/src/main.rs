@@ -58,6 +58,7 @@ struct Summary {
     version: String,
     profile: Option<String>,
     boundary: Option<String>,
+    query_mode: &'static str,
     lexicon_artifact_sha256: Option<String>,
     enriched_artifact_sha256: Option<String>,
     morphology_artifact_sha256: Option<String>,
@@ -66,6 +67,13 @@ struct Summary {
     evaluation_seconds: f64,
     peak_rss_kib: Option<u64>,
     results: Vec<Value>,
+}
+
+#[derive(Debug, Serialize)]
+struct FixtureRun<T> {
+    fixture_sha256: String,
+    #[serde(flatten)]
+    summary: T,
 }
 
 #[derive(Debug, Serialize)]
@@ -237,7 +245,7 @@ fn main() -> Result<()> {
         if arguments.len() != 3 {
             bail!("usage: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json");
         }
-        let cases = load_cases(Path::new(&arguments[1]))?;
+        let (cases, fixture_sha256) = load_cases(Path::new(&arguments[1]))?;
         let lexicons = Lexicons::embedded()?;
         let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
         let morphology_path = std::env::var_os(MORPHOLOGY_RESOURCE_ENV)
@@ -258,7 +266,13 @@ fn main() -> Result<()> {
         )?;
         let summary =
             diagnose_agent_shadow(&cases, &analyzer, &morphology, morphology_artifact_sha256)?;
-        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
+        serde_json::to_writer_pretty(
+            BufWriter::new(File::create(&arguments[2])?),
+            &FixtureRun {
+                fixture_sha256,
+                summary,
+            },
+        )?;
         return Ok(());
     }
     if arguments
@@ -270,7 +284,7 @@ fn main() -> Result<()> {
                 "usage: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
             );
         }
-        let cases = load_cases(Path::new(&arguments[3]))?;
+        let (cases, fixture_sha256) = load_cases(Path::new(&arguments[3]))?;
         let summary = run_kfind(
             &cases,
             KfindProfile::parse(&arguments[1])?,
@@ -282,7 +296,13 @@ fn main() -> Result<()> {
                 KfindQueryMode::ExplicitPos
             },
         )?;
-        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[4])?), &summary)?;
+        serde_json::to_writer_pretty(
+            BufWriter::new(File::create(&arguments[4])?),
+            &FixtureRun {
+                fixture_sha256,
+                summary,
+            },
+        )?;
         return Ok(());
     }
     if arguments.len() != 3 {
@@ -298,7 +318,7 @@ fn main() -> Result<()> {
         serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
         return Ok(());
     }
-    let cases = load_cases(Path::new(&arguments[1]))?;
+    let (cases, fixture_sha256) = load_cases(Path::new(&arguments[1]))?;
     let summary = match arguments[0].as_str() {
         "kfind" | "kfind-embedded" => run_kfind(
             &cases,
@@ -316,7 +336,13 @@ fn main() -> Result<()> {
         )?,
         backend => bail!("unknown backend {backend:?}"),
     };
-    serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
+    serde_json::to_writer_pretty(
+        BufWriter::new(File::create(&arguments[2])?),
+        &FixtureRun {
+            fixture_sha256,
+            summary,
+        },
+    )?;
     Ok(())
 }
 
@@ -365,20 +391,23 @@ fn run_kfind_startup(profile: StartupProfile) -> Result<StartupSummary> {
     })
 }
 
-fn load_cases(path: &Path) -> Result<Vec<Case>> {
-    BufReader::new(File::open(path).with_context(|| format!("failed to open {}", path.display()))?)
-        .lines()
-        .enumerate()
-        .map(|(index, line)| {
-            serde_json::from_str(&line?).with_context(|| {
-                format!(
-                    "invalid case at {}:{}",
-                    path.display(),
-                    index.saturating_add(1)
-                )
-            })
-        })
-        .collect()
+fn load_cases(path: &Path) -> Result<(Vec<Case>, String)> {
+    let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
+    read_cases(path, BufReader::new(file))
+}
+
+fn read_cases(path: &Path, mut reader: impl BufRead) -> Result<(Vec<Case>, String)> {
+    let mut cases = Vec::new();
+    let mut digest = Sha256::new();
+    let mut line = Vec::new();
+    while reader.read_until(b'\n', &mut line)? != 0 {
+        digest.update(&line);
+        let case = serde_json::from_slice(&line)
+            .with_context(|| format!("invalid case at {}:{}", path.display(), cases.len() + 1))?;
+        cases.push(case);
+        line.clear();
+    }
+    Ok((cases, format!("{:x}", digest.finalize())))
 }
 
 fn run_kfind(
@@ -471,6 +500,10 @@ fn run_kfind(
         version: env!("CARGO_PKG_VERSION").to_owned(),
         profile: Some(profile.name().to_owned()),
         boundary: Some(boundary.name().to_owned()),
+        query_mode: match query_mode {
+            KfindQueryMode::ExplicitPos => "explicit-pos",
+            KfindQueryMode::Untagged => "untagged",
+        },
         lexicon_artifact_sha256,
         enriched_artifact_sha256,
         morphology_artifact_sha256,
@@ -815,6 +848,25 @@ mod tests {
             expected: true,
             gold_byte_start: Some(0),
             gold_byte_end: Some(text.len()),
+        }
+    }
+
+    #[test]
+    fn input_digest_includes_source_and_query_with_the_same_case_id() {
+        let path = Path::new("cases.jsonl");
+        let original = concat!(
+            r#"{"id":"same","query":"회사","pos":"noun","text":"회사가 있다","expected":true}"#,
+            "\r\n"
+        );
+        let (cases, digest) = read_cases(path, Cursor::new(original)).unwrap();
+        assert_eq!(digest, format!("{:x}", Sha256::digest(original.as_bytes())));
+        for changed in [
+            original.replace("회사가 있다", "직원이 있다"),
+            original.replace(r#""query":"회사""#, r#""query":"직원""#),
+        ] {
+            let (changed_cases, changed_digest) = read_cases(path, Cursor::new(changed)).unwrap();
+            assert_eq!(cases[0].id, changed_cases[0].id);
+            assert_ne!(digest, changed_digest);
         }
     }
 
