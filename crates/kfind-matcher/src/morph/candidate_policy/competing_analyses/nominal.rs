@@ -62,6 +62,23 @@ pub(super) fn has_nominal_interrogative_frame(
     branch: &CandidateProgram,
     resolver: &ConstraintResolver,
 ) -> bool {
+    let span = &candidate.consumed;
+    if let [.., ending, object] = candidate.suffix_rules.as_slice()
+        && ending.as_str() == "ending.interrogative-nga"
+        && object.as_str() == "particle.object"
+        && matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            }
+        )
+        && is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+    {
+        return context::normalized_token(haystack, span.clone())
+            .is_some_and(|word| resolver.has_object_marked_nominal(&word));
+    }
     let rule = candidate.suffix_rules.last().or_else(|| {
         let (first, rest) = branch.origins.split_first()?;
         let rule = first.rule_path.last()?;
@@ -72,7 +89,6 @@ pub(super) fn has_nominal_interrogative_frame(
     let Some(rule) = rule.map(RuleId::as_str) else {
         return false;
     };
-    let span = &candidate.consumed;
     let end = if rule == "ending.interrogative-nga" {
         span.end
     } else if ADNOMINAL_RULE_IDS.contains(&rule) {

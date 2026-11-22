@@ -1838,6 +1838,7 @@ fn reference_simple_continuation(
         ($prefix:literal $(, $prior:literal)*) => {
             &[
                 reference_suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
+                reference_suffix(concat!($prefix, "가를"), &[$($prior,)* "ending.interrogative-nga", "particle.object"]),
                 reference_suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
                 reference_suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
                 reference_suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.interrogative-nji", "particle.topic"]),
