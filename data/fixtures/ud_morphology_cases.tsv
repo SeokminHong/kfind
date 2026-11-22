@@ -41,13 +41,13 @@ regression.inferred-adnominal-alias.real-adnominal	날다	verb	only-exact	0	6	�
 regression.selected-nominal-particle-tail.proper-noun	가	noun	no-match	9	12	타이가가 숲에 걸쳐 있다.
 regression.selected-nominal-particle-tail.pronoun	가	noun	no-match	6	9	그녀가 책을 읽었다.
 regression.selected-nominal-particle-tail.topic	은	noun	no-match	6	9	기업은 새 제품을 출시했다.
-regression.selected-nominal-particle-tail.aligned-common-noun	자	noun	smart-only-exact	6	12	이민자가 도착했다.
+regression.selected-nominal-particle-tail.aligned-common-noun	물	noun	smart-only-exact	3	9	국물이 식었다.
 regression.selected-nominal-particle-tail.numeral-led-component	월	noun	smart-only-exact	3	9	칠월에 출발한다.
 regression.transliterated-place-boundaries.state	도	noun	no-match	9	12	콜로라도는 미국의 주다.
 regression.transliterated-place-boundaries.state-before-unit	도	noun	no-match	9	12	콜로라도주 덴버를 방문했다.
 regression.transliterated-place-boundaries.real-unit	주	noun	smart-only-exact	12	15	콜로라도주 덴버를 방문했다.
 regression.transliterated-place-boundaries.city	시	noun	no-match	6	9	아카시에는 성이 있다.
-regression.transliterated-place-boundaries.aligned-common-noun	자	noun	smart-only-exact	6	12	이민자를 받아들였다.
+regression.transliterated-place-boundaries.aligned-common-noun	물	noun	smart-only-exact	3	9	국물을 데웠다.
 regression.compound-nominal-head.price	값	noun	smart-only-exact	16	22	정부는 연료값을 인상했다.
 regression.compound-nominal-head.nominalization	값	noun	smart-only-exact	6	12	기름값이 계속 오른다.
 regression.compound-nominal-head.sai-siot	값	noun	smart-only-exact	16	22	정부는 연룟값을 인상했다.
@@ -1687,22 +1687,22 @@ regression.final-nominal-component.editorial-33	회	noun	smart-exact	22	28	학�
 corpus.ud-pud.w01019014.climate-conditions	조	noun	no-match	17	20	사헬의 기후 조건은 북쪽에 있는 사하라 사막의 기후와 상당히 비슷하지만 그 정도로 극단적이지는 않다.
 regression.final-nominal-component.climate-conditions-joined	조	noun	no-match	19	22	원문에 ‘기후조건은’이라고 붙여 적혀 있다.
 regression.final-nominal-component.migratory-bird	조	noun	smart-exact	17	23	그 책은 기후조도 소개한다.
-corpus.final-nominal-component.gsd.test-s29	자	noun	smart-exact	54	63	정교회는 급여를 지불할 수 없게 된 교직자들을 해고했다.
-corpus.final-nominal-component.gsd.test-s57	자	noun	smart-exact	10	16	IBM 관계자는 참여를 원하는 도시가 지원 자원을 활용할 수 있다고 말했다.
+corpus.final-nominal-component.gsd.test-s29	자	noun	no-match	54	63	정교회는 급여를 지불할 수 없게 된 교직자들을 해고했다.
+corpus.final-nominal-component.gsd.test-s57	자	noun	no-match	10	16	IBM 관계자는 참여를 원하는 도시가 지원 자원을 활용할 수 있다고 말했다.
 corpus.final-nominal-component.gsd.test-s191	문	noun	smart-exact	62	71	김 시장은 문화체육관광부 장관에게 보낸 건의문에서 축제 취소를 설명했다.
 corpus.final-nominal-component.gsd.test-s925	산	noun	smart-exact	3	9	뒷산에 인후공원이 있어서 운동이나 산책에 좋다.
 corpus.final-nominal-component.pud.n01016019	가	noun	smart-exact	13	22	몇몇 분석가들은 삼성의 사업 실패로 화웨이가 이득을 봤다고 주장했다.
 corpus.final-nominal-component.pud.n01107005	수	noun	smart-exact	37	43	폭스바겐이 몇 년 동안 속임수를 썼다는 뉴스가 보도됐다.
-corpus.final-nominal-component.pud.n01141020	자	noun	smart-exact	16	22	회사는 사용자가 자사 제품을 생산성 도구 이상으로 생각하기를 바랐다.
-corpus.final-nominal-component.pud.n01145028	자	noun	smart-exact	33	39	그는 퍼레이드 자원 봉사자만 해도 12,000명이라고 말했다.
+corpus.final-nominal-component.pud.n01141020	자	noun	no-match	16	22	회사는 사용자가 자사 제품을 생산성 도구 이상으로 생각하기를 바랐다.
+corpus.final-nominal-component.pud.n01145028	자	noun	no-match	33	39	그는 퍼레이드 자원 봉사자만 해도 12,000명이라고 말했다.
 corpus.final-nominal-component.pud.w01020019	지	noun	smart-exact	60	66	두 국가는 지중해 해안선 지역을 폭넓게 식민지로 만들었다.
 corpus.final-nominal-component.pud.w01029015	색	noun	smart-exact	19	28	이파리는 노란색에서 파란색까지 다양한 색을 띠었다.
-corpus.final-nominal-component.pud.w01047071	자	noun	smart-exact	50	62	그녀는 기밀 정보를 제공한 정부 과학자들과의 개인적인 친분을 이용했다.
+corpus.final-nominal-component.pud.w01047071	자	noun	no-match	50	62	그녀는 기밀 정보를 제공한 정부 과학자들과의 개인적인 친분을 이용했다.
 corpus.final-nominal-component.pud.w01065018	형	noun	smart-exact	29	35	유적지에는 큰 정사각형의 석조가 놓여 있었다.
-corpus.final-nominal-component.pud.w01085006	자	noun	smart-exact	51	57	플로리다에서 벌어진 전쟁은 자원봉사자와 민병대에 의존했다.
+corpus.final-nominal-component.pud.w01085006	자	noun	no-match	51	57	플로리다에서 벌어진 전쟁은 자원봉사자와 민병대에 의존했다.
 corpus.final-nominal-component.pud.w01096074	전	noun	smart-exact	6	12	지상전은 제1차 세계 대전 당시보다 기동성이 높은 방식으로 바뀌었다.
 corpus.final-nominal-component.pud.w01135036	해	noun	smart-exact	3	9	그해에 그녀는 디즈니의 영화에 잠깐 출연했다.
-corpus.final-nominal-component.pud.n03006016	자	noun	smart-exact	6	15	근로자들이 자신의 책상에 종교 관련 물품을 놓을 수 있는가?
+corpus.final-nominal-component.pud.n03006016	자	noun	no-match	6	15	근로자들이 자신의 책상에 종교 관련 물품을 놓을 수 있는가?
 corpus.final-nominal-component.pud.w02008010	지	noun	smart-exact	27	33	그 시대는 많은 유적지의 설립 시기로 알려져 있다.
 corpus.final-nominal-component.pud.w05010026	원	noun	smart-exact	13	28	그는 원로원으로부터 집정관과의 대결을 금지한다는 답을 받았다.
 regression.attested-nominal-suffix.stdict-1	명	noun	smart-exact	26	32	도판 아래에는 작품명도 적혀 있었다.
@@ -1733,9 +1733,19 @@ regression.attested-nominal-suffix.stdict-25	남	noun	smart-exact	36	42	저녁 �
 regression.attested-nominal-suffix.contrast-1	명	noun	no-match	17	20	화가는 작품 명도를 조금 높였다.
 regression.attested-nominal-suffix.contrast-2	부	noun	no-match	6	9	오늘부로 계약이 끝난다.
 regression.attested-nominal-suffix.contrast-3	왕	noun	no-match	13	16	공부에는 왕도가 없다.
-regression.nominal-tail-copula.manager-adnominal	자	noun	smart-exact	27	30	그는 이 사업의 책임자인 김 과장을 만났다.
-regression.nominal-tail-copula.manager-past	자	noun	smart-exact	20	23	그는 현장 책임자였다.
-regression.nominal-tail-copula.manager-coordination	자	noun	smart-exact	36	39	사무실에 남은 사람은 책임자이고 나는 동료다.
+regression.nominal-tail-copula.manager-adnominal	자	noun	no-match	27	30	그는 이 사업의 책임자인 김 과장을 만났다.
+regression.nominal-tail-copula.manager-past	자	noun	no-match	20	23	그는 현장 책임자였다.
+regression.nominal-tail-copula.manager-coordination	자	noun	no-match	36	39	사무실에 남은 사람은 책임자이고 나는 동료다.
+regression.nominal-tail-copula.aligned-noun-adnominal	물	noun	smart-only-exact	17	20	냄비에 든 국물인 줄 알았다.
+regression.nominal-tail-copula.aligned-noun-past	물	noun	smart-only-exact	13	16	그것은 국물이었다.
+regression.nominal-tail-copula.aligned-noun-coordination	물	noun	smart-only-exact	13	16	이것은 국물이고 저것은 건더기다.
+regression.nominal-suffix.person-full-adnominal	책임자	noun	smart-only-exact	21	30	그는 이 사업의 책임자인 김 과장을 만났다.
+regression.nominal-suffix.person-full-particle	이민자	noun	smart-only-exact	0	12	이민자가 도착했다.
+regression.nominal-suffix.person-full-plural	근로자	noun	smart-only-exact	0	15	근로자들이 먼저 도착했다.
+regression.nominal-suffix.person-component-particle	자	noun	no-match	6	9	이민자가 도착했다.
+regression.nominal-suffix.dependent-copula	자	noun	smart-only-exact	27	30	사고에 책임이 있는 자인지는 조사가 끝나야 알 수 있다.
+regression.nominal-suffix.subsidiary	자	noun	smart-only-exact	0	3	자회사들이 경쟁한다.
+regression.nominal-suffix.ruler	자	noun	smart-only-exact	14	20	길이를 잴 자를 가져왔다.
 regression.nominal-tail-copula.song-copula	곡	noun	smart-exact	17	20	이 곡은 합창곡이다.
 regression.nominal-tail-copula.fishing-copula	터	noun	smart-exact	16	19	이곳은 낚시터였다.
 regression.nominal-tail-copula.title-copula	명	noun	smart-exact	33	36	안내판에 적힌 것은 작품명이다.
@@ -1745,8 +1755,8 @@ regression.nominal-tail-copula.mountain-path	길	noun	no-match	34	37	그가 매�
 regression.nominal-tail-copula.extension	실	noun	no-match	19	22	발표자는 기획실장이다.
 regression.nominal-tail-copula.gsd.test-s120.residence	지	noun	smart-exact	90	93	쉐자 구는 평포족 시라야족 소롱사의 지사인 학갑사(學甲社)의 거주지였다.
 regression.nominal-tail-copula.gsd.test-s853.soup	국	noun	smart-exact	53	56	설렁탕을 정말 먹고 싶었는데 국물도 진국이고 아이들이 정말 좋아하는 것 같아요.
-regression.nominal-tail-copula.pud.n01091017.manager	자	noun	smart-exact	20	23	자연 정책 책임자인 제프 노트는 어떤 법이 도입되든 놀랍다고 말했다.
-regression.nominal-tail-copula.pud.n01107008.manager	자	noun	smart-exact	72	75	그 조사는 6월에 시작됐고, 자동차 회사의 브랜드 책임자인 헤르베리트 디스와 빈터코른에 집중됐다.
+regression.nominal-tail-copula.pud.n01091017.manager	자	noun	no-match	20	23	자연 정책 책임자인 제프 노트는 어떤 법이 도입되든 놀랍다고 말했다.
+regression.nominal-tail-copula.pud.n01107008.manager	자	noun	no-match	72	75	그 조사는 6월에 시작됐고, 자동차 회사의 브랜드 책임자인 헤르베리트 디스와 빈터코른에 집중됐다.
 regression.nominal-tail-copula.gsd.test-s179.count	수	noun	smart-exact	92	95	몽정을 할 경우 심리적인 죄책감이나 부끄러움을 느끼는 사람이 상당수이며 이것은 올바른 성 의식이 확립되지 않았기 때문이라 할 수 있다.
 regression.nominal-tail-copula.literal-soup	국	noun	smart-exact	13	16	국물은 진국이고 건더기도 넉넉했다.
 regression.nominal-tail-copula.figurative-person	국	noun	smart-exact	17	20	그 친구는 진국이고 어려울 때마다 먼저 나서서 도와줬다.
