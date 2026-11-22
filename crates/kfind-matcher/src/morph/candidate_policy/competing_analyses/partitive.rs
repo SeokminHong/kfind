@@ -1,4 +1,4 @@
-use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos, PredicatePosSet};
+use kfind_morph::{CoarsePos, ConstraintResolver};
 use kfind_query::{AtomPlan, CandidateProgram};
 
 use crate::boundary::{is_boundary_after, is_boundary_before};
@@ -34,42 +34,11 @@ pub(super) fn rejects_han(
     let Some((next_end, next)) = context::next_word_on_line(haystack, span.end) else {
         return false;
     };
-    let previous = context::previous_word_with_start(haystack, span.start);
-    if analysis == (CoarsePos::Verb, "하다")
-        && let Some((comparison_end, comparison)) = context::next_word_on_line(haystack, next_end)
-        && comparison == "더"
-        && previous.as_ref().is_none_or(|(_, word)| {
-            resolver.has_exact_nominal_surface(word)
-                || !(resolver.has_subject_marked_nominal(word)
-                    || resolver.has_object_marked_nominal(word)
-                    || resolver.has_nominal_oblique(word)
-                    || resolver.has_predicate_adnominal_surface(word)
-                    || resolver.has_exact_adverb_surface(word))
-        })
-    {
-        // '한층 더'의 첫말처럼 합쳐 쓴 전체가 부사인 경우만 판정한다.
-        // https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=89052
-        let joined = ["한", next.as_ref()].concat();
-        if resolver.has_exact_adverb_surface(&joined)
-            && !resolver.has_exact_nominal_surface(&joined)
-            && has_degree_predicate(haystack, comparison_end, resolver)
-        {
-            return true;
-        }
-    }
-    let Some((previous_start, previous)) = previous else {
+    let Some((previous_start, previous)) = context::previous_word_with_start(haystack, span.start)
+    else {
         return false;
     };
     match analysis {
-        (CoarsePos::Verb, "하다") if previous == "가능한" => {
-            // 국립국어원 '{가능한 한/가능한} 빨리'의 조건 명사 한(限).
-            // https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=9116
-            resolver.has_adnominal_dependent_noun(&previous, "한")
-                && !resolver.has_exact_nominal_surface(&next)
-                && (resolver.has_exact_adverb_surface(&next)
-                    || resolver.has_adjective_adnominal_surface(&next)
-                    || resolver.has_complete_connective_path(&next))
-        }
         (CoarsePos::Verb, "하다") if matches!(previous.as_ref(), "단" | "오직") => {
             // 한정 표현 뒤의 수 관형사와 단위 명사가 뒤 체언의 수량을 지정한다.
             // https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=29733
@@ -96,6 +65,26 @@ pub(super) fn rejects_han(
                 || (resolver.is_spatial_nominal(group)
                     && resolver.has_counted_place_surface("한", &next)))
         }
+        (CoarsePos::Verb, "하다") => {
+            if haystack[previous_start..span.start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                || !(previous.ends_with('는')
+                    || resolver.has_adjective_adnominal_surface(&previous))
+                || !resolver.has_adnominal_dependent_noun(&previous, "한")
+            {
+                return false;
+            }
+            if resolver.has_exact_nominal_surface(&next) {
+                return resolver.has_exact_adverb_surface(&next)
+                    && context::next_word_on_line(haystack, next_end).is_some_and(
+                        |(_, predicate)| resolver.has_independent_final_predicate(&predicate),
+                    );
+            }
+            resolver.has_exact_adverb_surface(&next)
+                || resolver.has_adjective_adnominal_surface(&next)
+                || resolver.has_complete_connective_path(&next)
+        }
         (CoarsePos::Determiner, "한") => {
             previous.ends_with('로')
                 && resolver.has_nominal_oblique(&previous)
@@ -115,34 +104,4 @@ pub(super) fn rejects_han(
         }
         _ => false,
     }
-}
-
-fn has_degree_predicate(
-    haystack: &[u8],
-    after_comparison: usize,
-    resolver: &ConstraintResolver,
-) -> bool {
-    let Some((end, head)) = context::next_word_on_line(haystack, after_comparison) else {
-        return false;
-    };
-    if resolver.has_complete_connective_path(&head)
-        || resolver.has_predicate_adnominal_surface(&head)
-        || resolver.has_independent_final_predicate(&head)
-        || head.char_indices().skip(1).any(|(split, initial)| {
-            matches!(initial, '지' | '졌')
-                && resolver.has_exact_predicate_connective_path(
-                    &head[..split],
-                    PredicatePosSet::one(PredicatePos::Adjective),
-                )
-                && resolver
-                    .has_attached_resultative_inflection(&head[split..], PredicatePos::Adjective)
-        })
-    {
-        return !resolver.has_exact_nominal_surface(&head);
-    }
-    resolver.is_attested_do_object(&head)
-        && context::next_word_on_line(haystack, end).is_some_and(|(_, suffix)| {
-            resolver
-                .has_derived_predicate_adnominal_surface(&[head.as_ref(), suffix.as_ref()].concat())
-        })
 }

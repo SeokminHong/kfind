@@ -115,8 +115,10 @@ pub(super) fn has_degree_adverb_after_clause_argument(
     {
         return false;
     }
-    context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
+    context::next_word_on_line(haystack, whole.end).is_some_and(|(next_end, next)| {
         resolver.has_complete_attached_counted_unit(&next)
+            || context::next_word_on_line(haystack, next_end)
+                .is_some_and(|(_, unit)| resolver.has_inflected_counted_unit(&next, &unit))
             || (!resolver.has_nominal_genitive_surface(&previous)
                 && !resolver.has_pronominal_genitive_surface(&previous)
                 && !resolver.has_whole_determiner(&previous)
