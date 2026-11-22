@@ -149,6 +149,7 @@ COPY tools/morph-compare/external/query-matrix-baselines.json \
 COPY tools/morph-compare/external/robustness-baselines.json \
     /opt/morph-benchmark/robustness-external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
+COPY --from=corpus-builder /build/score-ud-audit.py /build/contract-contrast-evidence.jsonl /opt/morph-benchmark/
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 COPY tools/morph-compare/sentence-reviews.json \
     /opt/morph-benchmark/sentence-reviews.json
