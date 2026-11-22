@@ -66,8 +66,9 @@ export KFIND_ENRICHED_PREDICATES="$PWD/data/enriched/predicates.tsv"
 ```
 
 교정 GSD는 `quality-resume-measure/gsd-saint-determiner.jsonl`, 고정 음성은
-`negatives.jsonl`이다. 두 파일은 [이전 고정 평가](2026-11-17-complete-copula-host.md)의
-로컬 산출물이다. 입력의 동일성은 아래 SHA-256으로 확인한다.
+`negatives.jsonl`이다. 교정 GSD는 [이전 고정 평가](2026-11-17-complete-copula-host.md)의
+산출물이다. 고정 음성은 [공개 원문에서 생성](../../tools/morph-compare/README.md#gsdpud-고정-감사-입력)할 수 있다.
+입력의 동일성은 아래 SHA-256으로 확인한다.
 
 | 입력 또는 리소스 | SHA-256 |
 | --- | --- |

@@ -24,6 +24,23 @@ Canonical, Query matrix, Robust와 Human untagged는 기대값과 입력 계약�
 음성이 있거나 문장 중복을 별도로 확인한 평가 결과와 구분해서 보고합니다.
 품질 변경의 판정 기준은 [독립 형태소 벤치마크 사양](../../specs/verification.md#197-독립-형태소-벤치마크)을 따릅니다.
 
+### GSD·PUD 고정 감사 입력
+
+UD 2.18의 [Korean-GSD test](https://github.com/UniversalDependencies/UD_Korean-GSD/blob/r2.18/ko_gsd-ud-test.conllu)와
+[Korean-PUD test](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/r2.18/ko_pud-ud-test.conllu)를
+받아 아래 명령으로 원본 양성 9,335행과 고정 음성 53,308행을 만듭니다.
+생성기는 두 원문의 SHA-256을 검사합니다. 양성은 GSD 토큰의 원문 UTF-8
+범위를 쓰고, 음성은 어두가 비슷한 질의로 경쟁 분석을 찾는 감사 입력입니다.
+
+```sh
+node tools/morph-compare/generate-ud-audit-fixtures.mjs "$gsd" "$pud" target/ud-audit
+```
+
+| 파일 | SHA-256 |
+| --- | --- |
+| `positives.jsonl` | `eaafbae7757dbb62c9a0ca6b370dadf0f41b53c3e3d044f21b191c2aab8e3682` |
+| `negatives.jsonl` | `482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54` |
+
 ## Raw와 contract-adjusted
 
 모든 품질 backend에는 raw와 contract-adjusted confusion matrix, precision,
