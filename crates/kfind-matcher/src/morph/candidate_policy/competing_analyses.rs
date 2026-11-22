@@ -470,7 +470,11 @@ fn has_competing_derived_predicate(
             origin.rule_path.last().is_some_and(|rule| {
                 matches!(
                     rule.as_str(),
-                    "ending.aoeo" | "ending.connective-ji" | "ending.connective-go"
+                    "ending.aoeo"
+                        | "ending.connective-ji"
+                        | "ending.connective-go"
+                        | "ending.nominalizer-gi"
+                        | "ending.conditional"
                 )
             })
         })
