@@ -59,7 +59,6 @@
           {"sent_id": "MH2_0180-s206", "reason_class": "source-artifact", "annotation": "변증 2에 전사 표식이 남아 있다."},
           {"sent_id": "MH2_0180-s213", "reason_class": "hangul-typo", "annotation": "수위 술어는 소위 술어의 오타다."},
           {"sent_id": "MH2_0180-s229", "reason_class": "hangul-typo", "annotation": "치이는 차이의 오타다."},
-          {"sent_id": "MH2_0180-s8", "reason_class": "hangul-typo", "annotation": "당신 변증법은 자신의 변증법의 오타다."},
           {"sent_id": "MH2_0180-s88", "reason_class": "hangul-typo", "annotation": "절대자의 구정은 절대자의 규정의 오타다."},
           {"sent_id": "MH2_0180-s89", "reason_class": "hangul-typo", "annotation": "제개되는은 전개되는의 오타다."},
           {"sent_id": "MH2_0190-s278", "reason_class": "source-artifact", "annotation": "연도 범위 구분자와 퍼센트 단위가 누락됐다."},
