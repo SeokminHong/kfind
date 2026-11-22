@@ -51,7 +51,7 @@ def compare_reviewed_ranges(
             annotated[key].add((case["gold_byte_start"], case["gold_byte_end"]))
 
     verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
-    verified_excluded_rows = 0
+    verified_excluded_rows = partially_excluded_positive_rows = 0
     differences = []
     unverified_ranges = {}
     pending_exclusions = {}
@@ -79,32 +79,38 @@ def compare_reviewed_ranges(
                 })
             continue
         excluded = review.get("source_excluded_spans")
-        review_expected = True if excluded is None else None
-        if case_expected is not review_expected or case["text"] != review["source_text"]:
-            raise ValueError(f"source range review identity differs: {case_id}")
         expected = {(part["byte_start"], part["byte_end"]) for part in review["source_spans"]}
+        if (
+            case["text"] != review["source_text"] or case_expected is False
+            or (case_expected is True and not expected)
+            or (case_expected is None and not excluded)
+        ):
+            raise ValueError(f"source range review identity differs: {case_id}")
         actual = {(part["byte_start"], part["byte_end"]) for part in spans[case_id]}
-        if excluded is not None:
+        if excluded:
             excluded_ranges = [(part["byte_start"], part["byte_end"]) for part in excluded]
             actual = {
                 (start, end) for start, end in actual
                 if not any(left <= start and end <= right for left, right in excluded_ranges)
             }
-            verified_excluded_rows += 1
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
-        if excluded is None:
+        if case_expected is True:
             adjusted[case_id] = not missing
             verified_rows += 1
+            partially_excluded_positive_rows += bool(excluded)
+        else:
+            verified_excluded_rows += 1
         missing_count += len(missing)
         extra_count += len(extra)
         if missing or extra:
             difference = {"id": case_id, "missing": missing, "extra": extra}
-            if excluded is not None:
+            if case_expected is None:
                 difference["excluded"] = True
             differences.append(difference)
     return {
         "verified_rows": verified_rows,
+        "partially_excluded_positive_rows": partially_excluded_positive_rows,
         "unverified_positive_rows": unverified_positive_rows,
         "unverified_raw_positive_rows": len(unverified_ranges),
         "unverified_raw_positive_spans": sum(map(len, unverified_ranges.values())),

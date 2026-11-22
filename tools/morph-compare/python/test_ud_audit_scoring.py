@@ -67,6 +67,42 @@ class UDAuditScoringTests(unittest.TestCase):
         self.assertFalse(result["contract_errors"]["zero_target_verified"])
         self.assertNotIn("residual", result)
 
+    def test_positive_with_separate_spelling_scope_keeps_full_range_scoring(self) -> None:
+        case_id = "partially-standard"
+        case = self.positive_case(case_id, "쓸수 남길 수 확률")
+        excluded = {"byte_start": 0, "byte_end": 6}
+        gold = {"byte_start": 14, "byte_end": 17}
+        extra = {"byte_start": 18, "byte_end": 24}
+        crossing = {"byte_start": 3, "byte_end": 13}
+        review = {
+            "source_text": case["text"],
+            "source_excluded_spans": [excluded],
+            "source_spans": [gold],
+        }
+        for matches, missing, additional in (
+            ([excluded, gold], [], []),
+            ([excluded, gold, extra], [], [(18, 24)]),
+            ([excluded], [(14, 17)], []),
+            ([excluded, crossing], [(14, 17)], [(3, 13)]),
+        ):
+            with self.subTest(matches=matches):
+                result = SCORE_CONTRACT(
+                    [case], {case_id: True}, {case_id: matches}, {case_id: review},
+                    include_residual=True,
+                )
+                self.assertEqual(result["contract"]["contract_tp"], int(not missing))
+                self.assertEqual(result["contract"]["contract_fn"], int(bool(missing)))
+                self.assertEqual(result["contract"]["excluded_cases"], 0)
+                self.assertEqual(result["contract_errors"]["fpc"], int(bool(additional)))
+                self.assertEqual(result["contract_errors"]["fnc"], int(bool(missing)))
+                self.assertEqual(result["reviewed_ranges"]["partially_excluded_positive_rows"], 1)
+                if missing or additional:
+                    self.assertEqual(result["residual"][0]["missing"], missing)
+                    self.assertEqual(result["residual"][0]["extra"], additional)
+                else:
+                    self.assertTrue(result["contract_errors"]["zero_target_verified"])
+                    self.assertEqual(result["residual"], [])
+
     def test_excluded_span_does_not_hide_other_ranges(self) -> None:
         case_id = "spacing"
         case = {
