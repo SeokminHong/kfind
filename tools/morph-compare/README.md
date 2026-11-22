@@ -56,10 +56,14 @@ python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --resi
 ```
 
 원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 고정 음성의 계약 양성에
-`source_spans`가 기록되어 있으면 모든 정답 범위가 반환되어야 합니다. `reviewed_ranges`는
-이 검사를 적용한 행 수와 누락·추가 범위를 집계합니다. 정답 범위가 빠진 행은 FNᶜ에
-포함되며, 추가 범위는 별도 집계에 기록됩니다. 기존 계약 양성 중 구조화된 정답 범위가
-없는 행은 반환 유무로 집계합니다.
+`source_spans`가 기록되어 있으면 전체 정답 범위를 비교합니다. `reviewed_ranges`는
+검사한 행 수, 누락·추가 범위와 아직 정답 범위 검토가 필요한 계약 양성 행 수를
+기록합니다. `contract_errors`의 FPᶜ와 FNᶜ는 각각 추가 반환과 누락이 있는 행을
+셉니다. 한 행에서 두 가지 오류가 동시에 발생하면 둘 다 집계합니다. `--residual`
+출력은 오류 유형과 독립적으로 확인한 정답 범위의 차이를 보여 줍니다.
+`contract`는 기존 적중 여부 행렬입니다.
+`zero_target_verified`는 관측된 오류가 없고 고정 음성의 계약 양성 범위를
+모두 확인했을 때 참입니다.
 
 ## Raw와 contract-adjusted
 
