@@ -206,6 +206,13 @@ corpus.ud-gsd.test.test-s354.compound-noun	부가	noun	smart-exact	33	39	구 관
 corpus.ud-gsd.test.test-s459.compound-noun	관광	noun	smart-exact	161	167	김 의원은 "장생포가 가지고 있는 고래역사 문화, 근대 포경과 연관된 독특한 지역문화를 바탕으로 국내유일의 고래테마 관광도시로서의 성장기반을 구축하는 사업인 만큼 앞으로도 최선을 다해 돕겠다"고 말했다.
 corpus.ud-gsd.test.test-s754.compound-noun	영업	noun	smart-exact	56	62	우리산업의 상반기 누적 실적은 매출액과 영업이익이 각각 645억원, 17억원으로 추정됐다.
 regression.compound-noun.true-subject	영업	noun	smart-exact	0	9	영업이 끝났다.
+regression.ascii-abbreviation-nominal.topic	산업	noun	smart-only-exact	4	13	MICE산업은 지역 경제에 기여한다.
+regression.ascii-abbreviation-nominal.locative	검사	noun	smart-only-exact	3	15	DNA검사에서 새로운 단서를 찾았다.
+regression.ascii-abbreviation-nominal.object	서버	noun	smart-only-exact	16	25	연구실은 GPU서버를 추가로 도입했다.
+regression.ascii-abbreviation-nominal.genitive	반도체	noun	smart-only-exact	2	14	AI반도체의 수출 규모를 조사했다.
+regression.ascii-abbreviation-nominal.copula	산업	noun	smart-only-exact	29	35	도시의 주력 분야는 IT산업이다.
+regression.ascii-abbreviation-nominal.sino-root	산	noun	no-match	4	7	MICE산업은 관할 지역의 핵심 과제다.
+regression.ascii-abbreviation-nominal.identifier	산업	noun	no-match	10	19	reportMICE산업은 파일 이름이다.
 regression.source-contraction.pronoun	여기	pronoun	smart-exact	0	12	여기서도 만날 수 있다.
 regression.source-contraction.consonant	서울	noun	smart-exact	0	15	서울서부터 눈이 왔다.
 regression.source-contraction.compound	상업	noun	smart-exact	0	6	상업서적을 샀다.

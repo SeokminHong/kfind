@@ -650,6 +650,26 @@ fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
 }
 
 #[test]
+fn acronym_nominal_component_keeps_all_complete_noun_ranges() {
+    let matcher = component_matcher_with_particle_rules(
+        "권한",
+        rules(&["particle.topic", "particle.additive"]),
+        Arc::new(component_resource()),
+    );
+    let found = |text: &str| {
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .map(|matched| matched.span)
+            .collect::<Vec<_>>()
+    };
+
+    assert_eq!(found("IAM권한은 추가 권한도 포함한다."), [3..12, 20..29]);
+    // An invalid topic allomorph cannot be accepted at the script boundary.
+    assert!(found("IAM권한는 필수다.").is_empty());
+}
+
+#[test]
 fn nominal_host_can_precede_a_complete_copula_suffix() {
     let resource = Arc::new(component_resource());
     let result = component_matcher("결과", Arc::clone(&resource));
