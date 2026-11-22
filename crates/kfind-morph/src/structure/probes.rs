@@ -2182,6 +2182,18 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_comparative_nominal_after_quantity(&self, text: &str, shorter_host: &str) -> bool {
+        COMPARATIVE_NOMINALS.iter().any(|&noun| {
+            noun.len() > shorter_host.len()
+                && noun.starts_with(shorter_host)
+                && text.strip_prefix(noun).is_some_and(|tail| {
+                    has_exact_sequence(&self.resource, noun, &[StructuralPos::NNG])
+                        && complete_suffix(&self.resource, tail, StructuralPos::is_particle)
+                })
+        })
+    }
+
+    #[must_use]
     pub fn has_causal_nominal_surface(&self, text: &str) -> bool {
         CAUSAL_NOMINALS.iter().any(|&(noun, particle)| {
             text.strip_prefix(noun) == Some(particle)
@@ -2504,6 +2516,26 @@ impl ConstraintResolver {
     #[must_use]
     pub fn is_quantity_modifier(text: &str) -> bool {
         QUANTITY_MODIFIERS.contains(&text)
+    }
+
+    #[must_use]
+    pub fn is_quantity_approximation_suffix(text: &str) -> bool {
+        QUANTITY_APPROXIMATION_SUFFIXES.contains(&text)
+    }
+
+    #[must_use]
+    pub fn has_quantity_approximation_particle_tail(&self, text: &str) -> bool {
+        complete_suffix(&self.resource, text, StructuralPos::is_particle)
+    }
+
+    #[must_use]
+    pub fn has_quantity_amount(&self, unit: &str, count: Option<&str>) -> bool {
+        DURATION_NOUNS.contains(&unit)
+            || self.has_numeric_unit_surface(unit)
+            || count.is_some_and(|count| {
+                self.has_exact_counter(unit)
+                    && (self.is_counter_quantity(count) || Self::is_mixed_cardinal(count))
+            })
     }
 
     pub fn split_counter_quantity(first: &str, second: &str) -> Option<&'static str> {

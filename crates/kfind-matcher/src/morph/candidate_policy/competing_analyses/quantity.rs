@@ -12,40 +12,58 @@ use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
 
-pub(super) fn has_approximation_head(
+pub(super) fn has_quantity_nominal_conflict(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
     resolver: &ConstraintResolver,
 ) -> bool {
-    let span = &candidate.consumed;
-    if !matches!(haystack.get(candidate.verified.core.clone()), Some(surface)
-        if surface == "정".as_bytes() || surface == "정".as_bytes())
-        || !matches!(candidate.suffix_rules.as_slice(), [rule] if rule.as_str() == "particle.additive")
-        || !is_boundary_before(haystack, span.start)
-        || !is_boundary_after(haystack, span.end)
-        || !resolver.has_exact_nominal_surface("정도")
-    {
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) {
         return false;
     }
-    let Some((start, preceding)) = context::previous_word_with_start(haystack, span.start) else {
+    let core = &candidate.verified.core;
+    let Some(host) = context::normalized_token(haystack, core.clone()) else {
         return false;
     };
-    if haystack[start..span.start]
-        .iter()
-        .any(|byte| matches!(byte, b'\r' | b'\n'))
-    {
+    let is_approximation = ConstraintResolver::is_quantity_approximation_suffix(&host);
+    if !is_approximation && candidate.suffix_rules.is_empty() {
         return false;
     }
-    preceding == "어느"
-        || resolver.has_numeric_unit_surface(&preceding)
-        || context::previous_word_with_start(haystack, start).is_some_and(|(count_start, count)| {
-            !haystack[count_start..start]
-                .iter()
-                .any(|byte| matches!(byte, b'\r' | b'\n'))
-                && (resolver.has_standalone_counted_unit(&count, &preceding)
-                    || (ConstraintResolver::is_mixed_cardinal(&count)
-                        && resolver.has_exact_counter(&preceding)))
-        })
+    let whole = surrounding_token_span(haystack, core.clone());
+    let (unit_start, unit) = if is_approximation
+        && core.start > whole.start
+        && context::normalized_token(haystack, core.end..whole.end)
+            .is_some_and(|tail| resolver.has_quantity_approximation_particle_tail(&tail))
+    {
+        let Some(unit) = context::normalized_token(haystack, whole.start..core.start) else {
+            return false;
+        };
+        (whole.start, unit)
+    } else if core.start == whole.start
+        && !candidate.suffix_rules.is_empty()
+        && context::normalized_token(haystack, whole.clone())
+            .is_some_and(|token| resolver.has_comparative_nominal_after_quantity(&token, &host))
+    {
+        let Some(preceding) = previous_word_on_line(haystack, whole.start) else {
+            return false;
+        };
+        preceding
+    } else {
+        return false;
+    };
+    let count = previous_word_on_line(haystack, unit_start).map(|(_, count)| count);
+    resolver.has_quantity_amount(&unit, count.as_deref())
+}
+
+fn previous_word_on_line(haystack: &[u8], at: usize) -> Option<(usize, std::borrow::Cow<'_, str>)> {
+    let (start, word) = context::previous_word_with_start(haystack, at)?;
+    (!haystack[start..at]
+        .iter()
+        .any(|byte| matches!(byte, b'\r' | b'\n')))
+    .then_some((start, word))
 }
 
 pub(super) fn has_object_before_han_and_final_copula(
