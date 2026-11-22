@@ -204,6 +204,14 @@ impl StructureSelection {
         let compound_predicate =
             compound_predicate_component_is_supported(pattern, spans, evidence);
         if support.evidence == StructuralEvidence::RuntimeComponent
+            && pattern.fine_pos.is_predicate()
+            && evidence.grammatical_nominal_suffixes.contains(&spans.core)
+            && !compound_predicate
+            && !evidence.has_whole_predicate()
+        {
+            return false;
+        }
+        if support.evidence == StructuralEvidence::RuntimeComponent
             && matches!(
                 pattern.fine_pos,
                 DataFinePos::Vv | DataFinePos::Va | DataFinePos::Vx | DataFinePos::Vcn
