@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:w01010048:noun:왕	왕	noun	false	1265e64bb2d2ff1a9bedc4fd7a41bbaf45cf7e1468387d69c0de9e9c4f2d4758	excluded	nonstandard-input	원문의 독일왕이 16..28에서 국명과 직함 사이를 띄운다. 교정문의 독일 왕이에서 왕이의 범위는 23..29다.
 explicit-pos	corpus-negatives	pud:n01017008:verb:하다	하다	verb	false	b4ce9b394650ff1e720ef20ac4e9195ef81b71fcc218dc502539e02d76b10d85	excluded	nonstandard-input	PUD 원문 79의 타개하고·뭔(16·17번) 경계에 ToDoOrigText의 단어 사이 공백을 복원했다.
 explicit-pos	corpus-negatives	pud:n01029006:noun:시	시	noun	false	f74fc9e991df9eb1467f42f3325920d1d49b0209cd19853d51ed0777fdd1c181	excluded	nonstandard-input	PUD 원문 114의 표현한·시갈의(16·17번) 경계에 ToDoOrigText의 단어 사이 공백을 복원했다.
 explicit-pos	corpus-negatives	pud:n01036002:verb:하다	하다	verb	false	744c1c02af8965df640bb2ff0b4ceb0eb8c3128311d7bab5575094cbe4698386	excluded	nonstandard-input	PUD 원문 48의 대표하는·협회는(4·5번), 118의 처벌하고·소비자를(11·12번) 경계에 ToDoOrigText의 단어 사이 공백을 복원했다.
