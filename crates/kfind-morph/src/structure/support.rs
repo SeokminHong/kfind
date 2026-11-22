@@ -69,6 +69,26 @@ fn requires_aligned_component_evidence(pattern: &QueryMorphPattern) -> bool {
     )
 }
 
+fn bare_dependent_noun_competes_with_suffix(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Nnb
+        && spans.core.start > spans.token.start
+        && spans.core.end == spans.token.end
+        && spans.consumed == spans.core
+        && !evidence.has_numeral_sequence
+        && (evidence
+            .leading_predicate_spans
+            .iter()
+            .any(|stem| stem.end <= spans.core.start)
+            || evidence
+                .complete_nominal_particle_host
+                .as_ref()
+                .is_some_and(|host| host.end == spans.core.start))
+}
+
 fn supports_runtime_pattern(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
@@ -79,7 +99,8 @@ fn supports_runtime_pattern(
         || composed_nominal_subpath(pattern, spans, evidence)
         || nominal_derivation_before_predicate(pattern, spans, evidence)
         || ((!requires_aligned_component_evidence(pattern) || spans.core == spans.token)
-            && evidence.runtime_spans.contains(&spans.core))
+            && evidence.runtime_spans.contains(&spans.core)
+            && !bare_dependent_noun_competes_with_suffix(pattern, spans, evidence))
         || attached_auxiliary_is_supported(pattern, spans, evidence)
         || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
         || supports_complete_runtime_span(pattern, spans, evidence, graph_nominal_host)
