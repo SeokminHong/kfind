@@ -189,7 +189,10 @@ pub(in crate::structure) fn modifier_led_nominal_component_is_on_preferred_path(
     }
     let mut has_leading_modifier = false;
     for unit in evidence.units.all() {
-        if unit.span == *selected && unit.evidence == StructuralEvidence::Whole {
+        if unit.span == *selected
+            && (unit.evidence == StructuralEvidence::Whole
+                || (core.end < selected.end && unit.pos.is_nominal() && unit.aligned_pos))
+        {
             return false;
         }
         has_leading_modifier |= unit.pos == DataFinePos::Mm
