@@ -68,3 +68,18 @@ Python 3.14.8에서 [교대 측정 명령](../../tools/morph-compare/README.md#s
 다른 질의의 정답이거나 변경된 문장·품사의 범위는 재사용하지 않는다.
 `현대증권` 질의에 `배성영` 범위를 주입한 검증에서도 해당 범위는
 검토 대기로 남았다.
+
+## PUD에서 정답과 함께 반환한 두 오탐
+
+고정 음성 53,308행의 같은 `951c7db8` 제품 출력에 원본 PUD 2행의 전체
+정답 범위를 적용했다. `한 목격자의`의 `한` [0, 3)은 수 관형사이고,
+`한다` [97, 103)는 인용을 받는 동사다. `중무장포`의 `중` [21, 24)은
+접두사이며, 어절로 독립한 `중` [34, 37)이 의존 명사다.
+[한국어기초사전 한](https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=73278) ·
+[국립국어원 바른 국어 생활](https://www.korean.go.kr/common/download.do%3Bfront%3D50B9BFEE5BFB8FE1E8FFF71EB1D6232F?c_file_name=5c1ecd30-6519-4f83-bd36-dd215e699601_0.pdf&file_path=etcData&o_file_name=%EB%B0%94%EB%A5%B8+%EA%B5%AD%EC%96%B4+%EC%83%9D%ED%99%9C.pdf)
+
+원본 행렬 TP·FP·TN·FN은 0·3,155·50,153·0이며 precision·recall·F1은
+모두 0%다. 계약 적중 행렬은 1,413·1,631·50,123·0이며 precision·recall·F1은
+46.42%·100%·63.41%다. 계약 제외는 141행이다. 양쪽 정답 범위가 검출되어
+두 행렬은 같고, 추가 반환을 포함한 FPc는 1,631에서 1,633으로 늘었다.
+FNc는 0이다. 전체 범위가 확인된 계약 양성은 49행이며 1,364행이 미확정이다.
