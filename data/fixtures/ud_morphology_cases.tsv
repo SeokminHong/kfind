@@ -100,6 +100,7 @@ corpus.ud-gsd.test.test-s816.surname-before-title	오	noun	smart-exact	0	3	오 �
 corpus.ud-gsd.test.test-s779.surname-before-title	오	noun	smart-exact	14	17	이 때문에 오 시장이 주민투표 문제를 매듭짓고 대선에 출마하는 시나리오를 염두에 두고 있다는 분석이 여권에서 나온다.
 regression.modifier-led-nominal.atomic-host-with-object	나	noun	smart-only-exact	29	32	시나리오를 검토하고 나 씨에게 보냈다.
 regression.modifier-led-nominal.atomic-host-without-particle	나	noun	no-match	3	6	시나리오 감독이 도착했다.
+regression.modifier-led-nominal.atomic-host-with-bare-noun	수	noun	smart-only-exact	37	43	팀은 수수께끼를 풀고 다른 수를 생각했다.
 corpus.ud-pud.test.w01048027.proper-name-before-common-noun	원	noun	smart-exact	24	27	1350년대에 중국의 원 왕조가 무너지기 시작하면서공민왕은 마침내 자유롭게고려 정부를 개편할수 있었다.
 regression.proper-name-before-common-noun.numeral	오	numeral	smart-exact	0	3	오 년이 지났다.
 regression.proper-name-before-common-noun.counter	오	noun	no-match	0	3	오 년이 지났다.
