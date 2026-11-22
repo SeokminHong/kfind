@@ -1,10 +1,13 @@
 use std::ops::Range;
 
-use kfind_morph::{CoarsePos, FinePos, ParticleVerifier};
+use kfind_morph::{CoarsePos, ConstraintResolver, FinePos, ParticleVerifier};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateDecision, CandidateProgram};
 use unicode_general_category::{GeneralCategory, get_general_category};
 
-use crate::boundary::{is_boundary_after, is_token_character, previous_character};
+use crate::boundary::{
+    bounded_surrounding_token_span, is_boundary_after, is_token_character, next_character_with_end,
+    previous_character,
+};
 
 use super::super::{context, valid_utf8_suffix};
 
@@ -21,15 +24,12 @@ pub(super) fn rejects(
     let enclosure = match close {
         ')' => Some(('(', true)),
         ']' => Some(('[', true)),
-        '〉' => Some(('〈', false)),
-        '》' => Some(('《', false)),
-        '」' => Some(('「', false)),
-        '』' => Some(('『', false)),
-        '”' => Some(('“', false)),
-        '’' => Some(('‘', false)),
-        '\'' | '"' | '`' => Some((close, false)),
+        '`' => Some((close, false)),
         '%' | '％' => None,
-        _ => return false,
+        _ => match quote_opener(close) {
+            Some(open) => Some((open, false)),
+            None => return false,
+        },
     };
     if !is_boundary_after(haystack, span.end)
         || (matches!(branch.consumption, CandidateConsumption::Anchor)
@@ -110,6 +110,60 @@ pub(super) fn rejects(
         || verifies_after(tail, &suffix, particles)
         || before_trailing_supplement(enclosed)
             .is_some_and(|host| verifies_after(host, &suffix, particles))
+}
+
+pub(super) fn rejects_quoted_determiner_prefix(
+    haystack: &[u8],
+    core: &Range<usize>,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+    particles: &ParticleVerifier,
+) -> bool {
+    if branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)].coarse_pos == CoarsePos::Determiner
+        })
+        || is_boundary_after(haystack, core.end)
+    {
+        return false;
+    }
+    let Some(open @ ('〈' | '《' | '「' | '『' | '“' | '‘' | '\'' | '"')) =
+        previous_character(haystack, core.start)
+    else {
+        return false;
+    };
+    let max_bytes = crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes;
+    let Ok(word) = bounded_surrounding_token_span(haystack, core.clone(), max_bytes) else {
+        return false;
+    };
+    let Some((end, close)) = next_character_with_end(haystack, word.end) else {
+        return false;
+    };
+    if quote_opener(close) != Some(open) || is_boundary_after(haystack, end) {
+        return false;
+    }
+    let Ok(suffix) = bounded_surrounding_token_span(haystack, end..end, max_bytes) else {
+        return false;
+    };
+    context::normalized_token(haystack, word).is_some_and(|word| {
+        !resolver.has_whole_determiner(&word)
+            && context::normalized_token(haystack, suffix)
+                .is_some_and(|suffix| particles.verify_exact(&word, &suffix).is_some())
+    })
+}
+
+fn quote_opener(close: char) -> Option<char> {
+    match close {
+        '〉' => Some('〈'),
+        '》' => Some('《'),
+        '」' => Some('「'),
+        '』' => Some('『'),
+        '”' => Some('“'),
+        '’' => Some('‘'),
+        '\'' | '"' => Some(close),
+        _ => None,
+    }
 }
 
 fn paired_backtick_contents(line: &str) -> Option<&str> {
