@@ -11,6 +11,10 @@ regression.concessive-connective.copula	말다	verb	no-match	19	22	그게 사실
 regression.concessive-connective.full-form	마다	verb	no-match	20	26	그는 집에 있지마는 곧 떠날 것이다.
 regression.concessive-connective.adnominal-past	말다	verb	smart-only-exact	10	13	김밥을 만 사람이 나왔다.
 regression.concessive-connective.adnominal-present	말다	verb	smart-only-exact	10	16	김밥을 마는 사람을 불렀다.
+regression.competing-connective.eu-na	나다	verb	smart-only-exact	33	39	아픔을 겪었으나 사고는 나지 않았다.
+regression.competing-connective.geo-na	나다	verb	smart-only-exact	30	39	문이 열리거나 연기가 나거나 하면 즉시 신고한다.
+regression.competing-connective.conjugated-target	나다	verb	smart-only-exact	17	26	비록 피해가 났으나 인명 손실은 없었다.
+regression.competing-connective.bare-target	나다	verb	smart-only-exact	23	26	주전자에서 김이 나.
 regression.any-attached-auxiliary.contracted	알리다	verb	only-exact	0	9	알려줘.
 regression.any-attached-auxiliary.homograph-prefinal	하다	verb	only-exact	7	19	일을 해줬으면 좋겠다.
 regression.any-attached-auxiliary.homograph-intention	보이다	verb	only-exact	11	23	이걸 좀 보여줄래?
