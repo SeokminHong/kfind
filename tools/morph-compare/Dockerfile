@@ -7,6 +7,7 @@ COPY tools/morph-compare/sources.json ./sources.json
 COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/robustness-reviews.json ./robustness-reviews.json
 COPY tools/morph-compare/*-context-cases.jsonl tools/morph-compare/*-contract-reviews.tsv ./
+COPY tools/morph-compare/score-ud-audit.py tools/morph-compare/contract-contrast-evidence.jsonl ./
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
