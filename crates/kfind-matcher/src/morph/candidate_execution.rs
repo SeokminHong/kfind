@@ -306,6 +306,17 @@ impl MorphMatcher {
                     .collect::<String>()
                     .len();
                 let suffix = normalized_token.strip_prefix(&normalized_anchor)?;
+                // The generated -(으)ㄹ락 path verifies the following 어절 말락.
+                if suffix == "락"
+                    && branch.origins.iter().all(|origin| {
+                        origin
+                            .rule_path
+                            .last()
+                            .is_some_and(|rule| rule.as_str() == "ending.future-adnominal")
+                    })
+                {
+                    return None;
+                }
                 // This fallback starts at the token boundary. A causal copula needs a host.
                 if *pos == kfind_morph::PredicatePos::Copula && suffix.ends_with("므로") {
                     return None;

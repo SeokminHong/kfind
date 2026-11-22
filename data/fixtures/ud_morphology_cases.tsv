@@ -1473,6 +1473,11 @@ regression.alternating-rak.rieul	울다	verb	exact	10	16	아이는 울락 웃으
 regression.near-rieulrak.vowel	들리다	verb	exact	10	19	파도가 들릴락 말락 했다.
 regression.near-rieulrak.consonant	녹다	verb	exact	10	19	얼음이 녹을락 말락 했다.
 regression.near-rieulrak.future-adnominal	들리다	verb	exact	10	16	파도가 들릴 때까지 기다렸다.
+regression.near-rieulrak.nominal-homograph	모다	verb	no-match	14	20	그 나라의 몰락 이후에 상황이 바뀌었다.
+regression.near-rieulrak.homograph-with-malrak	몰다	verb	smart-only-exact	17	23	목동이 양을 몰락 말락 했다.
+regression.near-rieulrak.nominal-homograph-gsd	모다	verb	no-match	44	50	'골프 황제' 타이거 우즈(미국)의 몰락 이후 세계 골프의 중심이 미국에서 유럽으로 옮겨졌다는 사실을 두 대회를 통해 한눈에 확인할 수 있었다.
+regression.near-rieulrak.nominal-homograph-pud-qing	모다	verb	no-match	108	114	복드 칸은 몽골과 중국 모두 청 왕조 당시 만주의 지배를 받았으며 1911년 청 왕조 몰락 이후 만주의 몽골 지배에 대한 계약은 더 이상 무효하다고 말했다.
+regression.near-rieulrak.nominal-homograph-pud-greece	모다	verb	no-match	51	57	기원전 8세기에 그리스는 미케네 문명 몰락 이후 암흑의 시대에 진입하기 시작했다.
 regression.concessive-geonman.action	오다	verb	smart-exact	7	19	비가 오건마는 일정은 그대로다.
 regression.concessive-geonman.honorific	많다	adjective	smart-exact	10	25	손님이 많으시건만 자리가 넉넉하다.
 regression.concessive-geonman.past	내리다	verb	smart-exact	7	22	눈이 내렸건마는 길은 말랐다.
