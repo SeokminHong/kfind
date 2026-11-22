@@ -24,6 +24,7 @@ pub struct BoundedTokenContext<'a> {
     pub previous: Option<&'a str>,
     pub current: &'a str,
     pub next: Option<&'a str>,
+    pub next_separated_by_list_punctuation: bool,
 }
 
 impl<'a> BoundedTokenContext<'a> {
@@ -33,6 +34,7 @@ impl<'a> BoundedTokenContext<'a> {
             previous: None,
             current,
             next: None,
+            next_separated_by_list_punctuation: false,
         }
     }
 }

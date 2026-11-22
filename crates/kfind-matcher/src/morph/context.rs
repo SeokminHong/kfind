@@ -174,6 +174,10 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             .ok()?;
             return prepared.map(|prepared| Self { current, prepared });
         }
+        let next_separated_by_list_punctuation = next_span.as_ref().is_some_and(|span| {
+            std::str::from_utf8(&haystack[current_span.end..span.start])
+                .is_ok_and(|separator| separator.contains([',', '·']))
+        });
         let context_text = std::str::from_utf8(raw_context).ok()?;
         let (context_is_nfc, scalar_count) = nfc_status_and_scalar_count(context_text);
         if scalar_count > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
@@ -211,6 +215,7 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             previous: previous.as_deref(),
             current: current.normalized(),
             next: next.as_deref(),
+            next_separated_by_list_punctuation,
         };
         let prepared = prepared_exact_tokens
             .get_or_prepare(

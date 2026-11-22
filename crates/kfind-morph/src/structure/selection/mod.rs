@@ -652,9 +652,10 @@ pub(in crate::structure) fn select_structure(
         next_is_counter,
         next_has_counted_head,
         next_is_numeral,
+        has_parallel_single_syllable_nominal,
     ) = context
         .next
-        .map_or((false, false, false, false, false, false), |next| {
+        .map_or((false, false, false, false, false, false, false), |next| {
             let mut exact_nominal = false;
             let mut exact_dependent_or_counter_nominal = false;
             let mut exact_counter = false;
@@ -735,6 +736,14 @@ pub(in crate::structure) fn select_structure(
                                     pos == DataFinePos::Nr
                                 }) && !has_exact_sequence(resource, head, &[StructuralPos::NNBC])
                             }))),
+                context.next_separated_by_list_punctuation
+                    && if exact_nominal {
+                        next.chars().nth(1).is_none()
+                    } else {
+                        particle_hosts
+                            .last()
+                            .is_some_and(|host| next[host.clone()].chars().nth(1).is_none())
+                    },
             )
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
@@ -808,7 +817,9 @@ pub(in crate::structure) fn select_structure(
         return StructureSelection::Adverb;
     }
     let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
-    if (next_starts_determiner_nominal || excludes_predicate)
+    // Parallel one-syllable nominals leave no shared noun ending to restore.
+    if !has_parallel_single_syllable_nominal
+        && (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
     {
