@@ -2964,3 +2964,10 @@ regression.aligned-nominal-tail.fruit-extra	일	noun	no-match	16	19	신선한 �
 regression.aligned-nominal-tail.fruit-component	과일	noun	smart-only-exact	13	19	신선한 생과일 주스를 샀다.
 regression.aligned-nominal-tail.office-extra	정	noun	no-match	13	22	그는 좌의정까지 올랐다.
 regression.aligned-nominal-tail.office-component	의정	noun	smart-only-exact	10	22	그는 좌의정까지 올랐다.
+regression.competing-copula-host.length-prefix	길	noun	no-match	0	9	길이가 4킬로미터를 넘는다.
+regression.competing-copula-host.length-subject	길이	noun	smart-only-exact	0	9	길이가 4킬로미터를 넘는다.
+regression.competing-copula-host.length-oblique	길	noun	no-match	0	9	길이로 크기를 비교했다.
+regression.competing-copula-host.name-prefix	신	noun	no-match	0	9	신이의 근황이 알려졌다.
+regression.competing-copula-host.name-genitive	신이	noun	smart-only-exact	0	9	신이의 근황이 알려졌다.
+regression.competing-copula-host.copula-question	길	noun	smart-only-exact	0	3	길인가, 골목인가?
+regression.competing-copula-host.subject-particle	길	noun	smart-only-exact	0	6	길이 가깝다.
