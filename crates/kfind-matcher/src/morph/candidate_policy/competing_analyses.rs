@@ -102,7 +102,53 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_attached_result_state_auxiliary(haystack, candidate, branch, atom, resolver)
+        || has_derived_passive_instead_of_independent_verb(
+            haystack, candidate, branch, atom, resolver,
+        )
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_derived_passive_instead_of_independent_verb(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if is_boundary_before(haystack, core.start)
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses[usize::from(origin.analysis_index)]
+                .lemma
+                .as_ref()
+                == "되다"
+        })
+    {
+        return false;
+    }
+    let Ok(whole) =
+        bounded_surrounding_token_span(haystack, candidate.consumed.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
+    let end = candidate.consumed.end;
+    let Some(prefix) = context::normalized_token(haystack, whole.start..core.start) else {
+        return false;
+    };
+    let Some(stem) = context::normalized_token(haystack, core.clone()) else {
+        return false;
+    };
+    let anchor = prefix.len()..prefix.len() + stem.len();
+    context::normalized_token(haystack, whole.clone())
+        .is_some_and(|word| resolver.has_conflicting_passive_suffix(&word, anchor.clone()))
+        || (end < whole.end
+            && context::normalized_token(haystack, whole.start..end).is_some_and(|word| {
+                resolver.has_conflicting_passive_suffix(&word, anchor)
+                    && resolver.has_complete_connective_path(&word)
+            })
+            && context::normalized_token(haystack, end..whole.end)
+                .is_some_and(|next| resolver.has_topic_marked_nominal(&next)))
 }
 
 fn has_attached_result_state_auxiliary(
