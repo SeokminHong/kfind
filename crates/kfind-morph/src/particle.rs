@@ -527,13 +527,14 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
     // Fallback for callers that construct a verifier without a compiled QueryPlan.
     // Product plans replace this table with data/rules/particles.toml.
     const FOCUS: &[&str] = &[
-        "particle.topic",
         "particle.additive",
         "particle.only",
         "particle.limit.ggaji",
         "particle.even.jocha",
         "particle.even.majeo",
+        "particle.topic",
     ];
+    let focus_without_topic = &FOCUS[..FOCUS.len() - 1];
     Arc::from([
         transition(
             "particle.plural",
@@ -577,8 +578,8 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.emphasis.yamallo",
             ],
         ),
-        transition("particle.subject", FOCUS),
-        transition("particle.object", FOCUS),
+        transition("particle.subject", focus_without_topic),
+        transition("particle.object", focus_without_topic),
         transition("particle.topic", &["particle.contrast.keonyeong"]),
         transition(
             "particle.comitative",
@@ -714,7 +715,6 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         transition(
             "particle.genitive",
             &[
-                "particle.topic",
                 "particle.additive",
                 "particle.only",
                 "particle.even.jocha",
@@ -855,6 +855,27 @@ mod tests {
             assert!(
                 verifier.verify_exact(core, suffix).is_some(),
                 "rejected {core}{suffix}"
+            );
+        }
+    }
+
+    #[test]
+    fn topic_does_not_stack_on_subject_object_or_genitive_markers() {
+        let verifier = ParticleVerifier::default();
+        for suffix in ["이는", "을은", "의는"] {
+            assert!(verifier.verify_exact("집", suffix).is_none(), "집{suffix}");
+        }
+        for suffix in ["가는", "를은"] {
+            assert!(
+                verifier.verify_exact("바다", suffix).is_none(),
+                "바다{suffix}"
+            );
+        }
+        for (core, suffix) in [("선생님", "께서는"), ("학교", "에서는"), ("길", "로는")]
+        {
+            assert!(
+                verifier.verify_exact(core, suffix).is_some(),
+                "{core}{suffix}"
             );
         }
     }

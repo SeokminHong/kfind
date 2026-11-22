@@ -15,7 +15,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["이", "가"]
 selection = "final-pair"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
@@ -24,7 +24,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["을", "를"]
 selection = "final-pair"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
@@ -150,7 +150,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["의"]
 selection = "literal"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]

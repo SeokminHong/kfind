@@ -2971,3 +2971,7 @@ regression.competing-copula-host.name-prefix	신	noun	no-match	0	9	신이의 근
 regression.competing-copula-host.name-genitive	신이	noun	smart-only-exact	0	9	신이의 근황이 알려졌다.
 regression.competing-copula-host.copula-question	길	noun	smart-only-exact	0	3	길인가, 골목인가?
 regression.competing-copula-host.subject-particle	길	noun	smart-only-exact	0	6	길이 가깝다.
+regression.topic-after-case.length-prefix	길	noun	no-match	0	9	길이는 두 방식으로 측정한다.
+regression.topic-after-case.length-topic	길이	noun	smart-only-exact	0	9	길이는 두 방식으로 측정한다.
+regression.topic-after-case.honorific-subject	선생님	noun	smart-only-exact	0	18	선생님께서는 이미 도착하셨다.
+regression.topic-after-case.locative	학교	noun	smart-only-exact	0	15	학교에서는 수업을 시작했다.
