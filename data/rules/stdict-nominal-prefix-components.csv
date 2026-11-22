@@ -5528,7 +5528,6 @@
 토압력,0,0,0,XPN+XR,stdict:347286,F,토압력,Compound,XPN,XR,토/XPN/*+압력/XR/*
 토언제,0,0,0,XPN+XR,stdict:346258,F,토언제,Compound,XPN,XR,토/XPN/*+언제/XR/*
 토역청,0,0,0,XPN+XR,stdict:346268,F,토역청,Compound,XPN,XR,토/XPN/*+역청/XR/*
-토요일,0,0,0,XPN+XR,stdict:349235,F,토요일,Compound,XPN,XR,토/XPN/*+요일/XR/*
 토이질,0,0,0,XPN+XR,stdict:346604,F,토이질,Compound,XPN,XR,토/XPN/*+이질/XR/*
 토주자,0,0,0,XPN+XR,stdict:348825,F,토주자,Compound,XPN,XR,토/XPN/*+주자/XR/*
 토직성,0,0,0,XPN+XR,stdict:349927,F,토직성,Compound,XPN,XR,토/XPN/*+직성/XR/*
