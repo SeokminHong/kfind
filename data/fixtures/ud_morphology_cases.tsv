@@ -3055,6 +3055,12 @@ regression.aligned-nominal-tail.calendar-day	일	noun	smart-only-exact	17	20	연
 regression.aligned-nominal-tail.weekday-component	요일	noun	smart-only-exact	24	33	연극은 6월 10일 토요일에 상연된다.
 regression.aligned-nominal-tail.weekday-extra	일	noun	no-match	6	12	토요일에 문을 연다.
 regression.aligned-nominal-tail.sunday-first	일	noun	smart-only-exact	0	3	일요일에 만나자.
+regression.aligned-nominal-tail.saturday-first	토	noun	smart-only-exact	0	3	토요일에는 쉰다.
+regression.aligned-nominal-tail.saturday-not-soil-prefix	토	noun	smart-only-exact	17	20	토담을 쌓고 토요일에 쉰다.
+regression.aligned-nominal-tail.saturday-before-copula	토	noun	smart-only-exact	10	13	그날은 토요일이었다.
+corpus.ud-gsd.test.s966.saturday-first	토	noun	smart-only-exact	7	10	특히 토요일 저녁에 해주시는 불꽃놀이 정말 기억에 남았어요.
+corpus.ud-pud.test.n01115005.saturday-first	토	noun	smart-only-exact	21	24	연극은 6월 10일 토요일에 상연된다.
+corpus.ud-pud.test.n01092025.corrected-saturday-first	토	noun	smart-only-exact	20	23	이와 관련해서 토요일 모로코에서 선진국들은 서로의 계획과 야심에 대해 공개적으로 문제를 제기하게 되었다.
 regression.adjacent-determiner.list-comma	수	noun	smart-only-exact	0	3	수, 목에 근무한다.
 regression.adjacent-determiner.list-middle-dot	일	noun	smart-only-exact	0	3	일·월에 출근한다.
 regression.adjacent-determiner.count-as-noun	수	noun	no-match	0	3	수 시간 동안 눈이 내렸다.
