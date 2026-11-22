@@ -52,6 +52,12 @@ regression.compound-nominal-head.price	값	noun	smart-only-exact	16	22	정부는
 regression.compound-nominal-head.nominalization	값	noun	smart-only-exact	6	12	기름값이 계속 오른다.
 regression.compound-nominal-head.sai-siot	값	noun	smart-only-exact	16	22	정부는 연룟값을 인상했다.
 regression.compound-nominal-head.copula	값	noun	smart-only-exact	27	30	가장 큰 지출은 연료값이었다.
+regression.attested-loan-compound.home-proofread	홈	noun	smart-only-exact	27	30	일부 수입차 업체는 홈쇼핑 방송과 더불어 아예 전시장에서도 같은 조건으로 차량을 판매하고 있다.
+regression.attested-loan-compound.home-particle	홈	noun	smart-only-exact	0	3	홈쇼핑에서 우산을 주문했다.
+regression.attested-loan-compound.home-copula	홈	noun	smart-only-exact	14	17	그 광고는 홈쇼핑이었다.
+regression.attested-loan-compound.whole	홈쇼핑	noun	smart-only-exact	0	15	홈쇼핑에서 우산을 주문했다.
+regression.attested-loan-compound.second	쇼핑	noun	smart-only-exact	13	25	저녁에 홈쇼핑에서 옷을 샀다.
+regression.attested-loan-compound.independent	홈	noun	smart-only-exact	17	23	나무에 파인 홈을 확인했다.
 regression.proper-name-nominal-boundary.ordinal	세	noun	smart-only-exact	16	22	투트모세 III세가 왕위에 올랐다.
 regression.proper-name-nominal-boundary.transliteration	아	noun	no-match	0	3	아이티 정부가 발표했다.
 regression.proper-name-nominal-boundary.person	정	noun	no-match	6	9	강혜정 배우가 참석했다.

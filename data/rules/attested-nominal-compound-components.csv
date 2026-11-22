@@ -4,3 +4,5 @@
 # 일왕의 분절은 PUD w01095092·w01095093, 표기는 국립국어원 새국어소식 2005년 2월호를 따른다.
 # https://www.korean.go.kr/nkview/nknews/200502/79_11.html
 일왕,0,0,0,NNG,pud:w01095093,T,일왕,Compound,NNP,NNG,일/NNP/*+왕/NNG/*
+# 표준국어대사전 홈^쇼핑(374325), 홈(379267), 쇼핑(194204).
+홈쇼핑,0,0,0,NNG,stdict:374325,T,홈쇼핑,Compound,NNG,NNG,홈/NNG/*+쇼핑/NNG/*
