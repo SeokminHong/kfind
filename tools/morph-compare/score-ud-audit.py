@@ -37,12 +37,14 @@ def compare_reviewed_ranges(
             raise ValueError(f"duplicate source ranges: {review['id']}")
         source_reviews[review["id"]] = review
 
-    verified_rows = missing_count = extra_count = 0
+    verified_rows = unverified_positive_rows = missing_count = extra_count = 0
     differences = []
     for case in cases:
         case_id = case["id"]
         review = source_reviews.get(case_id)
         if review is None:
+            if case.get("contract_expected") is True and not case["expected"]:
+                unverified_positive_rows += 1
             continue
         if case.get("contract_expected") is not True or case["text"] != review["source_text"]:
             raise ValueError(f"source range review identity differs: {case_id}")
@@ -58,10 +60,64 @@ def compare_reviewed_ranges(
             differences.append({"id": case_id, "missing": missing, "extra": extra})
     return {
         "verified_rows": verified_rows,
+        "unverified_positive_rows": unverified_positive_rows,
         "missing": missing_count,
         "extra": extra_count,
         "differences": differences,
     }
+
+
+def score_contract(
+    cases: list[dict[str, object]],
+    predictions: dict[str, bool],
+    spans: dict[str, list[dict[str, int]]],
+    registry: Path,
+    *,
+    include_residual: bool,
+) -> dict[str, object]:
+    adjusted = contract_span_predictions(cases, predictions, spans)
+    reviewed_ranges = compare_reviewed_ranges(cases, spans, adjusted, registry)
+    range_errors = {entry["id"]: entry for entry in reviewed_ranges["differences"]}
+    contract = contract_quality_metrics(cases, adjusted)
+    fpc = contract["contract_fp"] + sum(bool(entry["extra"]) for entry in range_errors.values())
+    fnc = contract["contract_fn"]
+    zero_errors = fpc == fnc == 0
+    report = {
+        "contract": contract,
+        "reviewed_ranges": reviewed_ranges,
+        "contract_errors": {
+            "fpc": fpc,
+            "fnc": fnc,
+            "zero_errors_observed": zero_errors,
+            "zero_target_verified": zero_errors and reviewed_ranges["unverified_positive_rows"] == 0,
+        },
+    }
+    if include_residual:
+        residual = []
+        for case in cases:
+            expected = contract_expected(case)
+            if expected is None:
+                continue
+            case_id = case["id"]
+            difference = range_errors.get(case_id)
+            false_positive = (not expected and adjusted[case_id]) or (
+                difference is not None and bool(difference["extra"])
+            )
+            false_negative = expected and not adjusted[case_id]
+            if false_positive or false_negative:
+                row = {
+                    "id": case_id,
+                    "expected": expected,
+                    "spans": spans[case_id],
+                    "false_positive": false_positive,
+                    "false_negative": false_negative,
+                }
+                if difference is not None:
+                    row["missing"] = difference["missing"]
+                    row["extra"] = difference["extra"]
+                residual.append(row)
+        report["residual"] = residual
+    return report
 
 
 def main() -> int:
@@ -106,10 +162,6 @@ def main() -> int:
             if case["expected"]
             else bool(row["spans"])
         )
-    adjusted = contract_span_predictions(cases, predictions, spans)
-    reviewed_ranges = compare_reviewed_ranges(
-        cases, spans, adjusted, review_dir / "contract-contrast-evidence.jsonl"
-    )
     report = {
         "fixture": {"split": split, "sha256": checksum, "rows": len(cases)},
         "resources": {
@@ -121,16 +173,14 @@ def main() -> int:
             )
         },
         "raw": quality_metrics(cases, predictions),
-        "contract": contract_quality_metrics(cases, adjusted),
-        "reviewed_ranges": reviewed_ranges,
+        **score_contract(
+            cases,
+            predictions,
+            spans,
+            review_dir / "contract-contrast-evidence.jsonl",
+            include_residual=args.residual,
+        ),
     }
-    if args.residual:
-        report["residual"] = [
-            {"id": case["id"], "expected": expected, "spans": spans[case["id"]]}
-            for case in cases
-            if (expected := contract_expected(case)) is not None
-            and adjusted[case["id"]] != expected
-        ]
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
 
