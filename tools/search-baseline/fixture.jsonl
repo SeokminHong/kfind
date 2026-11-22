@@ -27,7 +27,7 @@
 {"id": "listen-11", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "가방을 들고 나왔다.", "line": 27}
 {"id": "listen-12", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들판에 꽃이 피었다.", "line": 28}
 {"id": "listen-13", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들깨를 볶았다.", "line": 29}
-{"id": "listen-14", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": true, "contract_reason": "structurally-indistinguishable-homograph", "text": "사람들이 방으로 들어갔다.", "line": 30}
+{"id": "listen-14", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "사람들이 방으로 들어갔다.", "line": 30}
 {"id": "listen-15", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들쭉날쭉한 선을 그었다.", "line": 31}
 {"id": "listen-16", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "전화를 걸고 기다렸다.", "line": 32}
 {"id": "help-01", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "서로 도와 해결했다.", "line": 33}
