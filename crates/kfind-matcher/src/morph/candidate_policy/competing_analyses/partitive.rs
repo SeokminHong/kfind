@@ -61,6 +61,25 @@ pub(super) fn rejects_han(
         return false;
     };
     match analysis {
+        (CoarsePos::Verb, "하다") if previous == "가능한" => {
+            // 국립국어원 '{가능한 한/가능한} 빨리'의 조건 명사 한(限).
+            // https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=9116
+            resolver.has_adnominal_dependent_noun(&previous, "한")
+                && !resolver.has_exact_nominal_surface(&next)
+                && (resolver.has_exact_adverb_surface(&next)
+                    || resolver.has_adjective_adnominal_surface(&next)
+                    || resolver.has_complete_connective_path(&next))
+        }
+        (CoarsePos::Verb, "하다") if matches!(previous.as_ref(), "단" | "오직") => {
+            // 한정 표현 뒤의 수 관형사와 단위 명사가 뒤 체언의 수량을 지정한다.
+            // https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=29733
+            next.strip_suffix('의')
+                .is_some_and(|unit| resolver.has_standalone_counted_unit("한", unit))
+                && context::next_word_on_line(haystack, next_end).is_some_and(|(_, next)| {
+                    next.strip_suffix('만')
+                        .is_some_and(|host| resolver.has_exact_nominal_surface(host))
+                })
+        }
         (CoarsePos::Verb, "하다") if previous == "중" => {
             let Some((group_start, group)) =
                 context::previous_word_with_start(haystack, previous_start)
