@@ -3017,6 +3017,11 @@ regression.progressive-entry.destination	듣다	verb	no-match	23	35	사람들이
 regression.progressive-entry.motion	들어가다	verb	smart-only-exact	23	35	사람들이 방으로 들어갔다.
 regression.progressive-entry.instrument	듣다	verb	smart-only-exact	26	38	학생이 이어폰으로 들어갔다.
 regression.progressive-entry.object	듣다	verb	smart-only-exact	55	67	학생은 녹음된 강의를 첫 회부터 한 편씩 들어갔다.
+regression.attached-auxiliary-boundary.lexical-connective	듣다	verb	smart-only-exact	10	19	음악을 들어도 두 실험 결과는 서로 들어맞고 있었다.
+regression.attached-auxiliary-boundary.lexical-quotative	듣다	verb	smart-only-exact	13	25	인터뷰를 들어보고 그 숫자가 예상과 들어맞는다는 것을 확인했다.
+regression.attached-auxiliary-boundary.whole	들어맞다	verb	smart-only-exact	27	39	그 이론이 관측값과 들어맞고 실제 결과도 훌륭했다.
+regression.attached-auxiliary-boundary.other-stem	듣다	verb	no-match	36	48	협소한 광장에는 구경꾼이 들어차고 있었다.
+regression.attached-auxiliary-boundary.compound-component	걷다	verb	smart-only-exact	10	25	소매를 걷어붙이고 나섰다.
 regression.quoted-name.not-degree	더	adverb	no-match	37	40	드라마 부문 여우주연상은 '더 클로저'의 카이라 세드윅에게 돌아갔다.
 regression.quoted-name.nominal-component	더	noun	smart-only-exact	10	13	영화 ‘더 클로저’를 다시 보았다.
 regression.quoted-name.degree-before-adverb	더	adverb	smart-only-exact	3	6	‘더 멀리 간다’라고 답했다.
