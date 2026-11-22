@@ -2960,6 +2960,11 @@ regression.whole-adverb-boundary.internal-noun	한	noun	no-match	3	6	또한 관�
 regression.whole-adverb-boundary.adverb	또한	adverb	smart-only-exact	0	6	또한 관절경 검사가 필요하다.
 regression.whole-adverb-boundary.separate-dependent-noun	한	noun	smart-only-exact	10	13	가능한 한 빠른 시일 내에 연락한다.
 regression.whole-adverb-boundary.age-band-unit	대	noun	smart-only-exact	3	6	십대 여학생을 돕는다.
+regression.dependent-noun-boundary.connective-tail	가	noun	no-match	16	19	연금을 받다가 사망하면 보증기간이 끝난다.
+regression.dependent-noun-boundary.whole-connective	받다	verb	smart-only-exact	10	19	연금을 받다가 사망하면 보증기간이 끝난다.
+regression.dependent-noun-boundary.particle-tail	가	noun	no-match	15	18	사회적동요가 더욱 가중되었다.
+regression.dependent-noun-boundary.aligned-noun	동요	noun	smart-only-exact	9	18	사회적동요가 더욱 가중되었다.
+regression.dependent-noun-boundary.aligned-compound	가	noun	smart-only-exact	6	12	우물가는 시끄럽다.
 regression.aligned-nominal-tail.calendar-day	일	noun	smart-only-exact	17	20	연극은 6월 10일 토요일에 상연된다.
 regression.aligned-nominal-tail.weekday-component	요일	noun	smart-only-exact	24	33	연극은 6월 10일 토요일에 상연된다.
 regression.aligned-nominal-tail.weekday-extra	일	noun	no-match	6	12	토요일에 문을 연다.
