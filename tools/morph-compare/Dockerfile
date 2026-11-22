@@ -7,6 +7,7 @@ COPY tools/morph-compare/sources.json ./sources.json
 COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/robustness-reviews.json ./robustness-reviews.json
 COPY tools/morph-compare/*-context-cases.jsonl tools/morph-compare/*-contract-reviews.tsv ./
+COPY tools/morph-compare/*-corpus-reviews.tsv ./
 COPY tools/morph-compare/score-ud-audit.py tools/morph-compare/contract-contrast-evidence.jsonl ./
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
@@ -150,6 +151,7 @@ COPY tools/morph-compare/external/robustness-baselines.json \
     /opt/morph-benchmark/robustness-external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY --from=corpus-builder /build/score-ud-audit.py /build/contract-contrast-evidence.jsonl /opt/morph-benchmark/
+COPY --from=corpus-builder /build/*-corpus-reviews.tsv /opt/morph-benchmark/
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 COPY tools/morph-compare/sentence-reviews.json \
     /opt/morph-benchmark/sentence-reviews.json
