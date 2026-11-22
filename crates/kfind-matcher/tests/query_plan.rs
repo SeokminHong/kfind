@@ -730,9 +730,18 @@ fn interrogative_ending_requires_the_complete_eojeol() {
 
         assert_eq!(&text[matched.atoms[0].core.clone()], "어떤");
         assert_eq!(&text[matched.span], "어떤가");
+
+        let object_clause = "그 노래가 어떤가를 알아보자.";
+        let matched = matcher
+            .find_at_with_meta(object_clause.as_bytes(), 0)
+            .expect("the interrogative clause with an object particle was rejected");
+        assert_eq!(&object_clause[matched.atoms[0].core.clone()], "어떤");
+        assert_eq!(&object_clause[matched.span], "어떤가를");
+
+        // A vowel-final interrogative takes 를, so 을 leaves the token unverified.
         assert!(
             matcher
-                .find_at_with_meta("어떤가를".as_bytes(), 0)
+                .find_at_with_meta("어떤가을".as_bytes(), 0)
                 .is_none()
         );
     }

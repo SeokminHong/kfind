@@ -1437,6 +1437,7 @@ macro_rules! nieun_questions {
     ($prefix:literal $(, $prior:literal)*) => {
         &[
             suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
+            suffix(concat!($prefix, "가를"), &[$($prior,)* "ending.interrogative-nga", "particle.object"]),
             suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
             suffix(concat!($prefix, "감"), &[$($prior,)* "ending.interrogative-ngam"]),
             suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),

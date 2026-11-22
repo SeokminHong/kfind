@@ -1,0 +1,6 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s204:adjective:있다	있다	adjective	false	5b96496fe15f069d087712750e86c47e37df10ab9f906a2065c14b0bb07d0b99	contract-positive	aligned-source-component	표준국어대사전의 ‘-ㄹ 수 있다’ 구성에서 의존 명사 수를 주어로 하는 가능의 형용사다. 범위는 119..128이다.
+explicit-pos	corpus-negatives	gsd:test-s318:adjective:있다	있다	adjective	false	73a0c1183985e4dafcaabe8f32e4ffa05b1e68459aa1ee654bb7e40d5018ca6d	contract-positive	aligned-source-component	표준국어대사전의 ‘-ㄹ 수 있다’ 구성에서 의존 명사 수를 주어로 하는 가능의 형용사다. 범위는 78..87이다.
+explicit-pos	corpus-negatives	pud:n01073004:adjective:있다	있다	adjective	false	957f682a661a7c6ddb065fdf88519b3c25dd359fe75d5749f7aa33bd5afc81d5	contract-positive	aligned-source-component	표준국어대사전의 ‘-ㄹ 수 있다’ 구성에서 의존 명사 수를 주어로 하는 가능의 형용사다. 범위는 51..60이다.
+explicit-pos	corpus-negatives	pud:w01140030:adjective:있다	있다	adjective	false	cf885f8018082f09a709c5649c0372f66788f0cd8b523c4eb3406c443da1f26c	contract-positive	aligned-source-component	표준국어대사전의 ‘-ㄹ 수 있다’ 구성에서 의존 명사 수를 주어로 하는 가능의 형용사다. 범위는 114..126이다.
+explicit-pos	corpus-negatives	pud:n03006016:adjective:있다	있다	adjective	false	6832148811eacc4c446de1333ef2f87f87b06aff329b75fbed24cb3088b571a6	contract-positive	aligned-source-component	표준국어대사전의 ‘-ㄹ 수 있다’ 구성에서 의존 명사 수를 주어로 하는 가능의 형용사다. 범위는 71..80이다.

@@ -2993,3 +2993,11 @@ regression.adnominal-object.nominal-prefix	거	noun	no-match	10	16	숙성을 거
 regression.adnominal-object.verb-reading	거치다	verb	smart-only-exact	10	16	과정을 거친 지원자만 남았다.
 regression.adnominal-object.adjective-reading	거칠다	adjective	smart-only-exact	0	6	거친 천을 사용했다.
 regression.adnominal-object.dependent-noun	거	noun	smart-only-exact	4	10	내 거는 여기 있다.
+corpus.ud-pud.test.w01140030.embedded-question-object	있다	adjective	smart-only-exact	115	127	1926년 초반 레이어는 로나와 협력해 자신의 시험실에서 어떻게 폴로늄 샘플을 만들 수 있는가를 제안하면서 이렌 졸리오 퀴리에게 서신을 보냈다.
+corpus.ud-pud.test.w01028069.embedded-question-object	나뉘다	verb	smart-only-exact	82	103	캔자스 사건에 대한 국가의 반응을 볼 때 나라가 얼마나 깊게 나뉘어졌는가를 알 수 있다.
+regression.embedded-question-object.consonant-adjective	좋다	adjective	smart-only-exact	10	22	가격이 좋은가를 물었다.
+regression.embedded-question-object.present-verb	달리다	verb	smart-only-exact	4	19	왜 달리는가를 생각한다.
+regression.embedded-question-object.copula	이다	adjective	smart-only-exact	6	15	학생인가를 물었다.
+regression.embedded-question-object.honorific	보다	verb	smart-only-exact	10	25	무엇을 보시는가를 기록했다.
+regression.embedded-question-object.invalid-allomorph	있다	adjective	no-match	7	19	돈이 있는가을 묻는다.
+regression.embedded-question-object.pronominal	이다	adjective	no-match	0	12	무언가를 물었다.
