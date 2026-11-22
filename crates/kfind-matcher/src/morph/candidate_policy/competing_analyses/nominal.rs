@@ -3,7 +3,8 @@ use kfind_query::{CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
-    is_boundary_after, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+    bounded_surrounding_token_span, is_boundary_after, is_boundary_before, is_sentence_end_after,
+    surrounding_token_span,
 };
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
@@ -482,4 +483,35 @@ pub(super) fn has_bound_nominal_prefix(
                         || resolver.has_aligned_nominal_prefix(&prefix, &text)
                 })
     })
+}
+
+pub(super) fn has_bound_nominal_suffix(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || is_boundary_before(haystack, core.start)
+    {
+        return false;
+    }
+    let Some(suffix) = context::normalized_token(haystack, core.clone()) else {
+        return false;
+    };
+    if !resolver.has_source_nominal_suffix(&suffix) {
+        return false;
+    }
+    let Ok(whole) = bounded_surrounding_token_span(haystack, core.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
+    context::normalized_token(haystack, whole.start..core.start)
+        .zip(context::normalized_token(haystack, whole))
+        .is_some_and(|(prefix, token)| {
+            resolver.has_aligned_nominal_suffix(prefix.len()..prefix.len() + suffix.len(), &token)
+        })
 }

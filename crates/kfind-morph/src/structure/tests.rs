@@ -151,6 +151,25 @@ fn aligned_nominal_prefix_requires_source_extent_and_grammatical_tail() {
 }
 
 #[test]
+fn aligned_nominal_suffix_requires_grammatical_tail_and_preserves_alternative_components() {
+    let resolver = resolver_from_entries([
+        atomic("자", "XSN"),
+        expression("가담자", "NNG", "가담/NNG/*+자/XSN/*"),
+        expression("참여자", "NNG", "참여/NNG/*+자/XSN/*"),
+        expression("참여자", "NNG", "참여/NNG/*+자/NNG/*"),
+    ]);
+
+    assert!(resolver.has_source_nominal_suffix("자"));
+    assert!(resolver.has_aligned_nominal_suffix(6..9, "가담자"));
+    assert!(resolver.has_aligned_nominal_suffix(6..9, "가담자들은"));
+    assert!(resolver.has_aligned_nominal_suffix(6..9, "가담자이다"));
+    assert!(!resolver.has_aligned_nominal_suffix(3..9, "가담자"));
+    assert!(!resolver.has_aligned_nominal_suffix(6..9, "가담자이"));
+    assert!(!resolver.has_aligned_nominal_suffix(6..9, "가담자수"));
+    assert!(!resolver.has_aligned_nominal_suffix(6..9, "참여자는"));
+}
+
+#[test]
 fn edge_graph_stops_allocating_after_the_node_limit() {
     let resolver = resolver_from_entries([atomic("가", "NNG"), atomic("가", "NNP")]);
 

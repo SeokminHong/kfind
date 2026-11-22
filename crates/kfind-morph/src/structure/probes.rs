@@ -453,6 +453,49 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_source_nominal_suffix(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::XSN])
+    }
+
+    #[must_use]
+    pub fn has_aligned_nominal_suffix(&self, suffix: Range<usize>, text: &str) -> bool {
+        let mut aligned_suffix = false;
+        let mut aligned_nominal = false;
+        self.resource
+            .common_prefix_analysis_refs(text.as_bytes(), |end, analysis| {
+                if aligned_nominal
+                    || end < suffix.end
+                    || !matches!(analysis.positions(), [pos] if pos.is_nominal_tag())
+                {
+                    return;
+                }
+                let Some(component) = analysis.components().find(|part| part.span == suffix) else {
+                    return;
+                };
+                let derives_noun = component.pos == "XSN"
+                    && suffix.end == end
+                    && analysis.positions() == [StructuralPos::NNG];
+                let is_nominal = component.pos == "NNBC"
+                    || DataFinePos::parse(component.pos).is_some_and(DataFinePos::is_nominal);
+                if !derives_noun && !is_nominal {
+                    return;
+                }
+                let (host, tail) = text.split_at(end);
+                if tail.is_empty()
+                    || super::lexical::has_grammatical_particle_chain(host, tail)
+                    || host
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
+                {
+                    aligned_suffix |= derives_noun;
+                    aligned_nominal |= is_nominal;
+                }
+            });
+        aligned_suffix && !aligned_nominal
+    }
+
+    #[must_use]
     pub fn has_aligned_nominal_prefix(&self, prefix: &str, text: &str) -> bool {
         if prefix.is_empty() || !text.starts_with(prefix) {
             return false;
