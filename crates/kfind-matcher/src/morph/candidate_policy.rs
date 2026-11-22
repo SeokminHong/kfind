@@ -347,6 +347,14 @@ impl MorphMatcher {
                     || has_alternative_frame_for_determiner(
                         haystack, candidate, branch, atom, resolver,
                     )
+                    || punctuated_particle::rejects_quoted_determiner_prefix(
+                        haystack,
+                        &candidate.verified.core,
+                        branch,
+                        atom,
+                        resolver,
+                        &self.particle_verifier,
+                    )
                     || competing_analyses::rejects(haystack, candidate, branch, atom, resolver)
             })
         {

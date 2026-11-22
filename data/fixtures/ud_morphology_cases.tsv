@@ -2352,6 +2352,11 @@ regression.predicate-terminal-component.homographic-verb	사다	verb	smart-only-
 regression.predicate-terminal-component.glued-dependent-noun	수	noun	smart-only-exact	29	32	어떤 서비스도 제공할수 있다.
 regression.particle.enclosed.spaced-predicate	가다	verb	smart-only-exact	28	31	계단으로(뛰지 말고) 가.
 regression.particle.enclosed.restrictive-not-numeral	만	numeral	no-match	26	38	멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
+regression.quoted-determiner.product-prefix	두	determiner	no-match	40	43	기존에 출시했던 멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
+regression.quoted-determiner.product-whole	두잇	noun	smart-only-exact	40	46	기존에 출시했던 멸균 두유 ‘두잇’만으로는 입맛을 붙잡기 어렵다.
+regression.quoted-determiner.club-and-real	새	determiner	smart-only-exact	29	32	동아리 ‘새빛’에서 새 소식을 전했다.
+regression.quoted-determiner.brand-and-real	세	determiner	smart-only-exact	36	39	상표 ‘세봄’을 등록하고 세 가지 제품을 준비했다.
+regression.quoted-determiner.count-in-quote	세	determiner	smart-only-exact	19	22	진열대에서 ‘세 병’만 골랐다.
 regression.particle.enclosed.standalone-numeral	만	numeral	smart-only-exact	30	39	입장객 수를 오천에서 만으로 높였다.
 regression.ending.euryeodeun	먹다	verb	smart-exact	11	23	죽도 못 먹으려든 하물며 쌀밥이라니.
 regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 같다.

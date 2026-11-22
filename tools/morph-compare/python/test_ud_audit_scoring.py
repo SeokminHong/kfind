@@ -327,6 +327,33 @@ class UDAuditScoringTests(unittest.TestCase):
                     [row["unverified"] for row in result["residual"]], [pending] if pending else [],
                 )
 
+    def test_reclassified_negative_counts_a_return_outside_original_gold(self) -> None:
+        case_id = "gsd:test-s220:6"
+        case = {
+            "id": case_id,
+            "query": "두",
+            "pos": "determiner",
+            "text": "기존에 출시했던 멸균 두유 '두잇'만으로는 다양한 소비자의 입맛을 붙잡기에는 무리가 있었다고 보고 새 제품으로 적극 시장을 공략한다는 방침이다.",
+            "expected": True,
+            "gold_byte_start": 38,
+            "gold_byte_end": 44,
+            "contract_expected": False,
+            "contract_reason": "gold-alignment-error",
+        }
+        wrong_span = {"byte_start": 38, "byte_end": 41}
+        for matches in ([], [wrong_span]):
+            with self.subTest(matches=matches):
+                result = SCORE_CONTRACT(
+                    [case], {case_id: False}, {case_id: matches}, {}, include_residual=True
+                )
+                self.assertEqual(result["contract_errors"]["fpc"], int(bool(matches)))
+                self.assertEqual(result["contract_errors"]["fnc"], 0)
+                self.assertEqual(result["contract_errors"]["zero_target_verified"], not matches)
+                self.assertEqual(len(result["residual"]), len(matches))
+                if matches:
+                    self.assertTrue(result["residual"][0]["false_positive"])
+                    self.assertEqual(result["residual"][0]["spans"], matches)
+
     @staticmethod
     def positive_case(case_id: str, text: str) -> dict:
         return {
