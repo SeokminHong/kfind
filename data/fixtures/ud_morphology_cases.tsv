@@ -2320,6 +2320,7 @@ regression.particle.additive-copula.focus-copula	나	pronoun	smart-only-exact	30
 regression.particle.additive-copula.locative-copula	고객	noun	smart-only-exact	21	33	그 혜택은 단골 고객에게다.
 regression.particle.additive-copula.separate-noun	정	noun	smart-only-exact	14	20	자주 보니 정이 든다.
 regression.particle.additive-copula.whole-adverb	정말	adverb	smart-only-exact	11	17	이 국은 정말 맛있다.
+regression.proofread-dish.copula-head	집	noun	smart-only-exact	43	46	닭볶음탕 대전에서 제일 맛있는 집입니다.
 regression.predicate-terminal-component.quoted-adjective	고	noun	no-match	9	12	그렇다고 말했다.
 regression.predicate-terminal-component.derived-verb	고	noun	no-match	22	25	시설이 확장되었고 주민이 늘었다.
 regression.predicate-terminal-component.quoted-copula	고	noun	no-match	15	18	사건이었다고 주장했다.
