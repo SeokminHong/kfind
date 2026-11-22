@@ -1,13 +1,13 @@
-use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos};
+use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos, PredicatePosSet};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
-    is_boundary_after, is_boundary_before, is_sentence_end_after, next_character_with_end,
-    previous_character, surrounding_token_span,
+    bounded_surrounding_token_span, is_boundary_after, is_boundary_before, is_sentence_end_after,
+    next_character_with_end, previous_character, surrounding_token_span,
 };
 
-use super::{ExecutedCandidate, context, has_counted_unit_copula_ending};
+use super::{ExecutedCandidate, MAX_CONSUMPTION_BYTES, context, has_counted_unit_copula_ending};
 
 const COMPARATIVE_ADVERBS: &[(&str, &str)] =
     include!("../../../../../../data/rules/krdict-comparative-adverbs.rs");
@@ -29,10 +29,15 @@ pub(super) fn has_quantity_nominal_conflict(
         return false;
     };
     let is_approximation = ConstraintResolver::is_quantity_approximation_suffix(&host);
-    if !is_approximation && candidate.suffix_rules.is_empty() {
+    if !is_approximation
+        && (!is_boundary_before(haystack, core.start) || is_boundary_after(haystack, core.end))
+    {
         return false;
     }
-    let whole = surrounding_token_span(haystack, core.clone());
+    let Ok(whole) = bounded_surrounding_token_span(haystack, core.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
     let (unit_start, unit) = if is_approximation
         && core.start > whole.start
         && context::normalized_token(haystack, core.end..whole.end)
@@ -43,9 +48,8 @@ pub(super) fn has_quantity_nominal_conflict(
         };
         (whole.start, unit)
     } else if core.start == whole.start
-        && !candidate.suffix_rules.is_empty()
         && context::normalized_token(haystack, whole.clone())
-            .is_some_and(|token| resolver.has_comparative_nominal_after_quantity(&token, &host))
+            .is_some_and(|token| resolver.has_comparative_nominal_expansion(&token, &host))
     {
         let Some(preceding) = previous_word_on_line(haystack, whole.start) else {
             return false;
@@ -56,6 +60,17 @@ pub(super) fn has_quantity_nominal_conflict(
     };
     let count = previous_word_on_line(haystack, unit_start).map(|(_, count)| count);
     resolver.has_quantity_amount(&unit, count.as_deref())
+        || (core.start == whole.start
+            && resolver.has_whole_determiner(&unit)
+            && (context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
+                let adjectives = PredicatePosSet::one(PredicatePos::Adjective);
+                resolver.has_exact_predicate_connective_path(&next, adjectives)
+                    || resolver.has_derived_predicate_connective_surface(&next, adjectives)
+            }) || count.is_some_and(|argument| {
+                resolver.has_object_marked_nominal(&argument)
+                    || resolver.has_subject_marked_nominal(&argument)
+                    || resolver.has_topic_marked_nominal(&argument)
+            })))
 }
 
 fn previous_word_on_line(haystack: &[u8], at: usize) -> Option<(usize, std::borrow::Cow<'_, str>)> {
