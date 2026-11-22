@@ -3012,3 +3012,7 @@ regression.comitative-connective.partial-pronoun	나	pronoun	no-match	14	23	그�
 regression.comitative-connective.additive-tail	나	pronoun	no-match	14	26	잠시 밖에 나와서도 이야기를 계속했다.
 regression.comitative-connective.independent-pronoun	나	pronoun	smart-only-exact	0	6	나와 함께 끝까지 걸었다.
 regression.comitative-connective.pronoun-with-topic	나	pronoun	smart-only-exact	0	9	나와는 연락하지 않았다.
+regression.attached-result-state.full-connective	있다	adjective	no-match	13	19	아직 남아있게 하고 싶다.
+regression.attached-result-state.contracted-connective	있다	adjective	no-match	30	36	트렁크 문이 활짝 열려있다.
+regression.attached-result-state.independent-existential	있다	adjective	smart-only-exact	17	23	지불할 돈이 있다.
+regression.attached-result-state.independent-possibility	있다	adjective	smart-only-exact	15	21	아직 할 수 있는 일이 남아있다.

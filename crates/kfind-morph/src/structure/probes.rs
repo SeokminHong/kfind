@@ -1352,6 +1352,59 @@ impl ConstraintResolver {
         self.has_matching_vowel_auxiliary_inflection(text, host_pos, |_| true, |_| true)
     }
 
+    /// Verifies the attached result-state auxiliary 있다 (KRDict 62595).
+    #[must_use]
+    pub fn has_result_state_auxiliary_frame(&self, host: &str, auxiliary: &str) -> bool {
+        use crate::hangul::{
+            JONG_NONE, JUNG_A, JUNG_AE, JUNG_E, JUNG_EO, JUNG_WA, JUNG_WAE, JUNG_WEO, JUNG_YE,
+            JUNG_YEO, decompose_syllable,
+        };
+        let is_vowel_connective = host
+            .chars()
+            .next_back()
+            .and_then(decompose_syllable)
+            .is_some_and(|syllable| {
+                syllable.jongseong == JONG_NONE
+                    && matches!(
+                        syllable.jungseong,
+                        JUNG_A
+                            | JUNG_AE
+                            | JUNG_E
+                            | JUNG_EO
+                            | JUNG_WA
+                            | JUNG_WAE
+                            | JUNG_WEO
+                            | JUNG_YE
+                            | JUNG_YEO
+                    )
+            });
+        let connective = |pos| pos == StructuralPos::EC;
+        is_vowel_connective
+            && self.has_matching_vowel_auxiliary_inflection(
+                auxiliary,
+                PredicatePos::Verb,
+                |lemma| lemma == "있다",
+                |_| true,
+            )
+            && (self.has_exact_predicate_connective_path(
+                host,
+                PredicatePosSet::one(PredicatePos::Verb),
+            ) || (host.ends_with(['아', '어', '여'])
+                && predicate_inflected_path(
+                    &self.resource,
+                    host,
+                    |pos| pos == StructuralPos::VV,
+                    connective,
+                ))
+                || (host.chars().count() <= 2
+                    && derived_inflected_path(
+                        &self.resource,
+                        host,
+                        |pos| pos == StructuralPos::XSV,
+                        connective,
+                    )))
+    }
+
     #[must_use]
     pub fn has_attached_resultative_inflection(&self, text: &str, host_pos: PredicatePos) -> bool {
         self.has_matching_vowel_auxiliary_inflection(
