@@ -25,21 +25,21 @@ pub(super) fn has_quantity_nominal_conflict(
         return false;
     }
     let core = &candidate.verified.core;
+    let starts_word = is_boundary_before(haystack, core.start);
+    if starts_word && is_boundary_after(haystack, core.end) {
+        return false;
+    }
     let Some(host) = context::normalized_token(haystack, core.clone()) else {
         return false;
     };
-    let is_approximation = ConstraintResolver::is_quantity_approximation_suffix(&host);
-    if !is_approximation
-        && (!is_boundary_before(haystack, core.start) || is_boundary_after(haystack, core.end))
-    {
+    if !starts_word && !ConstraintResolver::is_quantity_approximation_suffix(&host) {
         return false;
     }
     let Ok(whole) = bounded_surrounding_token_span(haystack, core.clone(), MAX_CONSUMPTION_BYTES)
     else {
         return false;
     };
-    let (unit_start, unit) = if is_approximation
-        && core.start > whole.start
+    let (unit_start, unit) = if !starts_word
         && context::normalized_token(haystack, core.end..whole.end)
             .is_some_and(|tail| resolver.has_quantity_approximation_particle_tail(&tail))
     {
@@ -47,7 +47,7 @@ pub(super) fn has_quantity_nominal_conflict(
             return false;
         };
         (whole.start, unit)
-    } else if core.start == whole.start
+    } else if starts_word
         && context::normalized_token(haystack, whole.clone())
             .is_some_and(|token| resolver.has_comparative_nominal_expansion(&token, &host))
     {
@@ -60,7 +60,7 @@ pub(super) fn has_quantity_nominal_conflict(
     };
     let count = previous_word_on_line(haystack, unit_start).map(|(_, count)| count);
     resolver.has_quantity_amount(&unit, count.as_deref())
-        || (core.start == whole.start
+        || (starts_word
             && resolver.has_whole_determiner(&unit)
             && (context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
                 let adjectives = PredicatePosSet::one(PredicatePos::Adjective);
