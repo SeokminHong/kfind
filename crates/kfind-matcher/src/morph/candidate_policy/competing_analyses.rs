@@ -97,16 +97,7 @@ fn has_purpose_motion_frame(
     atom: &AtomPlan,
     resolver: &ConstraintResolver,
 ) -> bool {
-    if !matches!(
-        branch.consumption,
-        CandidateConsumption::PredicateContinuation {
-            pos: PredicatePos::Verb,
-            ..
-        } | CandidateConsumption::StructuralPredicateEnding {
-            pos: PredicatePos::Verb,
-            ..
-        }
-    ) || branch.origins.is_empty()
+    if branch.origins.is_empty()
         || !branch.origins.iter().all(|origin| {
             // KRDict 갈다 (59937, 62334) takes a replaced or ground object.
             atom.analyses[usize::from(origin.analysis_index)]
@@ -119,12 +110,8 @@ fn has_purpose_motion_frame(
     }
     let span = &candidate.consumed;
     if !is_boundary_before(haystack, span.start)
-        || !context::previous_word_with_start(haystack, span.start).is_some_and(|(start, word)| {
-            !haystack[start..span.start]
-                .iter()
-                .any(|byte| matches!(byte, b'\r' | b'\n'))
-                && resolver.has_purpose_connective_host(&word)
-        })
+        || !context::previous_non_adverb_on_line(haystack, span.start, resolver)
+            .is_some_and(|word| resolver.has_purpose_connective_host(&word))
     {
         return false;
     }

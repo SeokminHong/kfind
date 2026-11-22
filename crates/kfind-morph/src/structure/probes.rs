@@ -2305,6 +2305,44 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_duration_measure(&self, text: &str) -> bool {
+        DURATION_UNITS.iter().any(|unit| {
+            text.strip_suffix(unit).is_some_and(|count| {
+                !count.is_empty() && self.has_duration_suffix_host(unit, Some(count), true)
+            })
+        })
+    }
+
+    /// Verifies the duration predicate `걸리다` (KRDict 86940).
+    #[must_use]
+    pub fn has_elapsed_time_predicate(text: &str, adnominal: bool) -> bool {
+        if !text.starts_with('걸') {
+            return false;
+        }
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "걸리다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid duration predicate")
+            });
+        FORMS.iter().any(|form| {
+            matches_predicate_branch_with_ending(text, form, |ending| {
+                ending.is_some_and(|rule| {
+                    matches!(
+                        rule.as_str(),
+                        "ending.present-adnominal"
+                            | "ending.past-adnominal"
+                            | "ending.future-adnominal"
+                    ) == adnominal
+                })
+            })
+        })
+    }
+
+    #[must_use]
     pub fn has_elapsed_measure(&self, measure: &str, previous: Option<&str>) -> bool {
         const OTHER_MEASURES: &[&str] = &[
             "번",
@@ -2622,30 +2660,6 @@ impl ConstraintResolver {
                     |pos| pos == StructuralPos::EF,
                 )
             })
-    }
-
-    #[must_use]
-    pub fn has_conjecture_complement_predicate(&self, text: &str) -> bool {
-        // 한국어기초사전 -려니¹의 결합 용언.
-        [
-            "하",
-            "생각하",
-            "싶",
-            "여기",
-            "해",
-            "생각해",
-            "했",
-            "생각했",
-            "싶었",
-            "여겼",
-        ]
-        .into_iter()
-        .any(|stem| {
-            text.strip_prefix(stem).is_some_and(|tail| {
-                (!tail.is_empty() || matches!(stem, "해" | "생각해"))
-                    && complete_suffix(&self.resource, tail, StructuralPos::is_ending)
-            })
-        })
     }
 
     #[must_use]

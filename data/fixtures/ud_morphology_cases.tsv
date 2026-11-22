@@ -2340,6 +2340,9 @@ regression.comparative.object-before-degree-connective	더	noun	no-match	17	20	�
 regression.comparative.object-before-degree-adverb	더	adverb	smart-only-exact	17	20	입장료를 좀 더 올리더라도 좋다.
 regression.comparative.object-before-lower-degree	덜	noun	no-match	17	20	우유를 조금 덜 따랐다.
 regression.comparative.object-before-lower-degree-adverb	덜	adverb	smart-only-exact	17	20	우유를 조금 덜 따랐다.
+regression.comparative.object-before-other-adverb	더	noun	no-match	14	17	물을 약간 더 마시자.
+regression.comparative.object-before-other-adverb-lower	덜	noun	no-match	14	17	물을 약간 덜 마시자.
+regression.comparative.marked-name-subject	더	noun	smart-only-exact	7	13	책을 더가 가져갔다.
 regression.comparative.omitted-object-may-be-name	더	noun	smart-only-exact	11	14	그는 좀 더 불러 달라고 말했다.
 regression.comparative.title-before-negative	더	noun	smart-only-exact	7	10	책 ‘더 이상’을 읽지 않았다.
 regression.comparative.bare-subject	더	noun	smart-only-exact	10	13	형보다 더 높다.
@@ -2625,6 +2628,9 @@ regression.copula-rani.enumerated-noun	이다	adjective	no-match	0	9	나라니 �
 regression.copula-raneuni.title	이다	adjective	smart-only-exact	21	33	도둑이 결국 김 씨라느니 아니라느니 하는 소문만 무성했다.
 regression.copula-raneuni.other-title	이다	adjective	smart-only-exact	21	33	범인이 결국 이 씨라느니 아니라느니 얘기가 많았다.
 regression.copula-raneuni.directive-control	이다	adjective	no-match-both	10	22	편지를 쓰라느니 아니라느니 말이 많았다.
+regression.copula-raneuni.parallel-title-first	이다	adjective	smart-exact	21	33	도둑이 결국 김 씨라느니 이 씨라느니 하는 소문만 무성했다.
+regression.copula-raneuni.parallel-title-second	이다	adjective	smart-exact	38	50	도둑이 결국 김 씨라느니 이 씨라느니 하는 소문만 무성했다.
+regression.copula-raneuni.non-adjacent-negation	이다	adjective	smart-only-exact	21	33	도둑이 결국 김 씨라느니 절대 아니라느니 하는 소문만 무성했다.
 regression.copula-final-ra.genitive-head	이다	adjective	smart-only-exact	81	90	백성을 소중히 여기고 나라를 잘 다스리는 것이 군주의 기본 도리라.
 regression.copula-final-ra.other-genitive-head	이다	adjective	smart-only-exact	27	36	그것이 도시의 안전 관리라.
 regression.copula-final-ra.directive	이다	adjective	no-match-both	18	27	기계를 좀 더 돌리라.
@@ -2636,6 +2642,8 @@ regression.copula-ryeoni.other-nominal	이다	adjective	smart-only-exact	20	32	�
 regression.copula-ryeoni.independent-verb	이다	adjective	no-match-both	24	33	그는 동생이 먼저 보려니 생각했다.
 regression.copula-ryeoni.consonant-host	이다	adjective	no-match-both	18	30	그는 그 말을 거짓려니 생각했다.
 regression.copula-ryeoni.explicit-copula	이다	adjective	smart-only-exact	31	40	다 내가 너무 무식한 탓이려니 생각했다.
+regression.copula-ryeoni.inferred-nominal	이다	adjective	smart-only-exact	7	19	그는 핑계려니 짐작했다.
+regression.copula-ryeoni.believed-nominal	이다	adjective	smart-only-exact	7	19	그는 핑계려니 믿었다.
 regression.geondae.promise	장담하다	verb	exact	7	22	제가 장담하건대 신제품은 엄청난 인기를 얻을 것입니다.
 regression.geondae.infer	짐작하다	verb	exact	33	48	승규의 성품으로 미루어 짐작하건대 부모의 성품 역시 훌륭할 것이다.
 regression.geondae.swear	맹세하다	verb	exact	0	15	맹세하건대 저는 신중하게 판단했습니다.
@@ -2899,6 +2907,11 @@ regression.purpose-motion.vowel-competing	갈다	verb	no-match	20	26	은사님�
 regression.purpose-motion.manner-connective	갈다	verb	smart-only-exact	14	23	세게 눌러 간다면 표면이 고르게 닳는다.
 regression.purpose-motion.reo-irregular-connective	갈다	verb	smart-only-exact	17	26	때에 이르러 간다면 표면이 얇아진다.
 regression.purpose-motion.object	갈다	verb	smart-only-exact	10	16	원두를 갈면 향이 진해진다.
+regression.purpose-motion.intervening-adverb	갈다	verb	no-match	21	30	책을 사러 어서 가세요.
+regression.purpose-motion.intervening-adverb-movement	가다	verb	smart-only-exact	21	30	책을 사러 어서 가세요.
+regression.elapsed-time.counted-duration-nominal	가	noun	no-match	7	13	집에 가는 데 두 시간이 걸렸다.
+regression.elapsed-time.independent-duration-nominal	가	noun	no-match	7	13	집에 가는 데 사흘이 걸렸다.
+regression.elapsed-time.independent-duration-verb	가다	verb	smart-only-exact	7	13	집에 가는 데 사흘이 걸렸다.
 regression.whole-nominal-boundary.shenzhen-competing	전	noun	smart-only-exact	24	30	선전 교통 경찰은 전에 색다른 방법을 채택했다.
 regression.whole-nominal-boundary.shenzhen-whole	선전	noun	smart-only-exact	0	6	선전 교통 경찰은 전에 색다른 방법을 채택했다.
 regression.whole-nominal-boundary.procedure-tail	차	noun	no-match	3	6	절차 중에 문제가 생겼다.
