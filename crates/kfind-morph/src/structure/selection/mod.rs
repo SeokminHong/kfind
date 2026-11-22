@@ -122,7 +122,8 @@ impl StructureSelection {
             )
             && spans.core.start > spans.token.start
             && spans.consumed.end == spans.token.end
-            && evidence.has_longer_aligned_nominal_tail(&spans.core)
+            && (evidence.has_longer_aligned_nominal_tail(&spans.core)
+                || evidence.has_pronoun_host_for_nominal_tail(spans))
             && !evidence.has_nominal_source_component(&spans.core)
         {
             return false;

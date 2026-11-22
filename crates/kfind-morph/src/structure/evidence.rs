@@ -457,6 +457,34 @@ impl TokenEvidence {
             })
     }
 
+    pub(super) fn has_pronoun_host_for_nominal_tail(&self, spans: &crate::CandidateSpans) -> bool {
+        let host = spans.token.start..spans.core.end;
+        let mut pronoun = false;
+        for unit in self.units.starting_at(host.start) {
+            if unit.span != host || !unit.aligned_pos {
+                continue;
+            }
+            if matches!(
+                unit.pos,
+                DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+            ) {
+                return false;
+            }
+            pronoun |= unit.pos == DataFinePos::Np;
+        }
+        pronoun
+            && (host == spans.token
+                || self.nominal_particle_hosts.contains(&host)
+                || self.grammatical_nominal_suffixes.iter().any(|suffix| {
+                    suffix.start == host.end
+                        && (suffix.end == spans.token.end
+                            || self
+                                .complete_nominal_particle_host
+                                .as_ref()
+                                .is_some_and(|with_suffix| with_suffix.end == suffix.end))
+                }))
+    }
+
     pub(super) fn has_whole_nominal_source_component(
         &self,
         span: &Range<usize>,
