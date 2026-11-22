@@ -3020,3 +3020,6 @@ regression.attached-result-state.full-connective	있다	adjective	no-match	13	19
 regression.attached-result-state.contracted-connective	있다	adjective	no-match	30	36	트렁크 문이 활짝 열려있다.
 regression.attached-result-state.independent-existential	있다	adjective	smart-only-exact	17	23	지불할 돈이 있다.
 regression.attached-result-state.independent-possibility	있다	adjective	smart-only-exact	15	21	아직 할 수 있는 일이 남아있다.
+regression.quantity-adverb.dependent-object-and-adverb	거	noun	smart-only-exact	11	14	알게 된 걸 떠올리니 사람들은 거의 3년을 기다렸다.
+regression.quantity-adverb.topic-on-oblique	거	noun	no-match	13	19	지역에는 거의 12년 동안 수해가 없었다.
+regression.quantity-adverb.possessive-modifies-dependent-noun	거	noun	smart-only-exact	4	10	네 거의 3장이 남았다.
