@@ -33,3 +33,9 @@ package와 site 배포물의 해당 부분은 저작자표시-동일조건변경
 - [CC BY-SA 2.0 KR](https://creativecommons.org/licenses/by-sa/2.0/kr/)
 
 국립국어원은 kfind를 보증하거나 후원하지 않습니다.
+
+## 합성 명사 검증 출처
+
+Component 리소스의 `일왕`과 `독일왕` 분절은 UD Korean-PUD 기여자들의
+`w01095092`, `w01095093`, `w01010048` 주석을 대조해 작성했습니다.
+[Korean-PUD 원문](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/e942f9c5e9351f37bcb8f202bb9df70f78c60d35/ko_pud-ud-test.conllu) · [원자료 CC BY-SA 3.0](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/r2.18/LICENSE.txt)
