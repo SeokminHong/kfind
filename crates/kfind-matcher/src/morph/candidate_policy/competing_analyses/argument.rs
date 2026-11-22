@@ -29,8 +29,11 @@ pub(super) fn has_counted_circuit_frame(
     }
     let whole = surrounding_token_span(haystack, core.clone());
     if core.start != whole.start
-        || !context::normalized_token(haystack, whole.clone())
-            .is_some_and(|word| ConstraintResolver::has_circling_connective(&word))
+        || !context::normalized_token(haystack, whole.clone()).is_some_and(|word| {
+            word.strip_prefix("돌").is_some_and(|ending| {
+                ending.starts_with("아서") && resolver.has_connective_after_predicate("돌", ending)
+            })
+        })
     {
         return false;
     }
@@ -40,7 +43,10 @@ pub(super) fn has_counted_circuit_frame(
         return false;
     };
     context::previous_word_with_start(haystack, unit_start).is_some_and(|(start, count)| {
-        resolver.has_lap_count(&count, &unit)
+        // 바퀴 is the dictionary's lap unit. Keep it distinct from a
+        // general occurrence count, which can also modify 돌아서다.
+        matches!(unit.as_ref(), "바퀴" | "바퀴씩")
+            && resolver.has_standalone_counted_unit(&count, "바퀴")
             && context::previous_word_with_start(haystack, start).is_some_and(
                 |(route_start, route)| {
                     !haystack[route_start..unit_start]

@@ -2228,32 +2228,6 @@ impl ConstraintResolver {
         self.is_counter_quantity(count) && self.has_exact_counter(unit)
     }
 
-    /// The lap unit of 돌다 (KRDict 75006) is also an independent noun.
-    #[must_use]
-    pub fn has_lap_count(&self, count: &str, unit: &str) -> bool {
-        matches!(unit, "바퀴" | "바퀴씩") && self.is_counter_quantity(count)
-    }
-
-    #[must_use]
-    pub fn has_circling_connective(text: &str) -> bool {
-        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
-            std::sync::LazyLock::new(|| {
-                let entry = crate::PredicateEntry::new(
-                    "돌다",
-                    PredicatePos::Verb,
-                    LexicalAlternation::Regular,
-                );
-                crate::generate_predicate_branches(&entry).expect("valid circling predicate")
-            });
-        FORMS.iter().any(|form| {
-            matches_predicate_branch_with_ending(text, form, |rule| {
-                rule.is_some_and(|rule| {
-                    matches!(rule.as_str(), "ending.aoeo-seo" | "ending.aoeo-seoya")
-                })
-            })
-        })
-    }
-
     #[must_use]
     pub fn has_counted_unit_with_copula(&self, count: &str, text: &str) -> bool {
         self.is_counter_quantity(count)
