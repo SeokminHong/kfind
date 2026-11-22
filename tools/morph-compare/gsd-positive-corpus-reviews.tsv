@@ -1,5 +1,9 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
 explicit-pos	corpus-positives-gsd	gsd:test-s603:15	하다	verb	true	f88846862db2ec1a90596af84db8fe5d63afd9fa8f90530e92879aec5f489cb4	confirmed	implementation-target	지진해일로의 해는 명사 해일의 일부다. 구조하기도 뒤의 보조 용언 하였다 139..148만 독립 용언 범위다.
+explicit-pos	corpus-positives-gsd	gsd:test-s93:11	하다	verb	true	04341ddabe27581db30192fe5b024ee05b7abc87580e6f2a8576f97a7c315b55	confirmed	implementation-target	인용 뒤 하니까와 하라며, 상태 부사형 없게 뒤에 명사형 어미가 붙은 함까지 동사 하다의 범위 79..88, 107..116, 152..155다.
+explicit-pos	corpus-positives-gsd	gsd:test-s93:15	하다	verb	true	04341ddabe27581db30192fe5b024ee05b7abc87580e6f2a8576f97a7c315b55	confirmed	implementation-target	인용 뒤 하니까와 하라며, 상태 부사형 없게 뒤에 명사형 어미가 붙은 함까지 동사 하다의 범위 79..88, 107..116, 152..155다.
+explicit-pos	corpus-positives-gsd	gsd:test-s675:17	하다	verb	true	6478a55e53c2311f09efc7853895b21df05e7d4219f8e9b6910a89aeebdd1e17	confirmed	implementation-target	해줬으면은 본용언 하다와 보조 동사 주다의 결합이고 뒤의 한다는 바람을 나타내는 보조 동사다. 범위는 138..150, 151..157이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s681:21	하다	verb	true	8df3e9273278b3c41e3680132ccea5ecaaf017b5b6ae13baa04cbade517e9ec2	confirmed	implementation-target	해야는 본용언 하다의 필요 연결형이고 뒤의 한다는 필요를 나타내는 보조 동사다. 범위는 194..200, 201..207이다.
 explicit-pos	corpus-positives-gsd	gsd:test-s239:10	시	noun	true	a1597c643b38042b0122a63bbb26a7ade7578ce126402f9197fd58314f6897df	confirmed	implementation-target	관세 철폐 다음의 시는 시점을 나타내는 의존 명사다. 시장 뒤의 역시 전체는 부사이며 그 내부의 시는 의존 명사가 아니다. 한국어기초사전 67372.
 explicit-pos	corpus-positives-gsd	gsd:test-s26:1	최나연	noun	true	f3ade002e4f4ee3185ec99ed2a1989efd4e37b81db41958287052123d253b65c	confirmed	implementation-target	동반 조사와 결합한 최나연과, 지정사 앞의 최나연을 각각 보존한다.
 explicit-pos	corpus-positives-gsd	gsd:test-s57:9	지원	noun	true	54da9ed9c83d0e85dbbfe5882c7907a44efe52e80935a91eabe76c2d6b78e6df	confirmed	implementation-target	담당하다의 목적어인 지원을과 파생 동사 지원하다의 첫 명사 성분을 확인했다.
