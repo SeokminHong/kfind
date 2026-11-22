@@ -584,6 +584,22 @@ pub(in crate::structure) fn select_structure(
         };
     }
     let demonstrative = matches!(context.current, "이" | "그" | "저");
+    // The Standard Korean Dictionary licenses nominal modifiers for 때문 (NIKL 313417).
+    if demonstrative
+        && evidence.has_whole(DataFinePos::Np)
+        && context
+            .next
+            .and_then(|next| next.strip_prefix("때문"))
+            .is_some_and(|tail| {
+                has_exact_sequence(resource, "때문", &[StructuralPos::NNB])
+                    && (tail.is_empty()
+                        || (has_grammatical_particle_chain("때문", tail)
+                            && complete_suffix(resource, tail, StructuralPos::is_particle))
+                        || crate::verify_copula_surface_after_nominal('문', tail))
+            })
+    {
+        return StructureSelection::NominalWhole;
+    }
     let (
         next_starts_nominal,
         next_is_unambiguous_nominal,

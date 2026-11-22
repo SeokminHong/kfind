@@ -3001,3 +3001,10 @@ regression.embedded-question-object.copula	이다	adjective	smart-only-exact	6	1
 regression.embedded-question-object.honorific	보다	verb	smart-only-exact	10	25	무엇을 보시는가를 기록했다.
 regression.embedded-question-object.invalid-allomorph	있다	adjective	no-match	7	19	돈이 있는가을 묻는다.
 regression.embedded-question-object.pronominal	이다	adjective	no-match	0	12	무언가를 물었다.
+regression.demonstrative-cause.pronoun	이	pronoun	smart-only-exact	0	3	이 때문에 늦었다.
+regression.demonstrative-cause.copula	그	pronoun	smart-only-exact	0	3	그 때문이었다.
+regression.demonstrative-cause.particle-chain	이	pronoun	smart-only-exact	0	3	이 때문만은 아니다.
+regression.demonstrative-cause.determiner	이	determiner	no-match	0	3	이 때문에 늦었다.
+regression.demonstrative-cause.common-noun	이	noun	smart-only-exact	0	3	이 때문에 치과에 갔다.
+regression.demonstrative-cause.ordinary-modifier	그	determiner	smart-only-exact	0	3	그 이유 때문에 늦었다.
+regression.demonstrative-cause.ordinary-modifier-not-pronoun	그	pronoun	no-match	0	3	그 이유 때문에 늦었다.

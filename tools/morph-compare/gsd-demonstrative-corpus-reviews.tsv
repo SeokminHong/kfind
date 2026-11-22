@@ -1,0 +1,12 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s44:pronoun:이	이	pronoun	false	641b2249a287f49fb8e923b9b1b798957d438a9663a3bd2075e7914a7b8dba38	contract-positive	aligned-source-component	원인 의존 명사 때문의 앞말이므로 지시 대명사다. 범위는 132..135이다.
+explicit-pos	corpus-negatives	gsd:test-s129:pronoun:이	이	pronoun	false	38759f4862382d869e048467b84c95e38f3fe19e98f2abce2b9feaf155ac89e0	contract-positive	aligned-source-component	앞서 설명한 결과나 사정을 가리키는 이와 수단 조사 로써가 결합한다. 범위는 0..9이다.
+explicit-pos	corpus-negatives	gsd:test-s146:pronoun:이	이	pronoun	false	33a81d0af03debc718d8817cd3537fee2f6dbeeb4fb56d9a473eb8a8ca338392	contract-positive	aligned-source-component	앞서 설명한 사정을 가리키는 이에 따라의 에는 기준을 나타낸다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s234:pronoun:이	이	pronoun	false	6b044ce408f16f1e151a7bc86aac6347eba5f042506bd5d0d260a7ea52cf9421	contract-positive	aligned-source-component	앞서 설명한 사정을 가리키는 대명사 뒤에 에가 붙는다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s325:pronoun:이	이	pronoun	false	f8376946788ab1d82545e15f75a94ac90c701dd3a871b2c03ab99cc3cc377488	contract-positive	aligned-source-component	앞서 설명한 사정을 가리키는 대명사 뒤에 에가 붙는다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s380:pronoun:이	이	pronoun	false	313f8916901b78748d433765a39b15c5e18dc3159f8991f20cc5e3aee84fd349	contract-positive	aligned-source-component	앞서 설명한 상황을 가리키는 이와 원인 조사 로가 결합한다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s393:pronoun:이	이	pronoun	false	4c5674fc80a1b634fff2550b5ceb4e3fe5d64143097c5c26c20d5ad68061de42	contract-positive	aligned-source-component	앞서 설명한 내용을 가리키는 이와 동반 조사 와가 결합한다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s620:pronoun:이	이	pronoun	false	d1144ca1adcd7b1c9de819f5b79abf91ad7f40623d593d224c95f12c9eb54892	contract-positive	aligned-source-component	마음이 움직이게 된 사정을 가리키는 이와 조사 에가 결합한다. 범위는 0..6이다.
+explicit-pos	corpus-negatives	gsd:test-s635:pronoun:이	이	pronoun	false	d6850fffa118aa5bc79ef32b3441baa246da354e241c8050c0270ff4c638489f	contract-positive	aligned-source-component	복귀의 근거가 된 앞 사정을 가리키는 이와 수단 조사 로써가 결합한다. 범위는 0..9이다.
+explicit-pos	corpus-negatives	gsd:test-s681:pronoun:이	이	pronoun	false	8df3e9273278b3c41e3680132ccea5ecaaf017b5b6ae13baa04cbade517e9ec2	contract-positive	aligned-source-component	역시 앞에서 앞서 언급한 심사 결정을 가리키는 문장 성분이다. 범위는 98..101이다.
+explicit-pos	corpus-negatives	gsd:test-s779:pronoun:이	이	pronoun	false	5d6a9ffadcac9df129dadaa0310f8243a5ae40338686b1b96326ed303e9a19b3	contract-positive	aligned-source-component	원인 의존 명사 때문의 앞말이므로 지시 대명사다. 범위는 0..3이다.
