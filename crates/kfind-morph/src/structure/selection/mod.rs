@@ -14,7 +14,7 @@ use crate::structure::selection::components::{
     compound_predicate_component_is_supported, has_grammatical_particle_component,
     modifier_led_nominal_component_is_on_preferred_path, nominal_component_is_supported,
     nominal_prefix_is_shadowed_by_predicate, proper_noun_dependent_noun_frame,
-    runtime_nominal_component_is_supported,
+    runtime_nominal_component_is_supported, unaligned_nominal_prefix_is_inside_proper_name,
 };
 use crate::structure::selection::runtime::{
     composed_nominal_subpath, has_complete_nominal_tail, is_predicate_nominalization,
@@ -180,6 +180,12 @@ impl StructureSelection {
         }
         if query_nominal_particle_path(pattern, spans) {
             return true;
+        }
+        // Runtime composition can otherwise join unrelated syllables inside a proper name.
+        if support.evidence == StructuralEvidence::RuntimeComponent
+            && unaligned_nominal_prefix_is_inside_proper_name(pattern, spans, evidence)
+        {
+            return false;
         }
         if composed_nominal_subpath(pattern, spans, evidence) {
             return true;

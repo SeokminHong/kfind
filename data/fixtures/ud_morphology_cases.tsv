@@ -69,6 +69,13 @@ regression.proper-name-nominal-boundary.transliteration	아	noun	no-match	0	3	�
 regression.proper-name-nominal-boundary.person	정	noun	no-match	6	9	강혜정 배우가 참석했다.
 regression.proper-name-nominal-boundary.administrative-head	성	noun	smart-exact	9	12	후베이성 일대를 조사했다.
 regression.proper-name-nominal-boundary.aligned-prefix	동	noun	smart-exact	0	3	동아프리카 지역을 조사했다.
+regression.proper-name-nominal-boundary.atomic-bare	트위	noun	no-match	7	13	요즘 트위터, 페이스북 같은 서비스가 자주 언급된다.
+regression.proper-name-nominal-boundary.atomic-copula	트위	noun	no-match	34	40	내가 자주 쓰는 서비스는 트위터다.
+regression.proper-name-nominal-boundary.atomic-particle	유튜	noun	no-match	7	13	요즘 유튜브에서 동영상을 본다.
+regression.proper-name-nominal-boundary.atomic-whole	트위터	noun	smart-only-exact	0	12	트위터와 페이스북에서 소식을 전했다.
+regression.proper-name-nominal-boundary.independent-unknown	트위	noun	smart-only-exact	0	9	트위는 내 별명이고 트위터는 서비스 이름이다.
+regression.proper-name-nominal-boundary.compound-leading	동대문	noun	smart-only-exact	0	9	동대문시장은 관광객으로 붐볐다.
+regression.proper-name-nominal-boundary.productive-leading	텃밭	noun	smart-only-exact	0	6	텃밭학교에서 채소를 기른다.
 regression.postnominal-count.eggplant	가다	verb	no-match	0	6	가지 두 개만 주세요.
 regression.postnominal-count.eggplant-noun	가지	noun	smart-exact	0	6	가지 두 개만 주세요.
 regression.postnominal-count.attached-digits	가다	verb	no-match	0	6	가지 2개 주세요.
