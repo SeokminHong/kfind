@@ -4,22 +4,49 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
 use kfind_data::{
-    decode_component_resource, encode_component_resource, extract_mecab_source_morphology,
-    parse_sha256,
+    NominalRole, decode_component_resource, encode_component_resource_with_nominal_roles,
+    extract_mecab_source_morphology, parse_sha256,
 };
+
+const ROLE_SOURCES: &[(NominalRole, &str)] = &[
+    (NominalRole::Spatial, "krdict-spatial-destinations.tsv"),
+    (NominalRole::Person, "krdict-person-nouns.tsv"),
+    (NominalRole::Scheduled, "krdict-scheduled-nouns.tsv"),
+    (NominalRole::Temporal, "krdict-temporal-nouns.tsv"),
+    (NominalRole::DoObject, "krdict-ha-objects.tsv"),
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
-    if arguments.len() < 3 {
-        return Err("usage: kfind-data-build-component OUTPUT SOURCE_SHA256 CSV...".into());
+    if arguments.len() < 4 {
+        return Err(
+            "usage: kfind-data-build-component OUTPUT SOURCE_SHA256 ROLE_SOURCE_DIRECTORY CSV..."
+                .into(),
+        );
     }
     let output = PathBuf::from(&arguments[0]);
     let source_sha256 = arguments[1]
         .to_str()
         .ok_or("SOURCE_SHA256 must be valid UTF-8")?;
     let source_digest = parse_sha256(source_sha256)?;
+    let role_source_dir = Path::new(&arguments[2]);
+    let sources = ROLE_SOURCES
+        .iter()
+        .map(|&(role, file)| {
+            fs::read_to_string(role_source_dir.join(file)).map(|source| (role, source))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut roles = Vec::new();
+    for (role, source) in &sources {
+        for line in source.lines().filter(|line| !line.starts_with('#')) {
+            let (noun, _) = line
+                .split_once('\t')
+                .ok_or("invalid nominal role source row")?;
+            roles.push((noun, *role));
+        }
+    }
     let mut entries = Vec::new();
-    for csv in &arguments[2..] {
+    for csv in &arguments[3..] {
         let path = Path::new(csv);
         let extraction = extract_mecab_source_morphology(
             &path.display().to_string(),
@@ -29,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     entries.sort_unstable();
     entries.dedup();
-    let resource = encode_component_resource(source_digest, &entries)?;
+    let resource = encode_component_resource_with_nominal_roles(source_digest, &entries, &roles)?;
     let decoded =
         decode_component_resource(&output.display().to_string(), resource, &source_digest)?;
     let stats = decoded.stats().clone();

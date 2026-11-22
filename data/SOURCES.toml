@@ -67,6 +67,41 @@ license = "CC-BY-SA-2.0-KR"
 generator_command = "scripts/audit-nikl-endings.sh"
 
 [[artifact]]
+path = "rules/krdict-spatial-destinations.tsv"
+artifact_sha256 = "559f79cd63480e265803d3093862573136796c26cbe4a239cbdf39b9e8b90339"
+sources = ["krdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role spatial"
+
+[[artifact]]
+path = "rules/krdict-person-nouns.tsv"
+artifact_sha256 = "8bfc34c1a8800511ddb766d9e63c7f03b46ba8ef54acfab4c5043506f26592b8"
+sources = ["krdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role person"
+
+[[artifact]]
+path = "rules/krdict-scheduled-nouns.tsv"
+artifact_sha256 = "1e4ae1981b9e62cbc47efc1276c491c14092d6f6a2c227f2844ce51b0f4559f1"
+sources = ["krdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role schedule"
+
+[[artifact]]
+path = "rules/krdict-temporal-nouns.tsv"
+artifact_sha256 = "0601c7c40c9c078680e3881e288ab35cbb6651714f5987ee8ffb1d67a33a7563"
+sources = ["krdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role temporal"
+
+[[artifact]]
+path = "rules/krdict-ha-objects.tsv"
+artifact_sha256 = "6ef5f7173731f780a5adadb59d475947808e9a4b244b18379fc7e7f1a0c1b23b"
+sources = ["krdict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_argument_nouns.py <krdict> --nominal-role action"
+
+[[artifact]]
 path = "rules/nikl-modern-particles.tsv"
 artifact_sha256 = "10df73fab3120746e071798663d12bacb8759d8a7e207b5ced12d7233353547f"
 sources = ["krdict", "stdict", "opendict"]

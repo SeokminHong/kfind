@@ -19,6 +19,33 @@ fn component_positions_keep_prefix_categories_in_one_byte() {
 }
 
 #[test]
+fn nominal_roles_can_share_a_surface_without_changing_component_analyses() {
+    let source = "방,0,0,0,NNG,*,T,방,*,*,*,*\n";
+    let extraction = crate::extract_mecab_source_morphology("fixture", source.as_bytes()).unwrap();
+    let roles = [
+        ("방", NominalRole::Spatial),
+        ("방", NominalRole::DoObject),
+        ("회의", NominalRole::Scheduled),
+    ];
+    let encoded =
+        encode_component_resource_with_nominal_roles([7; 32], extraction.entries(), &roles)
+            .unwrap();
+    let resource = decode_component_resource("fixture", encoded.clone(), &[7; 32]).unwrap();
+    assert!(resource.has_nominal_roles());
+    assert!(resource.has_nominal_role("방", NominalRole::Spatial));
+    assert!(resource.has_nominal_role("방", NominalRole::DoObject));
+    assert!(!resource.has_nominal_role("방", NominalRole::Person));
+    assert!(resource.has_nominal_role("회의", NominalRole::Scheduled));
+    assert!(!resource.has_nominal_role("회", NominalRole::Scheduled));
+    assert_eq!(resource.stats().surface_count, 1);
+    let mut corrupt = encoded;
+    *corrupt.last_mut().unwrap() ^= 1;
+    assert!(decode_component_resource("fixture", corrupt, &[7; 32]).is_err());
+    let legacy = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
+    assert!(!legacy.has_nominal_roles());
+}
+
+#[test]
 fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();
@@ -89,7 +116,8 @@ fn resource_rejects_schema_source_and_content_mismatches() {
     );
 
     let mut schema = bytes.clone();
-    schema[MAGIC.len()..MAGIC.len() + 4].copy_from_slice(&(SCHEMA_VERSION + 1).to_le_bytes());
+    schema[MAGIC.len()..MAGIC.len() + 4]
+        .copy_from_slice(&(NOMINAL_ROLE_SCHEMA_VERSION + 1).to_le_bytes());
     assert!(matches!(
         decode_component_resource("fixture", schema, &[7; 32])
             .unwrap_err()

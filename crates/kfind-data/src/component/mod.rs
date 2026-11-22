@@ -9,18 +9,23 @@ use yada::builder::DoubleArrayBuilder;
 
 use crate::{DataError, DataErrorKind, DataFinePos, MecabSourceMorphologyEntry, SourceLocation};
 
+mod nominal_roles;
 mod payload;
 
+pub use nominal_roles::NominalRole;
+use nominal_roles::NominalRoleLayout;
 use payload::{ComponentPosLayout, PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
 const SCHEMA_VERSION: u32 = 5;
+const NOMINAL_ROLE_SCHEMA_VERSION: u32 = 6;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
 const SECTION_COUNT: usize = 3;
 const RESOURCE_VERSION_LEN: usize = 32;
 #[cfg(test)]
 const SECTION_LENGTHS_OFFSET: usize = 92;
 const HEADER_LEN: usize = 212;
+const NOMINAL_ROLE_HEADER_LEN: usize = HEADER_LEN + 8 + 32;
 pub const MAX_COMPONENT_RESOURCE_BYTES: usize = 128 * 1024 * 1024;
 #[cfg(not(target_arch = "wasm32"))]
 const PARALLEL_DIGEST_MIN_SECTION_LEN: usize = 1024 * 1024;
@@ -214,12 +219,25 @@ pub struct ComponentResource {
     payload: PayloadLayout,
     strings: StringLayout,
     positions: ComponentPosLayout,
+    nominal_roles: Option<(Range<usize>, NominalRoleLayout)>,
 }
 
 impl ComponentResource {
     #[must_use]
     pub fn stats(&self) -> &ComponentResourceStats {
         &self.stats
+    }
+
+    #[must_use]
+    pub fn has_nominal_role(&self, noun: &str, role: NominalRole) -> bool {
+        self.nominal_roles
+            .as_ref()
+            .is_some_and(|(range, layout)| layout.contains(&self.bytes[range.clone()], noun, role))
+    }
+
+    #[must_use]
+    pub fn has_nominal_roles(&self) -> bool {
+        self.nominal_roles.is_some()
     }
 
     #[must_use]
@@ -325,6 +343,23 @@ pub fn encode_component_resource(
     source_digest: [u8; 32],
     entries: &[MecabSourceMorphologyEntry],
 ) -> Result<Vec<u8>, DataError> {
+    encode_resource(source_digest, entries, None)
+}
+
+pub fn encode_component_resource_with_nominal_roles(
+    source_digest: [u8; 32],
+    entries: &[MecabSourceMorphologyEntry],
+    roles: &[(&str, NominalRole)],
+) -> Result<Vec<u8>, DataError> {
+    let section = nominal_roles::encode(roles)?;
+    encode_resource(source_digest, entries, Some(&section))
+}
+
+fn encode_resource(
+    source_digest: [u8; 32],
+    entries: &[MecabSourceMorphologyEntry],
+    roles: Option<&[u8]>,
+) -> Result<Vec<u8>, DataError> {
     if entries.is_empty() {
         return Err(build_error("component entries are empty"));
     }
@@ -355,11 +390,18 @@ pub fn encode_component_resource(
         .ok_or_else(|| build_error("failed to build component Double-Array index"))?;
     let encoded = payload::encode(&groups)?;
     let sections: [&[u8]; SECTION_COUNT] = [&index, &encoded.bytes, &encoded.strings];
+    let (schema, header_len) = if roles.is_some() {
+        (NOMINAL_ROLE_SCHEMA_VERSION, NOMINAL_ROLE_HEADER_LEN)
+    } else {
+        (SCHEMA_VERSION, HEADER_LEN)
+    };
     let mut output = Vec::with_capacity(
-        HEADER_LEN + sections.iter().map(|section| section.len()).sum::<usize>(),
+        header_len
+            + sections.iter().map(|section| section.len()).sum::<usize>()
+            + roles.map_or(0, <[u8]>::len),
     );
     output.extend_from_slice(MAGIC);
-    output.extend_from_slice(&SCHEMA_VERSION.to_le_bytes());
+    output.extend_from_slice(&schema.to_le_bytes());
     output.push(INDEX_KIND_DOUBLE_ARRAY);
     output.extend_from_slice(&[0; 3]);
     output.extend_from_slice(&source_digest);
@@ -381,11 +423,22 @@ pub fn encode_component_resource(
     for section in sections {
         output.extend_from_slice(&sha256(section));
     }
-    if output.len() != HEADER_LEN {
+    if let Some(roles) = roles {
+        output.extend_from_slice(
+            &u64::try_from(roles.len())
+                .map_err(build_conversion_error)?
+                .to_le_bytes(),
+        );
+        output.extend_from_slice(&sha256(roles));
+    }
+    if output.len() != header_len {
         return Err(build_error("component header length is inconsistent"));
     }
     for section in sections {
         output.extend_from_slice(section);
+    }
+    if let Some(roles) = roles {
+        output.extend_from_slice(roles);
     }
     Ok(output)
 }
@@ -403,11 +456,11 @@ pub fn decode_component_resource(
     let mut cursor = MAGIC.len();
     let schema =
         read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
-    if schema != SCHEMA_VERSION {
+    if !matches!(schema, SCHEMA_VERSION | NOMINAL_ROLE_SCHEMA_VERSION) {
         return Err(DataError::new(
             SourceLocation::new(source),
             DataErrorKind::ComponentResourceSchema {
-                expected: SCHEMA_VERSION,
+                expected: NOMINAL_ROLE_SCHEMA_VERSION,
                 actual: schema,
             },
         ));
@@ -463,7 +516,36 @@ pub fn decode_component_resource(
     if cursor != HEADER_LEN {
         return Err(resource_error(source, "invalid header length"));
     }
-    let ranges = section_ranges(source, bytes.len(), cursor, lengths)?;
+    let nominal_roles = if schema == NOMINAL_ROLE_SCHEMA_VERSION {
+        let len = read_u64(&bytes, &mut cursor)
+            .ok()
+            .and_then(|len| usize::try_from(len).ok())
+            .ok_or_else(|| resource_error(source, "invalid nominal role section length"))?;
+        let digest = read_array::<32>(&bytes, &mut cursor)
+            .map_err(|message| resource_error(source, message))?;
+        let start = bytes
+            .len()
+            .checked_sub(len)
+            .filter(|start| *start >= cursor)
+            .ok_or_else(|| resource_error(source, "truncated nominal role section"))?;
+        let section = &bytes[start..];
+        if sha256(section) != digest {
+            return Err(resource_error(
+                source,
+                "nominal role section digest mismatch",
+            ));
+        }
+        Some((
+            start..bytes.len(),
+            NominalRoleLayout::parse(source, section)?,
+        ))
+    } else {
+        None
+    };
+    let component_end = nominal_roles
+        .as_ref()
+        .map_or(bytes.len(), |(range, _)| range.start);
+    let ranges = section_ranges(source, component_end, cursor, lengths)?;
     let sections = Sections {
         index: ranges[0].clone(),
         payload: ranges[1].clone(),
@@ -483,7 +565,7 @@ pub fn decode_component_resource(
     Ok(ComponentResource {
         bytes,
         stats: ComponentResourceStats {
-            schema_version: SCHEMA_VERSION,
+            schema_version: schema,
             resource_version: resource_version.to_owned(),
             surface_count,
             analysis_count,
@@ -494,6 +576,7 @@ pub fn decode_component_resource(
         payload,
         strings,
         positions,
+        nominal_roles,
     })
 }
 

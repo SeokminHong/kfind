@@ -679,7 +679,8 @@ crates/
 17. native package는 compact component resource를 `share/kfind`에 설치하고 resource 누락·손상 시
     component `smart` query를 초기화 오류로 종료한다.
 18. WASM binary는 compact artifact를 포함하지 않고, 외부 또는 별도 정적 asset bytes를 받은
-    생성자에서 schema·source·digest를 검증한다.
+    생성자에서 schema·source·digest를 검증한다. 한국어기초사전 명사의 문형 근거도
+    이 asset에서 읽는다.
 19. man page와 한국어 README가 사람용 무품사 기본 경로와 에이전트 자동화 경로를 구분하고,
     에이전트 예시는 명시적 품사, `any`, 기본 사전 모드와 JSON 출력을 사용한다.
 20. 품사를 생략한 held-out 검색의 품질·성능 benchmark가 별도 fixture와 보고서 절로 존재한다.

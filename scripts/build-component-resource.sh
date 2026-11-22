@@ -31,6 +31,7 @@ cd "${repo_root}"
 cargo run --release --locked --package kfind-data --bin kfind-data-build-component -- \
   "${resource}" \
   "${FULL_POS_SOURCE_SHA256}" \
+  "${repo_root}/data/rules" \
   "${source_directory}"/*.csv
 
 resource_sha=$(sha256_file "${resource}")
@@ -45,12 +46,15 @@ fi
 
 install -m 0644 "${source_directory}/COPYING" "${stage}/LICENSES/mecab-ko-dic-COPYING"
 cat >"${stage}/MANIFEST.toml" <<EOF
-schema_version = 5
+schema_version = 6
 kfind_version = "${component_version}"
 source = "${FULL_POS_SOURCE_NAME}"
 source_url = "${FULL_POS_SOURCE_URL}"
 source_sha256 = "${FULL_POS_SOURCE_SHA256}"
 source_license = "Apache-2.0"
+nominal_roles_source = "krdict"
+nominal_roles_source_sha256 = "a8ab7d044d4f6341e0f217db63f38f4d18beed3e1f153130f6cb4e9494fea1d6"
+nominal_roles_license = "CC-BY-SA-2.0-KR"
 component_sha256 = "${resource_sha}"
 builder = "kfind-data-build-component"
 EOF
@@ -58,6 +62,8 @@ EOF
 mkdir -p "${output_directory}/LICENSES"
 install -m 0644 "${resource}" "${output_directory}/morphology-component-compact.kfc"
 install -m 0644 "${stage}/MANIFEST.toml" "${output_directory}/MANIFEST.toml"
+install -m 0644 "${repo_root}/data/enriched/NOTICE.md" \
+  "${output_directory}/LICENSES/NIKL-derived-data-NOTICE.md"
 install -m 0644 \
   "${stage}/LICENSES/mecab-ko-dic-COPYING" \
   "${output_directory}/LICENSES/mecab-ko-dic-COPYING"
