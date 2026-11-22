@@ -257,6 +257,7 @@ pub(in crate::structure) fn nominal_copula_hosts(
     graph: &EdgeGraph<'_>,
     paths: &CommonPathFacts,
     particle_hosts: &[Range<usize>],
+    leading_predicate: Option<&Range<usize>>,
 ) -> Box<[Range<usize>]> {
     if !text
         .char_indices()
@@ -302,18 +303,18 @@ pub(in crate::structure) fn nominal_copula_hosts(
             {
                 return None;
             }
-            let longer_particle_end = *longer_particle_host.get_or_insert_with(|| {
-                particle_hosts
-                    .iter()
-                    .rev()
-                    .take_while(|host| host.end > end)
-                    .find(|host| {
-                        has_grammatical_particle_chain(&text[..host.end], &text[host.end..])
-                    })
-                    .map_or(0, |host| host.end)
-            });
-            (longer_particle_end <= end || copula_surface_is_complete(text, end, paths))
-                .then_some(0..end)
+            let has_competitor = leading_predicate.is_some_and(|span| span.end > end)
+                || *longer_particle_host.get_or_insert_with(|| {
+                    particle_hosts
+                        .iter()
+                        .rev()
+                        .take_while(|host| host.end > end)
+                        .find(|host| {
+                            has_grammatical_particle_chain(&text[..host.end], &text[host.end..])
+                        })
+                        .map_or(0, |host| host.end)
+                }) > end;
+            (!has_competitor || copula_surface_is_complete(text, end, paths)).then_some(0..end)
         })
         .collect()
 }
