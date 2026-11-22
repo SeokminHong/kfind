@@ -47,6 +47,18 @@ node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positive
 | `negatives.jsonl` | `482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54` |
 | `corrected-positives.jsonl` | `cd3a8e532e67ba0748875311d10eba91c5fcb0d644e5c541bf3a4d22ac7c5a37` |
 
+같은 파일을 `morph-benchmark-runner boundary full-pos smart`의 입력으로 실행한 뒤
+원본·계약 행렬을 집계합니다. `--residual`은 계약 오탐·누락의 질의 ID와 반환 범위를
+출력에 추가합니다.
+
+```sh
+python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --residual
+```
+
+원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 고정 음성에서 계약 양성으로
+검토된 행의 정답 범위가 기계 판독 데이터에 없는 경우에는 행 단위로 반환 유무를
+집계합니다. 같은 행의 추가 오탐 범위는 전체 반환 목록과 원문을 대조해 확인합니다.
+
 ## Raw와 contract-adjusted
 
 모든 품질 backend에는 raw와 contract-adjusted confusion matrix, precision,
