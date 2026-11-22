@@ -131,6 +131,9 @@ fn aligned_nominal_prefix_requires_source_extent_and_grammatical_tail() {
         atomic("관", "JKB+JX"),
         atomic("으로서", "JKB"),
         expression("대나무", "NNG", "대/NNG/*+나무/NNG/*"),
+        expression("수개월", "XPN+XR", "수/XPN/*+개월/XR/*"),
+        atomic("개월", "NNBC"),
+        expression("반달", "XPN+XR", "반/XPN/*+달/XR/*"),
     ]);
 
     assert!(resolver.has_source_nominal_prefix("중"));
@@ -140,6 +143,11 @@ fn aligned_nominal_prefix_requires_source_extent_and_grammatical_tail() {
     assert!(!resolver.has_aligned_nominal_prefix("재", "중무장포는"));
     assert!(!resolver.has_aligned_nominal_prefix("재", "재무장관으로서"));
     assert!(!resolver.has_aligned_nominal_prefix("대", "대나무는"));
+    assert!(resolver.has_aligned_nominal_prefix("수", "수개월간"));
+    assert!(resolver.has_aligned_nominal_prefix("수", "수개월간은"));
+    assert!(resolver.has_aligned_nominal_prefix("반", "반달간"));
+    assert!(!resolver.has_aligned_nominal_prefix("수", "수개월간선"));
+    assert!(!resolver.has_aligned_nominal_prefix("중", "중무장간"));
 }
 
 #[test]
