@@ -31,11 +31,31 @@ pub(super) fn rejects_han(
     if !analyses.all(|other| other == analysis) {
         return false;
     }
-    let Some((previous_start, previous)) = context::previous_word_with_start(haystack, span.start)
-    else {
+    let Some((next_end, next)) = context::next_word_on_line(haystack, span.end) else {
         return false;
     };
-    let Some((next_end, next)) = context::next_word_on_line(haystack, span.end) else {
+    let previous = context::previous_word_with_start(haystack, span.start);
+    if analysis == (CoarsePos::Verb, "하다")
+        && context::next_word_on_line(haystack, next_end).is_some_and(|(_, word)| word == "더")
+        && previous.as_ref().is_none_or(|(_, word)| {
+            resolver.has_exact_nominal_surface(word)
+                || !(resolver.has_subject_marked_nominal(word)
+                    || resolver.has_object_marked_nominal(word)
+                    || resolver.has_nominal_oblique(word)
+                    || resolver.has_predicate_adnominal_surface(word)
+                    || resolver.has_exact_adverb_surface(word))
+        })
+    {
+        // '한층 더'의 첫말처럼 합쳐 쓴 전체가 부사인 경우만 판정한다.
+        // https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=89052
+        let joined = ["한", next.as_ref()].concat();
+        if resolver.has_exact_adverb_surface(&joined)
+            && !resolver.has_exact_nominal_surface(&joined)
+        {
+            return true;
+        }
+    }
+    let Some((previous_start, previous)) = previous else {
         return false;
     };
     match analysis {
