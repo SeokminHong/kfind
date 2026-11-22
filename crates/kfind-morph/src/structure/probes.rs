@@ -1801,7 +1801,7 @@ impl ConstraintResolver {
         let Some((host, suffix)) = text.split_at_checked(anchor.start) else {
             return false;
         };
-        if !self.has_inflected_ha_suffix(suffix, false) {
+        if !self.has_inflected_derivational_suffix(suffix, ['하', '해'], false) {
             return false;
         }
         let mut derived_root = false;
@@ -1832,6 +1832,29 @@ impl ConstraintResolver {
             && !(host.ends_with("하여") && complete_connective_path(&self.resource, host))
     }
 
+    /// Validates the productive passive suffix -되- after an action noun (KRDict 74902).
+    #[must_use]
+    pub fn has_conflicting_passive_suffix(&self, text: &str, anchor: Range<usize>) -> bool {
+        let Some((host, suffix)) = text.split_at_checked(anchor.start) else {
+            return false;
+        };
+        if !self.is_attested_do_object(host)
+            || !self.has_inflected_derivational_suffix(suffix, ['되', '돼'], false)
+        {
+            return false;
+        }
+        let mut aligned_verb = false;
+        self.resource
+            .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
+                aligned_verb |= length == text.len()
+                    && compound_predicate_pos(analysis.positions()) == Some(DataFinePos::Vv)
+                    && analysis
+                        .components()
+                        .any(|component| component.span == anchor && component.pos == "VV");
+            });
+        !aligned_verb
+    }
+
     #[must_use]
     pub fn has_derived_ha_predicate_crossing(&self, text: &str, prefix_end: usize) -> bool {
         let mut found = false;
@@ -1844,17 +1867,21 @@ impl ConstraintResolver {
                 {
                     return;
                 }
-                found = self.has_inflected_ha_suffix(&text[root_end..], true);
+                found =
+                    self.has_inflected_derivational_suffix(&text[root_end..], ['하', '해'], true);
             });
         found
     }
 
-    fn has_inflected_ha_suffix(&self, tail: &str, allow_joined_head: bool) -> bool {
+    fn has_inflected_derivational_suffix(
+        &self,
+        tail: &str,
+        stem_forms: [char; 2],
+        allow_joined_head: bool,
+    ) -> bool {
         if !tail.chars().next().is_some_and(|initial| {
-            matches!(
-                crate::hangul::replace_final(initial, crate::hangul::JONG_NONE),
-                Some('하' | '해')
-            )
+            crate::hangul::replace_final(initial, crate::hangul::JONG_NONE)
+                .is_some_and(|base| stem_forms.contains(&base))
         }) {
             return false;
         }
@@ -1864,7 +1891,11 @@ impl ConstraintResolver {
                 let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions else {
                     return;
                 };
-                if endings.is_empty() && !matches!(&tail[..end], "하" | "해") {
+                if endings.is_empty()
+                    && !stem_forms
+                        .iter()
+                        .any(|stem| end == stem.len_utf8() && tail.starts_with(*stem))
+                {
                     return;
                 }
                 if found {

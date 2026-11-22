@@ -3055,3 +3055,9 @@ regression.pronoun-tail.aligned-noun-compound	섬	noun	smart-only-exact	6	12	화
 regression.aligned-royal-title.japanese-genitive	왕	noun	smart-only-exact	3	9	일왕의 이름이 기록에 남았다.
 regression.aligned-royal-title.german-comitative	왕	noun	smart-only-exact	39	45	왕건은 왕관을 내려놓고 독일왕과 만났다.
 regression.aligned-royal-title.overlapping-country	일왕	noun	no-match	3	12	독일왕의 이름이 기록에 남았다.
+regression.derived-passive.age-and-lexical-passive	되다	verb	smart-only-exact	15	18	그녀는 2살 된 딸의 살인 미수 혐의로도 기소되었다.
+regression.derived-passive.connective-with-topic	되다	verb	smart-only-exact	125	131	집행부는 정부 수반으로서 국무장관으로 구성되며 국무장관은 5인으로 구성된 정부의 주재가 된다.
+regression.derived-passive.auxiliary	되다	verb	smart-only-exact	33	42	오랜만에 친구를 만나게 되었다.
+regression.derived-passive.contracted-inflection	되다	verb	no-match	26	32	건물은 지난해 철거됐다.
+regression.derived-passive.no-shorter-connective	되다	verb	smart-only-exact	53	62	피고는 경찰에 구속되면서 수사 대상이 되었다.
+regression.derived-passive.full-lemma	구성되다	verb	smart-only-exact	33	48	대표들이 모여 위원회가 구성되었다.
