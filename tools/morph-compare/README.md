@@ -50,6 +50,8 @@ node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positive
 같은 파일을 `morph-benchmark-runner boundary full-pos smart`의 입력으로 실행한 뒤
 원본·계약 행렬을 집계합니다. `--residual`은 계약 오탐·누락의 질의 ID와 반환 범위를
 출력에 추가합니다.
+채점기는 실행기가 실제 읽은 입력의 `fixture_sha256`과 명시 품사 검색 모드를
+검사합니다. 해시가 기록되지 않은 실행 결과는 해당 입력으로 다시 실행해야 합니다.
 
 ```sh
 python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --residual
