@@ -1,4 +1,4 @@
-use kfind_morph::{CoarsePos, ConstraintResolver};
+use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos, PredicatePosSet};
 use kfind_query::{AtomPlan, CandidateProgram};
 
 use crate::boundary::{is_boundary_after, is_boundary_before};
@@ -36,7 +36,8 @@ pub(super) fn rejects_han(
     };
     let previous = context::previous_word_with_start(haystack, span.start);
     if analysis == (CoarsePos::Verb, "하다")
-        && context::next_word_on_line(haystack, next_end).is_some_and(|(_, word)| word == "더")
+        && let Some((comparison_end, comparison)) = context::next_word_on_line(haystack, next_end)
+        && comparison == "더"
         && previous.as_ref().is_none_or(|(_, word)| {
             resolver.has_exact_nominal_surface(word)
                 || !(resolver.has_subject_marked_nominal(word)
@@ -51,6 +52,7 @@ pub(super) fn rejects_han(
         let joined = ["한", next.as_ref()].concat();
         if resolver.has_exact_adverb_surface(&joined)
             && !resolver.has_exact_nominal_surface(&joined)
+            && has_degree_predicate(haystack, comparison_end, resolver)
         {
             return true;
         }
@@ -94,4 +96,34 @@ pub(super) fn rejects_han(
         }
         _ => false,
     }
+}
+
+fn has_degree_predicate(
+    haystack: &[u8],
+    after_comparison: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some((end, head)) = context::next_word_on_line(haystack, after_comparison) else {
+        return false;
+    };
+    if resolver.has_complete_connective_path(&head)
+        || resolver.has_predicate_adnominal_surface(&head)
+        || resolver.has_independent_final_predicate(&head)
+        || head.char_indices().skip(1).any(|(split, initial)| {
+            matches!(initial, '지' | '졌')
+                && resolver.has_exact_predicate_connective_path(
+                    &head[..split],
+                    PredicatePosSet::one(PredicatePos::Adjective),
+                )
+                && resolver
+                    .has_attached_resultative_inflection(&head[split..], PredicatePos::Adjective)
+        })
+    {
+        return !resolver.has_exact_nominal_surface(&head);
+    }
+    resolver.is_attested_do_object(&head)
+        && context::next_word_on_line(haystack, end).is_some_and(|(_, suffix)| {
+            resolver
+                .has_derived_predicate_adnominal_surface(&[head.as_ref(), suffix.as_ref()].concat())
+        })
 }
