@@ -3052,3 +3052,6 @@ regression.pronoun-tail.particle-with-nominal-copula	곳	noun	smart-only-exact	2
 regression.pronoun-tail.pronoun-with-topic	그곳	pronoun	smart-only-exact	0	9	그곳은 전시하는 곳이다.
 regression.pronoun-tail.another-head-with-locative	쪽	noun	smart-only-exact	14	20	저쪽에 빈 쪽이 있다.
 regression.pronoun-tail.aligned-noun-compound	섬	noun	smart-only-exact	6	12	화산섬을 찾았다.
+regression.aligned-royal-title.japanese-genitive	왕	noun	smart-only-exact	3	9	일왕의 이름이 기록에 남았다.
+regression.aligned-royal-title.german-comitative	왕	noun	smart-only-exact	39	45	왕건은 왕관을 내려놓고 독일왕과 만났다.
+regression.aligned-royal-title.overlapping-country	일왕	noun	no-match	3	12	독일왕의 이름이 기록에 남았다.
