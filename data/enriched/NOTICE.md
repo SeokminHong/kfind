@@ -9,6 +9,7 @@
 - `data/rules/nikl-modern-particles.tsv`
 - `data/rules/nikl-attached-nominal-suffixes.tsv`
 - `data/rules/stdict-nominal-prefix-components.csv`와 component 리소스의 해당 분석
+- `data/rules/stdict-nominal-suffix-components.tsv`와 component 리소스의 해당 분석
 - `data/rules/krdict-non-accusative-predicate-anchors.rs`
 - `data/rules/krdict-ha-objects.tsv`, `krdict-person-nouns.tsv`, `krdict-scheduled-nouns.tsv`,
   `krdict-spatial-destinations.tsv`, `krdict-temporal-nouns.tsv`, `krdict-frame-nouns.tsv`와

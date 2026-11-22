@@ -187,6 +187,8 @@ surface = "LLM"
 정적 표제어 lookup과 corpus-side component 판정은 별도 resource와 품질 지표로 평가한다.
 full POS 경로와 제품 compact component 경로는 Viterbi 분석, 비용 행렬과 미등록어 처리를
 사용하지 않는다. 비용 기반 비교가 필요한 진단 도구만 별도 full morphology artifact를 읽는다.
+표준국어대사전의 표기·원어·품사가 붙임 범위를 확정하고, 다른 분석의 동형 표제어가 없으며
+MeCab 합성 명사 성분이 같은 위치에 정렬되면 compact component에 그 접미사 품사를 기록한다.
 
 ### 16.6 외부 사전 데이터 정책
 

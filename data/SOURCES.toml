@@ -128,3 +128,10 @@ artifact_sha256 = "a69e83dabf7c22cef568b08038a8969704d3d42922df07c32b2bbac5b1005
 sources = ["stdict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_prefixes.py --stdict <stdict> --cache-dir <cache> --component"
+
+[[artifact]]
+path = "rules/stdict-nominal-suffix-components.tsv"
+artifact_sha256 = "fbacda37d666a90644bb554c3814d8d679b8c764b5ffbd133ddfba6505655e48"
+sources = ["stdict", "mecab-ko-dic"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_suffixes.py --stdict <stdict> --mecab-nouns <mecab>/NNG.csv --cache-dir <cache> --suffix-id 281809"

@@ -122,6 +122,13 @@ relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 
 [`stdict-nominal-prefix-components.csv`](../../data/rules/stdict-nominal-prefix-components.csv)로
 출력합니다. CSV의 표제어 번호와 정렬된 품사 `XPN`을 component 빌드에 사용합니다.
 
+`audit_bound_nominal_suffixes.py`는 `--suffix-id`가 가리키는 표준국어대사전의 접미사와
+같은 원어의 동형 의존 명사를 대조합니다. 붙임표와 원어가 일치하는 명사 표제어에 다른
+분석의 동형 표제어가 없고 MeCab `NNG.csv`의 마지막 성분 범위가 일치하면 표제어 번호와
+함께 TSV로 출력합니다. `--stdict`에 고정 ZIP, `--mecab-nouns`에 원본 `NNG.csv`,
+`--cache-dir`에 사전 캐시를 지정합니다. Compact component 빌드는 이 자료의 일치하는
+합성 명사에서 마지막 성분의 품사를 `XSN`으로 기록합니다.
+
 `audit_hanja_nominalizer_hosts.py`는 MeCab의 합성 명사 분절을 표준국어대사전의
 첫 성분 원어와 대조합니다. `--mecab`에 원본 CSV 디렉터리, `--stdict`에 고정
 ZIP, `--cache-dir`에 사전 캐시를 지정하면 확인한 표제어와 식별자를 TSV로 출력합니다.
