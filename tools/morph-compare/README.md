@@ -57,8 +57,8 @@ node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positive
 python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --residual
 ```
 
-원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 고정 음성의 계약 양성에
-해당 입력에 등록된 검토의 `source_spans`가 있으면 전체 정답 범위를 비교합니다.
+원본 양성은 표적 시작·끝의 정확 일치를 검사합니다. 해당 입력에 등록된 검토의
+`source_spans`가 있으면 전체 정답 범위를 비교합니다.
 원본과 교정본에서 행 ID가 같아도 각 입력의 검토를 적용합니다. 대표 표면의
 `source_surface`에 포함되지 않는 정답 표면은 해당 범위의 `surface`에 기록합니다.
 `reviewed_ranges`는
@@ -71,6 +71,9 @@ python3 tools/morph-compare/score-ud-audit.py "$fixture" "$runner_output" --resi
 정답 하나만 주석된 원래 양성의 다른 반환은 `unverified`로 잔여 목록에 기록합니다.
 원문·질의·지정 품사가 동일한 다른 계약 양성 행의 주석 범위는 재사용합니다.
 전체 정답 범위가 확인될 때까지 해당 반환을 오류로 확정하지 않습니다.
+비표준 입력으로 제외된 행은 `source_excluded_spans`와 그 밖의 정답 범위를
+검토합니다. 제외 범위에 완전히 들어가는 반환을 제외하고 누락과 추가 범위를
+계약 오류에 포함합니다. 범위 검토 대기 행은 `unverified_excluded_rows`로 표시합니다.
 
 ## Raw와 contract-adjusted
 

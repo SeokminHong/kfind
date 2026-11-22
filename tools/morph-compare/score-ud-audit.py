@@ -51,13 +51,16 @@ def compare_reviewed_ranges(
             annotated[key].add((case["gold_byte_start"], case["gold_byte_end"]))
 
     verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
+    verified_excluded_rows = 0
     differences = []
     unverified_ranges = {}
+    pending_exclusions = {}
     for case in cases:
         case_id = case["id"]
+        case_expected = contract_expected(case)
         review = source_reviews.get(case_id)
         if review is None:
-            if contract_expected(case) is True:
+            if case_expected is True:
                 if case["expected"]:
                     gold = (case["gold_byte_start"], case["gold_byte_end"])
                     other = {
@@ -70,29 +73,49 @@ def compare_reviewed_ranges(
                         unverified_ranges[case_id] = sorted(pending)
                 else:
                     unverified_positive_rows += 1
+            elif case_expected is None:
+                pending_exclusions[case_id] = sorted({
+                    (part["byte_start"], part["byte_end"]) for part in spans[case_id]
+                })
             continue
-        if contract_expected(case) is not True or case["text"] != review["source_text"]:
+        excluded = review.get("source_excluded_spans")
+        review_expected = True if excluded is None else None
+        if case_expected is not review_expected or case["text"] != review["source_text"]:
             raise ValueError(f"source range review identity differs: {case_id}")
         expected = {(part["byte_start"], part["byte_end"]) for part in review["source_spans"]}
         actual = {(part["byte_start"], part["byte_end"]) for part in spans[case_id]}
+        if excluded is not None:
+            excluded_ranges = [(part["byte_start"], part["byte_end"]) for part in excluded]
+            actual = {
+                (start, end) for start, end in actual
+                if not any(left <= start and end <= right for left, right in excluded_ranges)
+            }
+            verified_excluded_rows += 1
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
-        adjusted[case_id] = not missing
-        verified_rows += 1
+        if excluded is None:
+            adjusted[case_id] = not missing
+            verified_rows += 1
         missing_count += len(missing)
         extra_count += len(extra)
         if missing or extra:
-            differences.append({"id": case_id, "missing": missing, "extra": extra})
+            difference = {"id": case_id, "missing": missing, "extra": extra}
+            if excluded is not None:
+                difference["excluded"] = True
+            differences.append(difference)
     return {
         "verified_rows": verified_rows,
         "unverified_positive_rows": unverified_positive_rows,
         "unverified_raw_positive_rows": len(unverified_ranges),
         "unverified_raw_positive_spans": sum(map(len, unverified_ranges.values())),
+        "verified_excluded_rows": verified_excluded_rows,
+        "unverified_excluded_rows": len(pending_exclusions),
+        "unverified_excluded_spans": sum(map(len, pending_exclusions.values())),
         "reused_raw_positive_spans": reused_ranges,
         "missing": missing_count,
         "extra": extra_count,
         "differences": differences,
-    }, unverified_ranges
+    }, {**unverified_ranges, **pending_exclusions}
 
 
 def score_contract(
@@ -110,7 +133,9 @@ def score_contract(
     range_errors = {entry["id"]: entry for entry in reviewed_ranges["differences"]}
     contract = contract_quality_metrics(cases, adjusted)
     fpc = contract["contract_fp"] + sum(bool(entry["extra"]) for entry in range_errors.values())
-    fnc = contract["contract_fn"]
+    fnc = contract["contract_fn"] + sum(
+        bool(entry["missing"]) for entry in range_errors.values() if entry.get("excluded")
+    )
     zero_errors = fpc == fnc == 0
     report = {
         "contract": contract,
@@ -128,16 +153,16 @@ def score_contract(
         residual = []
         for case in cases:
             expected = contract_expected(case)
-            if expected is None:
-                continue
             case_id = case["id"]
             difference = range_errors.get(case_id)
-            false_positive = (not expected and adjusted[case_id]) or (
+            false_positive = (expected is False and adjusted[case_id]) or (
                 difference is not None and bool(difference["extra"])
             )
-            false_negative = expected and not adjusted[case_id]
+            false_negative = (expected is True and not adjusted[case_id]) or (
+                difference is not None and bool(difference["missing"])
+            )
             unverified = unverified_ranges.get(case_id)
-            if false_positive or false_negative or unverified:
+            if false_positive or false_negative or unverified is not None:
                 row = {
                     "id": case_id,
                     "expected": expected,
@@ -148,7 +173,7 @@ def score_contract(
                 if difference is not None:
                     row["missing"] = difference["missing"]
                     row["extra"] = difference["extra"]
-                if unverified:
+                if unverified is not None:
                     row["unverified"] = unverified
                 residual.append(row)
         report["residual"] = residual

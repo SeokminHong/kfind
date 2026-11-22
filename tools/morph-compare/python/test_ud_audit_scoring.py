@@ -67,6 +67,54 @@ class UDAuditScoringTests(unittest.TestCase):
         self.assertFalse(result["contract_errors"]["zero_target_verified"])
         self.assertNotIn("residual", result)
 
+    def test_excluded_span_does_not_hide_other_ranges(self) -> None:
+        case_id = "spacing"
+        case = {
+            "id": case_id,
+            "text": "첫째 둘째 셋째",
+            "expected": False,
+            "contract_expected": None,
+            "contract_reason": "nonstandard-input",
+        }
+        excluded = {"byte_start": 0, "byte_end": 6}
+        gold = {"byte_start": 7, "byte_end": 13}
+        additional = {"byte_start": 14, "byte_end": 20}
+        crossing = {"byte_start": 0, "byte_end": 13}
+        review = {
+            "source_text": case["text"],
+            "source_excluded_spans": [excluded],
+            "source_spans": [gold],
+        }
+        for matches, missing, extra in (
+            ([excluded, gold], [], []),
+            ([excluded, additional, crossing], [(7, 13)], [(0, 13), (14, 20)]),
+        ):
+            with self.subTest(matches=matches):
+                result = SCORE_CONTRACT(
+                    [case], {case_id: True}, {case_id: matches}, {case_id: review},
+                    include_residual=True,
+                )
+                self.assertEqual(result["contract"]["excluded_cases"], 1)
+                self.assertEqual(result["contract"]["contract_fp"], 0)
+                self.assertEqual(result["contract"]["contract_fn"], 0)
+                self.assertEqual(result["contract_errors"]["fpc"], int(bool(extra)))
+                self.assertEqual(result["contract_errors"]["fnc"], int(bool(missing)))
+                self.assertEqual(result["reviewed_ranges"]["verified_excluded_rows"], 1)
+                if missing or extra:
+                    self.assertEqual(result["residual"][0]["missing"], missing)
+                    self.assertEqual(result["residual"][0]["extra"], extra)
+                else:
+                    self.assertTrue(result["contract_errors"]["zero_target_verified"])
+                    self.assertEqual(result["residual"], [])
+
+        pending = SCORE_CONTRACT(
+            [case], {case_id: False}, {case_id: []}, {}, include_residual=True,
+        )
+        self.assertEqual(pending["reviewed_ranges"]["unverified_excluded_rows"], 1)
+        self.assertTrue(pending["contract_errors"]["zero_errors_observed"])
+        self.assertFalse(pending["contract_errors"]["zero_target_verified"])
+        self.assertEqual(pending["residual"][0]["unverified"], [])
+
     def test_raw_positive_with_another_return_requires_review(self) -> None:
         case_id = "gsd:test-s1:1"
         case = {

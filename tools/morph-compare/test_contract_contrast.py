@@ -98,23 +98,36 @@ class ContractContrastTests(unittest.TestCase):
             for role in ("source", "contrast"):
                 self.assertTrue(row[f"{role}_surface"].strip())
                 self.assertIn(row[f"{role}_surface"], row[f"{role}_text"])
+            if "source_excluded_spans" in row:
+                self.assertIn("source_spans", row)
             if "source_spans" in row:
-                self.assertIn(reason, {"aligned-source-component", "implementation-target"})
+                excluded = row.get("source_excluded_spans", [])
+                if "source_excluded_spans" in row:
+                    self.assertEqual(reason, "nonstandard-input")
+                    self.assertTrue(excluded)
+                else:
+                    self.assertIn(reason, {"aligned-source-component", "implementation-target"})
+                    self.assertTrue(row["source_spans"])
                 text = row["source_text"].encode()
-                previous_end = 0
-                self.assertTrue(row["source_spans"])
+                for ranges in (row["source_spans"], excluded):
+                    previous_end = 0
+                    for span in ranges:
+                        start, end = span["byte_start"], span["byte_end"]
+                        self.assertIs(type(start), int)
+                        self.assertIs(type(end), int)
+                        self.assertTrue(previous_end <= start < end <= len(text))
+                        matched = text[start:end].decode("utf-8")
+                        self.assertTrue(matched.strip())
+                        if "surface" in span:
+                            self.assertEqual(matched, span["surface"])
+                        else:
+                            self.assertIn(matched, row["source_surface"])
+                        previous_end = end
                 for span in row["source_spans"]:
-                    start, end = span["byte_start"], span["byte_end"]
-                    self.assertIs(type(start), int)
-                    self.assertIs(type(end), int)
-                    self.assertTrue(previous_end <= start < end <= len(text))
-                    matched = text[start:end].decode("utf-8")
-                    self.assertTrue(matched.strip())
-                    if "surface" in span:
-                        self.assertEqual(matched, span["surface"])
-                    else:
-                        self.assertIn(matched, row["source_surface"])
-                    previous_end = end
+                    self.assertFalse(any(
+                        span["byte_start"] < part["byte_end"]
+                        and part["byte_start"] < span["byte_end"] for part in excluded
+                    ))
             if reason in {"same-pos-homograph", "structurally-indistinguishable-homograph"}:
                 self.assertEqual(row["source_surface"], row["contrast_surface"])
 
