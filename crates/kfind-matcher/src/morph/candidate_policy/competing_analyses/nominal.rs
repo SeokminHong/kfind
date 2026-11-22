@@ -8,6 +8,41 @@ use crate::boundary::{
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
+pub(super) fn has_nominal_time_frame_for_alternating(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !haystack
+        .get(span.clone())
+        .is_some_and(|word| word.ends_with("락".as_bytes()) || word.ends_with("락".as_bytes()))
+    {
+        return false;
+    }
+    let Some(rule) = candidate.suffix_rules.last() else {
+        return false;
+    };
+    let alternating = rule.as_str() == "ending.alternating-rak"
+        || (rule.as_str() == "structural.ending-path"
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::StructuralPredicateEnding { .. }
+            )
+            && context::normalized_token(haystack, candidate.anchor.end..span.end)
+                .is_some_and(|suffix| matches!(suffix.as_ref(), "락" | "으락")));
+    alternating
+        && is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|nominal| resolver.has_exact_nominal_surface(&nominal))
+        && context::next_word_on_line(haystack, span.end)
+            .is_some_and(|(_, next)| resolver.has_relative_time_head(&next))
+        && !context::previous_word(haystack, span.start)
+            .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+}
+
 pub(super) fn has_adverb_instead_of_genitive(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
