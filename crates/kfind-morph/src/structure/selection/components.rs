@@ -297,6 +297,43 @@ pub(in crate::structure) fn runtime_nominal_component_is_supported(
         && nominal_component_is_on_preferred_path(&spans.core, host, evidence)
 }
 
+pub(super) fn unaligned_nominal_prefix_is_inside_proper_name(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    if !matches!(
+        pattern.fine_pos,
+        DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+    ) || spans.core.start != spans.token.start
+        || spans.core != spans.consumed
+        || spans.core.end == spans.token.end
+    {
+        return false;
+    }
+
+    let leading = evidence.units.starting_at(spans.token.start);
+    let is_proper_host = |host: &Range<usize>| {
+        if spans.core.end >= host.end {
+            return false;
+        }
+        let mut positions = leading
+            .iter()
+            .filter(|unit| unit.span == *host && unit.aligned_pos)
+            .map(|unit| unit.pos);
+        positions.next() == Some(DataFinePos::Nnp) && positions.all(|pos| pos == DataFinePos::Nnp)
+    };
+    (is_proper_host(&spans.token)
+        || evidence
+            .nominal_particle_hosts
+            .last()
+            .or(evidence.complete_nominal_particle_host.as_ref())
+            .is_some_and(is_proper_host))
+        && !leading
+            .iter()
+            .any(|unit| unit.span == spans.core && unit.aligned_pos && unit.pos.is_nominal())
+}
+
 pub(in crate::structure) fn proper_noun_dependent_noun_frame(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
