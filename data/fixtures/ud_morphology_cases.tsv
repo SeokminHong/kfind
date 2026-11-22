@@ -3028,6 +3028,19 @@ regression.progressive-entry.destination	듣다	verb	no-match	23	35	사람들이
 regression.progressive-entry.motion	들어가다	verb	smart-only-exact	23	35	사람들이 방으로 들어갔다.
 regression.progressive-entry.instrument	듣다	verb	smart-only-exact	26	38	학생이 이어폰으로 들어갔다.
 regression.progressive-entry.object	듣다	verb	smart-only-exact	55	67	학생은 녹음된 강의를 첫 회부터 한 편씩 들어갔다.
+regression.progressive-entry.locative-destination	듣다	verb	no-match	20	32	학생이 교실에 들어갔다.
+regression.progressive-entry.direction-arrival	듣다	verb	no-match	23	35	고양이가 집으로 들어오고 있다.
+regression.progressive-entry.mixed-motion	들어오다	verb	smart-only-exact	20	29	학생은 교실에 들어와 음악을 들었다.
+regression.progressive-entry.mixed-listening	듣다	verb	smart-only-exact	40	49	학생은 교실에 들어와 음악을 들었다.
+regression.progressive-entry.result-spaced	듣다	verb	no-match	26	35	목표물이 가시권에 들어와 있었다.
+regression.progressive-entry.result-attached	듣다	verb	no-match	26	44	목표물이 가시권에 들어와있었다.
+regression.progressive-entry.result-nominalized-object	듣다	verb	no-match	26	44	목표물이 가시권에 들어와있음을 확인했다.
+regression.progressive-entry.result-nominalized-topic	듣다	verb	no-match	34	43	드론이 이미 통신 범위에 들어와 있음은 분명하다.
+regression.progressive-entry.result-nominalized-motion	들어오다	verb	smart-only-exact	34	43	드론이 이미 통신 범위에 들어와 있음은 분명하다.
+regression.progressive-entry.continuative-instrument	듣다	verb	smart-only-exact	26	38	학생은 이어폰으로 들어왔다.
+regression.progressive-entry.continuative-object	듣다	verb	smart-only-exact	20	32	학생은 음악을 들어왔다.
+regression.progressive-entry.continuative-time	듣다	verb	smart-only-exact	20	32	학생은 아침에 들어왔다.
+regression.progressive-entry.continuative-location	듣다	verb	smart-only-exact	23	35	학생은 교실에서 들어왔다.
 regression.attached-auxiliary-boundary.lexical-connective	듣다	verb	smart-only-exact	10	19	음악을 들어도 두 실험 결과는 서로 들어맞고 있었다.
 regression.attached-auxiliary-boundary.lexical-quotative	듣다	verb	smart-only-exact	13	25	인터뷰를 들어보고 그 숫자가 예상과 들어맞는다는 것을 확인했다.
 regression.attached-auxiliary-boundary.whole	들어맞다	verb	smart-only-exact	27	39	그 이론이 관측값과 들어맞고 실제 결과도 훌륭했다.
