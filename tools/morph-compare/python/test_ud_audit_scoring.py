@@ -297,6 +297,36 @@ class UDAuditScoringTests(unittest.TestCase):
                 else:
                     self.assertEqual(result["residual"], [])
 
+    def test_peer_review_reuses_verified_ranges_instead_of_superseded_gold(self) -> None:
+        first = {
+            "id": "first",
+            "query": "길",
+            "pos": "noun",
+            "text": "첫 길이 둘째 길보다 짧다.",
+            "expected": True,
+            "gold_byte_start": 4,
+            "gold_byte_end": 7,
+        }
+        peer = {**first, "id": "peer", "gold_byte_start": 18, "gold_byte_end": 27}
+        first_gold = {"byte_start": 4, "byte_end": 7}
+        peer_gold = {"byte_start": 18, "byte_end": 21}
+        superseded = {"byte_start": 18, "byte_end": 27}
+        review = {"source_text": first["text"], "source_spans": [first_gold, peer_gold]}
+        for additional, pending in ((peer_gold, []), (superseded, [(18, 27)])):
+            with self.subTest(additional=additional):
+                result = SCORE_CONTRACT(
+                    [first, peer], {"first": True, "peer": True},
+                    {"first": [first_gold, additional], "peer": [first_gold, peer_gold]},
+                    {"peer": review}, include_residual=True,
+                )
+                self.assertEqual(
+                    result["reviewed_ranges"]["reused_raw_positive_spans"], int(not pending)
+                )
+                self.assertEqual(result["contract_errors"]["zero_target_verified"], not pending)
+                self.assertEqual(
+                    [row["unverified"] for row in result["residual"]], [pending] if pending else [],
+                )
+
     @staticmethod
     def positive_case(case_id: str, text: str) -> dict:
         return {
