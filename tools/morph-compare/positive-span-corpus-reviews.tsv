@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s296:noun:고	고	noun	false	47eebff73968e7aebc26b922577edbb32194e8130a5696e16a70b4e55e14f797	excluded	nonstandard-input	부사와 보조 동사의 공백이 빠진 원문 잘살펴야하고의 [86, 104)에 고 [101, 104)가 포함된다. 교정문에서는 명사 분석이 없다.
 explicit-pos	corpus-negatives	gsd:test-s15:verb:들다	들다	verb	false	34359b1c6c43c4fbc8f21ba20835c61bd95bf8e08e8f24c97fa197b6a34fd4a2	contract-positive	aligned-source-component	음식 목적어와 목적 연결형이 있으며 들다의 높임형 드시-가 쓰였다. 양성 정렬 gsd:test-s15:2 7..16, gsd:test-s931:2 7..16.
 explicit-pos	corpus-negatives	gsd:test-s129:verb:잇다	잇다	verb	false	38759f4862382d869e048467b84c95e38f3fe19e98f2abce2b9feaf155ac89e0	contract-positive	aligned-source-component	연승을 목적어로 받는 잇다의 연결형 이어에 가다의 활용이 붙었다. 양성 정렬 gsd:test-s129:8 58..70.
 explicit-pos	corpus-negatives	gsd:test-s358:verb:열다	열다	verb	false	a972ada17b8995c771c0de509dbefd9292a9fa043d131c96b07e87662607bb11	contract-positive	aligned-source-component	음식점을 수식하는 연은 문을 열다의 관형형이다. 양성 정렬 gsd:test-s358:3 11..14.
