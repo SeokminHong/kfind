@@ -67,6 +67,59 @@ pub(super) fn has_adverb_instead_of_genitive(
         })
 }
 
+pub(super) fn has_adverb_between_object_and_predicate(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || candidate.consumed != *core
+        || (is_boundary_before(haystack, core.start) && is_boundary_after(haystack, core.end))
+    {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, core.clone());
+    if !context::normalized_token(haystack, whole.clone()).is_some_and(|word| {
+        resolver.has_exact_adverb_surface(&word) && resolver.has_exact_nominal_surface(&word)
+    }) || !context::previous_word_with_start(haystack, whole.start).is_some_and(
+        |(start, word)| {
+            !haystack[start..whole.start]
+                .iter()
+                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                && resolver.has_object_marked_nominal(&word)
+        },
+    ) {
+        return false;
+    }
+    if core.start == whole.start
+        && context::normalized_token(haystack, core.end..whole.end)
+            .is_some_and(|tail| resolver.has_nominal_derivation_tail(&tail))
+        && context::normalized_token(haystack, core.clone())
+            .is_some_and(|host| resolver.has_exact_nominal_surface(&host))
+    {
+        return false;
+    }
+    let Some((end, following)) = context::next_word_on_line(haystack, whole.end) else {
+        return false;
+    };
+    let predicate = if resolver.has_exact_adverb_surface(&following)
+        && !resolver.has_exact_nominal_surface(&following)
+    {
+        let Some((_, predicate)) = context::next_word_on_line(haystack, end) else {
+            return false;
+        };
+        predicate
+    } else {
+        following
+    };
+    resolver.has_final_verb_after_object(&predicate)
+        || resolver.has_accusative_verb_connective(&predicate)
+}
+
 pub(super) fn has_degree_adverb_after_clause_argument(
     haystack: &[u8],
     candidate: &ExecutedCandidate,

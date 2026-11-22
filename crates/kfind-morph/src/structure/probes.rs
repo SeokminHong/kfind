@@ -558,6 +558,19 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_nominal_derivation_tail(&self, text: &str) -> bool {
+        let mut derived = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |end, positions| {
+                if positions == [StructuralPos::XSN] {
+                    derived |=
+                        complete_suffix(&self.resource, &text[end..], StructuralPos::is_particle);
+                }
+            });
+        derived
+    }
+
+    #[must_use]
     pub fn is_dictionary_numeric_unit(unit: &str) -> bool {
         DICTIONARY_NUMERIC_UNITS.binary_search(&unit).is_ok()
     }
