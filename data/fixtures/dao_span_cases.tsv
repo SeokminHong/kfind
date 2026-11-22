@@ -28,11 +28,11 @@ gandao-second-context	갈다	verb	exact	38	47	그 사람은 쉬는 날이면 산
 gandao-second	갈다	verb	exact	41	50	그 사람은 칼이 무뎌지면 직접 간다오.
 nandao-first	나다	verb	exact	50	59	저 헛간에서는 밤마다 이상한 소리가 난다오.
 nandao-first-context	나다	verb	exact	49	58	저 새는 밤에도 방향을 잃지 않고 잘 난다오.
-nandao-second-context	날다	verb	exact	50	59	저 헛간에서는 밤마다 이상한 소리가 난다오.
+nandao-second-context	날다	verb	no-match	50	59	저 헛간에서는 밤마다 이상한 소리가 난다오.
 nandao-second	날다	verb	exact	49	58	저 새는 밤에도 방향을 잃지 않고 잘 난다오.
 sandao-first	사다	verb	exact	41	50	우리 딸은 과일을 꼭 시장에서 산다오.
 sandao-first-context	사다	verb	exact	31	40	우리 딸은 지금 부산에 산다오.
-sandao-second-context	살다	verb	exact	41	50	우리 딸은 과일을 꼭 시장에서 산다오.
+sandao-second-context	살다	verb	no-match	41	50	우리 딸은 과일을 꼭 시장에서 산다오.
 sandao-second	살다	verb	exact	31	40	우리 딸은 지금 부산에 산다오.
 pandao-first	파다	verb	exact	44	53	그 사람은 지금도 우물을 손으로 판다오.
 pandao-first-context	파다	verb	exact	41	50	그 가게는 동네에서 만든 빵만 판다오.
@@ -52,3 +52,13 @@ directive-rieul	살다	verb	exact	36	45	아버님은 우리더러 고향에 살�
 directive-b	돕다	verb	exact	28	40	시간 나면 집안일 좀 도우라오.
 retrospective	보다	verb	exact	55	67	동네 사람들 말이 마음이 허한지 먼 산만 보더라오.
 prospective	되다	verb	exact	41	53	그 어른은 머지않아 큰 인물이 되리라오.
+purchase-food	살다	verb	no-match	37	46	상인이 쌀을 장터에서 자주 산다오.
+purchase-food-positive	사다	verb	smart-only-exact	37	46	상인이 쌀을 장터에서 자주 산다오.
+live-time-object	살다	verb	smart-only-exact	55	64	고향을 떠난 그는 긴 세월을 이 도시에서 산다오.
+audible-phenomenon	날다	verb	no-match	40	49	빈 복도에서 갑자기 발소리가 난다오.
+audible-phenomenon-positive	나다	verb	smart-only-exact	40	49	빈 복도에서 갑자기 발소리가 난다오.
+purchase-after-location	살다	verb	no-match	30	39	가족이 장터에서 쌀을 산다오.
+purchase-formal	살다	verb	no-match	27	36	그는 쌀을 장터에서 삽니다.
+purchase-formal-positive	사다	verb	smart-only-exact	27	36	그는 쌀을 장터에서 삽니다.
+purchase-directive	살다	verb	no-match	20	29	시장에서 쌀을 사세요.
+purchase-directive-positive	사다	verb	smart-only-exact	20	29	시장에서 쌀을 사세요.

@@ -30,6 +30,53 @@ SPATIAL_CATEGORIES = {
 }
 SPATIAL_DEFINITION_HEAD = re.compile(r"(?:장소|곳|공간|건물|지역|지방|도시|마을|시설|구역|방|자리)\.$")
 
+FOOD_CATEGORIES = {"과일", "곡류", "채소", "음식", "음료", "식재료", "음식 재료"}
+def frame_nominal_roles(entry):
+    category = direct_feat(entry, "semanticCategory") or ""
+    definitions = [direct_feat(sense, "definition") or "" for sense in entry.findall("./Sense")]
+    if category == "동식물 > 동물류":
+        yield "animal"
+    if any(re.search(r"영상이 나타나는 면\.$|(?:컴퓨터|텔레비전|카메라).*화면\.$|영화.*비추.*막\.$", text) for text in definitions):
+        yield "display-surface"
+    if category == "주생활 > 생활 용품":
+        yield "household-article"
+    if category.removeprefix("식생활 > ") in FOOD_CATEGORIES:
+        yield "food"
+    if category in {"인간 > 생리 현상", "삶 > 병과 증상"} and any(
+        re.search(r"(?:피부|몸|눈|코|입).*?(?:나오|흐르|흘러).*?(?:액체|물)\.$", text)
+        for text in definitions
+    ):
+        yield "body-secretion"
+    if category in {"사회 생활 > 소통 수단", "사회 생활 > 말", "교육 > 학문 용어"} and any(
+        re.search(r"말을 적는 기호\.$|적은 기호 체계\.$|말소리의 단위\.$|글자\.$", text)
+        for text in definitions
+    ):
+        yield "orthographic-unit"
+    if any(
+        re.search(r"(?:그릇|병)\.$", text) and category == "주생활 > 생활 용품"
+        or re.search(r"(?:머물|지내).*(?:곳|방|숙소)\.$", text)
+        for text in definitions
+    ):
+        yield "emptyable"
+    if any(
+        re.search(r"(?:이야기|글|말이나 일|법률|규정|문장).*(?:부분|한 마디|한 토막)\.$", text)
+        for text in definitions
+    ):
+        yield "content-unit"
+    if any(
+        re.search(r"음파가 귀에 들리는 것\.$|(?:들리|울리|내는|나는).*소리\.$", text)
+        for text in definitions
+    ):
+        yield "audible-phenomenon"
+    if (category == FINANCIAL_CATEGORY and any(
+        re.search(r"(?:돈|자금|증권|화폐|재산|금액|권리|돈으로 바꿀 수 있는 것)\.$", text)
+        for text in definitions
+    )) or any(
+        re.search(r"(?:자기의 것으로.*사용하는 권리|옮길 수 없는 재산|금융 기관에 돈을 맡김.*그 돈)\.$", text)
+        for text in definitions
+    ):
+        yield "ownership-asset"
+
 
 def has_nominal_role(entry, lemma, role):
     category = direct_feat(entry, "semanticCategory")
@@ -61,7 +108,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
     parser.add_argument("--nominal-role", choices=("spatial", "temporal", "action", "person", "schedule"))
+    parser.add_argument("--frame-nouns", action="store_true")
     args = parser.parse_args()
+    if args.frame_nouns:
+        entries = defaultdict(set)
+        for entry in iter_entries(args.archive):
+            if direct_feat(entry, "partOfSpeech") != "명사":
+                continue
+            lemma, _ = normalize_headword(direct_feat(entry.find("./Lemma"), "writtenForm") or "")
+            if lemma and all("가" <= char <= "힣" for char in lemma):
+                for role in frame_nominal_roles(entry):
+                    entries[role, lemma].add(entry.get("val"))
+        print("# 한국어기초사전 문형 명사 부류, 표면, 표제어 ID")
+        for (role, lemma), ids in sorted(entries.items()):
+            print(role, lemma, "|".join(sorted(ids)), sep="\t")
+        return
     if args.nominal_role:
         entries = defaultdict(set)
         for entry in iter_entries(args.archive):

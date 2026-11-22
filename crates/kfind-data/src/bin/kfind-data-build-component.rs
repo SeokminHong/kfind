@@ -45,6 +45,28 @@ fn main() -> Result<(), Box<dyn Error>> {
             roles.push((noun, *role));
         }
     }
+    let frame_nouns = fs::read_to_string(role_source_dir.join("krdict-frame-nouns.tsv"))?;
+    for line in frame_nouns.lines().filter(|line| !line.starts_with('#')) {
+        let mut columns = line.split('\t');
+        let (Some(role), Some(noun), Some(_)) = (columns.next(), columns.next(), columns.next())
+        else {
+            return Err("invalid frame noun source row".into());
+        };
+        let role = match role {
+            "display-surface" => NominalRole::DisplaySurface,
+            "household-article" => NominalRole::HouseholdArticle,
+            "food" => NominalRole::Food,
+            "body-secretion" => NominalRole::BodySecretion,
+            "orthographic-unit" => NominalRole::OrthographicUnit,
+            "emptyable" => NominalRole::Emptyable,
+            "content-unit" => NominalRole::ContentUnit,
+            "audible-phenomenon" => NominalRole::AudiblePhenomenon,
+            "ownership-asset" => NominalRole::OwnershipAsset,
+            "animal" => NominalRole::Animal,
+            _ => return Err("unknown frame noun role".into()),
+        };
+        roles.push((noun, role));
+    }
     let mut entries = Vec::new();
     for csv in &arguments[3..] {
         let path = Path::new(csv);

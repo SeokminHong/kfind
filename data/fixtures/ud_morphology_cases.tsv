@@ -1928,7 +1928,7 @@ regression.adjacent-determiner.native-count	한	noun	no-match	7	10	기록 한 �
 regression.polite-honorific.instrument	갈다	verb	smart-exact	21	30	이 숫돌로 칼을 가세요.
 regression.polite-honorific.destination.station	갈다	verb	no-match	16	25	기차역으로 가세요.	structurally-indistinguishable-homograph
 regression.polite-honorific.replacement	갈다	verb	smart-exact	23	32	붕대를 새것으로 가세요.
-regression.resultative-possession.currency	가다	verb	no-match	17	26	그는 현금을 가지지 않았다.	structurally-indistinguishable-homograph
+regression.resultative-possession.currency	가다	verb	no-match	17	26	그는 현금을 가지지 않았다.
 regression.resultative-possession.currency-own	가지다	verb	smart-exact	17	26	그는 현금을 가지지 않았다.
 regression.polite-honorific.roll	말다	verb	smart-exact	56	65	김 위에 밥을 펴고 속을 올리세요. 이렇게 마셔요.
 regression.polite-honorific.drink	마시다	verb	smart-exact	45	54	물잔을 들어 입에 대세요. 이렇게 마셔요.
@@ -2523,9 +2523,18 @@ regression.coordinating-endings.geona-resultative	이루다	verb	smart-exact	10	
 regression.coordinating-endings.jiman-resultative	다루다	verb	smart-exact	21	36	이 문제는 자주 다뤄지지만 결론은 나지 않았다.
 regression.coordinating-endings.jiman-nominal	모임	noun	smart-exact	14	20	어제 만든 모임이지만 사람이 많다.
 regression.coordinating-endings.geona-copula	이다	adjective	smart-exact	3	12	일이거나 취미일 겁니다.
-regression.resultative-possession.asset	가다	verb	no-match	17	26	그는 재산을 가지지 않았다.	structurally-indistinguishable-homograph
-regression.resultative-possession.stock	가다	verb	no-match	24	33	그 회사는 주식을 가지지 않았다.	structurally-indistinguishable-homograph
+regression.resultative-possession.asset	가다	verb	no-match	17	26	그는 재산을 가지지 않았다.
+regression.resultative-possession.stock	가다	verb	no-match	24	33	그 회사는 주식을 가지지 않았다.
 regression.resultative-possession.route	가다	verb	smart-exact	38	47	계속 발을 내디뎌도 그 길을 가지지 않았다.
+regression.resultative-possession.bond	가다	verb	no-match	31	40	그 회사는 채권을 아직 가지지 않았다.
+regression.resultative-possession.bond-own	가지다	verb	smart-only-exact	31	40	그 회사는 채권을 아직 가지지 않았다.
+regression.resultative-possession.property-conditional	가다	verb	no-match	23	32	법인은 부동산을 가지면 신고해야 한다.
+regression.resultative-possession.property-conditional-own	가지다	verb	smart-only-exact	23	32	법인은 부동산을 가지면 신고해야 한다.
+regression.resultative-possession.asset-subject	가다	verb	smart-only-exact	21	30	돈이 교실로 잘 가지지 않았다.
+regression.resultative-parallel-animal-label	되다	verb	no-match	10	22	이쪽은 돼지고요, 저쪽은 소예요.
+regression.resultative-parallel-animal-label-variant	되다	verb	no-match	10	22	여기는 돼지고요, 저기는 염소입니다.
+regression.resultative-parallel-animal-noun	돼지	noun	smart-only-exact	10	16	여기는 돼지고요, 저기는 염소입니다.
+regression.resultative-parallel-independent-clause	되다	verb	smart-only-exact	30	42	이쪽은 버튼을 누르면 돼지고요, 저쪽은 염소예요.
 regression.hago.comparison	예전	noun	smart-exact	7	19	맛이 예전하고 틀려서 이젠 집에서 만들어 먹어요
 regression.hago.coordination	사과	noun	smart-exact	0	12	사과하고 배를 샀어요.
 regression.hago.association	동생	noun	smart-exact	0	12	동생하고 같이 갔어요.

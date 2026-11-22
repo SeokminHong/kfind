@@ -18,7 +18,8 @@ use payload::{ComponentPosLayout, PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
 const SCHEMA_VERSION: u32 = 5;
-const NOMINAL_ROLE_SCHEMA_VERSION: u32 = 6;
+const LEGACY_NOMINAL_ROLE_SCHEMA_VERSION: u32 = 6;
+const NOMINAL_ROLE_SCHEMA_VERSION: u32 = 7;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
 const SECTION_COUNT: usize = 3;
 const RESOURCE_VERSION_LEN: usize = 32;
@@ -456,7 +457,10 @@ pub fn decode_component_resource(
     let mut cursor = MAGIC.len();
     let schema =
         read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
-    if !matches!(schema, SCHEMA_VERSION | NOMINAL_ROLE_SCHEMA_VERSION) {
+    if !matches!(
+        schema,
+        SCHEMA_VERSION | LEGACY_NOMINAL_ROLE_SCHEMA_VERSION | NOMINAL_ROLE_SCHEMA_VERSION
+    ) {
         return Err(DataError::new(
             SourceLocation::new(source),
             DataErrorKind::ComponentResourceSchema {
@@ -516,7 +520,7 @@ pub fn decode_component_resource(
     if cursor != HEADER_LEN {
         return Err(resource_error(source, "invalid header length"));
     }
-    let nominal_roles = if schema == NOMINAL_ROLE_SCHEMA_VERSION {
+    let nominal_roles = if schema != SCHEMA_VERSION {
         let len = read_u64(&bytes, &mut cursor)
             .ok()
             .and_then(|len| usize::try_from(len).ok())
@@ -537,7 +541,11 @@ pub fn decode_component_resource(
         }
         Some((
             start..bytes.len(),
-            NominalRoleLayout::parse(source, section)?,
+            NominalRoleLayout::parse(
+                source,
+                section,
+                schema == LEGACY_NOMINAL_ROLE_SCHEMA_VERSION,
+            )?,
         ))
     } else {
         None

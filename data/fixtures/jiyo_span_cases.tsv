@@ -67,27 +67,27 @@ cha-jyo-adj	차다	adjective	exact	41	47	새벽에 길어 온 우물물은 아�
 sseu-jiyo-two-adverbs	쓰다	adjective	no-match	41	50	그 학생은 보고서를 직접 다시 쓰지요.
 sseu-jiyo-subordinate-object	쓰다	adjective	exact	41	50	그 음료는 레몬을 넣어도 조금 쓰지요.
 balg-jiyo-verb	밝다	verb	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.
-balg-jiyo-verb-context	밝다	verb	exact	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
+balg-jiyo-verb-context	밝다	verb	no-match	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
 balg-jiyo-adj-context	밝다	adjective	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.
 balg-jiyo-adj	밝다	adjective	exact	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
 balg-jyo-verb	밝다	verb	exact	45	51	이 계절에는 보통 여섯 시쯤 날이 밝죠.
-balg-jyo-verb-context	밝다	verb	exact	44	50	그 휴대폰은 한낮에도 화면이 꽤 밝죠.
+balg-jyo-verb-context	밝다	verb	no-match	44	50	그 휴대폰은 한낮에도 화면이 꽤 밝죠.
 balg-jyo-adj-context	밝다	adjective	exact	45	51	이 계절에는 보통 여섯 시쯤 날이 밝죠.
 balg-jyo-adj	밝다	adjective	exact	44	50	그 휴대폰은 한낮에도 화면이 꽤 밝죠.
 keu-jiyo-verb	크다	verb	exact	40	49	아이들은 방학 동안에도 부쩍 크지요.
-keu-jiyo-verb-context	크다	verb	exact	51	60	그 모니터는 제 책상에 두기에는 너무 크지요.
+keu-jiyo-verb-context	크다	verb	no-match	51	60	그 모니터는 제 책상에 두기에는 너무 크지요.
 keu-jiyo-adj-context	크다	adjective	exact	40	49	아이들은 방학 동안에도 부쩍 크지요.
 keu-jiyo-adj	크다	adjective	exact	51	60	그 모니터는 제 책상에 두기에는 너무 크지요.
 keu-jyo-verb	크다	verb	exact	40	46	아이들은 방학 동안에도 부쩍 크죠.
-keu-jyo-verb-context	크다	verb	exact	51	57	그 모니터는 제 책상에 두기에는 너무 크죠.
+keu-jyo-verb-context	크다	verb	no-match	51	57	그 모니터는 제 책상에 두기에는 너무 크죠.
 keu-jyo-adj-context	크다	adjective	exact	40	46	아이들은 방학 동안에도 부쩍 크죠.
 keu-jyo-adj	크다	adjective	exact	51	57	그 모니터는 제 책상에 두기에는 너무 크죠.
 neuj-jiyo-verb	늦다	verb	exact	47	56	민수는 모임이 있을 때마다 약속에 늦지요.
-neuj-jiyo-verb-context	늦다	verb	exact	50	59	지금 다시 출발하기에는 시간이 너무 늦지요.
+neuj-jiyo-verb-context	늦다	verb	no-match	50	59	지금 다시 출발하기에는 시간이 너무 늦지요.
 neuj-jiyo-adj-context	늦다	adjective	no-match	47	56	민수는 모임이 있을 때마다 약속에 늦지요.
 neuj-jiyo-adj	늦다	adjective	exact	50	59	지금 다시 출발하기에는 시간이 너무 늦지요.
 neuj-jyo-verb	늦다	verb	exact	47	53	민수는 모임이 있을 때마다 약속에 늦죠.
-neuj-jyo-verb-context	늦다	verb	exact	50	56	지금 다시 출발하기에는 시간이 너무 늦죠.
+neuj-jyo-verb-context	늦다	verb	no-match	50	56	지금 다시 출발하기에는 시간이 너무 늦죠.
 neuj-jyo-adj-context	늦다	adjective	no-match	47	53	민수는 모임이 있을 때마다 약속에 늦죠.
 neuj-jyo-adj	늦다	adjective	exact	50	56	지금 다시 출발하기에는 시간이 너무 늦죠.
 neuj-jyo-scheduled-time-verb	늦다	verb	exact	31	37	그 학생은 등교 시간에 늦죠.
@@ -97,11 +97,11 @@ late-scheduled-adjective	늦다	adjective	no-match	34	40	학생은 수업 시간
 late-scheduled-verb	늦다	verb	smart-exact	34	40	학생은 수업 시간에 자주 늦죠.
 late-clock-adjective	늦다	adjective	smart-exact	27	33	수업 시간에 시계가 늦죠.
 iss-jiyo-verb	있다	verb	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
-iss-jiyo-verb-context	있다	verb	exact	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
+iss-jiyo-verb-context	있다	verb	no-match	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
 iss-jiyo-adj-context	있다	adjective	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
 iss-jiyo-adj	있다	adjective	exact	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
 iss-jyo-verb	있다	verb	exact	54	60	아이들이 돌아올 때까지 저는 이 자리에 있죠.
-iss-jyo-verb-context	있다	verb	exact	54	60	그 마을에는 오래된 느티나무가 한 그루 있죠.
+iss-jyo-verb-context	있다	verb	no-match	54	60	그 마을에는 오래된 느티나무가 한 그루 있죠.
 iss-jyo-adj-context	있다	adjective	exact	54	60	아이들이 돌아올 때까지 저는 이 자리에 있죠.
 iss-jyo-adj	있다	adjective	exact	54	60	그 마을에는 오래된 느티나무가 한 그루 있죠.
 honorific-past	걷다	verb	exact	42	57	선생님께서는 오늘도 산책로를 걸으셨지요.
@@ -125,3 +125,10 @@ copula-contracted-past	이다	adjective	exact	13	19	그는 의사였지.
 verb-past	먹다	verb	exact	17	26	어제는 밥을 먹었지.
 adjective-past	좋다	adjective	exact	20	29	지난번 날씨는 좋았지.
 negative-copula-past	아니다	adjective	exact	24	36	그 사람은 학생이 아니었지.
+physical-fit	크다	verb	no-match	48	57	그 프린터는 좁은 칸에 넣기엔 아주 크지요.
+physical-fit-positive	크다	adjective	smart-only-exact	48	57	그 프린터는 좁은 칸에 넣기엔 아주 크지요.
+suitability-time	늦다	verb	no-match	33	39	전화하기엔 시각이 너무 늦죠.
+suitability-time-positive	늦다	adjective	smart-only-exact	33	39	전화하기엔 시각이 너무 늦죠.
+suitability-time-with-adverb	늦다	verb	no-match	40	46	전화하기엔 지금 시각이 너무 늦죠.
+botanical-count	있다	verb	no-match	44	53	뜰에는 작은 매화나무가 두 그루 있지요.
+botanical-count-positive	있다	adjective	smart-only-exact	44	53	뜰에는 작은 매화나무가 두 그루 있지요.

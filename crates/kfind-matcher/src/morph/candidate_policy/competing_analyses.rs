@@ -24,6 +24,7 @@ mod argument;
 mod nominal;
 mod partitive;
 mod quantity;
+mod selection;
 
 const DROP_RIEUL_OBJECT_CONTRASTS: &[(&str, &str)] =
     include!("../../../../../data/rules/krdict-drop-rieul-object-contrasts.rs");
@@ -61,6 +62,7 @@ pub(super) fn rejects(
         || argument::has_independent_entry_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_counted_circuit_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_late_schedule_frame(haystack, candidate, branch, atom, resolver)
+        || selection::has_incompatible_argument(haystack, candidate, branch, atom, resolver)
         || argument::has_directive_with_origin_and_direction(haystack, candidate, branch, resolver)
         || argument::has_volitional_clause(haystack, candidate, branch, atom, resolver)
         || nominal::has_competing_nominal_with_gu(haystack, candidate, resolver)

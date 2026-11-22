@@ -1,7 +1,7 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
-explicit-pos	humble	binaida-pray-context	빌다	verb	false	5f2c9abe4f2b1a86bd78e35b3c5a25c354b6116a50d02e5e352ac2a45aae75b8	contract-positive	same-pos-homograph	간청하는 동사와 내용물이 줄어 비는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	humble	binaida-pray-context	빌다	verb	false	5f2c9abe4f2b1a86bd78e35b3c5a25c354b6116a50d02e5e352ac2a45aae75b8	confirmed	implementation-target	내용물이 줄어드는 용기 주어가 비다에 결합한다. 한국어기초사전 비다 15680, 독 48791, 빌다 62349.
 explicit-pos	humble	binaida-empty-context	비다	verb	false	f272635e9b65bd7af2df9de13100a69fc0b5c494f82a55ab4d978b05d50186fe	confirmed	implementation-target	같은 절의 목적어와 사전 문형을 확인했다. 기간·길이 등 수량 대조군에는 두 분석을 유지한다.
-explicit-pos	humble	biopnaida-pray-context	빌다	verb	false	cb80115787056c9dfdd9c15ac266f2e5bcc94645f98a856a19c905e917dc88de	contract-positive	same-pos-homograph	간청하는 동사와 내용물이 줄어 비는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	humble	biopnaida-pray-context	빌다	verb	false	cb80115787056c9dfdd9c15ac266f2e5bcc94645f98a856a19c905e917dc88de	confirmed	implementation-target	숙영 시설 주어와 변화 정도의 시간구가 비다에 결합한다. 한국어기초사전 비다 15680, 병영 58845, 빌다 62349.
 explicit-pos	humble	biopnaida-empty-context	비다	verb	false	c5b5d5ae339a088b4729ecd27ff5deac23479bc9540a1730c76151e2781ba301	confirmed	implementation-target	같은 절의 목적어와 사전 문형을 확인했다. 기간·길이 등 수량 대조군에는 두 분석을 유지한다.
 explicit-pos	humble	biopnaida-object-no-empty	비다	verb	false	581458a47430412efc7250000c6b5fea726de546cb5e7d2bf1847fa2ed64ce5f	confirmed	implementation-target	같은 절의 목적어와 사전 문형을 확인했다. 기간·길이 등 수량 대조군에는 두 분석을 유지한다.
 explicit-pos	humble	seonaida-duty-no-firm-rice	설다	verb	false	27621f58da35a42e97bc73311030d27ce8f42e2c6077b601432102303d7a5a65	confirmed	implementation-target	같은 절의 목적어와 사전 문형을 확인했다. 기간·길이 등 수량 대조군에는 두 분석을 유지한다.

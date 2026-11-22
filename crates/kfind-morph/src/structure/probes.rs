@@ -835,10 +835,15 @@ impl ConstraintResolver {
     // 한국어기초사전 전(前), 17301의 '-기 전' 결합.
     #[must_use]
     pub fn has_temporal_before_frame(&self, previous: &str) -> bool {
+        has_exact_sequence(&self.resource, "전", &[StructuralPos::NNG])
+            && !self.has_exact_nominal_surface(previous)
+            && self.has_ki_nominalization(previous)
+    }
+
+    #[must_use]
+    pub fn has_ki_nominalization(&self, previous: &str) -> bool {
         let nominalizer = |pos| pos == StructuralPos::ETN;
         previous.ends_with('기')
-            && !self.has_exact_nominal_surface(previous)
-            && has_exact_sequence(&self.resource, "전", &[StructuralPos::NNG])
             && (predicate_inflected_path(
                 &self.resource,
                 previous,
@@ -969,6 +974,36 @@ impl ConstraintResolver {
             crate::generate_predicate_branches(&entry).expect("valid motion predicate")
         });
         matches_predicate_inflection(text, forms)
+    }
+
+    /// Verifies the purchase verb 사다 (KRDict 49419).
+    #[must_use]
+    pub fn has_purchase_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "사다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid purchase predicate")
+            });
+        matches_predicate_inflection(text, &FORMS)
+    }
+
+    /// Verifies the independent possession predicate 가지다 (KRDict 65234).
+    #[must_use]
+    pub fn has_possession_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "가지다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid possession predicate")
+            });
+        matches_predicate_inflection(text, &FORMS)
     }
 
     #[must_use]
@@ -2052,6 +2087,11 @@ impl ConstraintResolver {
         self.resource.has_nominal_roles()
     }
 
+    #[must_use]
+    pub fn has_nominal_role(&self, noun: &str, role: NominalRole) -> bool {
+        self.resource.has_nominal_role(noun, role)
+    }
+
     /// Checks the independent lexical motion verb 들어가다 (KRDict 67877).
     #[must_use]
     pub fn has_enter_inflection(text: &str) -> bool {
@@ -2090,6 +2130,15 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_pronominal_genitive_surface(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NP, StructuralPos::JKG],
+        )
+    }
+
+    #[must_use]
     pub fn has_joined_nominal_modifier(&self, modifier: &str, head: &str, whole: &str) -> bool {
         (self.has_nominal_genitive_surface(modifier)
             || super::lexical::complete_predicate_adnominal_path(&self.resource, modifier)
@@ -2097,6 +2146,11 @@ impl ConstraintResolver {
             && self.has_independent_nominal_head(head)
             && !self.has_exact_nominal_surface(whole)
             && !self.has_whole_modifier(whole)
+    }
+
+    #[must_use]
+    pub fn has_derived_predicate_adnominal_surface(&self, text: &str) -> bool {
+        super::lexical::complete_derived_adnominal_path(&self.resource, text)
     }
 
     #[must_use]

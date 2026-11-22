@@ -19,7 +19,7 @@ stdict.음세:7	먹다	verb	exact	14	23	우리 같이 먹음세.
 stdict.음세:8	찍다	verb	exact	24	33	자네의 책은 내가 찍음세.
 stdict.음세:9	읽다	verb	exact	53	62	한 학기 동안 우리 이 논문을 같이 한번 읽음세.
 gamse-verb	가다	verb	exact	48	54	자네는 천천히 준비하게. 나는 먼저 감세.
-gamse-verb-context	가다	verb	exact	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
+gamse-verb-context	가다	verb	no-match	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
 gamse-noun-context	감세	noun	no-match	48	54	자네는 천천히 준비하게. 나는 먼저 감세.
 gamse-noun	감세	noun	exact	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
 samse-verb	사다	verb	exact	45	51	저녁값은 걱정 말게. 오늘은 내가 삼세.
@@ -50,3 +50,5 @@ meomchumse-verb	멈추다	verb	exact	59	68	자네가 숨을 고를 수 있게 �
 meomchumse-verb-context	멈추다	verb	no-match	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
 meomchumse-noun-context	멈춤세	noun	no-match	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
 meomchumse-noun	멈춤세	noun	exact	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
+content-topic	가다	verb	no-match	47	53	이번 발표에서 강조할 항목은 역시 감세.
+content-topic-positive	감세	noun	smart-only-exact	47	53	이번 발표에서 강조할 항목은 역시 감세.
