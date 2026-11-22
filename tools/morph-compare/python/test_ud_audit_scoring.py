@@ -64,6 +64,59 @@ class UDAuditScoringTests(unittest.TestCase):
         self.assertFalse(result["contract_errors"]["zero_target_verified"])
         self.assertNotIn("residual", result)
 
+    def test_raw_positive_with_another_return_requires_review(self) -> None:
+        case_id = "gsd:test-s1:1"
+        case = {
+            "id": case_id,
+            "text": "현대증권 배성영 수석연구원은 말했다.",
+            "expected": True,
+            "gold_byte_start": 0,
+            "gold_byte_end": 12,
+        }
+        gold = {"byte_start": 0, "byte_end": 12}
+        additional = {"byte_start": 13, "byte_end": 22}
+        for matches in ([gold], [gold, additional]):
+            with self.subTest(matches=matches):
+                result = SCORE_CONTRACT(
+                    [case], {case_id: True}, {case_id: matches}, REGISTRY, include_residual=True
+                )
+                pending = len(matches) - 1
+                self.assertEqual(result["contract"]["contract_tp"], 1)
+                self.assertEqual(result["reviewed_ranges"]["unverified_raw_positive_rows"], pending)
+                self.assertEqual(result["reviewed_ranges"]["unverified_raw_positive_spans"], pending)
+                self.assertTrue(result["contract_errors"]["zero_errors_observed"])
+                self.assertEqual(result["contract_errors"]["zero_target_verified"], pending == 0)
+                if pending:
+                    self.assertEqual(result["residual"], [{
+                        "id": case_id,
+                        "expected": True,
+                        "spans": matches,
+                        "false_positive": False,
+                        "false_negative": False,
+                        "unverified": [(13, 22)],
+                    }])
+                else:
+                    self.assertEqual(result["residual"], [])
+
+    def test_verified_raw_positive_can_return_multiple_correct_ranges(self) -> None:
+        case_id = "pud:n01144038:noun:거"
+        review = self.reviews[case_id]
+        case = {
+            "id": case_id,
+            "text": review["source_text"],
+            "expected": True,
+            "gold_byte_start": 131,
+            "gold_byte_end": 134,
+        }
+        result = SCORE_CONTRACT(
+            [case], {case_id: True}, {case_id: review["source_spans"]},
+            REGISTRY, include_residual=True,
+        )
+        self.assertEqual(result["reviewed_ranges"]["verified_rows"], 1)
+        self.assertEqual(result["reviewed_ranges"]["unverified_raw_positive_rows"], 0)
+        self.assertTrue(result["contract_errors"]["zero_target_verified"])
+        self.assertEqual(result["residual"], [])
+
     @staticmethod
     def positive_case(case_id: str, text: str) -> dict:
         return {

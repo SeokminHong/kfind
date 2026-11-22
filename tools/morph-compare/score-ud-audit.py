@@ -28,7 +28,7 @@ def compare_reviewed_ranges(
     spans: dict[str, list[dict[str, int]]],
     adjusted: dict[str, bool],
     registry: Path,
-) -> dict[str, object]:
+) -> tuple[dict[str, object], dict[str, list[tuple[int, int]]]]:
     source_reviews = {}
     for review in load_cases(registry):
         if "source_spans" not in review:
@@ -39,14 +39,24 @@ def compare_reviewed_ranges(
 
     verified_rows = unverified_positive_rows = missing_count = extra_count = 0
     differences = []
+    unverified_ranges = {}
     for case in cases:
         case_id = case["id"]
         review = source_reviews.get(case_id)
         if review is None:
-            if case.get("contract_expected") is True and not case["expected"]:
-                unverified_positive_rows += 1
+            if contract_expected(case) is True:
+                if case["expected"]:
+                    gold = (case["gold_byte_start"], case["gold_byte_end"])
+                    other = sorted({
+                        (part["byte_start"], part["byte_end"])
+                        for part in spans[case_id]
+                    } - {gold})
+                    if other:
+                        unverified_ranges[case_id] = other
+                else:
+                    unverified_positive_rows += 1
             continue
-        if case.get("contract_expected") is not True or case["text"] != review["source_text"]:
+        if contract_expected(case) is not True or case["text"] != review["source_text"]:
             raise ValueError(f"source range review identity differs: {case_id}")
         expected = {(part["byte_start"], part["byte_end"]) for part in review["source_spans"]}
         actual = {(part["byte_start"], part["byte_end"]) for part in spans[case_id]}
@@ -61,10 +71,12 @@ def compare_reviewed_ranges(
     return {
         "verified_rows": verified_rows,
         "unverified_positive_rows": unverified_positive_rows,
+        "unverified_raw_positive_rows": len(unverified_ranges),
+        "unverified_raw_positive_spans": sum(map(len, unverified_ranges.values())),
         "missing": missing_count,
         "extra": extra_count,
         "differences": differences,
-    }
+    }, unverified_ranges
 
 
 def score_contract(
@@ -76,7 +88,7 @@ def score_contract(
     include_residual: bool,
 ) -> dict[str, object]:
     adjusted = contract_span_predictions(cases, predictions, spans)
-    reviewed_ranges = compare_reviewed_ranges(cases, spans, adjusted, registry)
+    reviewed_ranges, unverified_ranges = compare_reviewed_ranges(cases, spans, adjusted, registry)
     range_errors = {entry["id"]: entry for entry in reviewed_ranges["differences"]}
     contract = contract_quality_metrics(cases, adjusted)
     fpc = contract["contract_fp"] + sum(bool(entry["extra"]) for entry in range_errors.values())
@@ -89,7 +101,9 @@ def score_contract(
             "fpc": fpc,
             "fnc": fnc,
             "zero_errors_observed": zero_errors,
-            "zero_target_verified": zero_errors and reviewed_ranges["unverified_positive_rows"] == 0,
+            "zero_target_verified": zero_errors
+            and reviewed_ranges["unverified_positive_rows"] == 0
+            and not unverified_ranges,
         },
     }
     if include_residual:
@@ -104,7 +118,8 @@ def score_contract(
                 difference is not None and bool(difference["extra"])
             )
             false_negative = expected and not adjusted[case_id]
-            if false_positive or false_negative:
+            unverified = unverified_ranges.get(case_id)
+            if false_positive or false_negative or unverified:
                 row = {
                     "id": case_id,
                     "expected": expected,
@@ -115,6 +130,8 @@ def score_contract(
                 if difference is not None:
                     row["missing"] = difference["missing"]
                     row["extra"] = difference["extra"]
+                if unverified:
+                    row["unverified"] = unverified
                 residual.append(row)
         report["residual"] = residual
     return report
