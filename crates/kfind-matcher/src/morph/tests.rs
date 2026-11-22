@@ -681,6 +681,36 @@ fn verified_particle_chains_can_precede_complete_copula_suffixes() {
 }
 
 #[test]
+fn quantity_nominal_conflict_requires_a_measure_in_the_same_clause() {
+    let entries = [
+        component_entry("두", "MM", 0),
+        component_entry("시간", "NNBC", 0),
+        component_entry("정", "NNG", 0),
+        component_entry("정도", "NNG", 0),
+        component_entry("도", "JX", 0),
+    ];
+    let bytes = encode_component_resource([7; 32], &entries).unwrap();
+    let resource = Arc::new(decode_component_resource("fixture", bytes, &[7; 32]).unwrap());
+    let matcher =
+        component_matcher_with_particle_rules("정", rules(&["particle.additive"]), resource);
+    let cases = [
+        ("두 시간 정도 걸렸다.", None),
+        ("두 시간\n정도 들 만큼 오래 이야기했다.", Some(11..17)),
+        ("두\n시간 정도 걸렸다.", Some(11..17)),
+        ("두 시간, 정도 들 만큼 오래 이야기했다.", Some(12..18)),
+    ];
+
+    for (text, expected) in cases {
+        let matches = matcher.find_all_with_meta(text.as_bytes());
+        let ranges = matches
+            .into_iter()
+            .map(|matched| matched.atoms[0].token.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(ranges, expected.as_slice(), "{text:?}");
+    }
+}
+
+#[test]
 fn overlapping_anchors_select_leftmost_longest_verified_token() {
     let mut short = exact_branch("가", false);
     short.set_boundary(proof(false, false, true));
