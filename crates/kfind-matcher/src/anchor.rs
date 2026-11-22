@@ -59,7 +59,9 @@ impl AnchorEngine {
         anchors: &[&[u8]],
         limits: AnchorBuildLimits,
     ) -> Result<Self, AnchorBuildError> {
-        validate_anchor_count(anchors.len(), limits.max_anchors)?;
+        if !anchors.is_empty() {
+            validate_anchor_count(anchors.len(), limits.max_anchors)?;
+        }
         if let Some(index) = anchors.iter().position(|anchor| anchor.is_empty()) {
             return Err(AnchorBuildError::EmptyAnchor(index));
         }

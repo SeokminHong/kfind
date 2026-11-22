@@ -231,6 +231,16 @@ fn collect_particle_rules(
 
 impl QueryAnalyzer for LexiconQueryAnalyzer {
     fn analyze(&self, atom: &QueryAtom) -> Result<Vec<Analysis>, AnalyzeError> {
+        self.analyze_atom(atom, false)
+    }
+}
+
+impl LexiconQueryAnalyzer {
+    pub(crate) fn analyze_atom(
+        &self,
+        atom: &QueryAtom,
+        literal_expansion: bool,
+    ) -> Result<Vec<Analysis>, AnalyzeError> {
         if atom.quoted_literal {
             return Ok(vec![exact_analysis(
                 &atom.raw,
@@ -240,7 +250,7 @@ impl QueryAnalyzer for LexiconQueryAnalyzer {
         }
 
         if let Some(forced_pos) = atom.forced_pos {
-            return self.analyze_forced(&atom.raw, forced_pos);
+            return self.analyze_forced(&atom.raw, forced_pos, literal_expansion);
         }
 
         let exact = self.lexicons.lookup_with_surface_fallback(&atom.raw);
@@ -278,13 +288,12 @@ impl QueryAnalyzer for LexiconQueryAnalyzer {
             AnalysisSource::Heuristic,
         )])
     }
-}
 
-impl LexiconQueryAnalyzer {
     fn analyze_forced(
         &self,
         lemma: &str,
         forced_pos: CoarsePos,
+        literal_expansion: bool,
     ) -> Result<Vec<Analysis>, AnalyzeError> {
         let candidates = self.lexicons.lookup_with_surface_fallback(lemma);
         let mut matching = Vec::new();
@@ -306,6 +315,12 @@ impl LexiconQueryAnalyzer {
                 append_missing_forced_auxiliary_verb(lemma, &mut matching);
             }
             return Ok(matching);
+        }
+        if !literal_expansion
+            && forced_pos != CoarsePos::Literal
+            && self.lexicons.has_curated_pos(lemma)
+        {
+            return Ok(Vec::new());
         }
 
         if matches!(forced_pos, CoarsePos::Verb | CoarsePos::Adjective) {

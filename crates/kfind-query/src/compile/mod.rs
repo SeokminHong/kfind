@@ -5,8 +5,8 @@ use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
     Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateLeftContext,
     CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
-    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryComposition,
-    QueryDiagnostic, QueryPlan, parse_query,
+    LexiconQueryAnalyzer, Morphology, Origin, QueryAtom, QueryComposition, QueryDiagnostic,
+    QueryPlan, parse_query,
 };
 use kfind_data::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
@@ -211,9 +211,11 @@ pub fn compile_query(
         let normalized = normalize_atom(atom, options.normalization);
         let mut effective = normalized.clone();
         effective.forced_pos = effective.forced_pos.or(options.global_pos);
-        let analyses = analyzer.analyze(&effective).map_err(|error| {
-            CompileError::new(Some(atom_index), CompileErrorKind::Analyze(error))
-        })?;
+        let analyses = analyzer
+            .analyze_atom(&effective, options.expand == ExpandMode::Literal)
+            .map_err(|error| {
+                CompileError::new(Some(atom_index), CompileErrorKind::Analyze(error))
+            })?;
         let analysis_limit = options
             .limits
             .max_analyses_per_atom
@@ -283,7 +285,7 @@ pub fn compile_query(
             one_scalar_atom,
             atom_index,
         )?;
-        if programs.is_empty() {
+        if programs.is_empty() && !analyses.is_empty() {
             return Err(CompileError::new(
                 Some(atom_index),
                 CompileErrorKind::NoSearchablePrograms,

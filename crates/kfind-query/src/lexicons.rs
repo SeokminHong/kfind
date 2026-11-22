@@ -53,6 +53,7 @@ pub struct Lexicons {
     rules: Arc<RuleSet>,
     full_pos: Option<DecodedPosLexicon>,
     enriched_predicates_loaded: bool,
+    curated_pos: BTreeSet<Box<str>>,
     replaced_full_predicates: BTreeSet<Box<str>>,
     replaced_full_nominals: BTreeSet<Box<str>>,
 }
@@ -71,6 +72,7 @@ impl Lexicons {
             rules: Arc::clone(rules),
             full_pos: None,
             enriched_predicates_loaded: false,
+            curated_pos: BTreeSet::new(),
             replaced_full_predicates: BTreeSet::new(),
             replaced_full_nominals: BTreeSet::new(),
         };
@@ -150,6 +152,9 @@ impl Lexicons {
             .get(surface)
             .map(Vec::as_slice)
             .unwrap_or(&[]);
+        if !materialized.is_empty() && self.has_curated_pos(surface) {
+            return Cow::Borrowed(materialized);
+        }
         let Some(full_pos) = &self.full_pos else {
             return Cow::Borrowed(materialized);
         };
@@ -171,6 +176,10 @@ impl Lexicons {
                 .cloned(),
         );
         Cow::Owned(analyses)
+    }
+
+    pub(crate) fn has_curated_pos(&self, lemma: &str) -> bool {
+        self.curated_pos.contains(lemma)
     }
 
     #[must_use]
@@ -218,6 +227,10 @@ impl Lexicons {
             );
         }
         for record in &lexicon.nominals {
+            if record.flags.contains("CURATED_POS") {
+                self.curated_pos
+                    .insert(record.lemma.clone().into_boxed_str());
+            }
             self.insert_analysis(
                 record.lemma.clone().into_boxed_str(),
                 nominal_analysis(
