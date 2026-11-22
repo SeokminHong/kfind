@@ -8,6 +8,7 @@ try:
     from .quality import (
         contract_expected,
         contract_quality_metrics,
+        contract_span_predictions,
         grouped_contract_quality,
         grouped_quality,
         quality_metrics,
@@ -16,6 +17,7 @@ except ImportError:
     from quality import (
         contract_expected,
         contract_quality_metrics,
+        contract_span_predictions,
         grouped_contract_quality,
         grouped_quality,
         quality_metrics,
@@ -208,18 +210,21 @@ def build_report(
         backend for backend in backends if backend not in KFIND_PROFILES
     )
     quality = {}
+    contract_predictions = {
+        backend: contract_span_predictions(cases, predictions[backend], matches[backend])
+        for backend in backends
+    }
     has_slices = all("slice" in case for case in cases)
     for backend in backends:
+        adjusted = contract_predictions[backend]
         backend_quality = {
             "overall": quality_metrics(cases, predictions[backend]),
             "by_source": grouped_quality(cases, predictions[backend], "source"),
             "by_pos": grouped_quality(cases, predictions[backend], "pos"),
             "contract_adjusted": {
-                "overall": contract_quality_metrics(cases, predictions[backend]),
-                "by_source": grouped_contract_quality(
-                    cases, predictions[backend], "source"
-                ),
-                "by_pos": grouped_contract_quality(cases, predictions[backend], "pos"),
+                "overall": contract_quality_metrics(cases, adjusted),
+                "by_source": grouped_contract_quality(cases, adjusted, "source"),
+                "by_pos": grouped_contract_quality(cases, adjusted, "pos"),
             },
         }
         if has_slices:
@@ -227,7 +232,7 @@ def build_report(
                 cases, predictions[backend], "slice"
             )
             backend_quality["contract_adjusted"]["by_slice"] = (
-                grouped_contract_quality(cases, predictions[backend], "slice")
+                grouped_contract_quality(cases, adjusted, "slice")
             )
         if all("target_raw_tag" in case for case in cases):
             backend_quality["by_target_raw_tag"] = grouped_quality(
@@ -242,7 +247,7 @@ def build_report(
                 cases, predictions[backend], "matrix_slot"
             )
             backend_quality["contract_adjusted"]["by_matrix_slot"] = (
-                grouped_contract_quality(cases, predictions[backend], "matrix_slot")
+                grouped_contract_quality(cases, adjusted, "matrix_slot")
             )
         quality[backend] = backend_quality
     failures = []
@@ -256,7 +261,8 @@ def build_report(
             for value in backend_predictions.values()
         )
         contract_failure = adjusted_expected is not None and any(
-            value != adjusted_expected for value in backend_predictions.values()
+            contract_predictions[backend][case["id"]] != adjusted_expected
+            for backend in backends
         )
         if not strict_failure and not contract_failure:
             continue

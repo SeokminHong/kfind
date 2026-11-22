@@ -60,6 +60,28 @@ def quality_metrics(
     return _derived_metrics(len(cases), counts, "")
 
 
+def contract_span_predictions(
+    cases: list[dict[str, object]],
+    predictions: dict[str, bool],
+    matches: dict[str, list[dict[str, object]]],
+) -> dict[str, bool]:
+    adjusted = predictions.copy()
+    for case in cases:
+        if case["expected"] or case.get("contract_expected") is not True:
+            continue
+        start, end = case.get("gold_byte_start"), case.get("gold_byte_end")
+        if start is None and end is None:
+            continue
+        if not isinstance(start, int) or not isinstance(end, int) or not 0 <= start < end:
+            raise ValueError(f"invalid contract target span: {case['id']}")
+        case_id = str(case["id"])
+        adjusted[case_id] = any(
+            span["byte_start"] == start and span["byte_end"] == end
+            for span in matches[case_id]
+        )
+    return adjusted
+
+
 def contract_quality_metrics(
     cases: list[dict[str, object]], predictions: dict[str, bool]
 ) -> dict[str, object]:

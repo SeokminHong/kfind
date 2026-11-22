@@ -19,7 +19,11 @@ from python.adapters import (
 )
 from python.agent_shadow import build_agent_shadow_report
 from python.external_baselines import load_external_baselines
-from python.quality import contract_quality_metrics, quality_metrics
+from python.quality import (
+    contract_quality_metrics,
+    contract_span_predictions,
+    quality_metrics,
+)
 from python.query_matrix import query_matrix_metrics
 from python.report import (
     KFIND_PROFILES,
@@ -467,10 +471,13 @@ def evaluate_boundary_comparison(
     profiles = {}
     for backend in KFIND_PROFILES:
         profile = backend.removeprefix("kfind-")
+        smart_adjusted = contract_span_predictions(
+            cases, baseline["predictions"][backend], baseline["matches"][backend]
+        )
         smart_quality = {
             "quality": quality_metrics(cases, baseline["predictions"][backend]),
             "contract_adjusted_quality": contract_quality_metrics(
-                cases, baseline["predictions"][backend]
+                cases, smart_adjusted
             ),
             "performance": baseline["performance"][backend],
             "component_resource_loaded": (
@@ -487,7 +494,7 @@ def evaluate_boundary_comparison(
             smart_quality["contract_adjusted_sentence_coverage"] = (
                 query_matrix_metrics(
                     cases,
-                    baseline["predictions"][backend],
+                    smart_adjusted,
                     "query-matrix-bootstrap-v1",
                     contract_adjusted=True,
                 )
@@ -499,10 +506,15 @@ def evaluate_boundary_comparison(
             predictions, performance_metrics, summary = evaluate_boundary_profile_runs(
                 cases, runner, profile, boundary, cases_path, runs
             )
+            adjusted = contract_span_predictions(
+                cases,
+                predictions,
+                {row["id"]: row["spans"] for row in summary["results"]},
+            )
             results[boundary] = {
                 "quality": quality_metrics(cases, predictions),
                 "contract_adjusted_quality": contract_quality_metrics(
-                    cases, predictions
+                    cases, adjusted
                 ),
                 "performance": performance_metrics,
                 "component_resource_loaded": summary["component_artifact_sha256"]
@@ -517,7 +529,7 @@ def evaluate_boundary_comparison(
                 results[boundary]["contract_adjusted_sentence_coverage"] = (
                     query_matrix_metrics(
                         cases,
-                        predictions,
+                        adjusted,
                         "query-matrix-bootstrap-v1",
                         contract_adjusted=True,
                     )
@@ -584,9 +596,10 @@ def evaluate_untagged_profile_runs(
         for case in cases
         if first[0][case["id"]] != bool(case["expected"])
     ]
+    adjusted = contract_span_predictions(cases, first[0], first[1])
     result = {
             "quality": quality_metrics(cases, first[0]),
-            "contract_adjusted_quality": contract_quality_metrics(cases, first[0]),
+        "contract_adjusted_quality": contract_quality_metrics(cases, adjusted),
             "performance": aggregate_performance(
                 [evaluation[2] for evaluation in evaluations], warmup_runs=1
             ),
@@ -606,7 +619,7 @@ def evaluate_untagged_profile_runs(
         )
         result["contract_adjusted_sentence_coverage"] = query_matrix_metrics(
             cases,
-            first[0],
+            adjusted,
             "query-matrix-bootstrap-v1",
             contract_adjusted=True,
         )

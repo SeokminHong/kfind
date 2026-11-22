@@ -6,6 +6,7 @@ from pathlib import Path
 from python.external_baselines import load_external_baselines
 from python.quality import (
     contract_quality_metrics,
+    contract_span_predictions,
     grouped_contract_quality,
     grouped_quality,
     quality_metrics,
@@ -32,20 +33,24 @@ def robustness_quality(
     predictions: dict[str, bool],
     matches: dict[str, list[dict[str, object]]] | None = None,
 ) -> dict[str, object]:
+    adjusted = (
+        contract_span_predictions(cases, predictions, matches)
+        if matches is not None else predictions
+    )
     result = {
         "overall": quality_metrics(cases, predictions),
         "by_noise_class": grouped_quality(cases, predictions, "noise_class"),
         "by_noise_scope": grouped_quality(cases, predictions, "noise_scope"),
         "by_pos": grouped_quality(cases, predictions, "pos"),
         "contract_adjusted": {
-            "overall": contract_quality_metrics(cases, predictions),
+            "overall": contract_quality_metrics(cases, adjusted),
             "by_noise_class": grouped_contract_quality(
-                cases, predictions, "noise_class"
+                cases, adjusted, "noise_class"
             ),
             "by_noise_scope": grouped_contract_quality(
-                cases, predictions, "noise_scope"
+                cases, adjusted, "noise_scope"
             ),
-            "by_pos": grouped_contract_quality(cases, predictions, "pos"),
+            "by_pos": grouped_contract_quality(cases, adjusted, "pos"),
         },
     }
     if matches is not None:
@@ -175,7 +180,10 @@ def evaluate_robustness(
                     explicit_cases, explicit["predictions"][backend]
                 ),
                 "contract_adjusted_quality": contract_quality_metrics(
-                    explicit_cases, explicit["predictions"][backend]
+                    explicit_cases,
+                    contract_span_predictions(
+                        explicit_cases, explicit["predictions"][backend], explicit["matches"][backend]
+                    ),
                 ),
                 "performance": explicit["performance"][backend],
                 "component_resource_loaded": (
@@ -190,7 +198,12 @@ def evaluate_robustness(
                     explicit_cases, any_predictions
                 ),
                 "contract_adjusted_quality": contract_quality_metrics(
-                    explicit_cases, any_predictions
+                    explicit_cases,
+                    contract_span_predictions(
+                        explicit_cases,
+                        any_predictions,
+                        {row["id"]: row["spans"] for row in any_summary["results"]},
+                    ),
                 ),
                 "performance": any_performance,
                 "component_resource_loaded": (
