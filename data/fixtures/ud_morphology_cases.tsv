@@ -58,6 +58,12 @@ regression.attested-loan-compound.home-copula	홈	noun	smart-only-exact	14	17	�
 regression.attested-loan-compound.whole	홈쇼핑	noun	smart-only-exact	0	15	홈쇼핑에서 우산을 주문했다.
 regression.attested-loan-compound.second	쇼핑	noun	smart-only-exact	13	25	저녁에 홈쇼핑에서 옷을 샀다.
 regression.attested-loan-compound.independent	홈	noun	smart-only-exact	17	23	나무에 파인 홈을 확인했다.
+regression.determined-compound.parliament-initial	원내	noun	smart-only-exact	4	10	전 원내대표 등의 후보가 나왔다.
+regression.determined-compound.parliament-final	대표	noun	smart-only-exact	10	16	전 원내대표 등의 후보가 나왔다.
+regression.determined-compound.parliament-whole	원내대표	noun	smart-only-exact	4	16	전 원내대표 등의 후보가 나왔다.
+regression.determined-compound.minister-initial	국무	noun	smart-only-exact	4	10	현 국무총리 등은 회의에 참석했다.
+regression.determined-compound.police-final	경찰	noun	smart-only-exact	10	16	새 교통경찰 세 명을 배치했다.
+regression.determined-compound.proper-name	서	noun	no-match	4	7	첫 서울역 방문은 오래 기억에 남았다.
 regression.proper-name-nominal-boundary.ordinal	세	noun	smart-only-exact	16	22	투트모세 III세가 왕위에 올랐다.
 regression.proper-name-nominal-boundary.transliteration	아	noun	no-match	0	3	아이티 정부가 발표했다.
 regression.proper-name-nominal-boundary.person	정	noun	no-match	6	9	강혜정 배우가 참석했다.
