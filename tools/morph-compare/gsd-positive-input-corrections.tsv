@@ -1,34 +1,34 @@
-case_id	fixture_id	reason
-gsd:test-s66:1	corpus.ud-gsd.test.test-s66.compound-noun	합성명사 첫 성분 범위
-gsd:test-s84:8	corpus.ud-gsd.test.test-s84.compound-noun	합성명사 첫 성분 범위
-gsd:test-s105:7	corpus.ud-gsd.test.test-s105.compound-noun	합성명사 첫 성분 범위
-gsd:test-s146:21	corpus.ud-gsd.test.test-s146.compound-noun	합성명사 첫 성분 범위
-gsd:test-s354:5	corpus.ud-gsd.test.test-s354.compound-noun	합성명사 첫 성분 범위
-gsd:test-s459:18	corpus.ud-gsd.test.test-s459.compound-noun	합성명사 첫 성분 범위
-gsd:test-s754:6	corpus.ud-gsd.test.test-s754.compound-noun	합성명사 첫 성분 범위
-gsd:test-s53:4	corpus.ud-gsd.test.test-s53.verb.고생하다	배경 연결 어미 -는데
-gsd:test-s55:11	corpus.ud-gsd.test.test-s55.noun.일품	-었습니다 표기와 지정사 앞 명사 범위
-gsd:test-s66:4	corpus.ud-gsd.test.test-s66.verb.원하다	관형형 뒤 의존 명사 대로 띄어쓰기
-gsd:test-s73:2	corpus.ud-gsd.test.test-s73.noun.모임	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
-gsd:test-s104:3	corpus.ud-gsd.test.test-s104.verb.하다	의도 연결 어미 -려고요
-gsd:test-s119:2	corpus.ud-gsd.test.test-s119.noun.전문점	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
-gsd:test-s136:16	corpus.ud-gsd.test.test-s136.verb.발전시키다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
-gsd:test-s142:21	corpus.ud-gsd.test.test-s142.verb.촉구하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
-gsd:test-s168:4	corpus.ud-gsd.test.test-s168.adjective.맛있다	연결 어미 -고와 보조사 요
-gsd:test-s177:12	corpus.ud-gsd.test.test-s177.verb.교체하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
-gsd:test-s207:16	corpus.ud-gsd.test.test-s207.verb.기거하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
-gsd:test-s228:5	corpus.ud-gsd.test.test-s228.verb.하다	연결 어미 -고와 보조사 요
-gsd:test-s237:5	corpus.ud-gsd.test.test-s237.verb.되다	-나 뒤 추측 보조 용언 띄어쓰기
-gsd:test-s294:7	corpus.ud-gsd.test.test-s294.verb.주다	격식체 종결 어미 -십시오 표기
-gsd:test-s324:5	corpus.ud-gsd.test.test-s324.noun.곳	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위
-gsd:test-s352:3	corpus.ud-gsd.test.test-s352.verb.어울리다	연결 어미 -고와 보조사 요
-gsd:test-s411:6	corpus.ud-gsd.test.test-s411.verb.불편하다	종결 어미 -네요 표기
-gsd:test-s470:2	corpus.ud-gsd.test.test-s470.verb.바꾸다	의도 연결 어미 -려고
-gsd:test-s470:4	corpus.ud-gsd.test.test-s470.verb.알다	보조 용언 보다의 과거형 봤
-gsd:test-s481:4	corpus.ud-gsd.test.test-s481.noun.느낌	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위
-gsd:test-s488:7	corpus.ud-gsd.test.test-s488.noun.이상	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
-gsd:test-s657:19	corpus.ud-gsd.test.test-s657.verb.되다	되었음의 준말 됐음
-gsd:test-s866:5	corpus.ud-gsd.test.test-s866.verb.바뀌다	연결 어미 -고와 보조사 요
-gsd:test-s903:5	corpus.ud-gsd.test.test-s903.verb.만들다	주체 높임 앞 ㄹ 탈락
-gsd:test-s903:6	corpus.ud-gsd.test.test-s903.verb.하다	회상 어미 -더라고와 보조사 요
-gsd:test-s952:5	corpus.ud-gsd.test.test-s952.verb.악화되다	되어서의 준말 돼서
+case_id	fixture_id	reason	query	pos	byte_start	byte_end	text
+gsd:test-s66:1	corpus.ud-gsd.test.test-s66.compound-noun	합성명사 첫 성분 범위	들깨	noun	0	6	들깨가루 같은 것도 원하는대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+gsd:test-s84:8	corpus.ud-gsd.test.test-s84.compound-noun	합성명사 첫 성분 범위	영업	noun	59	65	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
+gsd:test-s105:7	corpus.ud-gsd.test.test-s105.compound-noun	합성명사 첫 성분 범위	공식	noun	66	72	김 대변인은 "어제 서울G20정상회의 환영리셉션과 공식만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.
+gsd:test-s146:21	corpus.ud-gsd.test.test-s146.compound-noun	합성명사 첫 성분 범위	영업	noun	150	156	이에 따라 삼성SDI의 분기별 실적 모멘텀은 약화될 것이라며 4분기 IFRS 연결기준 실적은 매출액 1조2000억 원(-10 %), 영업이익 804억 원(-35%)로 추정했다.
+gsd:test-s354:5	corpus.ud-gsd.test.test-s354.compound-noun	합성명사 첫 성분 범위	부가	noun	32	38	구 관계자는 "MICE산업은 부가가치가 높은 21세기형 산업이라며 적극적인 해외 마케팅 활동을 펼쳐 강남을 세계에서 손꼽히는 컨벤션 도시로 키우겠다"고 말했다.
+gsd:test-s459:18	corpus.ud-gsd.test.test-s459.compound-noun	합성명사 첫 성분 범위	관광	noun	161	167	김 의원은 "장생포가 가지고 있는 고래역사 문화, 근대 포경과 연관된 독특한 지역문화를 바탕으로 국내유일의 고래테마 관광도시로서의 성장기반을 구축하는 사업인 만큼 앞으로도 최선을 다해 돕겠다"고 말했다.
+gsd:test-s754:6	corpus.ud-gsd.test.test-s754.compound-noun	합성명사 첫 성분 범위	영업	noun	56	62	우리산업의 상반기 누적 실적은 매출액과 영업이익이 각각 645억원, 17억원으로 추정됐다.
+gsd:test-s53:4	corpus.ud-gsd.test.test-s53.verb.고생하다	배경 연결 어미 -는데	고생하다	verb	42	60	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
+gsd:test-s55:11	corpus.ud-gsd.test.test-s55.noun.일품	-었습니다 표기와 지정사 앞 명사 범위	일품	noun	114	120	고기도 맛있고 반찬도 깔끔하지만 무엇보다도 사골 육수에 굴을 넣어 끓인 떡국 맛이 일품이었습니다.
+gsd:test-s66:4	corpus.ud-gsd.test.test-s66.verb.원하다	관형형 뒤 의존 명사 대로 띄어쓰기	원하다	verb	27	36	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+gsd:test-s73:2	corpus.ud-gsd.test.test-s73.noun.모임	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위	모임	noun	10	16	친구들 모임이었는데 갈만하네요
+gsd:test-s104:3	corpus.ud-gsd.test.test-s104.verb.하다	의도 연결 어미 -려고요	하다	verb	14	26	여기 단골 하려고요.
+gsd:test-s119:2	corpus.ud-gsd.test.test-s119.noun.전문점	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위	전문점	noun	13	22	부대찌개 전문점이었는데 이젠 삼겹살도 판다.
+gsd:test-s136:16	corpus.ud-gsd.test.test-s136.verb.발전시키다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기	발전시키다	verb	108	120	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜 온 트레이딩 기법을 낱낱이 공개했다.
+gsd:test-s142:21	corpus.ud-gsd.test.test-s142.verb.촉구하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기	촉구하다	verb	150	159	미국 국채를 1조 달러 이상 보유하고 있는 `큰 손` 중국은 이미 여러 차례 미국 정부에 재정문제의 조속한 해결을 촉구해 왔다.
+gsd:test-s168:4	corpus.ud-gsd.test.test-s168.adjective.맛있다	연결 어미 -고와 보조사 요	맛있다	adjective	36	48	음식도 너무너무 깔끔하고 맛있고요.
+gsd:test-s177:12	corpus.ud-gsd.test.test-s177.verb.교체하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기	교체하다	verb	110	119	그는 "이런 상황에서 삼성테크윈은 새 부품을 개발하기보다는 종전 부품으로 단순 교체해 주는 작업으로 문제를 키운 측면이 있다"고 말했다.
+gsd:test-s207:16	corpus.ud-gsd.test.test-s207.verb.기거하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기	기거하다	verb	113	122	일리노이 중부 블루밍튼의 노숙자 쉼터 '홈 스위트 홈 미니스트리즈'에 수 주 전부터 기거해 온 맥키는 전날 욕실 안에서 비상 도움을 요청했으며 쉼터 측 신고로 현장에 출동한 경찰은 뚜껑이 닫혀 있던 변기 안에서 신생아를 발견했다.
+gsd:test-s228:5	corpus.ud-gsd.test.test-s228.verb.하다	연결 어미 -고와 보조사 요	하다	verb	58	70	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
+gsd:test-s237:5	corpus.ud-gsd.test.test-s237.verb.되다	-나 뒤 추측 보조 용언 띄어쓰기	되다	verb	31	37	맛도 별론데 장사가 잘 되나 봐요
+gsd:test-s294:7	corpus.ud-gsd.test.test-s294.verb.주다	격식체 종결 어미 -십시오 표기	주다	verb	42	54	절 제자로 삼아 비법 좀 전수해 주십시오!
+gsd:test-s324:5	corpus.ud-gsd.test.test-s324.noun.곳	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위	곳	noun	43	46	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
+gsd:test-s352:3	corpus.ud-gsd.test.test-s352.verb.어울리다	연결 어미 -고와 보조사 요	어울리다	verb	23	38	김치도 묵은지라 어울리고요
+gsd:test-s411:6	corpus.ud-gsd.test.test-s411.verb.불편하다	종결 어미 -네요 표기	불편하다	verb	47	62	음식은 맛있는데 주차장이 없어 좀 불편하네요...
+gsd:test-s470:2	corpus.ud-gsd.test.test-s470.verb.바꾸다	의도 연결 어미 -려고	바꾸다	verb	10	22	오디오 바꾸려고 여기저기 알아봤는데 가격이 제일 괜찮아서 여기서 구입했어요~!
+gsd:test-s470:4	corpus.ud-gsd.test.test-s470.verb.알다	보조 용언 보다의 과거형 봤	알다	verb	36	51	오디오 바꾸려고 여기저기 알아봤는데 가격이 제일 괜찮아서 여기서 구입했어요~!
+gsd:test-s481:4	corpus.ud-gsd.test.test-s481.noun.느낌	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위	느낌	noun	18	24	전 약간 비린 느낌이어서 좀 별로더라고요.
+gsd:test-s488:7	corpus.ud-gsd.test.test-s488.noun.이상	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위	이상	noun	51	57	동네 분 추천으로 가게 되었는데 기대 이상이었어요.
+gsd:test-s657:19	corpus.ud-gsd.test.test-s657.verb.되다	되었음의 준말 됐음	되다	verb	159	165	솔직히 떡볶이 맛은 첨에 좀 별로였지만 자기 딸과 딸 친구들에게 파는 떡볶이 고대로 먹이시는 거 보고 완전 신뢰하게 됐음.
+gsd:test-s866:5	corpus.ud-gsd.test.test-s866.verb.바뀌다	연결 어미 -고와 보조사 요	바뀌다	verb	37	52	그늘 식당이 청담 식당으로 바뀌었고요.
+gsd:test-s903:5	corpus.ud-gsd.test.test-s903.verb.만들다	주체 높임 앞 ㄹ 탈락	만들다	verb	31	46	여기 모든 반찬은 직접 만드신다고 하더라고요.
+gsd:test-s903:6	corpus.ud-gsd.test.test-s903.verb.하다	회상 어미 -더라고와 보조사 요	하다	verb	47	62	여기 모든 반찬은 직접 만드신다고 하더라고요.
+gsd:test-s952:5	corpus.ud-gsd.test.test-s952.verb.악화되다	되어서의 준말 돼서	악화되다	verb	34	46	약을 끊으면 점점 증상이 악화돼서 무척 괴로웠습니다.

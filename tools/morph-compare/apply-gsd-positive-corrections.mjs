@@ -28,44 +28,34 @@ function tsv(path, width) {
 }
 
 const corrections = new Map();
-for (const [id, fixture, reason] of tsv('./gsd-positive-input-corrections.tsv', 3)) {
+for (const [id, fixture, reason, query, pos, start, end, text] of tsv('./gsd-positive-input-corrections.tsv', 8)) {
   if (corrections.has(id) || !reason.trim()) throw new Error(`invalid correction: ${id}`);
-  corrections.set(id, fixture);
-}
-
-const fixtures = new Map();
-const fixtureIds = new Set(corrections.values());
-const spellingFixture = 'corpus.ud-gsd.test.test-s501.nominalized-rieul';
-if (reviewedSpelling) fixtureIds.add(spellingFixture);
-for (const row of tsv('../../data/fixtures/ud_morphology_cases.tsv', 7)) {
-  if (!fixtureIds.has(row[0])) continue;
-  if (fixtures.has(row[0])) throw new Error(`duplicate correction fixture: ${row[0]}`);
-  fixtures.set(row[0], row);
+  corrections.set(id, { fixture, query, pos, start: Number(start), end: Number(end), text });
 }
 
 // The fixed GSD input labels the typo in test-s501 as an adverb.
 const spellingSource = '선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듬!';
+const spellingTarget = '선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!';
 function correctReviewedSpelling(row) {
-  const [, query, pos, expectation, start, end, text] = fixtures.get(spellingFixture) ?? [];
   const source = Buffer.from(row.text);
-  const corrected = Buffer.from(text);
-  const byteStart = Number(start);
-  const byteEnd = Number(end);
-  if (expectation !== 'smart-exact' || source.length !== corrected.length
+  const corrected = Buffer.from(spellingTarget);
+  const byteStart = 70;
+  const byteEnd = 73;
+  if (source.length !== corrected.length
       || !source.subarray(0, byteStart).equals(corrected.subarray(0, byteStart))
       || !source.subarray(byteEnd).equals(corrected.subarray(byteEnd))
       || source.subarray(byteStart, byteEnd).toString('utf8') !== '듬'
       || corrected.subarray(byteStart, byteEnd).toString('utf8') !== '듦') {
-    throw new Error(`invalid spelling correction: ${spellingFixture}`);
+    throw new Error(`invalid spelling correction: ${row.id}`);
   }
-  row.text = text;
+  row.text = spellingTarget;
   if (row.gold_byte_end <= byteStart || row.gold_byte_start >= byteEnd) return;
   if (row.gold_byte_start !== byteStart || row.gold_byte_end !== byteEnd
       || row.query !== '듬' || row.pos !== 'adverb' || row.form !== '듬'
       || row.lemma !== '듬' || row.xpos !== 'MAG') {
     throw new Error(`unexpected annotation at corrected spelling: ${row.id}`);
   }
-  Object.assign(row, { query, pos, form: '듦', lemma: '들+ㅁ', xpos: 'VV+ETN' });
+  Object.assign(row, { query: '들다', pos: 'verb', form: '듦', lemma: '들+ㅁ', xpos: 'VV+ETN' });
 }
 
 const particleSurfaces = explicitCopula
@@ -98,8 +88,8 @@ const output = original.toString('utf8').trimEnd().split('\n').map(line => {
     correctReviewedSpelling(row);
     line = JSON.stringify(row);
   }
-  const fixture = corrections.get(row.id);
-  if (!fixture) {
+  const correction = corrections.get(row.id);
+  if (!correction) {
     const honorific = honorificNoun && /^(NNG|NNP)\+XSN(?:\+XSN)?(?:\+J[A-Z]+)*$/.test(row.xpos);
     const compound = compoundNoun && /^NNG(?:\+NNG)+(?:\+J[A-Z]+)*$/.test(row.xpos);
     const nounParts = (honorific || compound) && alignedNounParts(row);
@@ -127,21 +117,22 @@ const output = original.toString('utf8').trimEnd().split('\n').map(line => {
     row.gold_byte_end = row.gold_byte_start + Buffer.byteLength(row.query);
     return JSON.stringify(row);
   }
-  const [, query, pos, expectation, start, end, text] = fixtures.get(fixture) ?? [];
-  if (query !== row.query || pos !== row.pos || expectation !== 'smart-exact'
+  const { fixture, query, pos, start, end, text } = correction;
+  if (query !== row.query || pos !== row.pos
       || !fixture.startsWith(`corpus.ud-gsd.test.${row.id.split(':')[1]}.`)
       || row.expected !== true) {
     throw new Error(`correction identity differs: ${row.id} / ${fixture}`);
   }
-  const span = Buffer.from(text).subarray(Number(start), Number(end));
-  if (!span.length || span.length !== Number(end) - Number(start)
+  const span = Buffer.from(text).subarray(start, end);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0
+      || !span.length || span.length !== end - start
       || !span.equals(Buffer.from(span.toString('utf8')))) {
     throw new Error(`invalid correction span: ${fixture}`);
   }
   corrections.delete(row.id);
   return JSON.stringify({
     id: row.id, query, pos, text, expected: true,
-    gold_byte_start: Number(start), gold_byte_end: Number(end),
+    gold_byte_start: start, gold_byte_end: end,
   });
 });
 if (corrections.size) throw new Error(`unused corrections: ${[...corrections.keys()]}`);
