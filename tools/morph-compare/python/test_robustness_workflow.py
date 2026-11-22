@@ -48,12 +48,13 @@ class RobustnessWorkflowTests(unittest.TestCase):
             for case in explicit_cases
         ]
 
+        predictions = {"positive": True, "negative": False}
+        matches = {
+            "positive": [{"byte_start": 0, "byte_end": 3}],
+            "negative": [],
+        }
+
         def evaluate_dataset(*_args):
-            predictions = {"positive": True, "negative": False}
-            matches = {
-                "positive": [{"byte_start": 0, "byte_end": 3}],
-                "negative": [],
-            }
             return {
                 "versions": {
                     "kfind-embedded": {"version": "test"},
@@ -82,6 +83,10 @@ class RobustnessWorkflowTests(unittest.TestCase):
                     "backend": "kfind",
                     "version": "test",
                     "component_artifact_sha256": None,
+                    "results": [
+                        {"id": case_id, "spans": spans}
+                        for case_id, spans in matches.items()
+                    ],
                 },
             )
 

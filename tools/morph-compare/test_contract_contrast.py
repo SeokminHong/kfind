@@ -106,6 +106,13 @@ class ContractContrastTests(unittest.TestCase):
         by_id = {case["id"]: case for case in cases}
         self.assertEqual(len(cases), len(by_id))
         reviews = [review for review in reviews if review.case_id in by_id]
+        homograph_ids = {
+            review.case_id
+            for review in reviews
+            if review.contract_reason in {
+                "same-pos-homograph", "structurally-indistinguishable-homograph"
+            }
+        }
         for review in reviews:
             case = by_id[review.case_id]
             self.assertFalse(case["expected"])
@@ -128,5 +135,7 @@ class ContractContrastTests(unittest.TestCase):
                 surface = case["text"].encode()[case["gold_byte_start"]:case["gold_byte_end"]]
                 other_surface = other["text"].encode()[other["gold_byte_start"]:other["gold_byte_end"]]
                 self.assertTrue(surface)
-                self.assertEqual(surface.decode(), other_surface.decode())
+                self.assertTrue(other_surface)
+                if {case["id"], other["id"]} & homograph_ids:
+                    self.assertEqual(surface.decode(), other_surface.decode())
         return {review.case_id for review in reviews}

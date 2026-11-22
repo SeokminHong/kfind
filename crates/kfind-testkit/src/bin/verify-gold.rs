@@ -393,7 +393,7 @@ fn verify_span_cases(
             _ => return Err(invalid_row().into()),
         };
         let expectation = if contract_positive {
-            "smart-exact"
+            "smart-only-exact"
         } else {
             *expectation
         };
@@ -443,7 +443,7 @@ fn verify_span_cases(
                 ));
             } else if contract_positive {
                 println!(
-                    "{id} {boundary:?}: raw=no-match, contract=smart-exact, target={target:?}, span={start}..{end}"
+                    "{id} {boundary:?}: raw=no-match, contract=smart-only-exact, target={target:?}, span={start}..{end}"
                 );
             }
         }

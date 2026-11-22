@@ -268,8 +268,6 @@ impl MorphMatcher {
                     .is_some_and(|syllable| syllable.jongseong == 0)
             })
             && resolver.has_exact_nominal_surface(host)
-            && context::next_word_on_line(haystack, candidate.verified.token.end)
-                .is_some_and(|(_, next)| next == "아니라느니")
             && context::previous_word(haystack, candidate.verified.token.start)
                 .is_some_and(|previous| resolver.has_surname_title(&previous, host))
         {
@@ -316,8 +314,7 @@ impl MorphMatcher {
                 .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
             && !resolver.has_exact_non_copula_predicate_surface(host)
             && !resolver.has_exact_non_copula_predicate_surface(&normalized)
-            && context::next_word_on_line(haystack, candidate.verified.token.end)
-                .is_some_and(|(_, next)| resolver.has_conjecture_complement_predicate(&next))
+            && !resolver.has_exact_nominal_surface(&normalized)
         {
             return true;
         }

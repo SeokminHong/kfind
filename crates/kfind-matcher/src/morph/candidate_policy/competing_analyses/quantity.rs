@@ -243,25 +243,12 @@ pub(super) fn has_comparative_adverb_frame(
                 || resolver.has_final_adjective_by_ending(&next)
                 || resolver.has_adjective_adnominal_surface(&next)
         }))
-        || (context::previous_word_with_start(haystack, core.start).is_some_and(|(start, word)| {
-            // 한글 맞춤법 제46항에서 '좀'이 바로 뒤의 '더'를 수식한다.
-            matches!(word.as_ref(), "좀" | "조금")
-                && resolver.has_exact_adverb_surface(&word)
-                && !haystack[start..core.start]
-                    .iter()
-                    .any(|byte| matches!(byte, b'\r' | b'\n'))
-                && context::previous_word_with_start(haystack, start).is_some_and(
-                    |(object_start, object)| {
-                        !haystack[object_start..start]
-                            .iter()
-                            .any(|byte| matches!(byte, b'\r' | b'\n'))
-                            && resolver.has_object_marked_nominal(&object)
-                    },
-                )
-        }) && context::next_word_on_line(haystack, core.end).is_some_and(|(_, next)| {
-            resolver.has_independent_final_verb_with_object(&next)
-                || resolver.has_accusative_verb_connective(&next)
-        }))
+        || (context::previous_non_adverb_on_line(haystack, core.start, resolver)
+            .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+            && context::next_word_on_line(haystack, core.end).is_some_and(|(_, next)| {
+                resolver.has_independent_final_verb_with_object(&next)
+                    || resolver.has_accusative_verb_connective(&next)
+            }))
 }
 
 fn has_marked_comparison_participants(

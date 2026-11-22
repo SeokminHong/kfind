@@ -29,15 +29,17 @@ class SearchBaselineBenchmarkTest(unittest.TestCase):
         self.assertEqual(sum(case["expected"] for case in self.cases), 56)
         self.assertEqual(
             sum(case["contract_expected"] for case in self.cases),
-            62,
+            61,
         )
         self.assertEqual(
             sum(
                 case["expected"] != case["contract_expected"]
                 for case in self.cases
             ),
-            6,
+            5,
         )
+        movement = next(case for case in self.cases if case["id"] == "listen-14")
+        self.assertFalse(movement["contract_expected"])
 
     def test_metrics_preserve_tp_tn_fp_fn_order(self) -> None:
         predictions = {
@@ -52,7 +54,7 @@ class SearchBaselineBenchmarkTest(unittest.TestCase):
         )
         self.assertEqual(
             {key: contract[key] for key in ("tp", "tn", "fp", "fn")},
-            {"tp": 56, "tn": 50, "fp": 0, "fn": 6},
+            {"tp": 56, "tn": 51, "fp": 0, "fn": 5},
         )
 
     def test_commands_keep_quality_and_tool_variants_distinct(self) -> None:

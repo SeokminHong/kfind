@@ -50,10 +50,10 @@ const STDICT_BOUND_SI_HOSTS: &[(&str, bool, bool)] = &[
     ("직접시", true, false),  // 317274
     ("청안시", true, true),   // 325991
     ("초개시", true, true),   // 327583
-    ("통상시", false, true),  // 347118
+    ("통상시", true, true),   // 347118
     ("현실시", true, true),   // 369846
     ("혼동시", true, true),   // 375335
     ("확실시", true, true),   // 501974
     ("확정시", true, true),   // 504622
-    ("황혼시", false, false), // 379459
+    ("황혼시", true, false),  // 379459
 ];

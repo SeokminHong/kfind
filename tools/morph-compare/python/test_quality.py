@@ -1,9 +1,32 @@
 import unittest
 
-from quality import contract_expected, contract_quality_metrics, quality_metrics
+from quality import (
+    contract_expected,
+    contract_quality_metrics,
+    contract_span_predictions,
+    quality_metrics,
+)
 
 
 class ContractQualityTests(unittest.TestCase):
+    def test_contract_span_uses_only_the_annotated_occurrence(self) -> None:
+        case = {
+            "id": "homograph",
+            "expected": False,
+            "contract_expected": True,
+            "gold_byte_start": 9,
+            "gold_byte_end": 15,
+        }
+        raw = {"homograph": True}
+        matches = {"homograph": [
+            {"byte_start": 0, "byte_end": 6},
+            {"byte_start": 9, "byte_end": 12},
+        ]}
+        self.assertEqual({"homograph": False}, contract_span_predictions([case], raw, matches))
+        matches["homograph"].append({"byte_start": 9, "byte_end": 15})
+        self.assertEqual(raw, contract_span_predictions([case], raw, matches))
+        self.assertTrue(raw["homograph"])
+
     def test_preserves_strict_fp_while_reclassifying_contract_positive(self) -> None:
         cases = [
             {"id": "strict-positive", "expected": True},
