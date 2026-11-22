@@ -25,6 +25,7 @@ fn nominal_roles_can_share_a_surface_without_changing_component_analyses() {
     let roles = [
         ("방", NominalRole::Spatial),
         ("방", NominalRole::DoObject),
+        ("방", NominalRole::Emptyable),
         ("회의", NominalRole::Scheduled),
     ];
     let encoded =
@@ -34,6 +35,7 @@ fn nominal_roles_can_share_a_surface_without_changing_component_analyses() {
     assert!(resource.has_nominal_roles());
     assert!(resource.has_nominal_role("방", NominalRole::Spatial));
     assert!(resource.has_nominal_role("방", NominalRole::DoObject));
+    assert!(resource.has_nominal_role("방", NominalRole::Emptyable));
     assert!(!resource.has_nominal_role("방", NominalRole::Person));
     assert!(resource.has_nominal_role("회의", NominalRole::Scheduled));
     assert!(!resource.has_nominal_role("회", NominalRole::Scheduled));
@@ -43,6 +45,17 @@ fn nominal_roles_can_share_a_surface_without_changing_component_analyses() {
     assert!(decode_component_resource("fixture", corrupt, &[7; 32]).is_err());
     let legacy = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     assert!(!legacy.has_nominal_roles());
+    let mut old_roles = encode_component_resource_with_nominal_roles(
+        [7; 32],
+        extraction.entries(),
+        &[("방", NominalRole::Spatial)],
+    )
+    .unwrap();
+    old_roles[MAGIC.len()..MAGIC.len() + 4]
+        .copy_from_slice(&LEGACY_NOMINAL_ROLE_SCHEMA_VERSION.to_le_bytes());
+    let old_roles = decode_component_resource("fixture", old_roles, &[7; 32]).unwrap();
+    assert!(old_roles.has_nominal_role("방", NominalRole::Spatial));
+    assert!(!old_roles.has_nominal_role("방", NominalRole::Emptyable));
 }
 
 #[test]

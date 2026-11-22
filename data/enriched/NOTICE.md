@@ -10,7 +10,8 @@
 - `data/rules/nikl-attached-nominal-suffixes.tsv`
 - `data/rules/krdict-non-accusative-predicate-anchors.rs`
 - `data/rules/krdict-ha-objects.tsv`, `krdict-person-nouns.tsv`, `krdict-scheduled-nouns.tsv`,
-  `krdict-spatial-destinations.tsv`, `krdict-temporal-nouns.tsv`와 component 리소스의 해당 섹션
+  `krdict-spatial-destinations.tsv`, `krdict-temporal-nouns.tsv`, `krdict-frame-nouns.tsv`와
+  component 리소스의 해당 섹션
 - `data/lexicon/predicates.tsv`의 `앞다투다` 동사 항목 (한국어기초사전 66877)
 
 가공 과정은 필요한 표제어·품사·활용형·관련 형태와 source ID의 추출, Unicode
