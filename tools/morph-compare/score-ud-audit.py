@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -13,7 +14,11 @@ from python.quality import (
     contract_span_predictions,
     quality_metrics,
 )
-from python.query_matrix_contract import apply_contract_reviews, load_contract_reviews
+from python.query_matrix_contract import (
+    ContractReview,
+    apply_contract_reviews,
+    load_contract_reviews,
+)
 from python.validation import load_cases, sha256
 
 
@@ -22,14 +27,17 @@ FIXTURES = {
     "5231c0e7c4d3c72de2982e0c38fc5420f01dcbecd764428e993b903e56dc8308": "corpus-positives-gsd",
     "482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54": "corpus-negatives",
 }
+GSD_SPLITS = {"raw-gsd", "corpus-positives-gsd"}
+SourceKey = tuple[str, str, str]
+ByteRange = tuple[int, int]
 
 
 def source_ranges_for_reviews(
-    registry: Path,
+    evidence: list[dict[str, object]],
     selected: set[tuple[str, str]],
 ) -> dict[str, dict[str, object]]:
     source_reviews = {}
-    for review in load_cases(registry):
+    for review in evidence:
         if "source_spans" not in review or (review["registry"], review["id"]) not in selected:
             continue
         if review["id"] in source_reviews:
@@ -38,11 +46,42 @@ def source_ranges_for_reviews(
     return source_reviews
 
 
+def other_gsd_positive_ranges(
+    evidence: list[dict[str, object]],
+    reviews: dict[tuple[str, str], ContractReview],
+    current_split: str,
+) -> dict[SourceKey, set[ByteRange]]:
+    ranges = defaultdict(set)
+    if current_split not in GSD_SPLITS:
+        return ranges
+    for entry in evidence:
+        if not entry.get("source_spans"):
+            continue
+        review = reviews.get((entry["registry"], entry["id"]))
+        if (
+            review is None or review.query_mode != "explicit-pos"
+            or review.split not in GSD_SPLITS or review.split == current_split
+            or not (
+                review.contract_status == "contract-positive"
+                or (review.contract_status == "confirmed" and review.strict_expected)
+            )
+        ):
+            continue
+        source = entry["source_text"]
+        if hashlib.sha256(source.encode()).hexdigest() != review.text_sha256:
+            raise ValueError(f"source range review identity differs: {review.case_id}")
+        ranges[source, review.query, review.pos].update(
+            (part["byte_start"], part["byte_end"]) for part in entry["source_spans"]
+        )
+    return ranges
+
+
 def compare_reviewed_ranges(
     cases: list[dict[str, object]],
     spans: dict[str, list[dict[str, int]]],
     adjusted: dict[str, bool],
     source_reviews: dict[str, dict[str, object]],
+    other_positive_ranges: dict[SourceKey, set[ByteRange]] | None = None,
 ) -> tuple[dict[str, object], dict[str, list[tuple[int, int]]]]:
     annotated = defaultdict(set)
     for case in cases:
@@ -55,6 +94,8 @@ def compare_reviewed_ranges(
                 annotated[key].update(
                     (part["byte_start"], part["byte_end"]) for part in review["source_spans"]
                 )
+    for key, ranges in (other_positive_ranges or {}).items():
+        annotated[key].update(ranges)
 
     verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
     verified_excluded_rows = partially_excluded_positive_rows = 0
@@ -137,10 +178,11 @@ def score_contract(
     source_reviews: dict[str, dict[str, object]],
     *,
     include_residual: bool,
+    other_positive_ranges: dict[SourceKey, set[ByteRange]] | None = None,
 ) -> dict[str, object]:
     adjusted = contract_span_predictions(cases, predictions, spans)
     reviewed_ranges, unverified_ranges = compare_reviewed_ranges(
-        cases, spans, adjusted, source_reviews
+        cases, spans, adjusted, source_reviews, other_positive_ranges
     )
     range_errors = {entry["id"]: entry for entry in reviewed_ranges["differences"]}
     contract = contract_quality_metrics(cases, adjusted)
@@ -228,18 +270,19 @@ def main() -> int:
 
     review_dir = Path(__file__).resolve().parent
     reviews = []
-    source_keys = set()
+    source_registry = {}
     for registry in sorted(review_dir.glob("*-corpus-reviews.tsv")):
         entries = load_contract_reviews(registry)
         reviews.extend(entries)
-        source_keys.update(
-            (f"tools/morph-compare/{registry.name}", review.case_id)
+        source_registry.update(
+            ((f"tools/morph-compare/{registry.name}", review.case_id), review)
             for review in entries
-            if review.query_mode == "explicit-pos" and review.split == split
+            if review.query_mode == "explicit-pos"
         )
     apply_contract_reviews(cases, reviews, query_mode="explicit-pos", split=split)
+    evidence = load_cases(review_dir / "contract-contrast-evidence.jsonl")
     source_reviews = source_ranges_for_reviews(
-        review_dir / "contract-contrast-evidence.jsonl", source_keys
+        evidence, {key for key, review in source_registry.items() if review.split == split}
     )
 
     predictions = {}
@@ -272,6 +315,7 @@ def main() -> int:
             spans,
             source_reviews,
             include_residual=args.residual,
+            other_positive_ranges=other_gsd_positive_ranges(evidence, source_registry, split),
         ),
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
