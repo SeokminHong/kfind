@@ -19,7 +19,7 @@ from python.validation import load_cases, sha256
 
 FIXTURES = {
     "eaafbae7757dbb62c9a0ca6b370dadf0f41b53c3e3d044f21b191c2aab8e3682": "raw-gsd",
-    "3e5a4c75efa08d2bacb3a01e2e038151335c6a59b9f9dce7f307403f5b91eb76": "corpus-positives-gsd",
+    "5231c0e7c4d3c72de2982e0c38fc5420f01dcbecd764428e993b903e56dc8308": "corpus-positives-gsd",
     "482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54": "corpus-negatives",
 }
 
