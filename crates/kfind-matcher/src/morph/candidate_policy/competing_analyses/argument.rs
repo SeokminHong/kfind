@@ -1,5 +1,5 @@
 use kfind_morph::{CoarsePos, ConstraintResolver};
-use kfind_query::{AtomPlan, CandidateProgram};
+use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 
 use crate::boundary::{
     bounded_surrounding_token_span, is_sentence_end_after, surrounding_token_span,
@@ -123,6 +123,42 @@ pub(super) fn has_independent_entry_frame(
                 .map(|(_, word)| word.as_ref()),
         )
         && previous().is_none_or(|word| !resolver.has_object_marked_nominal(&word))
+}
+
+pub(super) fn has_clause_final_go_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) || *span != candidate.verified.core
+        || *span != candidate.verified.token
+        || !matches!(haystack.get(span.clone()), Some(word)
+            if word == "가".as_bytes() || word == "가".as_bytes())
+        || !is_sentence_end_after(haystack, span.end)
+    {
+        return false;
+    }
+    // 가 is a complete inflection of 가다, which takes a destination (KRDict 27500).
+    let Some((adverb_start, adverb)) = context::previous_word_on_line(haystack, span.start) else {
+        return false;
+    };
+    if !resolver.has_exact_adverb_surface(&adverb)
+        || resolver.has_exact_noun_with_optional_particles(&adverb)
+    {
+        return false;
+    }
+    context::previous_word_on_line(haystack, adverb_start).is_some_and(|(start, destination)| {
+        resolver.has_spatial_destination(&destination)
+            || (resolver.has_exact_proper_name_surface(&destination)
+                && context::previous_word_on_line(haystack, start).is_some_and(|(_, means)| {
+                    means.ends_with('로') && resolver.has_nominal_oblique(&means)
+                }))
+    })
 }
 
 pub(super) fn has_late_schedule_frame(

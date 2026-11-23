@@ -60,6 +60,7 @@ pub(super) fn rejects(
         || has_competing_hao_connective(haystack, candidate, branch, resolver)
         || has_purpose_motion_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_independent_entry_frame(haystack, candidate, branch, atom, resolver)
+        || argument::has_clause_final_go_frame(haystack, candidate, branch, resolver)
         || argument::has_counted_circuit_frame(haystack, candidate, branch, atom, resolver)
         || argument::has_late_schedule_frame(haystack, candidate, branch, atom, resolver)
         || selection::has_incompatible_argument(haystack, candidate, branch, atom, resolver)

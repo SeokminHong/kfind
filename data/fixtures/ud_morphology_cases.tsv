@@ -3128,6 +3128,14 @@ regression.purpose-motion.reo-irregular-connective	갈다	verb	smart-only-exact	
 regression.purpose-motion.object	갈다	verb	smart-only-exact	10	16	원두를 갈면 향이 진해진다.
 regression.purpose-motion.intervening-adverb	갈다	verb	no-match	21	30	책을 사러 어서 가세요.
 regression.purpose-motion.intervening-adverb-movement	가다	verb	smart-only-exact	21	30	책을 사러 어서 가세요.
+regression.directional-motion-nominal.unmarked-destination-noun	가	noun	no-match	30	33	기차로 대전역 어떻게 가?
+regression.directional-motion-nominal.unmarked-destination-verb	가다	verb	smart-only-exact	30	33	기차로 대전역 어떻게 가?
+regression.directional-motion-nominal.marked-destination-noun	가	noun	no-match	30	33	저녁에 마을로 어떻게 가?
+regression.directional-motion-nominal.marked-destination-verb	가다	verb	smart-only-exact	30	33	저녁에 마을로 어떻게 가?
+regression.directional-motion-nominal.preserve-noun	가	noun	smart-only-exact	10	16	벽난로 가에 의자를 놓고 집으로 어떻게 가?
+regression.directional-motion-nominal.preserve-verb	가다	verb	smart-only-exact	54	57	벽난로 가에 의자를 놓고 집으로 어떻게 가?
+regression.directional-motion-nominal.vocative	가	noun	smart-only-exact	28	31	마을로 어떻게 갈까, 가?
+regression.directional-motion-nominal.quoted-letter	가	noun	smart-only-exact	27	30	수상 후보 중에서 ‘가’를 선택했다.
 regression.elapsed-time.counted-duration-nominal	가	noun	no-match	7	13	집에 가는 데 두 시간이 걸렸다.
 regression.elapsed-time.independent-duration-nominal	가	noun	no-match	7	13	집에 가는 데 사흘이 걸렸다.
 regression.elapsed-time.independent-duration-verb	가다	verb	smart-only-exact	7	13	집에 가는 데 사흘이 걸렸다.
