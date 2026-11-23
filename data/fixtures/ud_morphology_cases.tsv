@@ -66,6 +66,17 @@ regression.military-service-component.spaced	군	noun	smart-only-exact	0	3	군 �
 regression.military-service-component.other-component	복무	noun	smart-only-exact	3	12	군복무를 마친 뒤 복학했다.
 regression.military-service-component.whole	군복무	noun	smart-only-exact	0	12	군복무를 마친 뒤 복학했다.
 regression.military-service-component.roasted	군	noun	no-match	0	3	군고구마가 아직 뜨거웠다.
+regression.native-bound-prefix.wasp	말	noun	no-match	10	13	창문에 말벌이 붙었다.
+regression.native-bound-prefix.wasp-whole	말벌	noun	smart-only-exact	10	19	창문에 말벌이 붙었다.
+regression.native-bound-prefix.horse-and-wasp	말	noun	smart-only-exact	0	6	말은 말벌을 보고 뒤로 물러났다.
+regression.native-bound-prefix.midwinter	한	noun	no-match	0	3	한겨울에 강이 얼었다.
+regression.native-bound-prefix.count-determiner	한	determiner	smart-only-exact	13	16	시골에서 한 겨울을 지냈다.
+regression.native-bound-prefix.lament	한	noun	smart-only-exact	7	13	그의 한을 풀어 주었다.
+regression.native-bound-prefix.raw-meat	날	noun	no-match	0	3	날고기를 장시간 방치했다.
+regression.native-bound-prefix.calendar-date	날	noun	smart-only-exact	10	13	달력에 날짜를 적었다.
+regression.native-bound-prefix.idle-work	군	noun	no-match	13	16	불필요한 군일을 줄였다.
+regression.native-bound-prefix.idle-work-whole	군일	noun	smart-only-exact	13	22	불필요한 군일을 줄였다.
+regression.native-bound-prefix.military	군	noun	smart-only-exact	0	6	군은 장비를 정리했다.
 regression.determined-compound.parliament-initial	원내	noun	smart-only-exact	4	10	전 원내대표 등의 후보가 나왔다.
 regression.determined-compound.parliament-final	대표	noun	smart-only-exact	10	16	전 원내대표 등의 후보가 나왔다.
 regression.determined-compound.parliament-whole	원내대표	noun	smart-only-exact	4	16	전 원내대표 등의 후보가 나왔다.

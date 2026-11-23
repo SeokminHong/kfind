@@ -118,7 +118,9 @@ relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 
 `--stdict`에 고정 ZIP, `--cache-dir`에 사전 캐시를 지정하면
 `대-` 결합 명사와 해당 표제어 번호를 TSV로 출력합니다. 이 값은
 [`stdict-bound-dae-prefix-usages.rs`](../../data/rules/stdict-bound-dae-prefix-usages.rs)에 대응합니다.
-`--component`는 첫 성분의 접사 표제어와 원어가 일치하는 결합 명사를
+`--component`는 첫 성분의 접사 표제어와 원어가 일치하는 결합 명사를 추출합니다.
+고유어 접두사는 접사 표제어에 제시된 단어 용례와 유일한 명사 표제어의 붙임표가
+일치할 때 추출합니다. 두 분절을 공통
 [`stdict-nominal-prefix-components.csv`](../../data/rules/stdict-nominal-prefix-components.csv)로
 출력합니다. CSV의 표제어 번호와 정렬된 품사 `XPN`을 component 빌드에 사용합니다.
 

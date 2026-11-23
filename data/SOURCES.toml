@@ -124,7 +124,7 @@ generator_command = "scripts/audit-nikl-attached-nominal-suffixes.sh"
 
 [[artifact]]
 path = "rules/stdict-nominal-prefix-components.csv"
-artifact_sha256 = "a69e83dabf7c22cef568b08038a8969704d3d42922df07c32b2bbac5b1005f1f"
+artifact_sha256 = "4dc39c056d1b1ac9c7f0c055a786234790b852eece1846b33bb3fa95b7fb1b3a"
 sources = ["stdict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_prefixes.py --stdict <stdict> --cache-dir <cache> --component"

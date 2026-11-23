@@ -8,3 +8,5 @@
 홈쇼핑,0,0,0,NNG,stdict:374325,T,홈쇼핑,Compound,NNG,NNG,홈/NNG/*+쇼핑/NNG/*
 # 우리말샘 군^복무(840051)의 군(軍)은 군대이며, 복무는 그 임무를 수행하는 일이다.
 군복무,0,0,0,NNG,opendict:840051,F,군복무,Compound,NNG,NNG,군/NNG/*+복무/NNG/*
+# 표준국어대사전 군-(40278), 군-일(400185).
+군일,0,0,0,XPN+XR,"stdict:400185,40278",T,군일,Compound,XPN,XR,군/XPN/*+일/XR/*
