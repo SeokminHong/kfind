@@ -4,8 +4,10 @@ import hashlib
 import json
 import runpy
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
+from python.query_matrix_contract import ContractReview
 from python.validation import load_cases
 
 
@@ -211,10 +213,11 @@ class UDAuditScoringTests(unittest.TestCase):
     def test_raw_and_corrected_ranges_use_their_own_registered_review(self) -> None:
         case_id = "gsd:test-s95:13"
         source_ranges = AUDIT["source_ranges_for_reviews"]
-        raw = source_ranges(REGISTRY, {
+        evidence = load_cases(REGISTRY)
+        raw = source_ranges(evidence, {
             ("tools/morph-compare/raw-gsd-source-corpus-reviews.tsv", case_id),
         })
-        corrected = source_ranges(REGISTRY, {
+        corrected = source_ranges(evidence, {
             ("tools/morph-compare/gsd-positive-corpus-reviews.tsv", case_id),
         })
         raw_gold = {"byte_start": 96, "byte_end": 102}
@@ -238,6 +241,68 @@ class UDAuditScoringTests(unittest.TestCase):
         self.assertEqual(result["residual"][0]["extra"], [(11, 14)])
         with self.assertRaisesRegex(ValueError, "source range review identity differs"):
             SCORE_CONTRACT([case], {case_id: True}, spans, corrected, include_residual=True)
+
+    def test_other_gsd_reviews_reuse_positive_ranges_only_for_identical_query_and_text(self) -> None:
+        text = "그 길 저 길 작은 길"
+        evidence = {
+            "registry": "raw-reviews.tsv",
+            "id": "raw",
+            "source_text": text,
+            "source_spans": [{"byte_start": 12, "byte_end": 15}],
+        }
+        key = ("raw-reviews.tsv", "raw")
+        review = ContractReview(
+            query_mode="explicit-pos", split="raw-gsd", case_id="raw", query="길",
+            pos="noun", strict_expected=True, text_sha256=hashlib.sha256(text.encode()).hexdigest(),
+            contract_status="confirmed", contract_reason="implementation-target",
+        )
+        reusable = AUDIT["other_gsd_positive_ranges"]
+        known = reusable([evidence], {key: review}, "corpus-positives-gsd")
+        case = {
+            "id": "corrected", "query": "길", "pos": "noun", "text": text,
+            "expected": True, "gold_byte_start": 4, "gold_byte_end": 7,
+        }
+        gold, reviewed_additional, unknown = (
+            {"byte_start": 4, "byte_end": 7},
+            {"byte_start": 12, "byte_end": 15},
+            {"byte_start": 23, "byte_end": 26},
+        )
+        for row, expected_pending in (
+            (case, [(23, 26)]),
+            ({**case, "text": "그 길 이 길 작은 길"}, [(12, 15), (23, 26)]),
+            ({**case, "query": "다른 질의"}, [(12, 15), (23, 26)]),
+            ({**case, "pos": "verb"}, [(12, 15), (23, 26)]),
+        ):
+            with self.subTest(row=row):
+                result = SCORE_CONTRACT(
+                    [row], {"corrected": True}, {"corrected": [gold, reviewed_additional, unknown]},
+                    {}, include_residual=True, other_positive_ranges=known,
+                )
+                self.assertEqual(result["residual"][0]["unverified"], expected_pending)
+                self.assertFalse(result["contract_errors"]["zero_target_verified"])
+        result = SCORE_CONTRACT(
+            [case], {"corrected": False}, {"corrected": [reviewed_additional]}, {},
+            include_residual=True, other_positive_ranges=known,
+        )
+        self.assertEqual(result["contract_errors"]["fnc"], 1)
+        self.assertTrue(result["residual"][0]["false_negative"])
+        local = {"corrected": {"source_text": text, "source_spans": [gold]}}
+        result = SCORE_CONTRACT(
+            [case], {"corrected": True}, {"corrected": [gold, reviewed_additional]}, local,
+            include_residual=True, other_positive_ranges=known,
+        )
+        self.assertEqual(result["contract_errors"]["fpc"], 1)
+        self.assertEqual(result["residual"][0]["extra"], [(12, 15)])
+
+        for ineligible in (
+            replace(review, contract_status="contract-negative"),
+            replace(review, contract_status="excluded"),
+            replace(review, strict_expected=False),
+            replace(review, query_mode="untagged"),
+        ):
+            self.assertEqual(reusable([evidence], {key: ineligible}, "corpus-positives-gsd"), {})
+        with self.assertRaisesRegex(ValueError, "source range review identity differs"):
+            reusable([{**evidence, "source_text": "그 길"}], {key: review}, "corpus-positives-gsd")
 
     def test_runner_output_is_bound_to_the_input_bytes_and_query_mode(self) -> None:
         case = {"id": "same", "query": "회사", "text": "회사가 있다"}
