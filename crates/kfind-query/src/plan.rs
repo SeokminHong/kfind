@@ -1,6 +1,8 @@
 use std::ops::Range;
 use std::sync::Arc;
 
+pub(crate) const ATTESTED_SAISIOT_COMPONENT_RULE: &str = "structural.attested-saisiot-component";
+
 use kfind_data::{DICTIONARY_ADVERBIAL_I_RULE_ID, DataFinePos};
 use kfind_morph::{
     CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
@@ -279,6 +281,17 @@ pub struct CandidateProgram {
 }
 
 impl CandidateProgram {
+    #[must_use]
+    pub fn is_attested_saisiot_component(&self) -> bool {
+        matches!(self.core_mapping, CoreMapping::PrefixBytes(_))
+            && self.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == ATTESTED_SAISIOT_COMPONENT_RULE)
+            })
+    }
+
     #[must_use]
     pub fn uses_optional_component(&self) -> bool {
         self.consumption.composes_copula_host()

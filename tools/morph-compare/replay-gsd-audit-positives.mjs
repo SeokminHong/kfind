@@ -61,7 +61,7 @@ const stages = [
         'residual-context', 'proofreading-joins', 'spatial-spacing', 'anonymous-mo',
         'mayor-title', 'aligned-nominal-spans', 'help-company', 'derived-whole-nouns',
         'nominal-spelling', 'ellipsis-and-entity', 'trial-auxiliary-spacing',
-        'saint-determiner', 'case-topic',
+        'saint-determiner', 'case-topic', 'final-proofreading',
     ].map(mode => ['sentence-edits', '--' + mode]),
 ];
 const folder = mkdtempSync(join(tmpdir(), 'kfind-gsd-audit-'));
@@ -84,7 +84,7 @@ try {
         index = nextIndex;
     }
     const corrected = readFileSync(paths[index]);
-    assert.equal(sha256(corrected), 'cd3a8e532e67ba0748875311d10eba91c5fcb0d644e5c541bf3a4d22ac7c5a37',
+    assert.equal(sha256(corrected), 'e24cdc5f8101d544e8d57e492a53574d83217c4b89199130e797497dfe0abbd7',
         'unexpected corrected GSD positives SHA-256');
     process.stdout.write(corrected);
 } finally {

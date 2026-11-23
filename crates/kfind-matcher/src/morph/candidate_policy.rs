@@ -36,6 +36,31 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let boundary = atom.boundary;
+        if branch.is_attested_saisiot_component() {
+            let accepted = is_boundary_before(haystack, candidate.anchor.start)
+                && (is_boundary_after(haystack, candidate.consumed.end) || {
+                    let whole = surrounding_token_span(haystack, candidate.anchor.clone());
+                    context::normalized_token(haystack, candidate.anchor.clone()).is_some_and(
+                        |host| {
+                            context::normalized_token(haystack, candidate.anchor.end..whole.end)
+                                .is_some_and(|suffix| {
+                                    host.chars().next_back().is_some_and(|last| {
+                                        verify_copula_surface_after_nominal(last, &suffix)
+                                    })
+                                })
+                        },
+                    )
+                });
+            if accepted {
+                candidate.consumed = candidate.verified.core.clone();
+                candidate.verified.token = candidate.verified.core.clone();
+                if !candidate.verified.origins.is_empty() {
+                    candidate.verified.origins.clone_from(&branch.origins);
+                }
+                candidate.suffix_rules.clear();
+            }
+            return accepted;
+        }
         if boundary == BoundaryPolicy::Smart
             && punctuated_particle::rejects(
                 haystack,

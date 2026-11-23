@@ -19,6 +19,25 @@ fn analyzer() -> LexiconQueryAnalyzer {
 }
 
 #[test]
+fn attested_saisiot_components_are_sorted_and_match_the_surface_prefix() {
+    assert!(
+        STDICT_SAISIOT_NOMINAL_COMPONENTS
+            .windows(2)
+            .all(|pair| pair[0] < pair[1])
+    );
+    for (noun, compound) in STDICT_SAISIOT_NOMINAL_COMPONENTS {
+        let prefix = kfind_morph::add_final(noun, kfind_morph::hangul::JONG_SIOT)
+            .expect("the first noun has a final vowel");
+        assert!(
+            compound
+                .strip_prefix(&prefix)
+                .is_some_and(|rest| !rest.is_empty()),
+            "{noun} {compound}",
+        );
+    }
+}
+
+#[test]
 fn automatic_auxiliary_inflection_requires_a_verified_vowel_connective() {
     let analyzer = analyzer();
     for lemma in ["걸어지다", "해지다"] {

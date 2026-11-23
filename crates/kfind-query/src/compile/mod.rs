@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::sync::{Arc, OnceLock};
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
+use crate::plan::ATTESTED_SAISIOT_COMPONENT_RULE;
 use crate::{
     Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateLeftContext,
     CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
@@ -27,7 +28,9 @@ const ADVERB_TOPIC_CONTRACTION_HOSTS: &str =
     include_str!("../../../../data/rules/adverb-topic-contraction-hosts.txt");
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
+include!("../../../../data/rules/stdict-saisiot-nominal-components.rs");
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
+    ATTESTED_SAISIOT_COMPONENT_RULE,
     "contraction.eu-drop",
     "contraction.h-irregular",
     "contraction.identical-vowel",
@@ -560,13 +563,37 @@ fn compile_analysis(
         }
         Morphology::Nominal(nominal) => {
             let blocked_rule_ids = blocked_override_rules(nominal);
+            let consumption = CandidateConsumption::NominalParticleChain {
+                initial_allowed_rule_ids: Arc::clone(particle_rules),
+                allowed_rule_ids: Arc::clone(particle_rules),
+                blocked_rule_ids,
+            };
+            if options.boundary == crate::BoundaryPolicy::Smart
+                && analysis.fine_pos == FinePos::CommonNoun
+            {
+                let lemma = analysis.lemma.as_ref();
+                let first =
+                    STDICT_SAISIOT_NOMINAL_COMPONENTS.partition_point(|(head, _)| *head < lemma);
+                for (_, compound) in STDICT_SAISIOT_NOMINAL_COMPONENTS[first..]
+                    .iter()
+                    .take_while(|(head, _)| *head == lemma)
+                {
+                    output.push(DraftBranch {
+                        anchor: (*compound).to_owned(),
+                        consumption: consumption.clone(),
+                        core_mapping: CoreMapping::PrefixBytes(lemma.len()),
+                        origins: vec![Origin {
+                            analysis_index,
+                            rule_path: vec![RuleId::from(ATTESTED_SAISIOT_COMPONENT_RULE)],
+                        }],
+                        smart_left: true,
+                        decision: DraftDecision::Structural(ComponentCapability::Source),
+                    });
+                }
+            }
             output.push(DraftBranch {
                 anchor: analysis.lemma.to_string(),
-                consumption: CandidateConsumption::NominalParticleChain {
-                    initial_allowed_rule_ids: Arc::clone(particle_rules),
-                    allowed_rule_ids: Arc::clone(particle_rules),
-                    blocked_rule_ids,
-                },
+                consumption,
                 core_mapping: CoreMapping::WholeAnchor,
                 origins: vec![Origin {
                     analysis_index,

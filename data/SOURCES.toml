@@ -130,6 +130,12 @@ license = "CC-BY-SA-2.0-KR"
 generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_prefixes.py --stdict <stdict> --cache-dir <cache> --component"
 
 [[artifact]]
+path = "rules/stdict-saisiot-nominal-components.rs"
+artifact_sha256 = "0b58cfbee686206564d84b7805829876c4538dc9577899d4c1a1b3bd409241e7"
+sources = ["stdict"]
+license = "CC-BY-SA-2.0-KR"
+
+[[artifact]]
 path = "rules/stdict-nominal-suffix-components.tsv"
 artifact_sha256 = "fbacda37d666a90644bb554c3814d8d679b8c764b5ffbd133ddfba6505655e48"
 sources = ["stdict", "mecab-ko-dic"]
