@@ -1617,7 +1617,31 @@ impl ConstraintResolver {
                         host,
                         |pos| pos == StructuralPos::XSV,
                         connective,
-                    )))
+                    ))
+                || (!attached && self.has_resultative_connective_surface(host)))
+    }
+
+    fn has_resultative_connective_surface(&self, text: &str) -> bool {
+        let connective = |pos| pos == StructuralPos::EC;
+        text.char_indices().skip(1).any(|(start, _)| {
+            let (host, resultative) = text.split_at(start);
+            self.has_matching_vowel_auxiliary_inflection(
+                resultative,
+                PredicatePos::Verb,
+                |lemma| lemma == ATTACHED_RESULTATIVE_LEMMA,
+                |ending| {
+                    ending.is_some_and(|rule| {
+                        matches!(rule.as_str(), "ending.aoeo" | "contraction.i-eo")
+                    })
+                },
+            ) && ends_in_vowel_connective_surface(host)
+                && (predicate_inflected_path(
+                    &self.resource,
+                    host,
+                    |pos| matches!(pos, StructuralPos::VV | StructuralPos::VA),
+                    connective,
+                ) || derived_inflected_path(&self.resource, host, |_| true, connective))
+        })
     }
 
     fn has_result_state_auxiliary_inflection(&self, text: &str) -> bool {
