@@ -2,9 +2,9 @@ use std::{ops::Range, sync::OnceLock};
 
 use kfind_data::DataFinePos;
 use kfind_morph::{
-    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LexicalAlternation, PredicateEntry,
-    PredicateFlags, PredicatePos, RuleId, SurfaceBranchSpec, generate_predicate_branches,
-    verify_copula_ending_after_nominal, verify_predicate_continuation,
+    CoarsePos, ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LexicalAlternation, PredicateEntry,
+    PredicateFlags, PredicatePos, PredicatePosSet, RuleId, SurfaceBranchSpec,
+    generate_predicate_branches, verify_copula_ending_after_nominal, verify_predicate_continuation,
 };
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram, Lexicons, Morphology};
 use unicode_normalization::UnicodeNormalization;
@@ -110,10 +110,59 @@ pub(super) fn rejects(
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
         || has_competing_state_auxiliary(haystack, candidate, branch, atom, resolver)
+        || has_incompatible_negative_auxiliary_host(haystack, candidate, branch, atom, resolver)
         || has_derived_passive_instead_of_independent_verb(
             haystack, candidate, branch, atom, resolver,
         )
         || has_competing_derived_predicate(haystack, candidate, branch, resolver)
+}
+
+fn has_incompatible_negative_auxiliary_host(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let mut analyses = branch
+        .origins
+        .iter()
+        .map(|origin| &atom.analyses[usize::from(origin.analysis_index)]);
+    let Some(analysis) = analyses.next() else {
+        return false;
+    };
+    if !matches!(analysis.coarse_pos, CoarsePos::Verb | CoarsePos::Adjective)
+        || !ConstraintResolver::has_dual_pos_negative_auxiliary(&analysis.lemma)
+        || !is_boundary_before(haystack, candidate.consumed.start)
+    {
+        return false;
+    }
+    let Some((host_start, host)) =
+        context::previous_word_on_line(haystack, candidate.consumed.start)
+    else {
+        return false;
+    };
+    let positions = resolver.negative_connective_host_positions(&host);
+    let verb = PredicatePosSet::one(PredicatePos::Verb);
+    let adjective = PredicatePosSet::one(PredicatePos::Adjective);
+    let pos = if positions == verb
+        || (positions == (verb | adjective)
+            && analysis.coarse_pos == CoarsePos::Adjective
+            && (resolver.has_accusative_verb_connective(&host)
+                || host
+                    .strip_suffix('지')
+                    .is_some_and(|stem| resolver.has_accusative_verb_stem(stem)))
+            && context::previous_word_on_line(haystack, host_start)
+                .is_some_and(|(_, object)| resolver.has_object_marked_nominal(&object)))
+    {
+        CoarsePos::Verb
+    } else if positions == adjective {
+        CoarsePos::Adjective
+    } else {
+        return false;
+    };
+    analysis.coarse_pos != pos
+        && analyses.all(|other| other.lemma == analysis.lemma && other.coarse_pos != pos)
 }
 
 fn has_derived_passive_instead_of_independent_verb(
