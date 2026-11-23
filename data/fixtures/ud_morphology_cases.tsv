@@ -2527,6 +2527,15 @@ regression.comparative.level-verb	기대다	verb	smart-exact	7	13	벽에 기대 
 regression.comparative.approximation	기대다	verb	no-match	10	16	결과는 기대 정도였다.
 regression.comparative.degree-with-subject	더	noun	no-match	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
 regression.comparative.degree-adverb	더	adverb	smart-only-exact	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
+regression.comparative.change-of-state	더	noun	no-match	20	23	이전보다 물이 더 맑아졌다.
+regression.comparative.change-of-state-adverb	더	adverb	smart-only-exact	20	23	이전보다 물이 더 맑아졌다.
+regression.comparative.change-of-state-adnominal	덜	noun	no-match	10	13	불빛이 덜 밝아질 때까지 기다렸다.
+regression.comparative.change-of-state-adnominal-adverb	덜	adverb	smart-only-exact	10	13	불빛이 덜 밝아질 때까지 기다렸다.
+regression.comparative.change-of-state-derived-name	더	noun	smart-only-exact	0	6	더가 크던 방이 더 조용해졌다.
+regression.comparative.change-of-state-derived-adverb	더	adverb	smart-only-exact	21	24	더가 크던 방이 더 조용해졌다.
+regression.comparative.change-of-state-bare-subject	더	noun	smart-only-exact	10	13	형보다 더 차가워졌다.
+regression.comparative.change-of-state-quoted-title	더	noun	smart-only-exact	16	19	발표자가 ‘더 가까워진다’를 읽었다.
+regression.comparative.change-of-state-verb-host	더	adverb	smart-only-exact	10	13	그릇이 더 깨져서 주인이 비용을 물었다.
 regression.comparative.degree-with-measure	더	noun	no-match	45	48	이름 중 케이라가 키에라보다 3배 더 많았다.
 regression.comparative.measured-subject-name	더	noun	smart-only-exact	0	6	더가 3 m가 더 높은 쪽을 골랐다.
 regression.comparative.measured-subject-adverb	더	adverb	smart-only-exact	14	17	더가 3 m가 더 높은 쪽을 골랐다.
