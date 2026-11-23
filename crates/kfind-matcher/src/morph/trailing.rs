@@ -180,7 +180,12 @@ impl MorphMatcher {
                     let at_word_start = whole.start == core.start;
                     let complete_attached_path = resolver
                         .has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT);
+                    let derived_ha_connective = !at_word_start
+                        && has_rule("lexical.ha")
+                        && resolver
+                            .has_derived_predicate_connective_surface(&host, source_positions);
                     if !at_word_start
+                        && !derived_ha_connective
                         && (!complete_attached_path
                             || !source_aligned_compound_predicate_position(
                                 haystack,
@@ -262,6 +267,11 @@ impl MorphMatcher {
                         && !source_auxiliary_suffix
                         && extended_predicate_prefix
                         && !vowel_auxiliary;
+                    let licensed_compound = visible_connective
+                        && complete_attached_path
+                        && source_auxiliary_suffix
+                        && pos.is_action()
+                        && ConstraintResolver::has_vowel_connective_compound_head(trailing);
                     let licensed_auxiliary = vowel_auxiliary
                         && ((complete_attached_path
                             && (visible_connective
@@ -276,6 +286,7 @@ impl MorphMatcher {
                             || supported_connective);
                     !competing_lexical_predicate
                         && (licensed_auxiliary
+                            || licensed_compound
                             || (resolver
                                 .has_exact_predicate_connective_path(&host, source_positions)
                                 && !branch.origins.iter().all(|origin| {
