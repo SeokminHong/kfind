@@ -722,6 +722,7 @@ impl MorphMatcher {
         haystack: &[u8],
         candidate: &ExecutedCandidate,
         whole: &Range<usize>,
+        rejected_suffix: bool,
     ) -> bool {
         let model = self.particle_verifier.model();
         let is_terminal = |rule_id: &RuleId| {
@@ -733,6 +734,9 @@ impl MorphMatcher {
         };
         if candidate.suffix_rules.iter().any(is_terminal) {
             return true;
+        }
+        if !rejected_suffix {
+            return false;
         }
         let Some(trailing) = haystack
             .get(candidate.consumed.end..whole.end)
