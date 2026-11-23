@@ -3459,3 +3459,13 @@ regression.future-adnominal-auxiliary.joined	남다	verb	smart-only-exact	24	30	
 regression.future-adnominal-auxiliary.nominal-object	나다	verb	smart-only-exact	33	39	아이들은 화분에 새싹이 남을 지켜봤다.
 regression.future-adnominal-auxiliary.same-surface-name	나다	verb	smart-only-exact	10	16	새싹이 남을 만한 씨가 관찰했다.
 regression.future-adnominal-auxiliary.actual-range	나다	verb	smart-only-exact	62	68	기억에 남을 만한 일이 있다. 화분에서 새싹이 남을 지켜봤다.
+regression.future-adnominal-copula.past-rival	나다	verb	no-match	27	33	이 영화는 오랫동안 남을 기록이었다.
+regression.future-adnominal-copula.past-main	남다	verb	smart-only-exact	27	33	이 영화는 오랫동안 남을 기록이었다.
+regression.future-adnominal-copula.present-rival	남	noun	no-match	27	33	이 영화는 오랫동안 남을 기록이다.
+regression.future-adnominal-copula.contracted-rival	살다	verb	no-match	23	29	그날은 정어리를 삶을 기회였다.
+regression.future-adnominal-copula.contracted-main	삶다	verb	smart-only-exact	23	29	그날은 정어리를 삶을 기회였다.
+regression.future-adnominal-copula.single-syllable-head	나다	verb	no-match	13	19	누군가가 남을 곳이다.
+regression.future-adnominal-copula.competing-nominal-object	남	noun	smart-only-exact	0	6	남을 도운 이 영화는 오래 남을 작품이었다.
+regression.future-adnominal-copula.competing-nominalizer	나다	verb	smart-only-exact	51	57	후대에 남을 기록이다. 화분에 새싹이 남을 관찰했다.
+regression.future-adnominal-copula.transitive-past	나다	verb	smart-only-exact	33	39	연구진은 화분에 새싹이 남을 조사하였다.
+regression.future-adnominal-copula.quotative	나다	verb	smart-only-exact	33	39	연구진은 화분에 새싹이 남을 증거라고 했다.

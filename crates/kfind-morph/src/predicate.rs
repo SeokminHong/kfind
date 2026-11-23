@@ -285,6 +285,13 @@ fn compile_stem(
 /// whole input, and productive branches must also consume their complete continuation.
 #[must_use]
 fn verify_complete_copula_surface(surface: &str) -> bool {
+    verify_complete_copula_surface_matching(surface, |_| true)
+}
+
+fn verify_complete_copula_surface_matching(
+    surface: &str,
+    accepts_ending: impl Fn(Option<&RuleId>) -> bool,
+) -> bool {
     static BRANCHES: OnceLock<Box<[SurfaceBranchSpec]>> = OnceLock::new();
 
     BRANCHES
@@ -314,6 +321,9 @@ fn verify_complete_copula_surface(surface: &str) -> bool {
                         && (branch.continuation == ContinuationState::Terminal
                             || !matched.rule_path.is_empty()
                             || matched.consumed_bytes > 0)
+                        && accepts_ending(
+                            matched.rule_path.last().or_else(|| branch.rule_path.last()),
+                        )
                 })
         })
 }
@@ -328,6 +338,20 @@ pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bo
         return false;
     }
     !is_contracted_copula_surface(surface) || preceding_allows_copula_contraction(preceding)
+}
+
+/// Verifies a copula inflection whose last ending satisfies the caller's rule catalog.
+#[must_use]
+pub fn verify_copula_ending_after_nominal(
+    preceding: char,
+    surface: &str,
+    accepts_ending: impl Fn(&RuleId) -> bool,
+) -> bool {
+    (!(is_contracted_copula_surface(surface) || is_omitted_copula_ending(surface))
+        || preceding_allows_copula_contraction(preceding))
+        && verify_complete_copula_surface_matching(surface, |ending| {
+            ending.is_some_and(&accepts_ending)
+        })
 }
 
 /// Tests the ending after a vowel-final nominal when `이-` is omitted.
