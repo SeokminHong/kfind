@@ -1,4 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-positives-gsd	gsd:test-s436:2	슈퍼	noun	true	06de78bfa2e21902dca3edcca0b51f10a4389316912d0d315427f44880cb75e2	contract-negative	gold-alignment-error	우리말샘 슈퍼^개미(616994)의 슈퍼는 규모를 나타내며 독립 명사 슈퍼(537732)는 슈퍼마켓에서 온 소매점 이름이다. 띄어쓰기 교정 뒤에도 이 품사 구분을 적용한다.
 explicit-pos	corpus-positives-gsd	gsd:test-s603:15	하다	verb	true	f88846862db2ec1a90596af84db8fe5d63afd9fa8f90530e92879aec5f489cb4	confirmed	implementation-target	지진해일로의 해는 명사 해일의 일부다. 구조하기도 뒤의 보조 용언 하였다 139..148만 독립 용언 범위다.
 explicit-pos	corpus-positives-gsd	gsd:test-s93:11	하다	verb	true	04341ddabe27581db30192fe5b024ee05b7abc87580e6f2a8576f97a7c315b55	confirmed	implementation-target	인용 뒤 하니까와 하라며, 상태 부사형 없게 뒤에 명사형 어미가 붙은 함까지 동사 하다의 범위 79..88, 107..116, 152..155다.
 explicit-pos	corpus-positives-gsd	gsd:test-s93:15	하다	verb	true	04341ddabe27581db30192fe5b024ee05b7abc87580e6f2a8576f97a7c315b55	confirmed	implementation-target	인용 뒤 하니까와 하라며, 상태 부사형 없게 뒤에 명사형 어미가 붙은 함까지 동사 하다의 범위 79..88, 107..116, 152..155다.

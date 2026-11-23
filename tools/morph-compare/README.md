@@ -45,7 +45,7 @@ node tools/morph-compare/replay-gsd-audit-positives.mjs target/ud-audit/positive
 | --- | --- |
 | `positives.jsonl` | `eaafbae7757dbb62c9a0ca6b370dadf0f41b53c3e3d044f21b191c2aab8e3682` |
 | `negatives.jsonl` | `482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54` |
-| `corrected-positives.jsonl` | `e24cdc5f8101d544e8d57e492a53574d83217c4b89199130e797497dfe0abbd7` |
+| `corrected-positives.jsonl` | `3e5a4c75efa08d2bacb3a01e2e038151335c6a59b9f9dce7f307403f5b91eb76` |
 
 같은 파일을 `morph-benchmark-runner boundary full-pos smart`의 입력으로 실행한 뒤
 원본·계약 행렬을 집계합니다. `--residual`은 계약 오탐·누락의 질의 ID와 반환 범위를
