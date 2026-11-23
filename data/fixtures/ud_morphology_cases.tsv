@@ -3030,6 +3030,15 @@ regression.pronoun-topic.pronoun	나	pronoun	smart-only-exact	0	6	나는 또한 
 regression.pronoun-topic.adnominal-copula-head	나다	verb	smart-only-exact	7	13	땀이 나는 날이었다.
 regression.pronoun-topic.stacked-adnominal	날다	verb	smart-only-exact	10	16	하늘을 나는 아주 작은 새를 보았다.
 regression.pronoun-topic.explicit-copula	날다	verb	smart-only-exact	23	29	주인공은 하늘을 나는 친구이었다.
+regression.audible-subject-occurrence.adnominal-present	나다	verb	smart-only-exact	44	50	기계가 움직일 때 낮은 파열음이 나는 이유를 알아봤다.
+regression.audible-subject-occurrence.adnominal-present-not-flight	날다	verb	no-match	44	50	기계가 움직일 때 낮은 파열음이 나는 이유를 알아봤다.
+regression.audible-subject-occurrence.adnominal-past	나다	verb	smart-only-exact	21	24	어제 큰 소리가 난 곳이 저 창고다.
+regression.audible-subject-occurrence.adnominal-past-not-flight	날다	verb	no-match	21	24	어제 큰 소리가 난 곳이 저 창고다.
+regression.audible-subject-occurrence.adnominal-future	나다	verb	smart-only-exact	20	23	새벽에 소리가 날 수 있으니 문을 닫아 주세요.
+regression.audible-subject-occurrence.adnominal-future-not-flight	날다	verb	no-match	20	23	새벽에 소리가 날 수 있으니 문을 닫아 주세요.
+regression.audible-subject-occurrence.preceding-clause-object	날다	verb	no-match	34	40	문을 열면 작은 종소리가 난다.
+regression.audible-subject-occurrence.accusative-path	날다	verb	smart-only-exact	23	29	허공을 총소리가 나는 듯한 느낌이 들었다.
+regression.audible-subject-occurrence.actual-flight	날다	verb	smart-only-exact	40	46	천둥소리가 들리고 새가 높이 나는 모습을 보았다.
 regression.pronoun-prefix.action	이	pronoun	no-match	23	32	선생님이 아이를 이끌어 주셨다.
 regression.pronoun-prefix.verb-nominalization	이	pronoun	no-match	13	22	경기에서 이기기 위해 연습했다.
 regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	10	19	기술을 이용할 계획이다.

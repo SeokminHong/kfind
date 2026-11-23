@@ -1179,6 +1179,21 @@ impl ConstraintResolver {
         matches_predicate_inflection(text, &FORMS)
     }
 
+    /// Verifies the occurrence verb 나다 (KRDict 62210).
+    #[must_use]
+    pub fn has_occurrence_inflection(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "나다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid occurrence predicate")
+            });
+        matches_predicate_inflection(text, &FORMS)
+    }
+
     /// Verifies the independent possession predicate 가지다 (KRDict 65234).
     #[must_use]
     pub fn has_possession_inflection(text: &str) -> bool {

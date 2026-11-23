@@ -91,8 +91,10 @@ pub(super) fn has_incompatible_argument(
         }
         // A sound is the subject of occurrence 나다 (62210). Preserve
         // motion with an overt path or goal in the predicate phrase.
-        "날다" if word.starts_with("난다") => {
+        "날다" => {
             marked_subject(&previous, NominalRole::AudiblePhenomenon)
+                && ConstraintResolver::has_occurrence_inflection(&word)
+                && !prior(start).is_some_and(|(_, path)| resolver.has_object_marked_nominal(&path))
                 && !has_direction_before_subject(haystack, start, resolver)
         }
         // The container or occupancy subject takes 비다 (KRDict 15680).
