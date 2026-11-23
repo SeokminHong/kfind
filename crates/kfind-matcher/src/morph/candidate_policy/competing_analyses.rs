@@ -4,9 +4,9 @@ use kfind_data::DataFinePos;
 use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LexicalAlternation, PredicateEntry,
     PredicateFlags, PredicatePos, RuleId, SurfaceBranchSpec, generate_predicate_branches,
-    verify_predicate_continuation,
+    verify_copula_ending_after_nominal, verify_predicate_continuation,
 };
-use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram, Morphology};
+use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram, Lexicons, Morphology};
 use unicode_normalization::UnicodeNormalization;
 
 use crate::boundary::{
@@ -100,9 +100,7 @@ pub(super) fn rejects(
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || nominal::has_copular_topic_instead_of_adverbial(haystack, candidate, branch, resolver)
         || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
-        || has_adnominal_auxiliary_instead_of_nominalized_object(
-            haystack, candidate, branch, resolver,
-        )
+        || has_future_adnominal_instead_of_accusative(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
         || quantity::has_concessive_particle_frame(haystack, candidate, branch, resolver)
         || nominal::has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
@@ -352,40 +350,66 @@ fn has_adverb_instead_of_inferred_nominalization(
     })
 }
 
-fn has_adnominal_auxiliary_instead_of_nominalized_object(
+fn has_future_adnominal_instead_of_accusative(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
     resolver: &ConstraintResolver,
 ) -> bool {
     let span = &candidate.consumed;
-    if branch.origins.is_empty()
-        || !branch.origins.iter().all(|origin| {
-            let mut rules = origin.rule_path.iter().chain(&candidate.suffix_rules).rev();
-            rules
-                .next()
-                .is_some_and(|rule| rule.as_str() == "particle.object")
-                && rules
-                    .next()
-                    .is_some_and(|rule| rule.as_str() == "ending.nominalizer")
-        })
+    if !haystack
+        .get(span.clone())
+        .is_some_and(|text| text.ends_with("을".as_bytes()) || text.ends_with("ᆯ".as_bytes()))
         || !is_boundary_before(haystack, span.start)
         || !is_boundary_after(haystack, span.end)
     {
         return false;
     }
-    let Some((end, auxiliary)) = context::next_word_on_line(haystack, span.end) else {
+    let is_object = |rule: &RuleId| rule.as_str() == "particle.object";
+    let bare_nominal = matches!(
+        branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    ) && matches!(candidate.suffix_rules.as_slice(), [rule] if is_object(rule));
+    let nominalized = !bare_nominal
+        && !branch.origins.is_empty()
+        && branch.origins.iter().all(|origin| {
+            let mut rules = origin.rule_path.iter().chain(&candidate.suffix_rules).rev();
+            rules.next().is_some_and(is_object)
+                && rules
+                    .next()
+                    .is_some_and(|rule| rule.as_str() == "ending.nominalizer")
+        });
+    if !bare_nominal && !nominalized {
+        return false;
+    }
+    let Some((end, following_word)) = context::next_word_on_line(haystack, span.end) else {
         return false;
     };
-    resolver.has_adnominal_auxiliary_tail(&auxiliary, true, false)
-        && context::normalized_token(haystack, span.clone()).is_some_and(|host| {
-            host.ends_with('을') && resolver.has_predicate_adnominal_surface(&host)
+    if !context::normalized_token(haystack, span.clone())
+        .is_some_and(|host| host.ends_with('을') && resolver.has_predicate_adnominal_surface(&host))
+    {
+        return false;
+    }
+    if is_sentence_end_after(haystack, end)
+        && following_word.char_indices().skip(1).any(|(split, _)| {
+            let (host, suffix) = following_word.split_at(split);
+            host.chars().next_back().is_some_and(|last| {
+                verify_copula_ending_after_nominal(last, suffix, |rule| {
+                    Lexicons::is_final_ending_rule(rule.as_str())
+                })
+            }) && resolver.has_complete_nominal_surface(host)
         })
-        && (!resolver.has_exact_nominal_surface(&auxiliary)
+        && !resolver.has_final_verb_after_object(&following_word)
+    {
+        return true;
+    }
+    nominalized
+        && resolver.has_adnominal_auxiliary_tail(&following_word, true, false)
+        && (!resolver.has_exact_nominal_surface(&following_word)
             || context::next_word_on_line(haystack, end).is_some_and(|(end, next)| {
                 context::next_word_on_line(haystack, end).is_some_and(|(end, following)| {
-                    resolver.has_copular_adnominal_frame(&auxiliary, &next, &following)
-                        || (resolver.has_predicate_adnominal_analysis(&auxiliary)
+                    resolver.has_copular_adnominal_frame(&following_word, &next, &following)
+                        || (resolver.has_predicate_adnominal_analysis(&following_word)
                             && resolver.has_predicate_adnominal_analysis(&next)
                             && !resolver.has_whole_modifier(&next)
                             && resolver.has_independent_nominal_head(&following))
