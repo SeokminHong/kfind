@@ -3369,3 +3369,14 @@ regression.result-state-pos.bare-nominal-verb	있다	verb	smart-only-exact	40	49
 regression.result-state-pos.bare-nominal-not-adjective	있다	adjective	no-match	40	49	대표단은 서울에서 자리 잡고 있었다.
 regression.result-state-pos.book-title-adjective	있다	adjective	smart-only-exact	20	26	도서관에 잡고 있다.
 regression.result-state-pos.dependent-scope	있다	adjective	smart-only-exact	21	30	자료를 읽는 데 있어서 집중력이 중요하다.
+regression.particle-interior-predicate.source-simple	서다	verb	no-match	16	19	설명한 글에서 오류를 발견했다.
+regression.particle-interior-predicate.source-topic	서다	verb	no-match	16	22	설명한 글에서는 다른 근거를 들었다.
+regression.particle-interior-predicate.source-additive	서다	verb	no-match	16	22	설명한 글에서도 같은 오류를 발견했다.
+regression.particle-interior-predicate.source-another-host	서다	verb	no-match	19	25	사람들 사이에서는 알려진 이야기다.
+regression.particle-interior-predicate.source-start-point	서다	verb	no-match	9	12	한계에서부터 차이를 측정했다.
+regression.particle-interior-predicate.nominal-range	글	noun	smart-only-exact	10	19	설명한 글에서 오류를 발견했다.
+regression.particle-interior-predicate.independent-predicate	서다	verb	smart-only-exact	32	35	그 글에서 나는 문 앞에 서 있었다.
+regression.particle-interior-predicate.attached-auxiliary	서다	verb	smart-only-exact	11	23	문 앞에 서있었다.
+regression.particle-interior-predicate.repeated-connective	서다	verb	smart-only-exact	18	24	그는 문 앞에 서서 기다렸다.
+regression.particle-interior-predicate.alternative-with-independent-predicate	나다	verb	smart-only-exact	34	40	낮이나 저녁에 오면 땀이 난다.
+regression.particle-interior-predicate.limit	지다	verb	no-match	23	29	자료를 보낼 때까지는 기다려 주세요.
