@@ -7,9 +7,10 @@ use kfind_data::ParticleTransitionRule;
 use crate::RuleId;
 use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
-const CONTRACTED_CASE_TOPICS: [(&str, &str, &str); 3] = [
+const CONTRACTED_CASE_TOPICS: [(&str, &str, &str); 4] = [
     ("엔", "에", "particle.locative"),
     ("에선", "에서", "particle.source"),
+    ("선", "서", "particle.source"),
     ("보단", "보다", "particle.comparison.boda"),
 ];
 
@@ -230,6 +231,7 @@ impl Default for ParticleChainModel {
             ),
             allomorph(Dative, Case, "께", Any, "dative"),
             allomorph(Source, Case, "에서", Any, "source"),
+            allomorph(Source, Case, "서", Any, "source"),
             allomorph(Locative, Case, "에", Any, "locative"),
             allomorph(Possessive, Case, "의", Any, "genitive"),
             allomorph(Subject, Case, "이", Consonant, "subject"),
@@ -323,7 +325,18 @@ impl ParticleVerifier {
     /// Returns the longest grammatical particle-chain prefix after `core`.
     #[must_use]
     pub fn verify_prefix(&self, core: &str, following: &str) -> ParticleMatch {
-        self.verify_prefix_for_host(core, following, true)
+        self.verify_prefix_for_host(core, following, true, None)
+    }
+
+    /// Admits the shortened source and topic pair when the caller verifies its nominal host.
+    #[must_use]
+    pub fn verify_structural_nominal_prefix(
+        &self,
+        core: &str,
+        following: &str,
+        verifies_short_source_host: impl Fn() -> bool,
+    ) -> ParticleMatch {
+        self.verify_prefix_for_host(core, following, true, Some(&verifies_short_source_host))
     }
 
     /// Returns the prefix before a final contracted case and topic pair.
@@ -354,7 +367,7 @@ impl ParticleVerifier {
     /// Returns the longest particle prefix after a non-nominal host.
     #[must_use]
     pub fn verify_non_nominal_prefix(&self, core: &str, following: &str) -> ParticleMatch {
-        self.verify_prefix_for_host(core, following, false)
+        self.verify_prefix_for_host(core, following, false, None)
     }
 
     fn verify_prefix_for_host(
@@ -362,6 +375,7 @@ impl ParticleVerifier {
         core: &str,
         following: &str,
         nominal_host: bool,
+        verifies_short_source_host: Option<&dyn Fn() -> bool>,
     ) -> ParticleMatch {
         let mut consumed = 0;
         let mut rule_path = Vec::new();
@@ -383,9 +397,12 @@ impl ParticleVerifier {
             let remaining = &following[consumed..];
             if nominal_host
                 && rule_path.len() + 2 <= self.model.max_rules
-                && let Some(&(short, full, rule)) = CONTRACTED_CASE_TOPICS
-                    .iter()
-                    .find(|(short, _, _)| remaining.starts_with(short))
+                && let Some(&(short, full, rule)) =
+                    CONTRACTED_CASE_TOPICS.iter().find(|(short, _, _)| {
+                        remaining.starts_with(short)
+                            && (*short != "선"
+                                || verifies_short_source_host.is_some_and(|verify| verify()))
+                    })
                 && let Some(case) =
                     self.longest_match(full, previous, previous_rule, previous_was_nominal_initial)
                 && case.rule_id.as_str() == rule
@@ -841,6 +858,24 @@ mod tests {
         assert_eq!(matched.consumed_bytes, '엔'.len_utf8());
         verifier.model.max_rules = 1;
         assert!(verifier.verify_exact("학교", "엔").is_none());
+    }
+
+    #[test]
+    fn contracts_topic_after_either_source_allomorph() {
+        let verifier = ParticleVerifier::default();
+        for (contracted, expanded) in [("에선", "에서는"), ("선", "서는")] {
+            let matched = verifier.verify_structural_nominal_prefix("학교", contracted, || true);
+            let uncontracted = verifier.verify_exact("학교", expanded).expect(expanded);
+            assert_eq!(matched.rule_path, uncontracted.rule_path);
+            assert_eq!(matched.consumed_bytes, contracted.len());
+        }
+        assert_eq!(verifier.verify_prefix("학교", "선").consumed_bytes, 0);
+        assert_eq!(
+            verifier
+                .verify_structural_nominal_prefix("학교", "들선", || true)
+                .consumed_bytes,
+            "들선".len(),
+        );
     }
 
     #[test]

@@ -443,9 +443,49 @@ impl MorphMatcher {
                         );
                     }
                 }
+                let has_competing_source_lexeme = |resolver: &ConstraintResolver| {
+                    let whole = surrounding_token_span(haystack, core.clone());
+                    context::normalized_token(haystack, whole).is_some_and(|token| {
+                        let aligned_pronoun = branch.structural_patterns().iter().any(|pattern| {
+                            pattern.fine_pos == DataFinePos::Np
+                                && resolver.has_complete_nominal_surface(&consumption_anchor)
+                        });
+                        resolver.has_exact_predicate_ending_path(
+                            &token,
+                            kfind_morph::PredicatePos::Verb,
+                        ) || (!aligned_pronoun
+                            && (resolver.has_whole_modifier(&token)
+                                || resolver.has_exact_nominal_surface(&token)
+                                || token
+                                    .strip_suffix('의')
+                                    .is_some_and(|host| resolver.has_exact_nominal_surface(host))))
+                    })
+                };
                 let mut matched = if adverb_host {
                     self.particle_verifier
                         .verify_non_nominal_prefix(&consumption_anchor, &consumption_following)
+                } else if branch.decision.is_structural()
+                    && matches!(
+                        branch.consumption,
+                        CandidateConsumption::NominalParticleChain { .. }
+                    )
+                {
+                    self.particle_verifier.verify_structural_nominal_prefix(
+                        &consumption_anchor,
+                        &consumption_following,
+                        || {
+                            self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                (resolver.has_exact_nominal_surface(&consumption_anchor)
+                                    || (resolver.has_complete_nominal_surface(&consumption_anchor)
+                                        && !resolver.has_nominal_oblique(&consumption_anchor)))
+                                    && !resolver.has_exact_predicate_ending_path(
+                                        &format!("{consumption_anchor}서"),
+                                        kfind_morph::PredicatePos::Verb,
+                                    )
+                                    && !has_competing_source_lexeme(resolver)
+                            })
+                        },
+                    )
                 } else {
                     self.particle_verifier
                         .verify_prefix(&consumption_anchor, &consumption_following)
@@ -506,26 +546,10 @@ impl MorphMatcher {
                 {
                     let tail = &consumption_following[matched.consumed_bytes..];
                     let competing_lexeme = branch.decision.is_structural()
-                        && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                            let whole = surrounding_token_span(haystack, core.clone());
-                            context::normalized_token(haystack, whole).is_some_and(|token| {
-                                let aligned_pronoun =
-                                    branch.structural_patterns().iter().any(|pattern| {
-                                        pattern.fine_pos == DataFinePos::Np
-                                            && resolver
-                                                .has_complete_nominal_surface(&consumption_anchor)
-                                    });
-                                resolver.has_exact_predicate_ending_path(
-                                    &token,
-                                    kfind_morph::PredicatePos::Verb,
-                                ) || (!aligned_pronoun
-                                    && (resolver.has_whole_modifier(&token)
-                                        || resolver.has_exact_nominal_surface(&token)
-                                        || token.strip_suffix('의').is_some_and(|host| {
-                                            resolver.has_exact_nominal_surface(host)
-                                        })))
-                            })
-                        });
+                        && self
+                            .constraint_resolver
+                            .as_ref()
+                            .is_some_and(has_competing_source_lexeme);
                     if competing_lexeme || tail.starts_with(crate::is_token_character) {
                         // An incomplete shortened case chain can also start a compound component.
                         matched = self
