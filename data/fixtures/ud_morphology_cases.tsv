@@ -3415,6 +3415,16 @@ regression.degree-adverb-possibility.affirmative	거	noun	no-match	10	16	친구�
 regression.degree-adverb-possibility.possessive	거	noun	smart-only-exact	4	10	네 거의 다룰 수 없는 부품만 남았다.
 regression.degree-adverb-possibility.adnominal-host	거	noun	smart-only-exact	17	23	네가 가져온 거의 녹일 수 없는 부품을 버렸다.
 regression.degree-adverb-possibility.independent-count	거	noun	smart-only-exact	17	23	그가 선택한 거의 수가 줄었다.
+regression.degree-adverb-connective.derived-verb	거	noun	no-match	41	47	두 곡은 앞부분에 잠깐 나오고 거의 생략되는데 다음 장면은 길다.
+regression.degree-adverb-connective.independent-verb	거	noun	no-match	24	30	물은 조금씩 새고 거의 마르는데 안쪽은 아직 축축하다.
+regression.degree-adverb-connective.contrastive-ending	거	noun	no-match	33	39	가로등은 잠시 흔들리고 거의 꺼지지만 표지판은 보인다.
+regression.degree-adverb-connective.derived-adjective	거	noun	no-match	30	36	첫 문장은 자연스럽고 거의 완벽하지만 끝 문장이 어색하다.
+regression.degree-adverb-connective.genitive	거	noun	smart-only-exact	28	34	우리는 문을 닫고 네 거의 수리 일정을 확인했다.
+regression.degree-adverb-connective.adnominal	거	noun	smart-only-exact	38	44	우리는 문을 닫고 네가 고른 거의 수리 일정을 확인했다.
+regression.degree-adverb-connective.dependent-object	거	noun	smart-only-exact	14	17	네가 고른 걸 챙겼고 나머지 곡은 잠깐 나오고 거의 생략되는데 끝 장면은 더 길다.
+regression.degree-adverb-connective.whole-adverb	거의	adverb	smart-only-exact	62	68	네가 고른 걸 챙겼고 나머지 곡은 잠깐 나오고 거의 생략되는데 끝 장면은 더 길다.
+regression.degree-adverb-connective.separate-sentences	거	noun	smart-only-exact	55	61	연주가 끝났고 부록을 펼쳤다. 이것은 네 거의 수리 안내다.
+regression.degree-adverb-connective.adjective-and-dependent	거	noun	smart-only-exact	85	88	설렁탕 맛은 거의 비슷하지만 신선한 야채를 맘껏 먹을 수 있는 게 참 좋네요.
 regression.degree-adverb.standard-layer-and-verb	하다	verb	smart-only-exact	24	30	한층 더 좋아지게 하고 있다.
 regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	35	41	그 사이 한층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
