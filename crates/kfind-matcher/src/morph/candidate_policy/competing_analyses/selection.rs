@@ -204,10 +204,6 @@ pub(super) fn has_incompatible_argument(
             {
                 return true;
             }
-            let is_motion = |word: &str| {
-                ConstraintResolver::has_motion_go_inflection(word)
-                    && !ConstraintResolver::has_possession_inflection(word)
-            };
             if !word.ends_with('고')
                 || !(marked_object
                     || (resolver.has_exact_nominal_surface(&previous)
@@ -223,13 +219,16 @@ pub(super) fn has_incompatible_argument(
                 if end > limit {
                     break;
                 }
-                if is_motion(&next) {
+                if (resolver.has_deictic_motion_inflection(&next)
+                    && !ConstraintResolver::has_possession_inflection(&next))
+                    || (marked_object && resolver.has_progressive_auxiliary_frame(&word, &next))
+                {
                     return true;
                 }
                 if !context::has_unmarked_adverbial_modifier(&next, resolver)
-                    && !context::has_direction_argument(&next, resolver)
                     && (resolver.has_exact_nominal_surface(&next)
-                        || !resolver.has_vowel_connective_host(&next))
+                        || !(resolver.has_nominal_oblique(&next)
+                            || resolver.has_vowel_connective_host(&next)))
                 {
                     break;
                 }

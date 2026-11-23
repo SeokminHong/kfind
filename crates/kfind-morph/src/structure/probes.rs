@@ -1134,6 +1134,35 @@ impl ConstraintResolver {
         matches_predicate_inflection(text, forms)
     }
 
+    #[must_use]
+    pub fn has_deictic_motion_inflection(&self, text: &str) -> bool {
+        static COME_FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                let entry = crate::PredicateEntry::new(
+                    "오다",
+                    PredicatePos::Verb,
+                    LexicalAlternation::Regular,
+                );
+                crate::generate_predicate_branches(&entry).expect("valid motion predicate")
+            });
+        let inflection = |stem, tail| match stem {
+            '가' => Self::has_motion_go_inflection(tail),
+            '오' => matches_predicate_inflection(tail, &COME_FORMS),
+            _ => false,
+        };
+        inflection('가', text)
+            || inflection('오', text)
+            || text.char_indices().skip(1).any(|(split, _)| {
+                ['가', '오'].into_iter().any(|stem| {
+                    inflection(stem, &text[split..])
+                        && self.has_exact_action_predicate_surface(&format!(
+                            "{}{stem}",
+                            &text[..split]
+                        ))
+                })
+            })
+    }
+
     /// Verifies the purchase verb 사다 (KRDict 49419).
     #[must_use]
     pub fn has_purchase_inflection(text: &str) -> bool {
