@@ -150,6 +150,7 @@ python3 tools/morph-compare/measure-smart.py "$fixture" "$new_output_dir" \
 ```
 
 측정군별 새 프로세스로 워밍업 1회 뒤 실행 순서를 번갈아 바꾸며 5회 측정합니다.
+각 실행 출력의 `fixture_sha256`이 측정 입력과 일치해야 합니다.
 `summary.json`에 초기화, 처리량, p50·p95 지연 시간과 최대 RSS의 중앙값·최솟값·최댓값,
 그리고 fixture·실행 파일·리소스와 전체 반환 범위의 체크섬을 남깁니다. 실행별
 runner 출력과 로그는 같은 디렉터리에 있습니다. 최대 RSS는 macOS의

@@ -1,6 +1,9 @@
 import contextlib
+import hashlib
 import importlib.util
 import io
+import json
+import runpy
 import sys
 import tempfile
 import unittest
@@ -26,6 +29,7 @@ def load_benchmark():
 
 
 benchmark = load_benchmark()
+SMART_MEASURE_PATH = BENCHMARK_PATH.with_name("measure-smart.py")
 
 
 @unittest.skipIf(benchmark is None, "benchmark.py is not present in this image stage")
@@ -75,6 +79,57 @@ class BenchmarkOutputTests(unittest.TestCase):
             benchmark.announce_progress(True, "running")
 
         self.assertEqual(stdout.getvalue(), "[morphology] running\n")
+
+    @unittest.skipUnless(SMART_MEASURE_PATH.is_file(), "local Smart measurement tool")
+    def test_smart_measurement_requires_runner_input_checksum(self) -> None:
+        script = runpy.run_path(str(SMART_MEASURE_PATH))
+        source_text = '{"id":"same-id","query":"서다","text":"문 앞에 서 있었다."}\n'
+        changed_text = '{"id":"same-id","query":"보다","text":"문 앞에 서 있었다."}\n'
+        source_sha = hashlib.sha256(source_text.encode()).hexdigest()
+        changed_sha = hashlib.sha256(changed_text.encode()).hexdigest()
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "fixture.jsonl"
+            fixture.write_text(source_text, encoding="utf-8")
+            fixture_arg = str(fixture)
+            arm = [fixture_arg, "test", fixture_arg, fixture_arg, fixture_arg]
+            for kind, checksum in (
+                ("matching", source_sha),
+                ("missing", None),
+                ("different", changed_sha),
+            ):
+                with self.subTest(kind=kind):
+                    output = Path(directory) / kind
+                    payload = {
+                        "profile": "full-pos",
+                        "boundary": "smart",
+                        **{field: source_sha for _, field in script["ARTIFACTS"]},
+                        "results": [{"id": "same-id", "spans": [], "latency_ms": 0.1}],
+                        "initialization_seconds": 0.01,
+                        "evaluation_seconds": 0.001,
+                        "peak_rss_kib": 10,
+                    }
+                    if checksum is not None:
+                        payload["fixture_sha256"] = checksum
+
+                    def runner(command, **_):
+                        Path(command[-1]).write_text(json.dumps(payload), encoding="utf-8")
+
+                    argv = [
+                        str(SMART_MEASURE_PATH), fixture_arg, str(output),
+                        "--baseline", *arm, "--candidate", *arm,
+                    ]
+                    main = script["main"]
+                    with (
+                        mock.patch.object(sys, "argv", argv),
+                        mock.patch.dict(main.__globals__, subprocess=mock.Mock(run=runner)),
+                    ):
+                        if kind == "matching":
+                            self.assertEqual(main(), 0)
+                            self.assertTrue((output / "summary.json").is_file())
+                        else:
+                            with self.assertRaisesRegex(ValueError, "실행 입력 체크섬"):
+                                main()
+                            self.assertFalse((output / "summary.json").exists())
 
 
 if __name__ == "__main__":
