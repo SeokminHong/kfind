@@ -3140,6 +3140,15 @@ regression.purpose-motion.reo-irregular-connective	갈다	verb	smart-only-exact	
 regression.purpose-motion.object	갈다	verb	smart-only-exact	10	16	원두를 갈면 향이 진해진다.
 regression.purpose-motion.intervening-adverb	갈다	verb	no-match	21	30	책을 사러 어서 가세요.
 regression.purpose-motion.intervening-adverb-movement	가다	verb	smart-only-exact	21	30	책을 사러 어서 가세요.
+regression.possession-motion-sequence.source-motion	가다	verb	smart-only-exact	20	29	유모차 가지고 갔더니 홀대하더이다.
+regression.possession-motion-sequence.source-possession	가지다	verb	smart-only-exact	10	19	유모차 가지고 갔더니 홀대하더이다.
+regression.possession-motion-sequence.destination-motion	가다	verb	smart-only-exact	43	49	아이들은 우산을 가지고 학교에 갔다.
+regression.possession-motion-sequence.destination-possession	가지다	verb	smart-only-exact	23	32	아이들은 우산을 가지고 학교에 갔다.
+regression.possession-motion-sequence.adverb-motion	가다	verb	smart-only-exact	37	43	동생은 우산 가지고 곧바로 갔다.
+regression.possession-motion-sequence.adverb-possession	가지다	verb	smart-only-exact	17	26	동생은 우산 가지고 곧바로 갔다.
+regression.possession-motion-sequence.intentional-motion	가다	verb	smart-only-exact	37	43	나는 보조 배터리를 가지고 갈게.
+regression.possession-motion-sequence.intentional-possession	가지다	verb	smart-only-exact	27	36	나는 보조 배터리를 가지고 갈게.
+regression.possession-motion-sequence.independent-auxiliary	가다	verb	smart-only-exact	30	33	유모차를 밀고 집까지 가 보자.
 regression.directional-motion-nominal.unmarked-destination-noun	가	noun	no-match	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.unmarked-destination-verb	가다	verb	smart-only-exact	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.marked-destination-noun	가	noun	no-match	30	33	저녁에 마을로 어떻게 가?

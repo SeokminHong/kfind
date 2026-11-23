@@ -182,19 +182,43 @@ pub(super) fn has_incompatible_argument(
             }
             false
         }
-        // 가다 licenses an accusative path, duration or purpose (27500).
-        // A financial asset instead supports the lexical possession verb.
+        // 가다 takes an accusative route, while 가지다 takes a possessed object
+        // and can combine with an independent motion verb (KRDict 27500, 65234).
         "가다" if word.starts_with("가지") => {
-            branch.origins.iter().any(|origin| {
+            if !branch.origins.iter().any(|origin| {
                 origin
                     .rule_path
                     .iter()
                     .chain(&candidate.suffix_rules)
                     .any(|rule| rule.as_str() == "ending.auxiliary-jida")
-            }) && previous.strip_suffix(['을', '를']).is_some_and(|noun| {
-                resolver.has_nominal_role(noun, NominalRole::OwnershipAsset)
-                    && resolver.has_object_marked_nominal(&previous)
-            }) && ConstraintResolver::has_possession_inflection(&word)
+            }) || !ConstraintResolver::has_possession_inflection(&word)
+            {
+                return false;
+            }
+            let marked_object = resolver.has_object_marked_nominal(&previous);
+            if marked_object
+                && previous.strip_suffix(['을', '를']).is_some_and(|noun| {
+                    resolver.has_nominal_role(noun, NominalRole::OwnershipAsset)
+                })
+            {
+                return true;
+            }
+            let is_motion = |word: &str| {
+                ConstraintResolver::has_motion_go_inflection(word)
+                    && !ConstraintResolver::has_possession_inflection(word)
+            };
+            word.ends_with('고')
+                && (marked_object
+                    || (resolver.has_exact_nominal_surface(&previous)
+                        && !resolver.has_exact_non_copula_predicate_surface(&previous)))
+                && context::next_word_on_line(haystack, whole.end).is_some_and(|(end, next)| {
+                    is_motion(&next)
+                        || (((next.ends_with(['에', '로']) && resolver.has_nominal_oblique(&next))
+                            || (resolver.has_exact_adverb_surface(&next)
+                                && !resolver.has_exact_noun_with_optional_particles(&next)))
+                            && context::next_word_on_line(haystack, end)
+                                .is_some_and(|(_, motion)| is_motion(&motion)))
+                })
         }
         // A subject that denotes an orthographic unit can be identified
         // by a syllable followed by reduced 이다. Motion requires separate
