@@ -190,6 +190,8 @@ query	pos	text	expected	feature
 먹다	verb	밥을 먹어 배가 불렀다.	match	regular
 먹다	verb	밥을 먹아 보았다.	no-match	regular
 가다	verb	친구와 함께 가고 싶다.	match	regular
+싶다	adjective	기차를 타고 싶은데 시간이 맞을까요?	match	auxiliary-adjective
+싶다	verb	비가 그쳤나 싶었다.	no-match	curated-pos
 가다	verb	서울로 가는 기차를 탔다.	match	regular
 가다	verb	어제 간 식당이 조용했다.	match	regular
 가다	verb	내일 갈 장소를 정했다.	match	regular

@@ -1042,6 +1042,9 @@ pub enum LexicalAlternation {
 `자신`은 재귀 용법과 확신을 뜻하는 용법 모두 명사다. 확정된 품사와 다른
 형태 질의의 atom에는 검색 후보가 없다. literal 검색과 사용자 사전에 명시한
 품사는 해당 입력의 설정을 따른다.
+core 용언의 `CURATED_POS`도 같은 품사 우선순위를 적용한다.
+`VX`의 `AUXILIARY_ADJECTIVE` 표지는 두 사전에서 확인한 보조 형용사
+분석을 보존한다. `싶다`의 희망·추측 용법은 이 분석을 사용한다.
 
 ```text
 core lexicon: 불규칙 용언, 고빈도 중의어, 조사와 수식언

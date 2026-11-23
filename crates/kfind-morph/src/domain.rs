@@ -349,7 +349,11 @@ pub struct PredicateEntry {
 impl PredicateEntry {
     #[must_use]
     pub fn from_lexicon_record(record: &PredicateRecord) -> Option<Self> {
-        let pos = PredicatePos::from_data_fine_pos(record.pos)?;
+        let pos = if record.pos == DataFinePos::Vx && record.flags.contains("AUXILIARY_ADJECTIVE") {
+            PredicatePos::AuxiliaryAdjective
+        } else {
+            PredicatePos::from_data_fine_pos(record.pos)?
+        };
         let flags = record
             .flags
             .iter()
