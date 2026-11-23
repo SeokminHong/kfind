@@ -1826,6 +1826,14 @@ regression.nominal-tail-copula.aligned-noun-adnominal	물	noun	smart-only-exact	
 regression.nominal-tail-copula.aligned-noun-past	물	noun	smart-only-exact	13	16	그것은 국물이었다.
 regression.nominal-tail-copula.aligned-noun-coordination	물	noun	smart-only-exact	13	16	이것은 국물이고 저것은 건더기다.
 regression.nominal-suffix.person-full-adnominal	책임자	noun	smart-only-exact	21	30	그는 이 사업의 책임자인 김 과장을 만났다.
+regression.drug-suffix.bare	제	noun	no-match	36	39	목록의 마지막 항목은 표백제
+regression.drug-suffix.independent-counter-in-same-line	제	noun	smart-only-exact	38	44	목록에 진통제를 적고 약 한 제를 따로 기록했다.
+regression.drug-suffix.genitive	제	noun	no-match	22	28	보고서에는 항생제의 이름이 기록돼 있다.
+regression.drug-suffix.whole-noun	항생제	noun	smart-only-exact	16	28	보고서에는 항생제의 이름이 기록돼 있다.
+regression.drug-suffix.copula	제	noun	no-match	36	39	목록의 마지막 항목은 수면제입니다.
+regression.drug-suffix.independent-counter	제	noun	smart-only-exact	21	27	기록에는 약 한 제를 지었다고 적혀 있다.
+regression.drug-suffix.independent-rite	제	noun	smart-only-exact	20	26	마을 어귀에서 제를 지냈다.
+regression.drug-suffix.independent-surname	제	noun	smart-only-exact	0	3	제 씨가 원고를 제출했다.
 regression.nominal-suffix.person-full-particle	이민자	noun	smart-only-exact	0	12	이민자가 도착했다.
 regression.nominal-suffix.person-full-plural	근로자	noun	smart-only-exact	0	15	근로자들이 먼저 도착했다.
 regression.nominal-suffix.person-component-particle	자	noun	no-match	6	9	이민자가 도착했다.

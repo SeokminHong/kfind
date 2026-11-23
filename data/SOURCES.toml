@@ -137,7 +137,7 @@ license = "CC-BY-SA-2.0-KR"
 
 [[artifact]]
 path = "rules/stdict-nominal-suffix-components.tsv"
-artifact_sha256 = "fbacda37d666a90644bb554c3814d8d679b8c764b5ffbd133ddfba6505655e48"
+artifact_sha256 = "0b6d89f7e876e1cba99df7dd0b8ed30f40fd5032a9bce39c651cf7e52e5aa2ae"
 sources = ["stdict", "mecab-ko-dic"]
 license = "CC-BY-SA-2.0-KR"
-generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_suffixes.py --stdict <stdict> --mecab-nouns <mecab>/NNG.csv --cache-dir <cache> --suffix-id 281809"
+generator_command = "python3 tools/nikl-lexicon/audit_bound_nominal_suffixes.py --stdict <stdict> --mecab-nouns <mecab>/NNG.csv --cache-dir <cache> --suffix-id 281809 --suffix-id 299654"

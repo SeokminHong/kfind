@@ -79,17 +79,22 @@ def main() -> None:
     parser.add_argument("--stdict", required=True, type=Path)
     parser.add_argument("--mecab-nouns", required=True, type=Path)
     parser.add_argument("--cache-dir", required=True, type=Path)
-    parser.add_argument("--suffix-id", required=True)
+    parser.add_argument("--suffix-id", action="append", required=True)
     args = parser.parse_args()
     records = load_catalog_records(
         "stdict", args.stdict, STDICT_SHA256, "item", catalog_records, args.cache_dir
     )
-    suffix, candidates = noun_suffix_candidates(records, args.suffix_id)
-    aligned = aligned_mecab_nouns(args.mecab_nouns, suffix, candidates)
+    rows: dict[str, tuple[str, set[str]]] = {}
+    for source_id in dict.fromkeys(args.suffix_id):
+        suffix, candidates = noun_suffix_candidates(records, source_id)
+        for word in aligned_mecab_nouns(args.mecab_nouns, suffix, candidates):
+            if word in rows:
+                raise ValueError(f"{word}: 접미사 성분을 하나로 확정할 수 없습니다")
+            rows[word] = suffix, candidates[word]
     output = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
     output.writerow(("surface", "suffix", "stdict_ids"))
-    for word in sorted(aligned):
-        output.writerow((word, suffix, "|".join(sorted(candidates[word]))))
+    for word, (suffix, references) in sorted(rows.items()):
+        output.writerow((word, suffix, "|".join(sorted(references))))
 
 
 if __name__ == "__main__":
