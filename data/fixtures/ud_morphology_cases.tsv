@@ -3108,6 +3108,10 @@ regression.pronoun-topic-adnominal-object.nominalized-progressive-subject	나	pr
 regression.pronoun-topic-adnominal-object.nominalized-progressive-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 것도 방해하고 있다.
 regression.pronoun-topic-adnominal-object.nominalized-progressive-oblique-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 것도 고음으로 방해하고 있다.
 regression.pronoun-topic-adnominal-object.nominalized-contracted-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 걸 방해했다.
+regression.mental-subject-occurrence.nominalized-source-not-flight	날다	verb	no-match	103	109	천연 소재의 느낌을 살린 컬러와 소재를 접목해 부드럽고 자연스러운 느낌이 나는 무늬를 쓰는 것도 트렌드로 자리 잡고 있다.
+regression.mental-subject-occurrence.intervening-adverb	날다	verb	no-match	27	33	과장된 느낌이 계속 나는 표현은 피했다.
+regression.mental-subject-occurrence.thought	날다	verb	no-match	17	23	문득 생각이 나는 까닭을 묻지 않았다.
+regression.mental-subject-occurrence.concrete-homograph	날다	verb	smart-only-exact	28	34	폭발 뒤 금속 용기가 나는 장면이 찍혔다.
 regression.pronoun-prefix.action	이	pronoun	no-match	23	32	선생님이 아이를 이끌어 주셨다.
 regression.pronoun-prefix.verb-nominalization	이	pronoun	no-match	13	22	경기에서 이기기 위해 연습했다.
 regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	10	19	기술을 이용할 계획이다.

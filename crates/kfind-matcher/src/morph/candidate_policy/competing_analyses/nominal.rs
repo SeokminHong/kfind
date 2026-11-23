@@ -15,7 +15,11 @@ use crate::{
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
-const NADA_SUBJECTS: &[&str] = include!("../../../../../../data/rules/krdict-nada-subjects.rs");
+include!("../../../../../../data/rules/krdict-nada-subjects.rs");
+
+pub(super) fn is_mental_occurrence_subject(noun: &str) -> bool {
+    MENTAL_OCCURRENCE_SUBJECTS.contains(&noun)
+}
 
 pub(super) fn has_adnominal_instead_of_pronoun_topic(
     haystack: &[u8],
@@ -78,7 +82,8 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
         }
     }
     let occurrence_adnominal = subject.strip_suffix(['이', '가']).is_some_and(|noun| {
-        NADA_SUBJECTS.contains(&noun)
+        is_mental_occurrence_subject(noun)
+            || OTHER_OCCURRENCE_SUBJECTS.contains(&noun)
             || resolver.has_nominal_role(noun, kfind_data::NominalRole::AudiblePhenomenon)
             || resolver.has_nominal_role(noun, kfind_data::NominalRole::BodySecretion)
     }) && ConstraintResolver::has_occurrence_inflection(&adnominal);

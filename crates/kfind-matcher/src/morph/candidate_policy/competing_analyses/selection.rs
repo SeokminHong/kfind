@@ -7,7 +7,7 @@ use kfind_query::{AtomPlan, CandidateProgram};
 use crate::DEFAULT_ANALYSIS_WINDOW_LIMITS;
 use crate::boundary::{is_sentence_end_after, surrounding_token_span};
 
-use super::{ExecutedCandidate, context};
+use super::{ExecutedCandidate, context, nominal};
 
 pub(super) fn has_incompatible_argument(
     haystack: &[u8],
@@ -94,10 +94,18 @@ pub(super) fn has_incompatible_argument(
                 ending.starts_with('서') && resolver.has_connective_after_predicate("나", ending)
             }) && marked_subject(&previous, NominalRole::BodySecretion)
         }
-        // A sound is the subject of occurrence 나다 (62210). Preserve
+        // Sounds and mental occurrences take 나다 (62210). Preserve
         // motion with an overt path or goal in the predicate phrase.
         "날다" => {
-            marked_subject(&previous, NominalRole::AudiblePhenomenon)
+            let mental_subject =
+                previous
+                    .strip_suffix(['이', '가', '은', '는'])
+                    .is_some_and(|noun| {
+                        nominal::is_mental_occurrence_subject(noun)
+                            && (resolver.has_subject_marked_nominal(&previous)
+                                || resolver.has_topic_marked_nominal(&previous))
+                    });
+            (mental_subject || marked_subject(&previous, NominalRole::AudiblePhenomenon))
                 && ConstraintResolver::has_occurrence_inflection(&word)
                 && !prior(start).is_some_and(|(_, path)| resolver.has_object_marked_nominal(&path))
                 && !has_direction_before_subject(haystack, start, resolver)
