@@ -870,9 +870,15 @@ impl MorphMatcher {
             && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
                 resolver.has_whole_modifier(&token) || resolver.has_exact_nominal_surface(&token)
             })
-            && context::next_word_on_line(haystack, whole.end).is_some_and(|(_, next)| {
+            && context::next_word_on_line(haystack, whole.end).is_some_and(|(end, next)| {
                 resolver.has_independent_nominal_head(&next)
                     || resolver.has_explicit_copula_after_nominal(&next)
+                    || (next.as_bytes().first().is_some_and(u8::is_ascii_digit)
+                        && (resolver.has_complete_attached_counted_unit(&next)
+                            || (next.bytes().all(|byte| byte.is_ascii_digit())
+                                && context::next_word_on_line(haystack, end).is_some_and(
+                                    |(_, unit)| resolver.has_inflected_counted_unit(&next, &unit),
+                                ))))
             })
         {
             return false;
