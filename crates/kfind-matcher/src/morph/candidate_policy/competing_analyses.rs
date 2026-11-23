@@ -96,6 +96,7 @@ pub(super) fn rejects(
         || nominal::has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
         || overlaps_competing_ending(haystack, candidate, branch, resolver)
         || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
+        || nominal::has_adnominal_instead_of_pronoun_topic(haystack, candidate, branch, resolver)
         || has_pronoun_object_instead_of_adnominal(haystack, candidate, branch, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
         || nominal::has_copular_topic_instead_of_adverbial(haystack, candidate, branch, resolver)

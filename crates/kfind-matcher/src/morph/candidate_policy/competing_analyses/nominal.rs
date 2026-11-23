@@ -12,6 +12,85 @@ use crate::{
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
+pub(super) fn has_adnominal_instead_of_pronoun_topic(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !matches!(candidate.suffix_rules.as_slice(), [topic] if topic.as_str() == "particle.topic")
+        || !matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        )
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+        || !context::normalized_token(haystack, candidate.verified.core.clone())
+            .is_some_and(|topic| resolver.has_exact_pronoun_surface(&topic))
+        || !context::normalized_token(haystack, span.clone())
+            .is_some_and(|topic| resolver.has_predicate_adnominal_analysis(&topic))
+        || !context::previous_word_with_start(haystack, span.start).is_some_and(
+            |(start, subject)| {
+                !haystack[start..span.start]
+                    .iter()
+                    .any(|byte| matches!(byte, b'\r' | b'\n'))
+                    && resolver.has_subject_marked_nominal(&subject)
+            },
+        )
+    {
+        return false;
+    }
+    let limit = span
+        .end
+        .saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut after = span.end;
+    let mut words = std::iter::from_fn(|| {
+        let (end, word) = context::next_word_on_line(haystack, after)?;
+        if end > limit {
+            return None;
+        }
+        after = end;
+        Some((end, word))
+    });
+    loop {
+        let Some((_, word)) = words.next() else {
+            return false;
+        };
+        if resolver.has_object_marked_nominal(&word) {
+            break;
+        }
+        if !(resolver.has_exact_nominal_surface(&word) || resolver.has_whole_determiner(&word))
+            || resolver.has_nominal_oblique(&word)
+            || resolver.has_subject_marked_nominal(&word)
+            || resolver.has_topic_marked_nominal(&word)
+        {
+            return false;
+        }
+    }
+    let Some((end, predicate)) = words.find(|(_, word)| {
+        !context::has_unmarked_adverbial_modifier(word, resolver)
+            && !resolver.has_nominal_oblique(word)
+    }) else {
+        return false;
+    };
+    if is_sentence_end_after(haystack, end) {
+        return resolver.has_final_verb_after_object(&predicate);
+    }
+    let Some((end, next)) = words.next() else {
+        return false;
+    };
+    if is_sentence_end_after(haystack, end)
+        && resolver.has_progressive_auxiliary_frame(&predicate, &next)
+    {
+        return true;
+    }
+    resolver.has_possibility_nominal(&predicate, &next)
+        && words.next().is_some_and(|(end, state)| {
+            is_sentence_end_after(haystack, end) && resolver.has_final_possibility_predicate(&state)
+        })
+}
+
 pub(super) fn has_copular_topic_instead_of_adverbial(
     haystack: &[u8],
     candidate: &ExecutedCandidate,

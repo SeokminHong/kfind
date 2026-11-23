@@ -2299,6 +2299,18 @@ impl ConstraintResolver {
         })
     }
 
+    /// Checks the final state predicate following a verified possibility nominal.
+    #[must_use]
+    pub fn has_final_possibility_predicate(&self, text: &str) -> bool {
+        text.starts_with(['있', '없'])
+            && predicate_inflected_path(
+                &self.resource,
+                text,
+                |pos| matches!(pos, StructuralPos::VA | StructuralPos::VV),
+                |pos| pos == StructuralPos::EF,
+            )
+    }
+
     #[must_use]
     pub fn has_repeated_predicate_in_possibility_clause(
         &self,
