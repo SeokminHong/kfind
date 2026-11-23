@@ -2035,6 +2035,32 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_declared_compound_predicate_component(
+        &self,
+        text: &str,
+        anchor: Range<usize>,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        let mut aligned = false;
+        self.resource
+            .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
+                if aligned
+                    || length < anchor.end
+                    || compound_predicate_pos(analysis.positions()).is_none()
+                {
+                    return;
+                }
+                aligned = analysis.components().any(|component| {
+                    component.span == anchor
+                        && source_positions
+                            .iter()
+                            .any(|pos| predicate_pos_matches(component.pos, pos))
+                });
+            });
+        aligned
+    }
+
+    #[must_use]
     pub fn has_source_aligned_compound_predicate_component(
         &self,
         text: &str,
@@ -2529,6 +2555,15 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_final_copula_after_nominal(&self, text: &str) -> bool {
+        self.has_final_copula_after(text, |host| self.has_complete_nominal_surface(host))
+    }
+
+    #[must_use]
+    pub fn has_final_copula_after_dependent_noun(&self, text: &str) -> bool {
+        self.has_final_copula_after(text, |host| self.has_exact_dependent_noun_surface(host))
+    }
+
+    fn has_final_copula_after(&self, text: &str, accepts_host: impl Fn(&str) -> bool) -> bool {
         text.char_indices().skip(1).any(|(split, initial)| {
             (initial == '이' || crate::drop_final(initial) == Some('이'))
                 && (&text[split..] == "이다"
@@ -2537,7 +2572,7 @@ impl ConstraintResolver {
                         |pos| pos == StructuralPos::VCP,
                         |ending| ending == StructuralPos::EF,
                     ))
-                && self.has_complete_nominal_surface(&text[..split])
+                && accepts_host(&text[..split])
         })
     }
 
