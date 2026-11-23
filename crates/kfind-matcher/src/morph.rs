@@ -1614,6 +1614,30 @@ impl MorphMatcher {
         let Some(unit) = context::normalized_token(haystack, core.clone()) else {
             return false;
         };
+        if !complete
+            && context::normalized_token(haystack, core.end..whole.end).is_some_and(|tail| {
+                if !ConstraintResolver::starts_with_quantity_approximation_suffix(&tail) {
+                    return false;
+                }
+                if prefix.is_empty() {
+                    context::previous_word_with_start(haystack, whole.start).is_some_and(
+                        |(start, count)| {
+                            !haystack[start..whole.start]
+                                .iter()
+                                .any(|byte| matches!(byte, b'\r' | b'\n'))
+                                && resolver.has_counted_unit_approximation(&unit, &tail, &count)
+                        },
+                    )
+                } else {
+                    std::str::from_utf8(prefix).is_ok_and(|count| {
+                        digits(prefix)
+                            && resolver.has_counted_unit_approximation(&unit, &tail, count)
+                    })
+                }
+            })
+        {
+            return true;
+        }
         if prefix.first().is_some_and(u8::is_ascii_digit)
             && unit.chars().count() == 1
             && whole.len() <= MAX_CONSUMPTION_BYTES

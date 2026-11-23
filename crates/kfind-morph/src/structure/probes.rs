@@ -2576,7 +2576,9 @@ impl ConstraintResolver {
         }
         // The ratio suffix attaches to the unit without changing which unit is counted.
         // https://www.korean.go.kr/common/download.do?c_file_name=f7222492-4580-40c6-864f-b66caeeeab3c_0.pdf&file_path=reportData
-        let host = if tail.starts_with("꼴")
+        let host = if let Some(suffix) = quantity_approximation_prefix(tail) {
+            &selected[..unit.len() + suffix.len()]
+        } else if tail.starts_with("꼴")
             && has_exact_sequence(&self.resource, "꼴", &[StructuralPos::XSN])
         {
             &selected[..unit.len() + "꼴".len()]
@@ -2659,6 +2661,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn starts_with_quantity_approximation_suffix(text: &str) -> bool {
+        quantity_approximation_prefix(text).is_some()
+    }
+
+    #[must_use]
+    pub fn has_counted_unit_approximation(&self, unit: &str, tail: &str, count: &str) -> bool {
+        quantity_approximation_prefix(tail).is_some_and(|suffix| {
+            let particles = &tail[suffix.len()..];
+            self.has_exact_counter(unit)
+                && (self.is_counter_quantity(count) || Self::is_mixed_cardinal(count))
+                && (particles.is_empty()
+                    || super::lexical::has_grammatical_particle_chain(suffix, particles))
+        })
+    }
+
+    #[must_use]
     pub fn has_quantity_approximation_particle_tail(&self, text: &str) -> bool {
         complete_suffix(&self.resource, text, StructuralPos::is_particle)
     }
@@ -2690,10 +2708,8 @@ impl ConstraintResolver {
             .common_prefix_positions(text.as_bytes(), |len, positions| {
                 if positions == [StructuralPos::NNBC] && {
                     let tail = &text[len..];
-                    let particles = QUANTITY_APPROXIMATION_SUFFIXES
-                        .iter()
-                        .find_map(|suffix| tail.strip_prefix(suffix))
-                        .unwrap_or(tail);
+                    let particles = quantity_approximation_prefix(tail)
+                        .map_or(tail, |suffix| &tail[suffix.len()..]);
                     particles.is_empty()
                         || complete_suffix(&self.resource, particles, StructuralPos::is_particle)
                 } {
@@ -3325,4 +3341,11 @@ impl ConstraintResolver {
         }
         (positions_found, excludes_object)
     }
+}
+
+fn quantity_approximation_prefix(tail: &str) -> Option<&'static str> {
+    QUANTITY_APPROXIMATION_SUFFIXES
+        .iter()
+        .copied()
+        .find(|&suffix| tail.starts_with(suffix))
 }

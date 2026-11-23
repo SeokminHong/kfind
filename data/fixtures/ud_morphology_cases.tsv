@@ -2472,6 +2472,10 @@ regression.partitive-count.same-unit.digits	하다	verb	smart-only-exact	66	72	�
 regression.partitive-count.same-unit.mixed-count	하다	verb	no-match	13	16	3천 명 중 한 명의 응답이 누락됐다.
 regression.partitive-count.same-unit.ratio	하다	verb	no-match	34	37	그것은 신생아 35,000명 중 한 명꼴로 발생하는 가장 흔한 신생아 종양이다.
 regression.partitive-count.same-unit.ratio-determiner	한	determiner	smart-only-exact	34	37	그것은 신생아 35,000명 중 한 명꼴로 발생하는 가장 흔한 신생아 종양이다.
+regression.partitive-count.same-unit.approximation	하다	verb	smart-only-exact	66	72	두 권 중 한 권쯤 빌리고 내용은 직접 설명하기로 했다.
+regression.partitive-count.same-unit.approximation-particle	하다	verb	no-match	15	18	두 상자 중 한 상자가량을 옮겼다.
+regression.partitive-count.approximation.counter	권	noun	smart-only-exact	4	7	한 권쯤은 빌리자.
+regression.partitive-count.approximation.invalid-particle	권	noun	no-match	4	7	한 권쯤는 빌리자.
 regression.partitive-count.different-unit.speech	하다	verb	smart-only-exact	19	22	연습 두 회 중 한 말은 기억한다.
 regression.partitive-place.house-determiner	한	determiner	smart-only-exact	56	59	강릉서 최고의 커피를 마실 수 있는 집 중 한 곳.
 regression.partitive-count.person-not-verb	하다	verb	no-match	14	17	주인공 중 한 명은 꼭 죽음을 맞이했다.
