@@ -3434,3 +3434,15 @@ regression.nominal-topic-copula.past	가다	verb	no-match	21	27	골목 안에 �
 regression.nominal-topic-copula.auxiliary	가다	verb	smart-only-exact	10	16	학교에 가게는 됐지만 가게는 하나뿐이다.
 regression.nominal-topic-copula.adnominal	가다	verb	smart-only-exact	10	16	친구를 가게는 한 일이었다.
 regression.nominal-topic-copula.imperative	가다	verb	smart-only-exact	28	34	자네 먼저 저 가게에 가게.
+regression.terminal-particle-boundary.genitive	우리	pronoun	no-match	0	9	우리나라의 역사입니다.
+regression.terminal-particle-boundary.comitative	우리	pronoun	no-match	0	9	우리나라와 미국이 만났다.
+regression.terminal-particle-boundary.copula	우리	pronoun	no-match	0	9	우리나라다.
+regression.terminal-particle-boundary.independent-pronoun	우리	pronoun	smart-only-exact	37	43	우리나라에 먼저 도착한 건 우리였다.
+regression.terminal-particle-boundary.whole-noun	우리나라	noun	smart-only-exact	0	15	우리나라의 역사입니다.
+regression.terminal-particle-boundary.alternative	우리	pronoun	smart-only-exact	0	9	우리나 너희나 비슷하다.
+regression.terminal-particle-boundary.different-pronoun	누구	pronoun	smart-only-exact	10	19	오늘은 누구나 들어올 수 있다.
+regression.terminal-particle-boundary.spaced-pronoun	우리	pronoun	smart-only-exact	0	6	우리 나라에도 이런 제도가 있다.
+regression.terminal-particle-boundary.short-noun-component	배	noun	smart-only-exact	0	3	배나무의 잎이 마른다.
+regression.terminal-particle-boundary.noun-alternative	가시	noun	smart-only-exact	0	9	가시나 줄기를 자르세요.
+regression.terminal-particle-boundary.noun-compound	가시	noun	smart-only-exact	0	6	가시나무가 잘 자란다.
+regression.terminal-particle-boundary.spaced-noun	종교	noun	smart-only-exact	0	6	종교 도서와 소설을 샀다.

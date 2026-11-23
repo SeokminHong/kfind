@@ -1381,9 +1381,9 @@ impl MorphMatcher {
         {
             return false;
         }
-        let terminal_particle_conflict = rejected_suffix
-            && nominal_particle_chain
-            && self.has_terminal_particle_conflict(haystack, candidate, &whole);
+        let terminal_particle_conflict = nominal_particle_chain
+            && candidate.consumed.end < whole.end
+            && self.has_terminal_particle_conflict(haystack, candidate, &whole, rejected_suffix);
         let partial_nominal = nominal_particle_chain
             && core.start == whole.start
             && candidate.consumed.end < whole.end;
@@ -1456,9 +1456,9 @@ impl MorphMatcher {
         if !compound_prefix
             && !aligned_prefix
             && (contracted_copula
+                || terminal_particle_conflict
                 || (rejected_suffix
-                    && (terminal_particle_conflict
-                        || !context.has_nominal_copula_host(candidate.verified.core.clone()))))
+                    && !context.has_nominal_copula_host(candidate.verified.core.clone())))
         {
             return false;
         }
