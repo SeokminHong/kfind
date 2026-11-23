@@ -58,6 +58,14 @@ regression.attested-loan-compound.home-copula	홈	noun	smart-only-exact	14	17	�
 regression.attested-loan-compound.whole	홈쇼핑	noun	smart-only-exact	0	15	홈쇼핑에서 우산을 주문했다.
 regression.attested-loan-compound.second	쇼핑	noun	smart-only-exact	13	25	저녁에 홈쇼핑에서 옷을 샀다.
 regression.attested-loan-compound.independent	홈	noun	smart-only-exact	17	23	나무에 파인 홈을 확인했다.
+regression.military-service-component.bare	군	noun	smart-only-exact	0	3	군복무 경험을 이야기했다.
+regression.military-service-component.object	군	noun	smart-only-exact	0	3	군복무를 마친 뒤 복학했다.
+regression.military-service-component.topic	군	noun	smart-only-exact	0	3	군복무는 낯선 경험이었다.
+regression.military-service-component.copula	군	noun	smart-only-exact	20	23	공백의 원인은 군복무였다.
+regression.military-service-component.spaced	군	noun	smart-only-exact	0	3	군 복무를 마친 뒤 복학했다.
+regression.military-service-component.other-component	복무	noun	smart-only-exact	3	12	군복무를 마친 뒤 복학했다.
+regression.military-service-component.whole	군복무	noun	smart-only-exact	0	12	군복무를 마친 뒤 복학했다.
+regression.military-service-component.roasted	군	noun	no-match	0	3	군고구마가 아직 뜨거웠다.
 regression.determined-compound.parliament-initial	원내	noun	smart-only-exact	4	10	전 원내대표 등의 후보가 나왔다.
 regression.determined-compound.parliament-final	대표	noun	smart-only-exact	10	16	전 원내대표 등의 후보가 나왔다.
 regression.determined-compound.parliament-whole	원내대표	noun	smart-only-exact	4	16	전 원내대표 등의 후보가 나왔다.
