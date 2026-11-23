@@ -2082,6 +2082,14 @@ regression.polite-nominal.after-demonstrative-sun	해	noun	smart-only-exact	18	2
 regression.polite-nominal.after-demonstrative-comma	해	noun	smart-only-exact	18	21	창밖에 뜬 저 해요, 달 말고요.
 regression.polite-nominal.whole-modifier	주	noun	no-match	4	7	그 주요 임무를 다시 확인했다.
 regression.polite-nominal.whole-noun	가	noun	no-match	4	7	그 가요 한 곡만 다시 들려주세요.
+regression.polite-nominal.numeric-head-attached	주	noun	no-match	0	3	주요 8개 항목을 검토했다.
+regression.polite-nominal.numeric-head-spaced	주	noun	no-match	0	3	주요 3 편을 상영한다.
+regression.polite-nominal.numeric-head-common-noun	가	noun	no-match	4	7	그 가요 2 곡을 골랐다.
+regression.polite-nominal.numeric-head-whole	주요	determiner	smart-only-exact	0	6	주요 8개 항목을 검토했다.
+regression.polite-nominal.numeric-head-counter	개국	noun	smart-only-exact	8	17	주요 4개국이 합의했다.
+regression.polite-nominal.numeric-head-other-match	주	noun	smart-only-exact	36	42	주요 8개 항목의 검토에 세 주가 걸렸다.
+regression.polite-nominal.numeric-head-question	주	noun	smart-only-exact	4	7	몇 주요? 15일 정도 걸려요.
+regression.polite-nominal.numeric-head-coordinated	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 3대 밀 생산지다.
 regression.polite-nominal.coordinated-copula	주	noun	smart-only-exact	26	29	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
 regression.enumerative-copula.before-auxiliary	이다	adjective	smart-exact	26	32	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
 regression.enumerative-copula.nominalized-coordinate	이다	adjective	smart-exact	47	56	앨버타는 캐나다의 주요, 밀 생산지이기도 하다.
