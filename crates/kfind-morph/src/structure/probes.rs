@@ -2560,6 +2560,24 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_reduced_copula_after_nominal(&self, text: &str) -> bool {
+        !self.has_exact_nominal_surface(text)
+            && !self.has_independent_final_predicate(text)
+            && text.char_indices().skip(1).any(|(split, _)| {
+                let (host, ending) = text.split_at(split);
+                host.chars().next_back().is_some_and(|last| {
+                    if ending == "다" {
+                        crate::decompose_syllable(last)
+                            .is_some_and(|syllable| syllable.jongseong == 0)
+                    } else {
+                        crate::is_omitted_copula_ending(ending)
+                            && verify_copula_surface_after_nominal(last, ending)
+                    }
+                }) && self.has_exact_nominal_surface(host)
+            })
+    }
+
+    #[must_use]
     pub fn has_scope_nominal_host(&self, text: &str) -> bool {
         (self.has_exact_nominal_surface(text) || self.has_complete_nominal_surface(text))
             && !self.has_whole_modifier(text)
@@ -3206,6 +3224,11 @@ impl ConstraintResolver {
                 && self.has_complete_nominal_surface(host)
                 && has_exact_sequence(&self.resource, &text[host.len()..], &[StructuralPos::JX])
         }) || self.has_pronoun_topic_contraction(text)
+    }
+
+    #[must_use]
+    pub fn has_nominal_focus_particle_tail(&self, tail: &str) -> bool {
+        !tail.is_empty() && complete_suffix(&self.resource, tail, |pos| pos == StructuralPos::JX)
     }
 
     #[must_use]

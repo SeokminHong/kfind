@@ -38,7 +38,8 @@ pub(super) fn has_copular_topic_instead_of_adverbial(
     else {
         return false;
     };
-    if context::normalized_token(haystack, span.end..token.end).as_deref() != Some("는")
+    if !context::normalized_token(haystack, span.end..token.end)
+        .is_some_and(|tail| resolver.has_nominal_focus_particle_tail(&tail))
         || !context::normalized_token(haystack, span.clone())
             .is_some_and(|nominal| resolver.has_exact_nominal_surface(&nominal))
     {
@@ -52,10 +53,15 @@ pub(super) fn has_copular_topic_instead_of_adverbial(
         if end > limit {
             break;
         }
-        if resolver.has_explicit_copula_after_nominal(&word) {
+        if resolver.has_explicit_copula_after_nominal(&word)
+            || (is_sentence_end_after(haystack, end)
+                && resolver.has_reduced_copula_after_nominal(&word))
+        {
             return true;
         }
-        if (!resolver.has_whole_determiner(&word) && !resolver.has_nominal_genitive_surface(&word))
+        if (!resolver.has_whole_determiner(&word)
+            && !resolver.has_nominal_genitive_surface(&word)
+            && !resolver.has_pronominal_genitive_surface(&word))
             || resolver.has_predicate_adnominal_analysis(&word)
         {
             break;
