@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const [input, ...options] = process.argv.slice(2);
+const finalProofreading = options.includes('--final-proofreading');
 const caseTopic = options.includes('--case-topic');
 const contract = options.includes('--review-contract');
 const shared = options.includes('--align-shared-sentences');
@@ -47,16 +48,17 @@ const alignedNominalSpans = options.includes('--aligned-nominal-spans');
 const mayorTitle = options.includes('--mayor-title');
 const anonymousMo = options.includes('--anonymous-mo');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (caseTopic || independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo || mayorTitle || alignedNominalSpans || helpCompany || derivedWholeNouns || nominalSpelling || ellipsisAndEntity || trialAuxiliarySpacing || saintDeterminer ? options.length !== 1
+    || (finalProofreading || caseTopic || independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo || mayorTitle || alignedNominalSpans || helpCompany || derivedWholeNouns || nominalSpelling || ellipsisAndEntity || trialAuxiliarySpacing || saintDeterminer ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo | --mayor-title | --aligned-nominal-spans | --help-company | --derived-whole-nouns | --nominal-spelling | --ellipsis-and-entity | --trial-auxiliary-spacing | --saint-determiner | --case-topic)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo | --mayor-title | --aligned-nominal-spans | --help-company | --derived-whole-nouns | --nominal-spelling | --ellipsis-and-entity | --trial-auxiliary-spacing | --saint-determiner | --case-topic | --final-proofreading)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (caseTopic ? checksum !== '1040ed9371fa5ca3a223dfacba83f07765c99b901b41a675701d851a8c130c21'
+if (finalProofreading ? checksum !== 'cd3a8e532e67ba0748875311d10eba91c5fcb0d644e5c541bf3a4d22ac7c5a37'
+  : caseTopic ? checksum !== '1040ed9371fa5ca3a223dfacba83f07765c99b901b41a675701d851a8c130c21'
   : saintDeterminer ? checksum !== '03dcf54bdc8abcf5a79a5526ef0da77596edb9f59992df4b1e14e84794fe4c03'
   : trialAuxiliarySpacing ? checksum !== 'ccda1da94c85419e3a4f160a14f2de50c8935556f6d9cdcab9e1e30786a10dc1'
   : ellipsisAndEntity ? checksum !== '40b188ec41c9405a897b786da234f9394b010bf8a03067cf5d738af4d7bc4965'
@@ -106,7 +108,8 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = caseTopic || saintDeterminer || derivedWholeNouns || alignedNominalSpans || mayorTitle || anonymousMo || proofreadingJoins || residualContext || colloquialPos || predicateContinuations || lexicalPredicates || derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(trialAuxiliarySpacing ? './gsd-trial-auxiliary-spacing-edits.tsv'
+const sentenceEdits = caseTopic || saintDeterminer || derivedWholeNouns || alignedNominalSpans || mayorTitle || anonymousMo || proofreadingJoins || residualContext || colloquialPos || predicateContinuations || lexicalPredicates || derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(finalProofreading ? './gsd-final-proofreading-edits.tsv'
+  : trialAuxiliarySpacing ? './gsd-trial-auxiliary-spacing-edits.tsv'
   : linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-edits.tsv'
   : nominalSpelling ? './gsd-nominal-spelling-edits.tsv'
   : helpCompany ? './gsd-help-company-edits.tsv'
@@ -133,7 +136,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(caseTopic ? './gsd-case-topic-annotations.tsv'
+const annotationEdits = tsv(finalProofreading ? './gsd-final-proofreading-annotations.tsv'
+  : caseTopic ? './gsd-case-topic-annotations.tsv'
   : saintDeterminer ? './gsd-saint-determiner-annotations.tsv'
   : trialAuxiliarySpacing ? './gsd-trial-auxiliary-spacing-annotations.tsv'
   : ellipsisAndEntity ? './gsd-ellipsis-and-entity-annotations.tsv'
