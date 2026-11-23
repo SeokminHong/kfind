@@ -249,7 +249,15 @@ regression.dependent-object-geot	것	noun	smart-exact	7	10	읽는 걸 즐긴다.
 regression.dependent-object-geo	거	noun	smart-exact	10	13	있다는 걸 알게 되었다.
 regression.dependent-object-geot-final	것	noun	no-match	13	16	아마 그럴걸.
 regression.dependent-topic-geot-unit	것	noun	no-match	10	13	법원은 건 단위로 계산했다.
-corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-exact	0	6	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-only-exact	0	6	들깻가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+regression.saisiot-compound.ingredient	고추	noun	smart-only-exact	0	6	고춧가루를 한 숟갈 넣었다.
+regression.saisiot-compound.genitive-component	나무	noun	smart-only-exact	0	6	나뭇잎에는 물방울이 맺혔다.
+regression.saisiot-compound.copula	들깨	noun	smart-only-exact	0	6	들깻가루입니다.
+regression.saisiot-compound.ordinary-noun	들깨	noun	smart-only-exact	0	9	들깨를 빻아 국에 넣었다.
+regression.saisiot-compound.whole	들깻가루	noun	smart-only-exact	0	15	들깻가루를 국에 넣었다.
+regression.saisiot-compound.same-spelling-prefix	해	noun	no-match	0	3	햇곡식을 갈무리했다.
+regression.saisiot-compound.same-spelling-component	해	noun	smart-only-exact	0	3	햇빛이 물결에 비쳤다.
+regression.saisiot-compound.misleading-segmentation	소	noun	no-match	0	3	솟대가 마을 입구에 보였다.
 corpus.ud-gsd.test.test-s84.compound-noun	영업	noun	smart-exact	59	65	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
 corpus.ud-gsd.test.test-s105.compound-noun	공식	noun	smart-exact	69	75	김 대변인은 "어제 서울 G20 정상회의 환영 리셉션과 공식 만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.
 corpus.ud-gsd.test.test-s146.compound-noun	영업	noun	smart-exact	150	156	이에 따라 삼성SDI의 분기별 실적 모멘텀은 약화될 것이라며 4분기 IFRS 연결기준 실적은 매출액 1조2000억 원(-10 %), 영업이익 804억 원(-35%)로 추정했다.
@@ -601,7 +609,7 @@ corpus.ud-gsd.test.test-s323.noun.방법	방법	noun	smart-exact	37	49	실제로
 corpus.ud-gsd.test.test-s573.noun.예전	예전	noun	smart-exact	10	22	요즘은 예전보단 덜 맛있는 것 같지만 여전히 굿
 corpus.ud-gsd.test.test-s857.noun.순창	순창	noun	smart-exact	0	12	순창에선 가장 넓고 쾌적하고 시설이 좋은 노래방!
 regression.nominal-topic-contraction.indefinite	어디	pronoun	smart-exact	0	9	어디에선가 소리가 났다.
-corpus.ud-gsd.test.test-s66.verb.원하다	원하다	verb	smart-exact	27	36	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+corpus.ud-gsd.test.test-s66.verb.원하다	원하다	verb	smart-exact	27	36	들깻가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
 corpus.ud-gsd.test.test-s127.verb.노력하다	노력하다	verb	smart-exact	320	329	이날 국립중앙박물관에서 박 박사는 "그 의궤가 영원히 한국 땅에 남아있게 하고 '대여'란 말을 없애기 위해서는 여러분이 협심해서 손에 손을 잡고 장기간 노력하지 않으면 안 된다"며 "의궤가 다시 불란서에 가지 않고 한국에 영원히 남도록 노력해 주길 부탁한다"고 거듭 강조했다.
 corpus.ud-gsd.test.test-s127.verb.connective-topic	위하다	verb	smart-exact	137	149	이날 국립중앙박물관에서 박 박사는 "그 의궤가 영원히 한국 땅에 남아있게 하고 '대여'란 말을 없애기 위해서는 여러분이 협심해서 손에 손을 잡고 장기간 노력하지 않으면 안 된다"며 "의궤가 다시 불란서에 가지 않고 한국에 영원히 남도록 노력해 주길 부탁한다"고 거듭 강조했다.
 corpus.ud-pud.test.n01101012.verb.connective-topic	취임하다	verb	smart-exact	71	86	친중국 입법자들이 이끄는 홍콩 정부는 그 두 사람이 취임해서는 안 된다고 주장했다.
