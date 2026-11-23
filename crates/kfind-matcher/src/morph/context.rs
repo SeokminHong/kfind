@@ -586,6 +586,41 @@ pub(super) fn has_direction_argument(word: &str, resolver: &ConstraintResolver) 
         && !resolver.has_exact_nominal_surface(word)
 }
 
+pub(super) fn has_causal_gajida_tail(word: &str, resolver: &ConstraintResolver) -> bool {
+    word.strip_prefix("가지고")
+        .is_some_and(|tail| tail.is_empty() || resolver.has_nominal_focus_particle_tail(tail))
+}
+
+pub(super) fn has_quoted_object_host(haystack: &[u8], particle_start: usize) -> bool {
+    let Some(close) = crate::boundary::previous_character(haystack, particle_start) else {
+        return false;
+    };
+    let open = match close {
+        '’' => '‘',
+        '”' => '“',
+        '\'' | '"' => close,
+        _ => return false,
+    };
+    let end = particle_start - close.len_utf8();
+    let limit = end.saturating_sub(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = end;
+    let mut has_content = false;
+    while before > limit {
+        let Some(character) = crate::boundary::previous_character(haystack, before) else {
+            break;
+        };
+        if character == open {
+            return has_content;
+        }
+        if matches!(character, '\r' | '\n') || character == close {
+            break;
+        }
+        has_content |= !character.is_whitespace();
+        before -= character.len_utf8();
+    }
+    false
+}
+
 pub(super) fn has_elapsed_time_frame(
     bytes: &[u8],
     at: usize,
