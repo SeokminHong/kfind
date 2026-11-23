@@ -528,3 +528,4 @@ explicit-pos	raw-gsd	gsd:test-s468:37	있다	verb	true	8aa0dde4c3e9e2064087de7b3
 explicit-pos	raw-gsd	gsd:test-s583:8	있다	verb	true	17fbcc7611e016a662fc9e326ec862d614be094f0fec25d2bc0e5d584dc7946c	confirmed	implementation-target	같은 문장의 진행·상태 지속 -고 있다만 동사 범위다. 가능성을 나타내는 -ㄹ 수 있다의 있다와 구별한다.
 explicit-pos	raw-gsd	gsd:test-s684:6	있다	verb	true	2602bbd4c62ef7a1d762d32798ee7778266a3e7c6d1b2dcdc534bee7b2199f27	confirmed	implementation-target	같은 문장의 진행·상태 지속 -고 있다만 동사 범위다. 가능성을 나타내는 -ㄹ 수 있다의 있다와 구별한다.
 explicit-pos	raw-gsd	gsd:test-s684:39	있다	verb	true	2602bbd4c62ef7a1d762d32798ee7778266a3e7c6d1b2dcdc534bee7b2199f27	confirmed	implementation-target	같은 문장의 진행·상태 지속 -고 있다만 동사 범위다. 가능성을 나타내는 -ㄹ 수 있다의 있다와 구별한다.
+explicit-pos	raw-gsd	gsd:test-s257:5	데	noun	true	620ba98f42778d01d4c47c83e487e1f809b50a3ddd10673f9d93b884ac3118a2	confirmed	implementation-target	장소를 가리키는 의존 명사 데와 목적격 조사 를의 범위는 37..43이다. 싶은데의 데는 다음 질문에 앞서는 배경 연결 어미의 일부다.
