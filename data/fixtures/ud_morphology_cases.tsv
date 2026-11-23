@@ -2527,6 +2527,9 @@ regression.comparative.derived-unit-consonant	더	noun	no-match	9	12	3 kPa이 �
 regression.comparative.derived-unit-temperature	더	noun	no-match	9	12	3 °C가 더 높은 쪽을 골랐다.
 regression.comparative.compatibility-temperature	더	noun	no-match	9	12	3 ℃가 더 높은 쪽을 골랐다.
 regression.comparative.compatibility-unit	더	noun	no-match	9	12	3 ㎞가 더 긴 코스다.
+regression.comparative.compatibility-unit-consonant	더	noun	no-match	9	12	3 ㎏이 더 무겁다.
+regression.comparative.compatibility-unit-consonant-adverb	더	adverb	smart-only-exact	9	12	3 ㎏이 더 무겁다.
+regression.comparative.compatibility-unit-intervening-adverb	더	noun	no-match	19	22	3 ㎩이 실제로 더 낮았다.
 regression.comparative.compatibility-percent	더	noun	no-match	8	11	3％가 더 높은 쪽을 골랐다.
 regression.comparative.lower-degree	덜	noun	no-match	20	23	점수가 형보다 덜 높다.
 regression.comparative.lower-degree-adverb	덜	adverb	smart-only-exact	20	23	점수가 형보다 덜 높다.

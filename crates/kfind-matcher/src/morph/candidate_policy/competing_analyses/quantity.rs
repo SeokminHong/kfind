@@ -312,12 +312,21 @@ pub(super) fn has_comparative_adverb_frame(
     let Some((next_end, next)) = context::next_word_on_line(haystack, core.end) else {
         return false;
     };
-    let previous = context::previous_non_adverb_with_start_on_line(haystack, core.start, resolver);
+    let mut measured_adverb_homograph = false;
+    let previous = context::previous_matching_word_on_line(haystack, core.start, |start, word| {
+        if !resolver.has_exact_adverb_surface(word) {
+            return true;
+        }
+        measured_adverb_homograph =
+            measured_subject_start(haystack, start, word, resolver).is_some();
+        measured_adverb_homograph
+    });
     let adnominal = resolver.has_adjective_adnominal_surface(&next);
     let preceding_subject = previous.as_ref().is_some_and(|(start, word)| {
         let nominal_rival = resolver.has_exact_nominal_surface(&next);
         (resolver.has_subject_marked_nominal(word) && !nominal_rival)
-            || (measured_subject_start(haystack, *start, word, resolver).is_some()
+            || ((measured_adverb_homograph
+                || measured_subject_start(haystack, *start, word, resolver).is_some())
                 && (!nominal_rival
                     || (adnominal
                         && context::next_word_on_line(haystack, next_end).is_some_and(

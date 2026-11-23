@@ -537,6 +537,16 @@ pub(super) fn previous_non_adverb_with_start_on_line<'a>(
     at: usize,
     resolver: &ConstraintResolver,
 ) -> Option<(usize, Cow<'a, str>)> {
+    previous_matching_word_on_line(bytes, at, |_, word| {
+        !resolver.has_exact_adverb_surface(word)
+    })
+}
+
+pub(super) fn previous_matching_word_on_line(
+    bytes: &[u8],
+    at: usize,
+    mut matches: impl FnMut(usize, &str) -> bool,
+) -> Option<(usize, Cow<'_, str>)> {
     let limit = at.saturating_sub(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
     let mut end = at;
     while let Some((start, word)) = previous_word_with_start(bytes, end) {
@@ -547,7 +557,7 @@ pub(super) fn previous_non_adverb_with_start_on_line<'a>(
         {
             break;
         }
-        if !resolver.has_exact_adverb_surface(&word) {
+        if matches(start, &word) {
             return Some((start, word));
         }
         end = start;
