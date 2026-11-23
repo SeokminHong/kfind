@@ -3446,6 +3446,7 @@ regression.nominal-topic-copula.additive	가다	verb	no-match	0	6	가게도 부�
 regression.nominal-topic-copula.focus-chain	가다	verb	no-match	0	6	가게만은 제 소유다.
 regression.nominal-topic-copula.focus-chain-noun	가게	noun	smart-only-exact	0	12	가게만은 제 소유다.
 regression.nominal-topic-copula.inclusive	가다	verb	no-match	0	6	가게까지 부모님의 사업장이다.
+regression.nominal-topic-copula.nominal-genitive	가다	verb	no-match	0	6	가게마저 우리 동네의 명소예요.
 regression.nominal-topic-copula.additive-auxiliary	가다	verb	smart-only-exact	17	23	아이를 혼자 가게도 했다.
 regression.nominal-topic-copula.focus-adnominal	가다	verb	smart-only-exact	17	23	아이를 혼자 가게만 한 일이었다.
 regression.terminal-particle-boundary.genitive	우리	pronoun	no-match	0	9	우리나라의 역사입니다.

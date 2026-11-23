@@ -61,7 +61,10 @@ pub(super) fn has_copular_topic_instead_of_adverbial(
         }
         if (!resolver.has_whole_determiner(&word)
             && !resolver.has_nominal_genitive_surface(&word)
-            && !resolver.has_pronominal_genitive_surface(&word))
+            && !resolver.has_pronominal_genitive_surface(&word)
+            && !(resolver.has_exact_nominal_surface(&word)
+                && context::next_word_on_line(haystack, end)
+                    .is_some_and(|(_, next)| resolver.has_nominal_genitive_surface(&next))))
             || resolver.has_predicate_adnominal_analysis(&word)
         {
             break;
