@@ -187,11 +187,16 @@ pub(in crate::structure) fn modifier_led_nominal_component_is_on_preferred_path(
     if core.start == selected.start {
         return false;
     }
+    let direct_modifier = selected.start..core.start;
     let mut has_leading_modifier = false;
     for unit in evidence.units.all() {
         if unit.span == *selected
             && (unit.evidence == StructuralEvidence::Whole
-                || (core.end < selected.end && unit.pos.is_nominal() && unit.aligned_pos))
+                || (unit.pos.is_nominal()
+                    && unit.aligned_pos
+                    && (core.end < selected.end
+                        || (!evidence.numeric_spans.contains(&direct_modifier)
+                            && !evidence.has_nominal_source_component(core)))))
         {
             return false;
         }
@@ -205,7 +210,6 @@ pub(in crate::structure) fn modifier_led_nominal_component_is_on_preferred_path(
     if !has_leading_modifier {
         return false;
     }
-    let direct_modifier = selected.start..core.start;
     let single_syllable_direct_modifier = core.end == selected.end
         && evidence.units.all().iter().any(|unit| {
             unit.pos == DataFinePos::Mm
@@ -357,7 +361,7 @@ pub(in crate::structure) fn proper_noun_dependent_noun_frame(
             }))
             || !evidence.units.starting_at(host.start).iter().any(|unit| {
                 unit.span == *host
-                    && unit.pos == DataFinePos::Nnp
+                    && matches!(unit.pos, DataFinePos::Nng | DataFinePos::Nnp)
                     && unit.evidence != StructuralEvidence::SourceComponent
             }))
         && evidence.units.all().iter().any(|unit| {
