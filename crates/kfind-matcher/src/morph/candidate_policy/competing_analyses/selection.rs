@@ -38,9 +38,14 @@ pub(super) fn has_incompatible_argument(
     let Some(word) = context::normalized_token(haystack, whole.clone()) else {
         return false;
     };
-    let Some((start, previous)) =
+    let previous_argument = if lemma == "날다" {
+        context::previous_matching_word_on_line(haystack, whole.start, |_, word| {
+            !context::has_unmarked_adverbial_modifier(word, resolver)
+        })
+    } else {
         context::previous_non_adverb_with_start_on_line(haystack, whole.start, resolver)
-    else {
+    };
+    let Some((start, previous)) = previous_argument else {
         return false;
     };
     let prior = |at| preceding_words(haystack, at).next();
@@ -194,8 +199,29 @@ pub(super) fn has_incompatible_argument(
                     .iter()
                     .chain(&candidate.suffix_rules)
                     .any(|rule| rule.as_str() == "ending.auxiliary-jida")
-            }) || !ConstraintResolver::has_possession_inflection(&word)
+            }) {
+                return false;
+            }
+            // The vowel connective of 가다 is 가. KRDict 61191 licenses the
+            // separate auxiliary 가지다 in -어 가지고, including following particles.
+            if previous == "가"
+                && word.strip_prefix("가지고").is_some_and(|tail| {
+                    tail.is_empty() || resolver.has_nominal_focus_particle_tail(tail)
+                })
+                && context::previous_matching_word_on_line(haystack, start, |_, word| {
+                    !context::has_unmarked_adverbial_modifier(word, resolver)
+                })
+                .is_some_and(|(connective_start, word)| {
+                    context::has_direction_argument(&word, resolver)
+                        || (resolver.has_complete_connective_path(&word)
+                            && prior(connective_start).is_some_and(|(_, object)| {
+                                resolver.has_object_marked_nominal(&object)
+                            }))
+                })
             {
+                return true;
+            }
+            if !ConstraintResolver::has_possession_inflection(&word) {
                 return false;
             }
             let marked_object = resolver.has_object_marked_nominal(&previous);
