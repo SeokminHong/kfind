@@ -334,19 +334,27 @@ impl PreparedStructuralContext {
     pub fn has_aligned_nominal_prefix_before(&self, span: &Range<usize>, end: usize) -> bool {
         let token = self.token.as_ref();
         let whole = 0..token.text.len();
-        token
-            .evidence
-            .nominal_particle_hosts
-            .iter()
-            .chain(std::iter::once(&whole))
-            .any(|host| {
-                host.start == span.start
-                    && span.end < end
-                    && end <= host.end
-                    && token.evidence.has_unambiguous_nominal_source_component(
-                        host,
-                        span,
-                        DataFinePos::Nng,
+        let evidence = &token.evidence;
+        let is_aligned = |host: &Range<usize>| {
+            host.start == span.start
+                && span.end < host.end
+                && span.end <= end
+                && end <= host.end
+                && evidence.has_unambiguous_nominal_source_component(host, span, DataFinePos::Nng)
+                && !evidence
+                    .units
+                    .starting_at(host.start)
+                    .iter()
+                    .any(|unit| unit.span == *host && unit.pos == DataFinePos::Np)
+        };
+        // A bare prefix needs an independently completed particle or copula path.
+        (span.end < end && is_aligned(&whole))
+            || evidence.nominal_copula_hosts.iter().any(is_aligned)
+            || evidence.nominal_particle_hosts.iter().any(|host| {
+                is_aligned(host)
+                    && lexical::has_grammatical_particle_chain(
+                        &token.text[host.clone()],
+                        &token.text[host.end..],
                     )
             })
     }

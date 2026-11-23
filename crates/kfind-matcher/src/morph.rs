@@ -1322,11 +1322,12 @@ impl MorphMatcher {
         {
             return false;
         }
+        let nominal_particle_chain = matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        );
         let contracted_copula = licensed_trailing.is_none()
-            && matches!(
-                branch.consumption,
-                CandidateConsumption::NominalParticleChain { .. }
-            )
+            && nominal_particle_chain
             && candidate.consumed.end < whole.end
             && contracted_copula_surface_follows(
                 haystack,
@@ -1344,6 +1345,9 @@ impl MorphMatcher {
             }
         );
         let include_nominal_copula = copula_program
+            || (nominal_particle_chain
+                && licensed_trailing.is_some()
+                && candidate.consumed != *core)
             || (patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
                 && matches!(
                     nominal_copula_initial_at(haystack, candidate.verified.core.end, whole.end),
@@ -1362,10 +1366,6 @@ impl MorphMatcher {
         let consumed_end = consumed.end;
         let rejected_suffix =
             self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver);
-        let nominal_particle_chain = matches!(
-            branch.consumption,
-            CandidateConsumption::NominalParticleChain { .. }
-        );
         if nominal_particle_chain
             && candidate.suffix_rules.iter().any(|rule| {
                 matches!(
@@ -1384,9 +1384,10 @@ impl MorphMatcher {
         let terminal_particle_conflict = rejected_suffix
             && nominal_particle_chain
             && self.has_terminal_particle_conflict(haystack, candidate, &whole);
-        let possible_compound_prefix = nominal_particle_chain
-            && candidate.verified.core.start == whole.start
-            && candidate.consumed.end < whole.end
+        let partial_nominal = nominal_particle_chain
+            && core.start == whole.start
+            && candidate.consumed.end < whole.end;
+        let possible_compound_prefix = partial_nominal
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos == DataFinePos::Nng
                     && pattern.component_capability.allows_runtime()
@@ -1446,7 +1447,14 @@ impl MorphMatcher {
                 candidate.verified.core.clone(),
                 candidate.consumed != candidate.verified.core,
             );
+        let aligned_prefix = partial_nominal
+            && (rejected_suffix || candidate.verified.token != *core)
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nng)
+            && context.has_aligned_nominal_prefix_before(core.clone(), candidate.consumed.clone());
         if !compound_prefix
+            && !aligned_prefix
             && (contracted_copula
                 || (rejected_suffix
                     && (terminal_particle_conflict
@@ -1454,18 +1462,8 @@ impl MorphMatcher {
         {
             return false;
         }
-        let trim_particle = candidate.verified.token != candidate.verified.core
-            && (compound_prefix
-                || (nominal_particle_chain
-                    && candidate.verified.core.start == whole.start
-                    && consumed_end < whole.end
-                    && patterns
-                        .iter()
-                        .any(|pattern| pattern.fine_pos == DataFinePos::Nng)
-                    && context.has_aligned_nominal_prefix_before(
-                        candidate.verified.core.clone(),
-                        consumed.clone(),
-                    )));
+        let trim_particle =
+            candidate.verified.token != *core && (compound_prefix || aligned_prefix);
         let decision = context.resolve(
             StructuralRequest {
                 candidate: &candidate.verified,

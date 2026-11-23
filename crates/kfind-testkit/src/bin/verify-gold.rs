@@ -274,6 +274,13 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
             }
         }
     }
+    let text = "전공과를 신설하고 전공과 취미를 조사했다.";
+    let matches =
+        harness.find_lemma_matches("전공", text, CoarsePos::Noun, BoundaryPolicy::Smart)?;
+    let spans: Vec<_> = matches.into_iter().map(|matched| matched.span).collect();
+    if spans != [0..6, 26..35] {
+        return Err(format!("전공 {text:?}: expected [0..6, 26..35], got {spans:?}").into());
+    }
     Ok(())
 }
 
