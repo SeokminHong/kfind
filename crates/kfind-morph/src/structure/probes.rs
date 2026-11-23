@@ -3400,6 +3400,27 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_adjective_ge_adverbial(&self, text: &str) -> bool {
+        let Some(stem) = text.strip_suffix('게') else {
+            return false;
+        };
+        if self.has_exact_nominal_surface(text) {
+            return false;
+        }
+        if self.has_exact_non_copula_predicate_surface(stem) {
+            return self.has_exact_adjective_surface(stem);
+        }
+        let ending = |pos| matches!(pos, StructuralPos::EC | StructuralPos::EF);
+        predicate_inflected_path(&self.resource, text, |pos| pos == StructuralPos::VA, ending)
+            || derived_inflected_path(
+                &self.resource,
+                text,
+                |pos| pos == StructuralPos::XSA,
+                ending,
+            )
+    }
+
+    #[must_use]
     pub fn has_exact_non_copula_predicate_surface(&self, text: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, text, |pos| {
             pos.is_predicate() && pos != StructuralPos::VCP

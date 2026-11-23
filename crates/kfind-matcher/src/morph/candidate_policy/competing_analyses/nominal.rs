@@ -30,14 +30,10 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
             .is_some_and(|topic| resolver.has_exact_pronoun_surface(&topic))
         || !context::normalized_token(haystack, span.clone())
             .is_some_and(|topic| resolver.has_predicate_adnominal_analysis(&topic))
-        || !context::previous_word_with_start(haystack, span.start).is_some_and(
-            |(start, subject)| {
-                !haystack[start..span.start]
-                    .iter()
-                    .any(|byte| matches!(byte, b'\r' | b'\n'))
-                    && resolver.has_subject_marked_nominal(&subject)
-            },
-        )
+        || !context::previous_matching_word_on_line(haystack, span.start, |_, word| {
+            !context::has_unmarked_adverbial_modifier(word, resolver)
+        })
+        .is_some_and(|(_, subject)| resolver.has_subject_marked_nominal(&subject))
     {
         return false;
     }
@@ -86,9 +82,12 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
         return true;
     }
     resolver.has_possibility_nominal(&predicate, &next)
-        && words.next().is_some_and(|(end, state)| {
-            is_sentence_end_after(haystack, end) && resolver.has_final_possibility_predicate(&state)
-        })
+        && words
+            .find(|(_, word)| !context::has_unmarked_adverbial_modifier(word, resolver))
+            .is_some_and(|(end, state)| {
+                is_sentence_end_after(haystack, end)
+                    && resolver.has_final_possibility_predicate(&state)
+            })
 }
 
 pub(super) fn has_copular_topic_instead_of_adverbial(

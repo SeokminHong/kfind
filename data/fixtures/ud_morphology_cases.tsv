@@ -3048,6 +3048,8 @@ regression.audible-subject-occurrence.adnominal-future-not-flight	날다	verb	no
 regression.audible-subject-occurrence.preceding-clause-object	날다	verb	no-match	34	40	문을 열면 작은 종소리가 난다.
 regression.audible-subject-occurrence.accusative-path	날다	verb	smart-only-exact	23	29	허공을 총소리가 나는 듯한 느낌이 들었다.
 regression.audible-subject-occurrence.actual-flight	날다	verb	smart-only-exact	40	46	천둥소리가 들리고 새가 높이 나는 모습을 보았다.
+regression.audible-subject-occurrence.intervening-adverbials	날다	verb	no-match	40	46	금속성 소리가 계속 일정하게 나는 장치를 껐다.
+regression.audible-subject-occurrence.intervening-adverbials-occurrence	나다	verb	smart-only-exact	40	46	금속성 소리가 계속 일정하게 나는 장치를 껐다.
 regression.pronoun-topic-adnominal-object.direct-verb	나	pronoun	no-match	26	32	윙윙거리는 소리가 나는 기계를 확인했다.
 regression.pronoun-topic-adnominal-object.direct-adnominal	나다	verb	smart-only-exact	26	32	윙윙거리는 소리가 나는 기계를 확인했다.
 regression.pronoun-topic-adnominal-object.with-oblique	나	pronoun	no-match	23	29	골목의 종소리가 나는 풍경을 영상으로 기록했다.
@@ -3060,6 +3062,10 @@ regression.pronoun-topic-adnominal-object.mixed-token-ranges	나	pronoun	smart-o
 regression.pronoun-topic-adnominal-object.embedded-speaker	나	pronoun	smart-only-exact	20	26	친절한 직원이 나는 그 상품을 구입할 수 있다고 말했다.
 regression.pronoun-topic-adnominal-object.embedded-object	나	pronoun	smart-only-exact	17	23	옆집 어른이 나는 소리를 듣는 것도 방해했다.
 regression.pronoun-topic-adnominal-object.temporal-clause	나	pronoun	smart-only-exact	24	30	그 기계의 소리가 나는 책을 읽는 동안 들렸다.
+regression.pronoun-topic-adnominal-object.subject-adverbials	나	pronoun	no-match	30	36	냄새가 유난히 강하게 나는 음식을 피했다.
+regression.pronoun-topic-adnominal-object.subject-adverbials-predicate	나다	verb	smart-only-exact	30	36	냄새가 유난히 강하게 나는 음식을 피했다.
+regression.pronoun-topic-adnominal-object.possibility-adverbial	나	pronoun	no-match	10	16	느낌이 나는 무늬를 고를 수는 분명히 있었다.
+regression.pronoun-topic-adnominal-object.purpose-clause	나	pronoun	smart-only-exact	20	26	소리가 들리게 나는 기계를 켰다.
 regression.pronoun-prefix.action	이	pronoun	no-match	23	32	선생님이 아이를 이끌어 주셨다.
 regression.pronoun-prefix.verb-nominalization	이	pronoun	no-match	13	22	경기에서 이기기 위해 연습했다.
 regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	10	19	기술을 이용할 계획이다.
@@ -3186,6 +3192,10 @@ regression.possession-motion-sequence.dative	가다	verb	smart-only-exact	33	39	
 regression.possession-motion-sequence.source-compound	가다	verb	no-match	7	16	책을 가지고 학교에서 나왔다.
 regression.possession-motion-sequence.come	가다	verb	no-match	7	16	책을 가지고 교실에 왔다.
 regression.possession-motion-sequence.attendant-state	가다	verb	smart-only-exact	35	41	책을 가지고 있었다. 집에 갔다.
+regression.possession-motion-sequence.spaced-auxiliary-serial	가다	verb	smart-only-exact	17	20	버스를 타고 가 가지고 늦지 않았다.
+regression.possession-motion-sequence.spaced-auxiliary-direction	가다	verb	smart-only-exact	24	27	학교에 먼저 빨리 가 가지고 서류를 받았다.
+regression.possession-motion-sequence.spaced-auxiliary-focus	가다	verb	smart-only-exact	10	13	학교에 가 가지고도 서류를 받지 못했다.
+regression.possession-motion-sequence.spaced-auxiliary-topic	가다	verb	smart-only-exact	10	13	학교에 가 가지고는 그 서류를 받을 수 없다.
 regression.directional-motion-nominal.unmarked-destination-noun	가	noun	no-match	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.unmarked-destination-verb	가다	verb	smart-only-exact	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.marked-destination-noun	가	noun	no-match	30	33	저녁에 마을로 어떻게 가?

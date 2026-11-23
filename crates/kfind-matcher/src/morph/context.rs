@@ -574,14 +574,7 @@ pub(super) fn previous_matching_word_on_line(
 }
 
 pub(super) fn has_unmarked_adverbial_modifier(word: &str, resolver: &ConstraintResolver) -> bool {
-    use kfind_morph::{PredicatePos, PredicatePosSet};
-
-    let adjectives = PredicatePosSet::one(PredicatePos::Adjective);
-    (resolver.has_exact_adverb_surface(word)
-        || (word.ends_with("게")
-            && !resolver.has_exact_nominal_surface(word)
-            && (resolver.has_exact_predicate_connective_path(word, adjectives)
-                || resolver.has_derived_predicate_connective_surface(word, adjectives))))
+    (resolver.has_exact_adverb_surface(word) || resolver.has_adjective_ge_adverbial(word))
         && !resolver.has_subject_marked_nominal(word)
         && !resolver.has_object_marked_nominal(word)
         && !resolver.has_topic_marked_nominal(word)
