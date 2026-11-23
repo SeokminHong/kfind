@@ -3095,6 +3095,19 @@ regression.pronoun-topic-adnominal-object.subject-adverbials	나	pronoun	no-matc
 regression.pronoun-topic-adnominal-object.subject-adverbials-predicate	나다	verb	smart-only-exact	30	36	냄새가 유난히 강하게 나는 음식을 피했다.
 regression.pronoun-topic-adnominal-object.possibility-adverbial	나	pronoun	no-match	10	16	느낌이 나는 무늬를 고를 수는 분명히 있었다.
 regression.pronoun-topic-adnominal-object.purpose-clause	나	pronoun	smart-only-exact	20	26	소리가 들리게 나는 기계를 켰다.
+regression.pronoun-topic-adnominal-object.nominalized-source	나	pronoun	no-match	103	109	천연 소재의 느낌을 살린 컬러와 소재를 접목해 부드럽고 자연스러운 느낌이 나는 무늬를 쓰는 것도 트렌드로 자리 잡고 있다.
+regression.pronoun-topic-adnominal-object.nominalized-source-verb	나다	verb	smart-only-exact	103	109	천연 소재의 느낌을 살린 컬러와 소재를 접목해 부드럽고 자연스러운 느낌이 나는 무늬를 쓰는 것도 트렌드로 자리 잡고 있다.
+regression.pronoun-topic-adnominal-object.nominalized-mixed-spans	나	pronoun	smart-only-exact	0	6	나는 기분 좋은 느낌이 나는 무늬를 쓰는 것도 좋다.
+regression.pronoun-topic-adnominal-object.nominalized-nominative	나	pronoun	no-match	10	16	향기가 나는 꽃을 고르는 것이 즐거웠다.
+regression.pronoun-topic-adnominal-object.nominalized-contracted-subject	나	pronoun	no-match	10	16	단맛이 나는 채소를 먹는 게 즐겁다.
+regression.pronoun-topic-adnominal-object.nominalized-contracted-topic	나	pronoun	no-match	10	16	소리가 나는 장난감을 고르는 건 재미있다.
+regression.pronoun-topic-adnominal-object.nominalized-copula	나	pronoun	smart-only-exact	41	44	빛이 나는 조명을 고르는 것이 내 역할이다.
+regression.pronoun-topic-adnominal-object.nominalized-ki-focus	나	pronoun	no-match	10	16	향기가 나는 꽃을 고르기도 즐거웠다.
+regression.pronoun-topic-adnominal-object.nominalized-m-nominative	나	pronoun	no-match	10	16	향기가 나는 꽃을 골랐음이 분명했다.
+regression.pronoun-topic-adnominal-object.nominalized-progressive-subject	나	pronoun	no-match	10	16	소리가 나는 장난감을 고르는 것도 유행하고 있다.
+regression.pronoun-topic-adnominal-object.nominalized-progressive-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 것도 방해하고 있다.
+regression.pronoun-topic-adnominal-object.nominalized-progressive-oblique-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 것도 고음으로 방해하고 있다.
+regression.pronoun-topic-adnominal-object.nominalized-contracted-object	나	pronoun	smart-only-exact	13	19	경고음이 나는 음악을 듣는 걸 방해했다.
 regression.pronoun-prefix.action	이	pronoun	no-match	23	32	선생님이 아이를 이끌어 주셨다.
 regression.pronoun-prefix.verb-nominalization	이	pronoun	no-match	13	22	경기에서 이기기 위해 연습했다.
 regression.pronoun-prefix.derived-predicate	이	pronoun	no-match	10	19	기술을 이용할 계획이다.

@@ -11,6 +11,8 @@
 - `data/rules/stdict-nominal-prefix-components.csv`와 component 리소스의 해당 분석
 - `data/rules/stdict-nominal-suffix-components.tsv`와 component 리소스의 해당 분석
 - `data/rules/krdict-non-accusative-predicate-anchors.rs`
+- `data/rules/krdict-nada-subjects.rs`의 발생 주어 명사와
+  `data/rules/krdict-nominal-frames.rs`의 형용사 단독 어간 판정
 - `data/rules/krdict-ha-objects.tsv`, `krdict-person-nouns.tsv`, `krdict-scheduled-nouns.tsv`,
   `krdict-spatial-destinations.tsv`, `krdict-temporal-nouns.tsv`, `krdict-frame-nouns.tsv`와
   component 리소스의 해당 섹션

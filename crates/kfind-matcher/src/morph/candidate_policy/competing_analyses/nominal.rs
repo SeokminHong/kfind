@@ -15,6 +15,8 @@ use crate::{
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
 
+const NADA_SUBJECTS: &[&str] = include!("../../../../../../data/rules/krdict-nada-subjects.rs");
+
 pub(super) fn has_adnominal_instead_of_pronoun_topic(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
@@ -31,15 +33,22 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
         || !is_boundary_after(haystack, span.end)
         || !context::normalized_token(haystack, candidate.verified.core.clone())
             .is_some_and(|topic| resolver.has_exact_pronoun_surface(&topic))
-        || !context::normalized_token(haystack, span.clone())
-            .is_some_and(|topic| resolver.has_predicate_adnominal_analysis(&topic))
-        || !context::previous_matching_word_on_line(haystack, span.start, |_, word| {
-            !context::has_unmarked_adverbial_modifier(word, resolver)
-        })
-        .is_some_and(|(_, subject)| resolver.has_subject_marked_nominal(&subject))
     {
         return false;
     }
+    let Some(adnominal) = context::normalized_token(haystack, span.clone())
+        .filter(|word| resolver.has_predicate_adnominal_analysis(word))
+    else {
+        return false;
+    };
+    let Some((_, subject)) =
+        context::previous_matching_word_on_line(haystack, span.start, |_, word| {
+            !context::has_unmarked_adverbial_modifier(word, resolver)
+        })
+        .filter(|(_, word)| resolver.has_subject_marked_nominal(word))
+    else {
+        return false;
+    };
     let limit = span
         .end
         .saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
@@ -51,7 +60,8 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
         }
         after = end;
         Some((end, word))
-    });
+    })
+    .peekable();
     loop {
         let Some((_, word)) = words.next() else {
             return false;
@@ -67,30 +77,90 @@ pub(super) fn has_adnominal_instead_of_pronoun_topic(
             return false;
         }
     }
-    let Some((end, predicate)) = words.find(|(_, word)| {
-        !context::has_unmarked_adverbial_modifier(word, resolver)
-            && !resolver.has_nominal_oblique(word)
+    let occurrence_adnominal = subject.strip_suffix(['이', '가']).is_some_and(|noun| {
+        NADA_SUBJECTS.contains(&noun)
+            || resolver.has_nominal_role(noun, kfind_data::NominalRole::AudiblePhenomenon)
+            || resolver.has_nominal_role(noun, kfind_data::NominalRole::BodySecretion)
+    }) && ConstraintResolver::has_occurrence_inflection(&adnominal);
+    let Some((end, predicate, nominalized)) = words.find_map(|(end, word)| {
+        let nominalized = occurrence_adnominal && resolver.has_verb_nominalized_subject(&word);
+        (nominalized
+            || (!context::has_unmarked_adverbial_modifier(&word, resolver)
+                && !resolver.has_nominal_oblique(&word)))
+        .then_some((end, word, nominalized))
     }) else {
         return false;
     };
     if is_sentence_end_after(haystack, end) {
         return resolver.has_final_verb_after_object(&predicate);
     }
-    let Some((end, next)) = words.next() else {
-        return false;
-    };
-    if is_sentence_end_after(haystack, end)
-        && resolver.has_progressive_auxiliary_frame(&predicate, &next)
-    {
+    if words.peek().is_some_and(|(end, next)| {
+        is_sentence_end_after(haystack, *end)
+            && resolver.has_progressive_auxiliary_frame(&predicate, next)
+    }) {
         return true;
     }
-    resolver.has_possibility_nominal(&predicate, &next)
-        && words
+    if words
+        .peek()
+        .is_some_and(|(_, next)| resolver.has_possibility_nominal(&predicate, next))
+    {
+        words.next();
+        return words
             .find(|(_, word)| !context::has_unmarked_adverbial_modifier(word, resolver))
             .is_some_and(|(end, state)| {
                 is_sentence_end_after(haystack, end)
                     && resolver.has_final_possibility_predicate(&state)
-            })
+            });
+    }
+
+    // The object-taking predicate can itself be inside a clause used as the subject.
+    if !occurrence_adnominal
+        || !(nominalized
+            || words.next().is_some_and(|(_, head)| {
+                let nominative_or_focus = matches!(head.as_ref(), "게" | "건")
+                    || head.strip_prefix("것").is_some_and(|tail| {
+                        matches!(tail, "" | "이") || resolver.has_nominal_focus_particle_tail(tail)
+                    });
+                nominative_or_focus
+                    && resolver.has_verb_adnominal_analysis(&predicate)
+                    && resolver.has_exact_dependent_noun_surface("것")
+            }))
+    {
+        return false;
+    }
+
+    let mut has_result_oblique = false;
+    while let Some((end, matrix)) = words.next() {
+        if is_sentence_end_after(haystack, end) {
+            return resolver.has_final_predicate_in_subject_frame(&matrix)
+                || resolver.has_explicit_copula_after_nominal(&matrix)
+                || resolver.has_reduced_copula_after_nominal(&matrix);
+        }
+        if words.peek().is_some_and(|(end, auxiliary)| {
+            is_sentence_end_after(haystack, *end)
+                && (resolver.has_non_accusative_progressive_frame(&matrix, auxiliary)
+                    || (has_result_oblique
+                        && resolver.has_compound_progressive_frame(&matrix, auxiliary)))
+        }) {
+            return true;
+        }
+        if resolver.has_nominal_oblique(&matrix) {
+            has_result_oblique |= matrix.ends_with('로');
+            continue;
+        }
+        if context::has_unmarked_adverbial_modifier(&matrix, resolver) {
+            continue;
+        }
+        return has_result_oblique
+            && words.next().is_some_and(|(_, host)| {
+                resolver.has_attested_compound_predicate_connective(&matrix, &host)
+                    && words.next().is_some_and(|(end, auxiliary)| {
+                        is_sentence_end_after(haystack, end)
+                            && resolver.has_progressive_auxiliary_frame(&host, &auxiliary)
+                    })
+            });
+    }
+    false
 }
 
 pub(super) fn has_copular_topic_instead_of_adverbial(
