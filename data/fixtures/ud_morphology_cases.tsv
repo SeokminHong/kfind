@@ -3201,6 +3201,14 @@ regression.topic-after-case.length-prefix	길	noun	no-match	0	9	길이는 두 �
 regression.topic-after-case.length-topic	길이	noun	smart-only-exact	0	9	길이는 두 방식으로 측정한다.
 regression.topic-after-case.honorific-subject	선생님	noun	smart-only-exact	0	18	선생님께서는 이미 도착하셨다.
 regression.topic-after-case.locative	학교	noun	smart-only-exact	0	15	학교에서는 수업을 시작했다.
+regression.additive-after-case.concessive-noun	나	noun	no-match	34	43	서울 시내에 차를 가지고 나가도 되겠니?
+regression.additive-after-case.concessive-verb	나가다	verb	smart-only-exact	34	43	서울 시내에 차를 가지고 나가도 되겠니?
+regression.additive-after-case.proper-name-prefix	여	noun	no-match	10	19	오늘도 여의도에서 만나요.
+regression.additive-after-case.proper-name	여의도	noun	smart-only-exact	10	25	오늘도 여의도에서 만나요.
+regression.additive-after-case.locative	학교	noun	smart-only-exact	0	15	학교에서도 안내했다.
+regression.additive-after-case.honorific	선생님	noun	smart-only-exact	0	18	선생님께서도 안내하셨다.
+regression.additive-after-case.bare-nominal	의도	noun	smart-only-exact	10	19	잘못된 의도도 적어 두었다.
+regression.additive-after-case.focus-before-object	책	noun	smart-only-exact	0	9	책만을 골랐다.
 regression.competing-copula-host.predicate-adnominal	죽	noun	no-match	10	19	사람을 죽이는 건 범죄다.
 regression.competing-copula-host.predicate-intent	죽	noun	no-match	10	19	해충을 죽이려 한다.
 regression.competing-copula-host.predicate-affirmative	죽이다	verb	smart-only-exact	10	19	사람을 죽이는 건 범죄다.
