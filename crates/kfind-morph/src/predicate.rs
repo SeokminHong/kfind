@@ -16,6 +16,7 @@ use crate::{
 
 mod alternation;
 mod continuation;
+pub(crate) use continuation::has_complete_resultative_inflection;
 
 pub use continuation::{
     PredicateContinuationMatch, verify_predicate_continuation,

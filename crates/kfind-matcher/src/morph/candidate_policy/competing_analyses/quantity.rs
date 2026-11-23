@@ -328,7 +328,8 @@ pub(super) fn has_comparative_adverb_frame(
     ((has_marked_comparison_participants(haystack, core.start, resolver) || preceding_subject)
         && (adnominal
             || resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
-            || resolver.has_final_adjective_by_ending(&next)))
+            || resolver.has_final_adjective_by_ending(&next)
+            || (preceding_subject && resolver.has_adjective_change_of_state(&next))))
         || (previous.is_some_and(|(_, word)| resolver.has_object_marked_nominal(&word))
             && (resolver.has_independent_final_verb_with_object(&next)
                 || resolver.has_accusative_verb_connective(&next)))

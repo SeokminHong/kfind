@@ -1694,6 +1694,28 @@ impl ConstraintResolver {
         )
     }
 
+    /// Finds the adjective and attached change-of-state auxiliary (KRDict 77247).
+    #[must_use]
+    pub fn has_adjective_change_of_state(&self, text: &str) -> bool {
+        let connective = |pos| pos == StructuralPos::EC;
+        text.char_indices().skip(1).any(|(split, _)| {
+            let (host, auxiliary) = text.split_at(split);
+            ends_in_vowel_connective_surface(host)
+                && crate::predicate::has_complete_resultative_inflection(auxiliary)
+                && (predicate_inflected_path(
+                    &self.resource,
+                    host,
+                    |pos| pos == StructuralPos::VA,
+                    connective,
+                ) || derived_inflected_path(
+                    &self.resource,
+                    host,
+                    |pos| pos == StructuralPos::XSA,
+                    connective,
+                ))
+        })
+    }
+
     #[must_use]
     pub fn has_progressive_or_desiderative_ending(
         &self,

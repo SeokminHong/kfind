@@ -13,6 +13,11 @@ mod trial;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
 pub(super) use reo::is_copula_reo_ending;
 
+pub(crate) fn has_complete_resultative_inflection(text: &str) -> bool {
+    auxiliary::verify_resultative(0, text)
+        .is_some_and(|matched| matched.consumed_bytes == text.len())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateContinuationMatch {
     /// Byte offset of the verified token end in `anchor + following`.
