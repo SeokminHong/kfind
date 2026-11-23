@@ -24,7 +24,7 @@ from python.validation import load_cases, sha256
 
 FIXTURES = {
     "eaafbae7757dbb62c9a0ca6b370dadf0f41b53c3e3d044f21b191c2aab8e3682": "raw-gsd",
-    "ae694ce3309045bbe892bd151a51cb3bcc00ae0d0bf545b9014cc9664e274a5b": "corpus-positives-gsd",
+    "0a6ae6694670697f41786fe3040024c865df670908ebee9e6af2cd7f260013cf": "corpus-positives-gsd",
     "482e55d417516e8db503dbd421725fcc7affc6c6afcf5b5d42cec3bbd4d35d54": "corpus-negatives",
 }
 GSD_SPLITS = {"raw-gsd", "corpus-positives-gsd"}
