@@ -1873,7 +1873,7 @@ regression.grammatical-nominal-suffix.additive-goods	들	noun	no-match	13	16	다
 regression.grammatical-nominal-suffix.additive-celebrities	들	noun	no-match	9	12	연예인들도 자주 찾는다.
 regression.grammatical-nominal-suffix.dative-customers	들	noun	no-match	13	16	오랜 단골들에게 사랑받는 식당이다.
 regression.grammatical-nominal-suffix.predicate-tail	들	noun	no-match	13	16	모형을 만들고 남은 재료를 정리했다.
-regression.familiar-direct-question.existential	있다	verb	smart-exact	37	43	대전역까지 지하철로 갈 수 있니?
+regression.familiar-direct-question.existential	있다	adjective	smart-exact	37	43	대전역까지 지하철로 갈 수 있니?
 regression.familiar-direct-question.negative-existential	없다	adjective	smart-exact	20	26	오늘은 약속이 없니?
 regression.familiar-direct-question.closed-stem	먹다	verb	smart-exact	14	20	너는 밥을 먹니?
 regression.familiar-direct-question.open-stem	자다	verb	smart-exact	35	41	아직 열 시밖에 안 됐는데 자니?
@@ -2186,7 +2186,7 @@ regression.derived-negative-ji.auxiliary-control	않다	verb	smart-only-exact	33
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.
-corpus.ud-gsd.test.test-s336.verb.future-neyo	있다	verb	smart-exact	62	74	종류가 그리 많지는 않지만 부담 없이 먹을 수 있겠네요.
+corpus.ud-gsd.test.test-s336.adjective.future-neyo	있다	adjective	smart-exact	62	74	종류가 그리 많지는 않지만 부담 없이 먹을 수 있겠네요.
 corpus.ud-gsd.test.test-s751.verb.성숙하다	성숙하다	verb	smart-exact	57	69	다나는 최근 자신의 미니홈피를 통해 한층 성숙해진 모습이 담긴 사진을 게재했다.
 regression.negative-topic.verb	먹다	verb	smart-exact	7	13	밥은 먹진 못했어요.
 regression.negative-topic.past	먹다	verb	smart-exact	14	23	그 음식을 먹었진 않아요.
@@ -3331,3 +3331,15 @@ regression.auxiliary-adjective-pos.inference	듯싶다	adjective	only-exact	31	4
 regression.auxiliary-adjective-pos.inference-verb	듯싶다	verb	no-match-both	0	41	아직 버스가 오지 않은 듯싶다.
 regression.auxiliary-adjective-pos.homograph-verb	성하다	verb	smart-only-exact	27	36	요즘 바다에 멸치가 성한다.
 regression.auxiliary-adjective-pos.homograph-adjective	성하다	adjective	smart-only-exact	14	23	옷이 아직 성하다.
+regression.possibility-adjective.mixed-staying	있다	verb	smart-only-exact	41	50	그 길로 갈 수 있다. 잠깐 여기 있어라.
+regression.possibility-adjective.subject	있다	adjective	smart-only-exact	24	30	천천히 걸을 수가 있다.
+regression.possibility-adjective.subject-not-verb	있다	verb	no-match	24	30	천천히 걸을 수가 있다.
+regression.possibility-adjective.focus	있다	adjective	smart-only-exact	18	24	짐을 들 수도 있다.
+regression.possibility-adjective.focus-not-verb	있다	verb	no-match	18	24	짐을 들 수도 있다.
+regression.possibility-adjective.topic	있다	adjective	smart-only-exact	28	40	이 시계는 고칠 수는 있습니다.
+regression.possibility-adjective.topic-not-verb	있다	verb	no-match	28	40	이 시계는 고칠 수는 있습니다.
+regression.possibility-adjective.negation	있다	adjective	smart-only-exact	41	47	민수는 밖에 나가지 않을 수도 있다.
+regression.possibility-adjective.negation-not-verb	있다	verb	no-match	41	47	민수는 밖에 나가지 않을 수도 있다.
+regression.possibility-adjective.result-state-verb	있다	verb	smart-only-exact	21	27	그 자리에서 서 있을 수 있다.
+regression.possibility-adjective.ordinary-number	있다	adjective	smart-only-exact	28	34	자료에 큰 수가 하나 있다.
+regression.possibility-adjective.proper-noun	있다	verb	smart-only-exact	18	24	수가 여기 더 있을 거예요.
