@@ -53,14 +53,14 @@ pub(super) fn has_quantity_nominal_conflict(
         && context::normalized_token(haystack, whole.clone())
             .is_some_and(|token| resolver.has_comparative_nominal_expansion(&token, &host))
     {
-        let Some(preceding) = previous_word_on_line(haystack, whole.start) else {
+        let Some(preceding) = context::previous_word_on_line(haystack, whole.start) else {
             return false;
         };
         preceding
     } else {
         return false;
     };
-    let count = previous_word_on_line(haystack, unit_start).map(|(_, count)| count);
+    let count = context::previous_word_on_line(haystack, unit_start).map(|(_, count)| count);
     resolver.has_quantity_amount(&unit, count.as_deref())
         || (starts_word
             && resolver.has_whole_determiner(&unit)
@@ -73,14 +73,6 @@ pub(super) fn has_quantity_nominal_conflict(
                     || resolver.has_subject_marked_nominal(&argument)
                     || resolver.has_topic_marked_nominal(&argument)
             })))
-}
-
-fn previous_word_on_line(haystack: &[u8], at: usize) -> Option<(usize, std::borrow::Cow<'_, str>)> {
-    let (start, word) = context::previous_word_with_start(haystack, at)?;
-    (!haystack[start..at]
-        .iter()
-        .any(|byte| matches!(byte, b'\r' | b'\n')))
-    .then_some((start, word))
 }
 
 pub(super) fn has_object_before_han_and_final_copula(
