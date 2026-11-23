@@ -151,10 +151,16 @@ corpus.ud-gsd.test.test-s481.adverb-after-topic-contraction	약간	adverb	smart-
 regression.adverb-after-topic-contraction.other-pronoun	약간	adverb	smart-exact	4	10	넌 약간 피곤해 보여.
 regression.adverb-after-topic-contraction.nominal-genitive	약간	adverb	no-match	4	10	난 약간의 돈을 받았다.
 corpus.ud-gsd.test.test-s816.surname-before-title	오	noun	smart-exact	0	3	오 시장은 지난 3월 초 영화 <아이들>을 보고, 실종 아동 문제에 대한 심각성을 인식, 관심을 기울여 왔다.
-corpus.ud-gsd.test.test-s779.surname-before-title	오	noun	smart-exact	14	17	이 때문에 오 시장이 주민투표 문제를 매듭짓고 대선에 출마하는 시나리오를 염두에 두고 있다는 분석이 여권에서 나온다.
+corpus.ud-gsd.test.test-s779.surname-before-title	오	noun	smart-only-exact	14	17	이 때문에 오 시장이 주민투표 문제를 매듭짓고 대선에 출마하는 시나리오를 염두에 두고 있다는 분석이 여권에서 나온다.
 regression.modifier-led-nominal.atomic-host-with-object	나	noun	smart-only-exact	29	32	시나리오를 검토하고 나 씨에게 보냈다.
 regression.modifier-led-nominal.atomic-host-without-particle	나	noun	no-match	3	6	시나리오 감독이 도착했다.
 regression.modifier-led-nominal.atomic-host-with-bare-noun	수	noun	smart-only-exact	37	43	팀은 수수께끼를 풀고 다른 수를 생각했다.
+regression.modifier-led-nominal.atomic-foreign-host-tail	아	noun	no-match	12	18	오스트리아는 새로운 협정에 서명했다.
+regression.modifier-led-nominal.atomic-foreign-host-whole	오스트리아	noun	smart-only-exact	0	18	오스트리아는 새로운 협정에 서명했다.
+regression.modifier-led-nominal.atomic-proper-host-tail	국	noun	no-match	10	16	그는 한국에 있는 박물관에서 전시를 열었다.
+regression.modifier-led-nominal.atomic-proper-host-whole	한국	noun	smart-only-exact	7	16	그는 한국에 있는 박물관에서 전시를 열었다.
+regression.modifier-led-nominal.source-nominal-tail	달	noun	smart-only-exact	3	9	이달에 새 학기가 시작된다.
+regression.modifier-led-nominal.source-nominal-tail-with-object	길	noun	smart-only-exact	3	9	뱃길을 따라 항해했다.
 regression.whole-adverb.no-interior-noun	시	noun	no-match	13	16	정부는 역시 협의를 시작한다.
 regression.whole-adverb.aligned-city-component	시	noun	smart-only-exact	12	15	부산광역시 역시 의견을 제출했다.
 regression.whole-adverb.independent-time-noun	시	noun	smart-only-exact	10	13	재접속 시 역시 인증이 필요하다.
