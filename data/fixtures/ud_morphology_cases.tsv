@@ -3380,3 +3380,9 @@ regression.particle-interior-predicate.attached-auxiliary	서다	verb	smart-only
 regression.particle-interior-predicate.repeated-connective	서다	verb	smart-only-exact	18	24	그는 문 앞에 서서 기다렸다.
 regression.particle-interior-predicate.alternative-with-independent-predicate	나다	verb	smart-only-exact	34	40	낮이나 저녁에 오면 땀이 난다.
 regression.particle-interior-predicate.limit	지다	verb	no-match	23	29	자료를 보낼 때까지는 기다려 주세요.
+regression.attached-auxiliary-proof.nominal-host	가다	verb	no-match	14	23	새가 굵은 가지에 앉았다.
+regression.attached-auxiliary-proof.independent-ending	가다	verb	smart-only-exact	30	36	시간이 나면 도서관에 가지.
+regression.attached-auxiliary-proof.proper-name	사다	verb	no-match	7	16	그는 사하라 사막을 여행했다.
+regression.attached-auxiliary-proof.actual-auxiliary	사다	verb	smart-only-exact	23	35	사과를 시장에서 사두었다.
+regression.attached-auxiliary-proof.internal-alignment	치다	verb	no-match	23	35	수선사가 옷을 고쳐주셨다.
+regression.attached-auxiliary-proof.original-predicate	고치다	verb	smart-only-exact	20	35	수선사가 옷을 고쳐주셨다.

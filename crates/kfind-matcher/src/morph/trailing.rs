@@ -180,6 +180,19 @@ impl MorphMatcher {
                     let at_word_start = whole.start == core.start;
                     let complete_attached_path = resolver
                         .has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT);
+                    if !at_word_start
+                        && (!complete_attached_path
+                            || !source_aligned_compound_predicate_position(
+                                haystack,
+                                core,
+                                &whole,
+                                source_positions,
+                                resolver,
+                            ))
+                    {
+                        break 'attached false;
+                    }
+                    let vowel_auxiliary = resolver.has_vowel_auxiliary_inflection(trailing, pos);
                     let source_auxiliary_suffix =
                         resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT);
                     let unambiguous_contraction = if at_word_start {
@@ -209,34 +222,28 @@ impl MorphMatcher {
                         )
                         && resolver.has_exact_predicate_connective_path(&host, source_positions);
                     let contracted_host = at_word_start && has_rule("contraction.ha-yeo");
-                    let supported_connective = source_auxiliary_suffix
-                        && resolver.has_vowel_auxiliary_inflection(trailing, pos)
-                        && {
-                            let verifies_particle = |suffix| {
-                                self.particle_verifier.verify_exact(&host, suffix).is_some()
-                            };
-                            let competing_nominal = resolver
-                                .has_competing_nominal_after_connective(&token, connective_end)
-                                || (resolver.has_exact_nominal_surface(&host)
-                                    && (verifies_particle(trailing)
-                                        || trailing
-                                            .char_indices()
-                                            .skip(1)
-                                            .any(|(end, _)| verifies_particle(&trailing[..end]))));
-                            if competing_nominal {
-                                contracted_host
-                                    && has_contracted_auxiliary_host_context(
-                                        haystack, &whole, trailing, resolver,
-                                    )
-                                    && resolver.has_exact_predicate_connective_path(
-                                        &host,
-                                        source_positions,
-                                    )
-                            } else {
-                                resolver.has_derived_predicate_connective_surface(
-                                    &host,
-                                    source_positions,
-                                ) || ((contracted_host
+                    let supported_connective = source_auxiliary_suffix && vowel_auxiliary && {
+                        let verifies_particle =
+                            |suffix| self.particle_verifier.verify_exact(&host, suffix).is_some();
+                        let competing_nominal = resolver
+                            .has_competing_nominal_after_connective(&token, connective_end)
+                            || (resolver.has_exact_nominal_surface(&host)
+                                && (verifies_particle(trailing)
+                                    || trailing
+                                        .char_indices()
+                                        .skip(1)
+                                        .any(|(end, _)| verifies_particle(&trailing[..end]))));
+                        if competing_nominal {
+                            contracted_host
+                                && has_contracted_auxiliary_host_context(
+                                    haystack, &whole, trailing, resolver,
+                                )
+                                && resolver
+                                    .has_exact_predicate_connective_path(&host, source_positions)
+                        } else {
+                            resolver
+                                .has_derived_predicate_connective_surface(&host, source_positions)
+                                || ((contracted_host
                                     || (at_word_start
                                         && complete_attached_path
                                         && !extended_predicate_prefix
@@ -249,13 +256,13 @@ impl MorphMatcher {
                                         &host,
                                         source_positions,
                                     ))
-                            }
-                        };
+                        }
+                    };
                     let competing_lexical_predicate = at_word_start
                         && !source_auxiliary_suffix
                         && extended_predicate_prefix
-                        && !resolver.has_vowel_auxiliary_inflection(trailing, pos);
-                    !competing_lexical_predicate
+                        && !vowel_auxiliary;
+                    let licensed_auxiliary = vowel_auxiliary
                         && ((complete_attached_path
                             && (visible_connective
                                 || unambiguous_contraction
@@ -266,7 +273,9 @@ impl MorphMatcher {
                                     || extended_predicate_prefix
                                     || unambiguous_whole_path
                                     || resultative_contraction))
-                            || supported_connective
+                            || supported_connective);
+                    !competing_lexical_predicate
+                        && (licensed_auxiliary
                             || (resolver
                                 .has_exact_predicate_connective_path(&host, source_positions)
                                 && !branch.origins.iter().all(|origin| {
