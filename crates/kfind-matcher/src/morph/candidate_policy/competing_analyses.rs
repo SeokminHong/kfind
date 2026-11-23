@@ -98,6 +98,7 @@ pub(super) fn rejects(
         || has_pronoun_topic_instead_of_adnominal(haystack, candidate, branch, atom, resolver)
         || has_pronoun_object_instead_of_adnominal(haystack, candidate, branch, resolver)
         || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
+        || nominal::has_copular_topic_instead_of_adverbial(haystack, candidate, branch, resolver)
         || has_adverb_instead_of_inferred_nominalization(haystack, candidate, branch, resolver)
         || quantity::has_postnominal_count_frame(haystack, candidate, branch, resolver)
         || quantity::has_concessive_particle_frame(haystack, candidate, branch, resolver)
