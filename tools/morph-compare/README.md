@@ -156,6 +156,19 @@ python3 tools/morph-compare/measure-smart.py "$fixture" "$new_output_dir" \
 runner 출력과 로그는 같은 디렉터리에 있습니다. 최대 RSS는 macOS의
 `/usr/bin/time -l` 또는 Linux runner의 `VmHWM`에서 수집합니다.
 
+붙여 쓴 보조 용언 등 canonical 정규화 변경은 Node에서 bundler
+WASM 패키지의 Smart 호출을 별도로 측정할 수 있습니다.
+
+```sh
+node tools/morph-compare/measure-smart-nfd-wasm.mjs \
+  "$fixture" "$wasm_package_dir" "$full_pos" "$component" "$enriched"
+```
+
+입력에서 동사·형용사 질의를 유지하고 문장을 NFD로 정규화합니다.
+새 프로세스의 한 실행에서 초기화, 처리량, p95, 최대 RSS와 실제
+입력·리소스·WASM·반환 범위 체크섬을 JSON으로 출력합니다. 비교할 때는
+두 패키지에 같은 방법으로 워밍업 1회와 교대 측정 5회를 적용합니다.
+
 로컬 Python test는 이 디렉터리에서 실행합니다.
 
 ```sh

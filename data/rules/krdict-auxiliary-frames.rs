@@ -104,6 +104,10 @@ const PROGRESSIVE_OR_DESIDERATIVE_AUXILIARIES: &[(&str, PredicatePos)] = &[
 // 한국어기초사전의 '-어' 결합 주석 중 활용 전체가 허용되는 구성.
 // 일부 선행 용언 또는 특정 후행 어미로 범위가 제한된 뜻풀이는 포함하지 않는다.
 const ATTACHED_RESULTATIVE_LEMMA: &str = "지다";
+// 국립국어원 온라인가나다 325015의 '-어붙이다' 합성 구조.
+// 연결형 뒤에서 앞 동작의 뜻을 강조하는 합성 동사의 후행 성분이다.
+const VOWEL_CONNECTIVE_COMPOUND_HEADS: &[(&str, LexicalAlternation)] =
+    &[("붙이다", LexicalAlternation::Regular)];
 const VOWEL_AUXILIARIES: &[(&str, LexicalAlternation, VowelAuxiliaryHost)] = &[
     ("가다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),
     ("계시다", LexicalAlternation::Regular, VowelAuxiliaryHost::Verb),

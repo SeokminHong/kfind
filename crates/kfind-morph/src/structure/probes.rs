@@ -1510,6 +1510,23 @@ impl ConstraintResolver {
         self.has_matching_vowel_auxiliary_inflection(text, host_pos, |_| true, |_| true)
     }
 
+    #[must_use]
+    pub fn has_vowel_connective_compound_head(text: &str) -> bool {
+        static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
+            std::sync::LazyLock::new(|| {
+                VOWEL_CONNECTIVE_COMPOUND_HEADS
+                    .iter()
+                    .flat_map(|&(lemma, alternation)| {
+                        let entry =
+                            crate::PredicateEntry::new(lemma, PredicatePos::Verb, alternation);
+                        crate::generate_predicate_branches(&entry)
+                            .expect("valid dictionary compound head")
+                    })
+                    .collect()
+            });
+        matches_predicate_inflection(text, &FORMS)
+    }
+
     /// Verifies the attached result-state auxiliary 있다 (KRDict 62595).
     #[must_use]
     pub fn has_result_state_auxiliary_frame(&self, host: &str, auxiliary: &str) -> bool {
