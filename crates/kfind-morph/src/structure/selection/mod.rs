@@ -307,6 +307,18 @@ impl StructureSelection {
             self,
             Self::NominalSpan { selected, .. } if selected.end == spans.core.start
         ) && !evidence.has_whole_predicate();
+        if compound_predicate
+            && support.evidence == StructuralEvidence::RuntimeComponent
+            && let Self::NominalSpan { selected, .. } = self
+            && selected.end < spans.core.start
+            && evidence.units.starting_at(selected.end).iter().any(|unit| {
+                unit.pos.is_particle() && unit.aligned_pos && spans.core.end <= unit.span.end
+            })
+            && has_grammatical_particle_chain(&text[selected.clone()], &text[selected.end..])
+            && !evidence.has_whole_predicate()
+        {
+            return false;
+        }
         if !matches!(
             self,
             Self::NominalWhole
