@@ -2515,6 +2515,13 @@ regression.comparative.approximation	기대다	verb	no-match	10	16	결과는 기
 regression.comparative.degree-with-subject	더	noun	no-match	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
 regression.comparative.degree-adverb	더	adverb	smart-only-exact	29	32	유사점보다 차이점이 더 많지만 걱정하지 마라.
 regression.comparative.degree-with-measure	더	noun	no-match	45	48	이름 중 케이라가 키에라보다 3배 더 많았다.
+regression.comparative.measured-subject-name	더	noun	smart-only-exact	0	6	더가 3 m가 더 높은 쪽을 골랐다.
+regression.comparative.measured-subject-adverb	더	adverb	smart-only-exact	14	17	더가 3 m가 더 높은 쪽을 골랐다.
+regression.comparative.measured-subject-korean	더	noun	no-match	28	31	새 전망대는 3미터가 더 높은 곳에 있다.
+regression.comparative.measured-subject-consonant	더	noun	no-match	23	26	두 상자 중 2 kg이 더 무거운 상자를 골랐다.
+regression.comparative.measured-subject-prefix	덜	noun	no-match	52	55	두 절벽의 높이는 같지만 이쪽은 4 cm가 덜 높게 측정됐다.
+regression.comparative.measured-subject-relative	더	noun	no-match	27	30	두 측정값 중 3.4 m가 더 큰 값을 골랐다.
+regression.comparative.measured-subject-percent	더	noun	no-match	50	53	집계 기준은 같았고 찬성 비율은 3%가 더 높았다.
 regression.comparative.lower-degree	덜	noun	no-match	20	23	점수가 형보다 덜 높다.
 regression.comparative.lower-degree-adverb	덜	adverb	smart-only-exact	20	23	점수가 형보다 덜 높다.
 regression.comparative.object-before-degree-connective	더	noun	no-match	17	20	입장료를 좀 더 올리더라도 좋다.

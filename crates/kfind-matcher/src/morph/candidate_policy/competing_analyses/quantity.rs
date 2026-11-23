@@ -307,19 +307,26 @@ pub(super) fn has_comparative_adverb_frame(
     {
         return false;
     }
-    let Some((_, next)) = context::next_word_on_line(haystack, core.end) else {
+    let Some((next_end, next)) = context::next_word_on_line(haystack, core.end) else {
         return false;
     };
-    let previous = context::previous_non_adverb_on_line(haystack, core.start, resolver);
-    ((has_marked_comparison_participants(haystack, core.start, resolver)
-        || (previous
-            .as_ref()
-            .is_some_and(|word| resolver.has_subject_marked_nominal(word))
-            && !resolver.has_exact_nominal_surface(&next)))
-        && (resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
-            || resolver.has_final_adjective_by_ending(&next)
-            || resolver.has_adjective_adnominal_surface(&next)))
-        || (previous.is_some_and(|word| resolver.has_object_marked_nominal(&word))
+    let previous = context::previous_non_adverb_with_start_on_line(haystack, core.start, resolver);
+    let adnominal = resolver.has_adjective_adnominal_surface(&next);
+    let preceding_subject = previous.as_ref().is_some_and(|(start, word)| {
+        let nominal_rival = resolver.has_exact_nominal_surface(&next);
+        (resolver.has_subject_marked_nominal(word) && !nominal_rival)
+            || (measured_subject_start(haystack, *start, word, resolver).is_some()
+                && (!nominal_rival
+                    || (adnominal
+                        && context::next_word_on_line(haystack, next_end).is_some_and(
+                            |(_, head)| resolver.has_nominal_with_optional_particles(&head),
+                        ))))
+    });
+    ((has_marked_comparison_participants(haystack, core.start, resolver) || preceding_subject)
+        && (adnominal
+            || resolver.has_exact_predicate_ending_path(&next, PredicatePos::Adjective)
+            || resolver.has_final_adjective_by_ending(&next)))
+        || (previous.is_some_and(|(_, word)| resolver.has_object_marked_nominal(&word))
             && (resolver.has_independent_final_verb_with_object(&next)
                 || resolver.has_accusative_verb_connective(&next)))
 }
@@ -458,6 +465,7 @@ fn has_marked_comparison_participants(
         {
             return false;
         }
+        let mut preceding = start;
         if !comparison
             && word
                 .strip_suffix("보다")
@@ -465,8 +473,14 @@ fn has_marked_comparison_participants(
                 .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
         {
             comparison = true;
-        } else if !subject && resolver.has_subject_marked_nominal(&word) {
+        } else if !subject
+            && let Some(subject_start) = resolver
+                .has_subject_marked_nominal(&word)
+                .then_some(start)
+                .or_else(|| measured_subject_start(haystack, start, &word, resolver))
+        {
             subject = true;
+            preceding = subject_start;
         } else if !(resolver.has_quantity_expression(&word, None)
             || ((resolver.has_exact_adverb_surface(&word)
                 || ((subject || comparison) && resolver.has_predicate_adnominal_surface(&word)))
@@ -477,7 +491,59 @@ fn has_marked_comparison_participants(
         if subject && comparison {
             return true;
         }
-        before = start;
+        before = preceding;
     }
     false
+}
+
+fn measured_subject_start(
+    haystack: &[u8],
+    start: usize,
+    word: &str,
+    resolver: &ConstraintResolver,
+) -> Option<usize> {
+    let host = word.strip_suffix(['이', '가'])?;
+    let particle = &word[host.len()..];
+    let (start, host) = if host.is_empty() {
+        let symbol = start.checked_sub(1)?;
+        if haystack.get(symbol) != Some(&b'%') {
+            return None;
+        }
+        (symbol, "%")
+    } else {
+        (start, host)
+    };
+    let digit_end = host.bytes().take_while(u8::is_ascii_digit).count();
+    if !resolver.has_nominative_numeric_unit(&host[digit_end..], particle) {
+        return None;
+    }
+    if digit_end != 0 {
+        return number_start(haystack, start);
+    }
+    let (count_start, count) = context::previous_word_with_start(haystack, start)?;
+    if !count.bytes().all(|byte| byte.is_ascii_digit())
+        || haystack[count_start..start]
+            .iter()
+            .any(|byte| matches!(byte, b'\r' | b'\n'))
+    {
+        return None;
+    }
+    number_start(haystack, count_start)
+}
+
+fn number_start(haystack: &[u8], mut start: usize) -> Option<usize> {
+    let limit = start.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    while start > limit && matches!(haystack[start - 1], b'.' | b',') {
+        let group_end = start - 1;
+        let preceding_digits = haystack[limit..group_end]
+            .iter()
+            .rev()
+            .take_while(|byte| byte.is_ascii_digit())
+            .count();
+        if preceding_digits == 0 {
+            break;
+        }
+        start = group_end - preceding_digits;
+    }
+    is_boundary_before(haystack, start).then_some(start)
 }

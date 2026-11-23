@@ -1906,6 +1906,24 @@ fn ascii_number_supports_only_an_aligned_numeric_unit() {
 }
 
 #[test]
+fn numeric_unit_symbol_selects_nominative_by_its_korean_name() {
+    let resolver = resolver();
+    for unit in ["ms", "m", "cm", "µm", "μm", "dam", "A", "mA", "cd", "%"] {
+        assert!(resolver.has_nominative_numeric_unit(unit, "가"), "{unit}");
+        assert!(!resolver.has_nominative_numeric_unit(unit, "이"), "{unit}");
+    }
+    for unit in ["kg", "mg", "K", "mol", "mmol"] {
+        assert!(resolver.has_nominative_numeric_unit(unit, "이"), "{unit}");
+        assert!(!resolver.has_nominative_numeric_unit(unit, "가"), "{unit}");
+    }
+    // 의도적으로 복합 접두어, 대문자 오기, 접두어가 붙은 백분율 기호를 거부한다.
+    for unit in ["mkg", "Kg", "k%", "x", ""] {
+        assert!(!resolver.has_nominative_numeric_unit(unit, "가"), "{unit}");
+        assert!(!resolver.has_nominative_numeric_unit(unit, "이"), "{unit}");
+    }
+}
+
+#[test]
 fn ascii_numeric_unit_consumes_a_complete_particle_chain() {
     let resolver = resolver();
     let unit_start = "197".len();

@@ -30,6 +30,7 @@ const STDICT_BOUND_DAE_PREFIX_USAGES: &[&str] =
 
 include!("../../../../data/rules/krdict-nominal-frames.rs");
 include!("../../../../data/rules/krdict-auxiliary-frames.rs");
+include!("../../../../data/rules/si-unit-names.rs");
 
 // Keep one copy of the large table in the linked image.
 #[inline(never)]
@@ -643,6 +644,24 @@ impl ConstraintResolver {
                     && matches!(positions, [StructuralPos::NNB | StructuralPos::NNBC]);
             });
         matched
+    }
+
+    #[must_use]
+    pub fn has_nominative_numeric_unit(&self, unit: &str, particle: &str) -> bool {
+        let name = if unit == "%" {
+            Some("퍼센트")
+        } else if unit.ends_with(|character: char| character.is_ascii_alphabetic()) {
+            SI_UNIT_NAMES.iter().find_map(|&(symbol, name)| {
+                unit.strip_suffix(symbol)
+                    .is_some_and(|prefix| SI_PREFIX_SYMBOLS.contains(&prefix))
+                    .then_some(name)
+            })
+        } else {
+            self.has_exact_numeric_unit(unit).then_some(unit)
+        };
+        name.and_then(|name| name.chars().next_back())
+            .and_then(crate::decompose_syllable)
+            .is_some_and(|last| particle == if last.jongseong == 0 { "가" } else { "이" })
     }
 
     #[must_use]
