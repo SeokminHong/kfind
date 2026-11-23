@@ -73,8 +73,17 @@ pub(super) fn rejects_han(
             if haystack[previous_start..span.start]
                 .iter()
                 .any(|byte| matches!(byte, b'\r' | b'\n'))
-                || !(previous.ends_with('는')
-                    || resolver.has_adjective_adnominal_surface(&previous))
+            {
+                return false;
+            }
+            if resolver.has_predicate_adnominal_surface(&previous)
+                && !resolver.has_exact_nominal_surface(&previous)
+                && !resolver.has_object_marked_nominal(&previous)
+                && resolver.has_independent_nominal_head(&next)
+            {
+                return true;
+            }
+            if !(previous.ends_with('는') || resolver.has_adjective_adnominal_surface(&previous))
                 || !resolver.has_adnominal_dependent_noun(&previous, "한")
             {
                 return false;

@@ -3389,3 +3389,9 @@ regression.attached-auxiliary-proof.original-predicate	고치다	verb	smart-only
 regression.attached-auxiliary-proof.compound-past	걷다	verb	smart-only-exact	17	35	그는 소매를 걷어붙였으며 일할 준비를 마쳤다.
 regression.attached-auxiliary-proof.compound-head	몰다	verb	smart-only-exact	36	51	경찰이 용의자를 범인으로 몰아붙였다.
 regression.attached-auxiliary-proof.derived-host	하다	verb	smart-only-exact	26	35	경비원이 상황을 말해줬다.
+regression.han-adnominal-chain.predicate-and-cardinal	하다	verb	smart-only-exact	57	63	생일을 맞은 한 신입사원의 가족이 인사를 하고 있다.
+regression.han-adnominal-chain.cardinal-determiner	한	determiner	smart-only-exact	17	20	생일을 맞은 한 신입사원의 가족이 인사를 하고 있다.
+regression.han-adnominal-chain.passive-and-dative	하다	verb	smart-only-exact	41	47	어제 뽑힌 한 작가에게 문의를 하고 있다.
+regression.han-adnominal-chain.passive-and-object	하다	verb	smart-only-exact	47	53	한쪽이 눌린 한 상자를 내놓으라고 했다.
+regression.han-adnominal-chain.object-before-predicate	하다	verb	smart-only-exact	17	20	행사 준비를 한 신입사원이 먼저 왔다.
+regression.han-adnominal-chain.topic-before-predicate	하다	verb	smart-only-exact	10	13	그들은 한 일을 자세히 기록했다.
