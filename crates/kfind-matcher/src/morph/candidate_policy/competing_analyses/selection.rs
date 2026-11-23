@@ -124,6 +124,14 @@ pub(super) fn has_incompatible_argument(
             }
             false
         }
+        // The subject of the possibility adjective 있다 is the bound noun 수.
+        "있다"
+            if prior(start).is_some_and(|(_, modifier)| {
+                resolver.has_possibility_nominal(&modifier, &previous)
+            }) =>
+        {
+            true
+        }
         // A bare cardinality after a nominative subject and a preceding -에(는)
         // supplies the existential count. Distributive or duration forms
         // can instead qualify someone staying and are excluded.

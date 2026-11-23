@@ -2144,6 +2144,18 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_possibility_nominal(&self, modifier: &str, noun: &str) -> bool {
+        noun.strip_prefix('수').is_some_and(|tail| {
+            modifier.ends_with(crate::hangul::has_rieul_final)
+                && self.has_adnominal_dependent_noun(modifier, "수")
+                && (tail.is_empty()
+                    || complete_suffix(&self.resource, tail, |pos| {
+                        matches!(pos, StructuralPos::JKS | StructuralPos::JX)
+                    }))
+        })
+    }
+
+    #[must_use]
     pub fn has_repeated_predicate_in_possibility_clause(
         &self,
         connective: &str,
@@ -2156,17 +2168,11 @@ impl ConstraintResolver {
         else {
             return false;
         };
-        noun.strip_prefix('수').is_some_and(|tail| {
-            (modifier.strip_suffix('을') == Some(stem)
-                || (modifier == stem && stem.ends_with(crate::hangul::has_rieul_final))
-                || crate::hangul::add_final(stem, crate::hangul::JONG_RIEUL).as_deref()
-                    == Some(modifier))
-                && self.has_adnominal_dependent_noun(modifier, "수")
-                && (tail.is_empty()
-                    || complete_suffix(&self.resource, tail, |pos| {
-                        matches!(pos, StructuralPos::JKS | StructuralPos::JX)
-                    }))
-        })
+        (modifier.strip_suffix('을') == Some(stem)
+            || modifier == stem
+            || crate::hangul::add_final(stem, crate::hangul::JONG_RIEUL).as_deref()
+                == Some(modifier))
+            && self.has_possibility_nominal(modifier, noun)
     }
 
     #[must_use]
