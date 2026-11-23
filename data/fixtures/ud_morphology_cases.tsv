@@ -3311,3 +3311,23 @@ regression.derived-passive.auxiliary	되다	verb	smart-only-exact	33	42	오랜�
 regression.derived-passive.contracted-inflection	되다	verb	no-match	26	32	건물은 지난해 철거됐다.
 regression.derived-passive.no-shorter-connective	되다	verb	smart-only-exact	53	62	피고는 경찰에 구속되면서 수사 대상이 되었다.
 regression.derived-passive.full-lemma	구성되다	verb	smart-only-exact	33	48	대표들이 모여 위원회가 구성되었다.
+regression.auxiliary-adjective-pos.desire	싶다	adjective	only-exact	17	26	기차를 타고 싶은데 시간이 맞을까요?
+regression.auxiliary-adjective-pos.desire-verb	싶다	verb	no-match-both	0	50	기차를 타고 싶은데 시간이 맞을까요?
+regression.auxiliary-adjective-pos.conjecture	싶다	adjective	only-exact	17	26	비가 그쳤나 싶었다.
+regression.auxiliary-adjective-pos.conjecture-verb	싶다	verb	no-match-both	0	27	비가 그쳤나 싶었다.
+regression.auxiliary-adjective-pos.hope	싶다	adjective	only-exact	37	43	다시는 그런 일이 없었으면 싶다.
+regression.auxiliary-adjective-pos.hope-verb	싶다	verb	no-match-both	0	44	다시는 그런 일이 없었으면 싶다.
+regression.auxiliary-adjective-pos.worth	만하다	adjective	only-exact	24	33	끝까지 기다려 볼 만하다.
+regression.auxiliary-adjective-pos.worth-verb	만하다	verb	no-match-both	0	34	끝까지 기다려 볼 만하다.
+regression.auxiliary-adjective-pos.probable	법하다	adjective	only-exact	18	27	소식이 곧 올 법하다.
+regression.auxiliary-adjective-pos.probable-verb	법하다	verb	no-match-both	0	28	소식이 곧 올 법하다.
+regression.auxiliary-adjective-pos.expectation	성부르다	adjective	only-exact	27	39	오늘은 날씨가 풀릴 성부르다.
+regression.auxiliary-adjective-pos.expectation-verb	성부르다	verb	no-match-both	0	40	오늘은 날씨가 풀릴 성부르다.
+regression.auxiliary-adjective-pos.supposition	성싶다	adjective	only-exact	24	33	지금 나서면 늦을 성싶다.
+regression.auxiliary-adjective-pos.supposition-verb	성싶다	verb	no-match-both	0	34	지금 나서면 늦을 성싶다.
+regression.auxiliary-adjective-pos.appearance	듯하다	adjective	only-exact	31	40	아직 버스가 오지 않은 듯하다.
+regression.auxiliary-adjective-pos.appearance-verb	듯하다	verb	no-match-both	0	41	아직 버스가 오지 않은 듯하다.
+regression.auxiliary-adjective-pos.inference	듯싶다	adjective	only-exact	31	40	아직 버스가 오지 않은 듯싶다.
+regression.auxiliary-adjective-pos.inference-verb	듯싶다	verb	no-match-both	0	41	아직 버스가 오지 않은 듯싶다.
+regression.auxiliary-adjective-pos.homograph-verb	성하다	verb	smart-only-exact	27	36	요즘 바다에 멸치가 성한다.
+regression.auxiliary-adjective-pos.homograph-adjective	성하다	adjective	smart-only-exact	14	23	옷이 아직 성하다.

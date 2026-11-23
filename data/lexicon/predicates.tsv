@@ -13,10 +13,13 @@ lemma	pos	alternation	flags	overrides
 되다	VV	Regular		
 돕다	VV	BToWa		
 듣다	VV	DToL		
+듯하다	VX	Ha	AUXILIARY_ADJECTIVE|CURATED_POS	
+듯싶다	VX	Regular	AUXILIARY_ADJECTIVE|CURATED_POS	
 다르다	VA	ReuDoubleL		
 달다	VV	Regular	RIEUL_DROP	
 달다	VX	Suppletive		lexical.suppletive=다오
 만들다	VV	Regular	RIEUL_DROP	
+만하다	VX	Ha	AUXILIARY_ADJECTIVE|CURATED_POS	
 말다	VV	Regular	RIEUL_DROP	
 말다	VX	Regular	RIEUL_DROP	ending.imperative-ra=마라;ending.prohibitive-short=마;ending.prohibitive-short-polite=마요
 덧싣다	VV	DToL		
@@ -27,11 +30,14 @@ lemma	pos	alternation	flags	overrides
 묻다	VV	DToL		
 묻다	VV	Regular		
 믿다	VV	Regular		
+법하다	VX	Ha	AUXILIARY_ADJECTIVE|CURATED_POS	
 보다	VV	Regular		
 부르다	VV	ReuDoubleL		
 벗다	VV	Regular		
 빠르다	VA	ReuDoubleL		
 살다	VV	Regular	RIEUL_DROP	
+성부르다	VX	ReuDoubleL	AUXILIARY_ADJECTIVE|CURATED_POS	
+성싶다	VX	Regular	AUXILIARY_ADJECTIVE|CURATED_POS	
 싣다	VV	DToL		
 쏟아붓다	VV	DropS		
 쓰다	VV	Regular	EU_DROP	
@@ -55,6 +61,7 @@ lemma	pos	alternation	flags	overrides
 주무시다	VV	Regular		ending.polite-imperative=주무세요
 짓다	VV	DropS		
 쉽다	VA	BToWo		
+싶다	VX	Regular	AUXILIARY_ADJECTIVE|CURATED_POS	
 춥다	VA	BToWo		
 커다랗다	VA	DropH		
 크다	VA	Regular	EU_DROP	

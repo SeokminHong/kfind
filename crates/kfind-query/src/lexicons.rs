@@ -220,6 +220,10 @@ impl Lexicons {
 
     fn insert_core(&mut self, lexicon: &LexiconData) {
         for record in &lexicon.predicates {
+            if record.flags.contains("CURATED_POS") {
+                self.curated_pos
+                    .insert(record.lemma.clone().into_boxed_str());
+            }
             self.insert_analysis(
                 record.lemma.clone().into_boxed_str(),
                 predicate_analysis(record, AnalysisSource::BuiltinLexicon),

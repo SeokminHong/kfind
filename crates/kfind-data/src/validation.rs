@@ -152,20 +152,24 @@ pub fn validate_predicates(
                     .collect::<BTreeSet<_>>()
             })
             .unwrap_or_default();
-        if let Some(flag) = predicate
-            .flags
-            .iter()
-            .find(|flag| !allowed_flags.contains(flag.as_str()))
-        {
+        if let Some(flag) = predicate.flags.iter().find(|flag| match flag.as_str() {
+            "CURATED_POS" => false,
+            "AUXILIARY_ADJECTIVE" => predicate.pos != crate::DataFinePos::Vx,
+            flag => !allowed_flags.contains(flag),
+        }) {
             return Err(DataError::new(
                 SourceLocation::new(source),
                 DataErrorKind::InvalidValue {
                     field: "flags".to_owned(),
                     value: flag.clone(),
-                    reason: format!(
-                        "{} 규칙에 선언되지 않은 predicate flag입니다",
-                        predicate.alternation.as_str()
-                    ),
+                    reason: if flag == "AUXILIARY_ADJECTIVE" {
+                        "보조 형용사 표지는 VX 항목에만 적용됩니다".to_owned()
+                    } else {
+                        format!(
+                            "{} 규칙에 선언되지 않은 predicate flag입니다",
+                            predicate.alternation.as_str()
+                        )
+                    },
                 },
             ));
         }
