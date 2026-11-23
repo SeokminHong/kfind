@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use kfind_morph::{CoarsePos, ConstraintResolver, PredicatePos, PredicatePosSet};
 use kfind_query::{AtomPlan, CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
@@ -504,17 +506,38 @@ fn measured_subject_start(
 ) -> Option<usize> {
     let host = word.strip_suffix(['이', '가'])?;
     let particle = &word[host.len()..];
-    let (start, host) = if host.is_empty() {
-        let symbol = start.checked_sub(1)?;
-        if haystack.get(symbol) != Some(&b'%') {
-            return None;
+    let (start, host) = if let Some(symbol) = previous_character(haystack, start).filter(|&ch| {
+        (host.is_empty() && matches!(ch, '%' | '％' | '℃' | '\u{3300}'..='\u{33ff}'))
+            || (host == "C" && ch == '°')
+    }) {
+        let symbol_start = start - symbol.len_utf8();
+        let symbol_text = std::str::from_utf8(&haystack[symbol_start..start]).ok()?;
+        if previous_character(haystack, symbol_start)
+            .is_some_and(|ch| ch.is_ascii_alphabetic() || matches!(ch, 'µ' | 'μ'))
+            && let Some((offset, prefix)) =
+                context::previous_word_with_start(haystack, symbol_start)
+        {
+            (offset, Cow::Owned(format!("{prefix}{symbol_text}{host}")))
+        } else {
+            let unit = if host.is_empty() { symbol_text } else { "°C" };
+            (symbol_start, Cow::Borrowed(unit))
         }
-        (symbol, "%")
+    } else if host.is_empty() {
+        return None;
     } else {
-        (start, host)
+        (start, Cow::Borrowed(host))
     };
     let digit_end = host.bytes().take_while(u8::is_ascii_digit).count();
-    if !resolver.has_nominative_numeric_unit(&host[digit_end..], particle) {
+    let unit = &host[digit_end..];
+    let unit = if unit
+        .chars()
+        .any(|ch| matches!(ch, '％' | '℃' | '\u{3300}'..='\u{33ff}'))
+    {
+        Cow::Owned(unit.nfkc().collect::<String>())
+    } else {
+        Cow::Borrowed(unit)
+    };
+    if !resolver.has_nominative_numeric_unit(&unit, particle) {
         return None;
     }
     if digit_end != 0 {
