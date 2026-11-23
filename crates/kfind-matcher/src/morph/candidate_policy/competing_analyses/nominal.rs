@@ -2,12 +2,68 @@ use kfind_morph::{ConstraintResolver, RuleId};
 use kfind_query::{CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
-use crate::boundary::{
-    bounded_surrounding_token_span, is_boundary_after, is_boundary_before, is_sentence_end_after,
-    surrounding_token_span,
+use crate::{
+    DEFAULT_ANALYSIS_WINDOW_LIMITS,
+    boundary::{
+        bounded_surrounding_token_span, is_boundary_after, is_boundary_before,
+        is_sentence_end_after, surrounding_token_span,
+    },
 };
 
 use super::{ADNOMINAL_RULE_IDS, ExecutedCandidate, MAX_CONSUMPTION_BYTES, context};
+
+pub(super) fn has_copular_topic_instead_of_adverbial(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    let is_adverbial = |rule: &RuleId| rule.as_str() == "ending.adverbial-ge";
+    if !candidate.suffix_rules.last().map_or_else(
+        || {
+            !branch.origins.is_empty()
+                && branch
+                    .origins
+                    .iter()
+                    .all(|origin| origin.rule_path.last().is_some_and(is_adverbial))
+        },
+        is_adverbial,
+    ) || !is_boundary_before(haystack, span.start)
+        || is_boundary_after(haystack, span.end)
+    {
+        return false;
+    }
+    let Ok(token) = bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
+    if context::normalized_token(haystack, span.end..token.end).as_deref() != Some("는")
+        || !context::normalized_token(haystack, span.clone())
+            .is_some_and(|nominal| resolver.has_exact_nominal_surface(&nominal))
+    {
+        return false;
+    }
+    let limit = token
+        .end
+        .saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut after = token.end;
+    while let Some((end, word)) = context::next_word_on_line(haystack, after) {
+        if end > limit {
+            break;
+        }
+        if resolver.has_explicit_copula_after_nominal(&word) {
+            return true;
+        }
+        if (!resolver.has_whole_determiner(&word) && !resolver.has_nominal_genitive_surface(&word))
+            || resolver.has_predicate_adnominal_analysis(&word)
+        {
+            break;
+        }
+        after = end;
+    }
+    false
+}
 
 pub(super) fn has_nominal_head_after_alternating(
     haystack: &[u8],

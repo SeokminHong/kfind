@@ -3119,6 +3119,12 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_predicate_adnominal_analysis(&self, text: &str) -> bool {
+        super::lexical::complete_predicate_adnominal_path(&self.resource, text)
+            || super::lexical::complete_derived_adnominal_path(&self.resource, text)
+    }
+
+    #[must_use]
     pub fn has_predicate_adnominal_surface(&self, text: &str) -> bool {
         let mut matched = false;
         let mut modifier = false;

@@ -3424,3 +3424,13 @@ regression.han-adnominal-chain.passive-and-dative	하다	verb	smart-only-exact	4
 regression.han-adnominal-chain.passive-and-object	하다	verb	smart-only-exact	47	53	한쪽이 눌린 한 상자를 내놓으라고 했다.
 regression.han-adnominal-chain.object-before-predicate	하다	verb	smart-only-exact	17	20	행사 준비를 한 신입사원이 먼저 왔다.
 regression.han-adnominal-chain.topic-before-predicate	하다	verb	smart-only-exact	10	13	그들은 한 일을 자세히 기록했다.
+regression.nominal-topic-copula.only-one	가다	verb	no-match	24	30	스키 용품을 파는 가게는 하나뿐이다.
+regression.nominal-topic-copula.only-one-noun	가게	noun	smart-only-exact	24	33	스키 용품을 파는 가게는 하나뿐이다.
+regression.nominal-topic-copula.counter	가다	verb	no-match	24	30	골목에서 문을 연 가게는 두 곳뿐이다.
+regression.nominal-topic-copula.counter-noun	가게	noun	smart-only-exact	24	33	골목에서 문을 연 가게는 두 곳뿐이다.
+regression.nominal-topic-copula.genitive	가다	verb	no-match	4	10	이 가게는 시장의 첫 매장이다.
+regression.nominal-topic-copula.genitive-noun	가게	noun	smart-only-exact	4	13	이 가게는 시장의 첫 매장이다.
+regression.nominal-topic-copula.past	가다	verb	no-match	21	27	골목 안에 있는 가게는 식료품점이었다.
+regression.nominal-topic-copula.auxiliary	가다	verb	smart-only-exact	10	16	학교에 가게는 됐지만 가게는 하나뿐이다.
+regression.nominal-topic-copula.adnominal	가다	verb	smart-only-exact	10	16	친구를 가게는 한 일이었다.
+regression.nominal-topic-copula.imperative	가다	verb	smart-only-exact	28	34	자네 먼저 저 가게에 가게.
