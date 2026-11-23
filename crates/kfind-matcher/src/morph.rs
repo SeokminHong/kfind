@@ -853,6 +853,13 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if whole.start < core.start
+            && candidate.consumed.start == core.start
+            && candidate.consumed.end == whole.end
+            && self.accepts_attached_derived_auxiliary(haystack, &whole, core, branch, resolver)
+        {
+            return true;
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }

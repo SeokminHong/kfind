@@ -5,9 +5,10 @@ use crate::structure::lexical::{
     complete_connective_path, complete_dependent_noun_particle_suffix, complete_ha_predicate_path,
     complete_inflected_ending, complete_nominal_host, complete_nominal_particle_host,
     complete_predicate_ending_path, complete_suffix, derived_inflected_path,
-    exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
-    has_exact_fine_pos, has_exact_sequence, numeric_unit_path, numeric_unit_path_at,
-    predicate_inflected_path, predicate_pos_matches, structural_predicate_pos_matches,
+    ends_in_vowel_connective_surface, exact_analysis_starts_with_pos,
+    has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
+    has_exact_sequence, numeric_unit_path, numeric_unit_path_at, predicate_inflected_path,
+    predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     compound_predicate_pos, has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -1540,6 +1541,30 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_derived_vowel_auxiliary(
+        &self,
+        host: &str,
+        auxiliary: &str,
+        auxiliary_stem: &str,
+    ) -> bool {
+        host.chars().count() == 2
+            && ends_in_vowel_connective_surface(host)
+            && [PredicatePos::Verb, PredicatePos::Adjective]
+                .into_iter()
+                .any(|host_pos| {
+                    self.has_derived_predicate_connective_surface(
+                        host,
+                        PredicatePosSet::one(host_pos),
+                    ) && self.has_matching_vowel_auxiliary_inflection(
+                        auxiliary,
+                        host_pos,
+                        |lemma| lemma.strip_suffix('다') == Some(auxiliary_stem),
+                        |_| true,
+                    )
+                })
+    }
+
+    #[must_use]
     pub fn has_vowel_connective_compound_head(text: &str) -> bool {
         static FORMS: std::sync::LazyLock<Vec<crate::SurfaceBranchSpec>> =
             std::sync::LazyLock::new(|| {
@@ -1573,31 +1598,8 @@ impl ConstraintResolver {
     }
 
     fn has_result_state_auxiliary(&self, host: &str, auxiliary: &str, attached: bool) -> bool {
-        use crate::hangul::{
-            JONG_NONE, JUNG_A, JUNG_AE, JUNG_E, JUNG_EO, JUNG_WA, JUNG_WAE, JUNG_WEO, JUNG_YE,
-            JUNG_YEO, decompose_syllable,
-        };
-        let is_vowel_connective = host
-            .chars()
-            .next_back()
-            .and_then(decompose_syllable)
-            .is_some_and(|syllable| {
-                syllable.jongseong == JONG_NONE
-                    && matches!(
-                        syllable.jungseong,
-                        JUNG_A
-                            | JUNG_AE
-                            | JUNG_E
-                            | JUNG_EO
-                            | JUNG_WA
-                            | JUNG_WAE
-                            | JUNG_WEO
-                            | JUNG_YE
-                            | JUNG_YEO
-                    )
-            });
         let connective = |pos| pos == StructuralPos::EC;
-        is_vowel_connective
+        ends_in_vowel_connective_surface(host)
             && self.has_result_state_auxiliary_inflection(auxiliary)
             && (self.has_exact_predicate_connective_path(
                 host,

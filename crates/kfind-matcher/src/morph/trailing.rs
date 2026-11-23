@@ -1,6 +1,7 @@
 use std::ops::Range;
 
-use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, RuleId};
+use kfind_data::DataFinePos;
+use kfind_morph::{ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, PredicatePos, RuleId};
 use kfind_query::{CandidateConsumption, CandidateProgram, Lexicons};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -14,6 +15,59 @@ use super::{
 };
 
 impl MorphMatcher {
+    #[inline(never)]
+    pub(super) fn accepts_attached_derived_auxiliary(
+        &self,
+        haystack: &[u8],
+        whole: &Range<usize>,
+        core: &Range<usize>,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        let source_positions = match branch.consumption {
+            CandidateConsumption::PredicateContinuation {
+                source_positions, ..
+            }
+            | CandidateConsumption::StructuralPredicateEnding {
+                source_positions, ..
+            } if source_positions.contains(PredicatePos::AuxiliaryVerb) => source_positions,
+            _ => return false,
+        };
+        let (Some(host), Some(auxiliary)) = (
+            context::normalized_token(haystack, whole.start..core.start),
+            context::normalized_token(haystack, core.start..whole.end),
+        ) else {
+            return false;
+        };
+        if !branch.structural_patterns().iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Vx
+                && resolver.has_attached_derived_vowel_auxiliary(
+                    &host,
+                    &auxiliary,
+                    &pattern.lexical_form,
+                )
+        }) {
+            return false;
+        }
+        let (Some(word), Some(stem)) = (
+            context::normalized_token(haystack, whole.clone()),
+            context::normalized_token(haystack, core.clone()),
+        ) else {
+            return false;
+        };
+        let anchor = host.len()..host.len() + stem.len();
+        !resolver.has_whole_modifier(&word)
+            && !resolver.has_exact_nominal_surface(&word)
+            && !resolver.has_subject_marked_nominal(&word)
+            && !(resolver.has_exact_proper_name_surface(&host)
+                && self
+                    .particle_verifier
+                    .verify_exact(&host, &auxiliary)
+                    .is_some())
+            && !resolver.has_conflicting_derived_ha_suffix(&word, anchor.clone(), source_positions)
+            && !resolver.whole_predicate_conflicts_at(&word, anchor, PredicatePos::AuxiliaryVerb)
+    }
+
     pub(super) fn verified_any_auxiliary_end(
         &self,
         haystack: &[u8],

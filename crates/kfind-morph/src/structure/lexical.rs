@@ -5,6 +5,31 @@ use kfind_data::{ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use std::ops::Range;
 use std::sync::LazyLock;
 
+pub(super) fn ends_in_vowel_connective_surface(text: &str) -> bool {
+    use crate::hangul::{
+        JONG_NONE, JUNG_A, JUNG_AE, JUNG_E, JUNG_EO, JUNG_WA, JUNG_WAE, JUNG_WEO, JUNG_YE,
+        JUNG_YEO, decompose_syllable,
+    };
+    text.chars()
+        .next_back()
+        .and_then(decompose_syllable)
+        .is_some_and(|syllable| {
+            syllable.jongseong == JONG_NONE
+                && matches!(
+                    syllable.jungseong,
+                    JUNG_A
+                        | JUNG_AE
+                        | JUNG_E
+                        | JUNG_EO
+                        | JUNG_WA
+                        | JUNG_WAE
+                        | JUNG_WEO
+                        | JUNG_YE
+                        | JUNG_YEO
+                )
+        })
+}
+
 pub(super) fn has_grammatical_particle_chain(host: &str, particle: &str) -> bool {
     static VERIFIER: LazyLock<ParticleVerifier> = LazyLock::new(ParticleVerifier::default);
     VERIFIER.verify_exact(host, particle).is_some()
