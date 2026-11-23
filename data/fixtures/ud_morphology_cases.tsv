@@ -583,6 +583,18 @@ regression.adnominal-bound-head.elapsed-topic	가	noun	no-match	30	36	제일 가
 regression.adnominal-bound-head.elapsed-verb	가다	verb	smart-only-exact	30	36	제일 가까운 병원까지 가는 데 걸리는 시간 좀 알려줘
 regression.adnominal-bound-head.elapsed-locative-topic	가	noun	no-match	16	22	연습실까지 가는 데에 시간이 걸렸다.
 regression.adnominal-bound-head.elapsed-locative	데	noun	smart-only-exact	23	29	연습실까지 가는 데에 시간이 걸렸다.
+regression.bound-background-ending.source-noun	데	noun	smart-only-exact	37	43	신세계 백화점 대전에 있는 데를 가고 싶은데 어떻게 가면 되지?
+regression.bound-background-ending.source-adjective	싶다	adjective	smart-only-exact	51	60	신세계 백화점 대전에 있는 데를 가고 싶은데 어떻게 가면 되지?
+regression.bound-background-ending.derived-verb-noun	데	noun	no-match	19	22	나는 공부하는데 동생은 논다.
+regression.bound-background-ending.derived-verb	공부하다	verb	smart-only-exact	7	22	나는 공부하는데 동생은 논다.
+regression.bound-background-ending.duration-noun	데	noun	smart-only-exact	14	17	집에 가는 데 두 시간 걸리는데 택시를 탈까?
+regression.bound-background-ending.duration-clause	걸리다	verb	smart-only-exact	29	41	집에 가는 데 두 시간 걸리는데 택시를 탈까?
+regression.bound-background-ending.copular-noun	데	noun	no-match	19	22	여기는 바다인데 어디야?
+regression.bound-background-ending.retrospective-noun	데	noun	no-match	16	19	길이 막히던데 차가 많았다.
+regression.bound-background-ending.free-locative-noun	데	noun	smart-only-exact	14	20	가고 싶은 데에 표시하세요.
+regression.bound-background-ending.final-regret-noun	걸	noun	no-match	21	24	조금 더 빨리 갈걸.
+regression.bound-background-ending.spaced-accusative-noun	걸	noun	smart-only-exact	8	11	더 큰 걸 담아라.
+regression.bound-background-ending.spaced-elapsed-noun	지	noun	smart-only-exact	10	13	공부한 지 이틀 만에 이해했다.
 regression.adnominal-bound-head.elapsed-other-topic	노	noun	no-match	13	19	아이들이 노는 데 걸린 시간을 쟀다.
 regression.adnominal-bound-head.elapsed-other-verb	놀다	verb	smart-only-exact	13	19	아이들이 노는 데 걸린 시간을 쟀다.
 regression.adnominal-bound-head.recipient-name	가	noun	smart-only-exact	0	6	가는 데에게 편지를 보냈다.

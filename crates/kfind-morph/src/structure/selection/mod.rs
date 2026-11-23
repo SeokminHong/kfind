@@ -584,7 +584,22 @@ impl StructureSelection {
                     !component_is_shadowed_by_predicate(support.evidence, pattern, spans, evidence)
                 }
                 StructuralEvidence::RuntimeComponent => {
-                    !component_is_shadowed_by_predicate(support.evidence, pattern, spans, evidence)
+                    let overlaps_predicate_ending = graph_nominal_host.is_none()
+                        && pattern.fine_pos == DataFinePos::Nnb
+                        && spans.core.start > spans.token.start
+                        && spans.core == spans.consumed
+                        && spans.core.end == spans.token.end
+                        && evidence
+                            .terminal_predicate_edge_start
+                            .is_some_and(|start| start < spans.core.start)
+                        && !evidence.has_nominal_source_component(&spans.core);
+                    !overlaps_predicate_ending
+                        && !component_is_shadowed_by_predicate(
+                            support.evidence,
+                            pattern,
+                            spans,
+                            evidence,
+                        )
                         && runtime_position_is_supported(pattern, spans, text, evidence)
                         && runtime_nominal_component_is_supported(
                             pattern,
