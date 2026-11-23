@@ -276,6 +276,7 @@ regression.source-contraction.pronoun	여기	pronoun	smart-exact	0	12	여기서�
 regression.source-contraction.consonant	서울	noun	smart-exact	0	15	서울서부터 눈이 왔다.
 regression.source-contraction.compound	상업	noun	smart-exact	0	6	상업서적을 샀다.
 regression.source-contraction.topic	가운데	noun	smart-only-exact	10	22	제약사 가운데선 와이어스의 사이트에 방문한 비율이 가장 높았다.
+regression.source-contraction.verbal-connective-topic	와	noun	no-match	0	9	와서는 아무 말도 하지 않았다.
 regression.source-contraction.topic-expanded	가운데	noun	smart-only-exact	10	25	제약사 가운데서는 와이어스의 사이트에 방문한 비율이 가장 높았다.
 regression.source-contraction.topic-location	도서관	noun	smart-only-exact	0	12	도서관선 목소리를 낮춰 주세요.
 regression.source-contraction.topic-pronoun	여기	pronoun	smart-only-exact	0	9	여기선 잠시 앉아 있어도 돼요.
@@ -2522,6 +2523,11 @@ regression.comparative.measured-subject-consonant	더	noun	no-match	23	26	두 �
 regression.comparative.measured-subject-prefix	덜	noun	no-match	52	55	두 절벽의 높이는 같지만 이쪽은 4 cm가 덜 높게 측정됐다.
 regression.comparative.measured-subject-relative	더	noun	no-match	27	30	두 측정값 중 3.4 m가 더 큰 값을 골랐다.
 regression.comparative.measured-subject-percent	더	noun	no-match	50	53	집계 기준은 같았고 찬성 비율은 3%가 더 높았다.
+regression.comparative.derived-unit-consonant	더	noun	no-match	9	12	3 kPa이 더 높은 압력이다.
+regression.comparative.derived-unit-temperature	더	noun	no-match	9	12	3 °C가 더 높은 쪽을 골랐다.
+regression.comparative.compatibility-temperature	더	noun	no-match	9	12	3 ℃가 더 높은 쪽을 골랐다.
+regression.comparative.compatibility-unit	더	noun	no-match	9	12	3 ㎞가 더 긴 코스다.
+regression.comparative.compatibility-percent	더	noun	no-match	8	11	3％가 더 높은 쪽을 골랐다.
 regression.comparative.lower-degree	덜	noun	no-match	20	23	점수가 형보다 덜 높다.
 regression.comparative.lower-degree-adverb	덜	adverb	smart-only-exact	20	23	점수가 형보다 덜 높다.
 regression.comparative.object-before-degree-connective	더	noun	no-match	17	20	입장료를 좀 더 올리더라도 좋다.

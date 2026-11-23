@@ -650,7 +650,9 @@ impl ConstraintResolver {
     pub fn has_nominative_numeric_unit(&self, unit: &str, particle: &str) -> bool {
         let name = if unit == "%" {
             Some("퍼센트")
-        } else if unit.ends_with(|character: char| character.is_ascii_alphabetic()) {
+        } else if unit
+            .ends_with(|character: char| character.is_ascii_alphabetic() || character == 'Ω')
+        {
             SI_UNIT_NAMES.iter().find_map(|&(symbol, name)| {
                 unit.strip_suffix(symbol)
                     .is_some_and(|prefix| SI_PREFIX_SYMBOLS.contains(&prefix))

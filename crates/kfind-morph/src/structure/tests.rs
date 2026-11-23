@@ -1908,11 +1908,17 @@ fn ascii_number_supports_only_an_aligned_numeric_unit() {
 #[test]
 fn numeric_unit_symbol_selects_nominative_by_its_korean_name() {
     let resolver = resolver();
-    for unit in ["ms", "m", "cm", "µm", "μm", "dam", "A", "mA", "cd", "%"] {
+    for unit in [
+        "ms", "m", "cm", "µm", "μm", "dam", "A", "mA", "cd", "%", "Hz", "W", "°C", "V", "S", "Wb",
+        "T", "H", "lx", "Gy", "Sv",
+    ] {
         assert!(resolver.has_nominative_numeric_unit(unit, "가"), "{unit}");
         assert!(!resolver.has_nominative_numeric_unit(unit, "이"), "{unit}");
     }
-    for unit in ["kg", "mg", "K", "mol", "mmol"] {
+    for unit in [
+        "kg", "mg", "K", "mol", "mmol", "rad", "sr", "N", "Pa", "kPa", "J", "C", "F", "Ω", "kΩ",
+        "lm", "Bq", "kat",
+    ] {
         assert!(resolver.has_nominative_numeric_unit(unit, "이"), "{unit}");
         assert!(!resolver.has_nominative_numeric_unit(unit, "가"), "{unit}");
     }
