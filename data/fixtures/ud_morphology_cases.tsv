@@ -3578,3 +3578,23 @@ regression.future-adnominal-copula.competing-nominal-object	남	noun	smart-only-
 regression.future-adnominal-copula.competing-nominalizer	나다	verb	smart-only-exact	51	57	후대에 남을 기록이다. 화분에 새싹이 남을 관찰했다.
 regression.future-adnominal-copula.transitive-past	나다	verb	smart-only-exact	33	39	연구진은 화분에 새싹이 남을 조사하였다.
 regression.future-adnominal-copula.quotative	나다	verb	smart-only-exact	33	39	연구진은 화분에 새싹이 남을 증거라고 했다.
+regression.negative-auxiliary-pos.simple-action-verb	않다	verb	smart-only-exact	24	30	아이는 책을 읽지 않고 대답했다.
+regression.negative-auxiliary-pos.simple-action-adjective	않다	adjective	no-match	24	30	아이는 책을 읽지 않고 대답했다.
+regression.negative-auxiliary-pos.simple-state-verb	않다	verb	no-match	14	20	물이 깊지 않고 맑았다.
+regression.negative-auxiliary-pos.simple-state-adjective	않다	adjective	smart-only-exact	14	20	물이 깊지 않고 맑았다.
+regression.negative-auxiliary-pos.derived-action-verb	않다	verb	smart-only-exact	23	29	요구가 이행되지 않고 기한이 끝났다.
+regression.negative-auxiliary-pos.derived-action-adjective	않다	adjective	no-match	23	29	요구가 이행되지 않고 기한이 끝났다.
+regression.negative-auxiliary-pos.particle-contraction-action-verb	않다	verb	smart-only-exact	31	40	학생은 아직 책을 읽진 않았다.
+regression.negative-auxiliary-pos.particle-contraction-action-adjective	않다	adjective	no-match	31	40	학생은 아직 책을 읽진 않았다.
+regression.negative-auxiliary-pos.particle-state-verb	않다	verb	no-match	27	33	저 길이 가파르지도 않다.
+regression.negative-auxiliary-pos.particle-state-adjective	않다	adjective	smart-only-exact	27	33	저 길이 가파르지도 않다.
+regression.negative-auxiliary-pos.same-spelled-host-verb	않다	verb	smart-only-exact	7	13	적지 않은 피해가 뒤늦게 드러났다.
+regression.negative-auxiliary-pos.same-spelled-host-adjective	않다	adjective	smart-only-exact	7	13	적지 않은 피해가 뒤늦게 드러났다.
+regression.negative-auxiliary-pos.standalone-action-verb	않다	verb	smart-only-exact	20	26	꼬마가 세수를 않고 밥을 먹었다.
+regression.negative-auxiliary-pos.cannot-action-verb	못하다	verb	smart-only-exact	30	39	사람들이 안내를 듣지 못하고 지나갔다.
+regression.negative-auxiliary-pos.cannot-action-adjective	못하다	adjective	no-match	30	39	사람들이 안내를 듣지 못하고 지나갔다.
+regression.negative-auxiliary-pos.mixed-clause-adjective	않다	adjective	smart-only-exact	60	66	당부가 이행되지 않고 있다는 상황과 무관치 않을 수 있다.
+regression.negative-auxiliary-pos.long-form-adjective	않다	adjective	smart-only-exact	26	41	결과가 만족스럽지 않을지라도 다음 시험을 준비하자.
+regression.negative-auxiliary-pos.long-form-not-action	않다	verb	no-match	26	41	결과가 만족스럽지 않을지라도 다음 시험을 준비하자.
+regression.negative-auxiliary-pos.cannot-state-adjective	못하다	adjective	smart-only-exact	24	30	그는 생각이 깊지 못한 사람이다.
+regression.negative-auxiliary-pos.cannot-state-not-verb	못하다	verb	no-match	24	30	그는 생각이 깊지 못한 사람이다.

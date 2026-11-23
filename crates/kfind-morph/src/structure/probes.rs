@@ -18,6 +18,7 @@ use crate::{
     LexicalAlternation, PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal,
 };
 use kfind_data::{ComponentPos as StructuralPos, DataFinePos, NominalRole};
+use std::borrow::Cow;
 use std::ops::Range;
 
 const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
@@ -1233,6 +1234,76 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_dual_pos_negative_auxiliary(lemma: &str) -> bool {
+        [
+            PredicatePos::AuxiliaryVerb,
+            PredicatePos::AuxiliaryAdjective,
+        ]
+        .into_iter()
+        .all(|pos| {
+            NEGATIVE_AUXILIARIES
+                .iter()
+                .any(|&(entry, entry_pos, _)| entry == lemma && entry_pos == pos)
+        })
+    }
+
+    #[must_use]
+    pub fn negative_connective_host_positions(&self, text: &str) -> PredicatePosSet {
+        let surface = if let Some((stem, particles)) = text.rsplit_once('지')
+            && !stem.is_empty()
+            && (particles.is_empty() || self.has_nominal_focus_particle_tail(particles))
+        {
+            Cow::Borrowed(&text[..stem.len() + '지'.len_utf8()])
+        } else if let Some(stem) = text
+            .strip_suffix(['진', '질'])
+            .filter(|stem| !stem.is_empty())
+        {
+            Cow::Owned(format!("{stem}지"))
+        } else {
+            return PredicatePosSet::EMPTY;
+        };
+        if let Some(root) = surface.strip_suffix("되지")
+            && self.has_productive_passive_suffix(root, &surface[root.len()..])
+        {
+            return PredicatePosSet::one(PredicatePos::Verb);
+        }
+        let connective = |pos| pos == StructuralPos::EC;
+        let mut found = PredicatePosSet::EMPTY;
+        if predicate_inflected_path(
+            &self.resource,
+            &surface,
+            |pos| pos == StructuralPos::VV,
+            connective,
+        ) || derived_inflected_path(
+            &self.resource,
+            &surface,
+            |pos| pos == StructuralPos::XSV,
+            connective,
+        ) {
+            found |= PredicatePosSet::one(PredicatePos::Verb);
+        }
+        if predicate_inflected_path(
+            &self.resource,
+            &surface,
+            |pos| {
+                matches!(
+                    pos,
+                    StructuralPos::VA | StructuralPos::VCN | StructuralPos::VCP
+                )
+            },
+            connective,
+        ) || derived_inflected_path(
+            &self.resource,
+            &surface,
+            |pos| pos == StructuralPos::XSA,
+            connective,
+        ) {
+            found |= PredicatePosSet::one(PredicatePos::Adjective);
+        }
+        found
+    }
+
+    #[must_use]
     pub fn has_negative_resultative_host(&self, text: &str) -> bool {
         let Some(host) = text.strip_suffix("지지") else {
             return false;
@@ -2114,9 +2185,7 @@ impl ConstraintResolver {
         let Some((host, suffix)) = text.split_at_checked(anchor.start) else {
             return false;
         };
-        if !self.is_attested_do_object(host)
-            || !self.has_inflected_derivational_suffix(suffix, ['되', '돼'], false)
-        {
+        if !self.has_productive_passive_suffix(host, suffix) {
             return false;
         }
         let mut aligned_verb = false;
@@ -2129,6 +2198,11 @@ impl ConstraintResolver {
                         .any(|component| component.span == anchor && component.pos == "VV");
             });
         !aligned_verb
+    }
+
+    fn has_productive_passive_suffix(&self, host: &str, suffix: &str) -> bool {
+        self.is_attested_do_object(host)
+            && self.has_inflected_derivational_suffix(suffix, ['되', '돼'], false)
     }
 
     #[must_use]
