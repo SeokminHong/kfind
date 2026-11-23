@@ -15,6 +15,17 @@ pub(in crate::structure) fn runtime_position_is_supported(
     evidence: &TokenEvidence,
 ) -> bool {
     let starts_token = spans.core.start == spans.token.start;
+    if pattern.fine_pos == DataFinePos::Nnb
+        && !starts_token
+        && spans.core == spans.consumed
+        && spans.core.end == spans.token.end
+        && evidence
+            .terminal_predicate_edge_start
+            .is_some_and(|start| start < spans.core.start)
+        && !evidence.has_nominal_source_component(&spans.core)
+    {
+        return false;
+    }
     let leading_only = matches!(
         pattern.fine_pos,
         DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm | DataFinePos::Mag

@@ -35,6 +35,7 @@ pub(in crate::structure) struct CommonPathFacts {
     pub(in crate::structure) predicate_boundaries: Vec<PredicateBoundary>,
     pub(in crate::structure) exact_nominal_end: Vec<bool>,
     pub(in crate::structure) has_bound_go: bool,
+    pub(in crate::structure) terminal_predicate_edge_start: Option<usize>,
 }
 
 impl CommonPathFacts {
@@ -46,6 +47,7 @@ impl CommonPathFacts {
         let mut exact_nominal_end = vec![false; text.len() + 1];
         let terminal_start = text.strip_suffix('고').map(str::len);
         let mut has_final_before_terminal = false;
+        let mut terminal_predicate_edge_start = None;
         for start in 0..text.len() {
             for edge in graph.starting_at(start) {
                 let positions = graph.positions(edge);
@@ -76,17 +78,15 @@ impl CommonPathFacts {
                 }
                 let state = predicate_path[start];
                 predicate_path[edge.span.end] |= linked_prefix_flags(start, state, positions);
-                if let Some(terminal_start) = terminal_start
-                    && edge.span.end <= terminal_start
-                    && ((nominal_prefix[start][1]
-                        && matches!(positions, [StructuralPos::VCP, prefinals @ ..]
+                if (nominal_prefix[start][1]
+                    && matches!(positions, [StructuralPos::VCP, prefinals @ ..]
                             if prefinals.iter().all(|&pos| pos == StructuralPos::EP)))
-                        || (state & COPULAR_PREDICATE != 0
-                            && positions.iter().all(|&pos| pos == StructuralPos::EP)))
+                    || (state & COPULAR_PREDICATE != 0
+                        && positions.iter().all(|&pos| pos == StructuralPos::EP))
                 {
                     predicate_path[edge.span.end] |= COPULAR_PREDICATE;
                 }
-                if terminal_start == Some(edge.span.end) {
+                if edge.span.end == text.len() || terminal_start == Some(edge.span.end) {
                     let predicate = state
                         & (PREDICATE | DERIVED_PREDICATE | LINKED_PREDICATE | COPULAR_PREDICATE);
                     let endings = match positions {
@@ -102,14 +102,26 @@ impl CommonPathFacts {
                             endings
                         }
                         [StructuralPos::VCP, endings @ ..] if nominal_prefix[start][1] => endings,
+                        [host, StructuralPos::VCP, endings @ ..]
+                            if start == 0 && edge.span.end == text.len() && host.is_nominal() =>
+                        {
+                            endings
+                        }
                         _ if predicate != 0 => positions,
                         _ => &[],
                     };
-                    has_final_before_terminal |= matches!(
-                        endings,
-                        [prefinals @ .., StructuralPos::EF]
-                            if prefinals.iter().all(|&pos| pos == StructuralPos::EP)
-                    );
+                    if let [
+                        prefinals @ ..,
+                        last @ (StructuralPos::EC | StructuralPos::EF),
+                    ] = endings
+                        && prefinals.iter().all(|&pos| pos == StructuralPos::EP)
+                    {
+                        if edge.span.end == text.len() {
+                            terminal_predicate_edge_start.get_or_insert(start);
+                        } else if *last == StructuralPos::EF {
+                            has_final_before_terminal = true;
+                        }
+                    }
                 }
                 if state & (DERIVED_PREDICATE | LINKED_PREDICATE) != 0
                     && positions == [StructuralPos::EC]
@@ -215,6 +227,7 @@ impl CommonPathFacts {
             predicate_boundaries,
             exact_nominal_end,
             has_bound_go,
+            terminal_predicate_edge_start,
         }
     }
 
