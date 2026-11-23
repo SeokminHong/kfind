@@ -104,3 +104,12 @@ explicit-pos	corpus-positives-gsd	gsd:test-s204:11	사고	noun	true	4f5d58a1478c
 explicit-pos	corpus-positives-gsd	gsd:test-s403:6	실행	noun	true	ed0933025252ca35eda6d2fc48a23078afd9ebdcc4444c69f7ea2edc0871c330	confirmed	implementation-target	실행 47..53은 진행 상태를 나타내는 의존 명사 중에 앞서는 명사다.
 explicit-pos	corpus-positives-gsd	gsd:test-s698:4	조사	noun	true	f8b5afe4852451d24b59c44711a5190df9b6014284e6c8a9b55a44fa11065fea	confirmed	implementation-target	조사 34..40은 진행 상태를 나타내는 의존 명사 중에 앞서는 명사다.
 explicit-pos	corpus-positives-gsd	gsd:test-s737:2	주둔	noun	true	8225804e981f59e28a47315b9ec6b5cea2159e25cf36032cac0628da9f1e4c4f	confirmed	implementation-target	주둔 22..28은 진행 상태를 나타내는 의존 명사 중에 앞서는 명사다.
+explicit-pos	corpus-positives-gsd	gsd:test-s334:3	차	noun	true	1c89901f2a4c3f846fe168ae34f828e5395857842dc56be439fcdc37c960be18	confirmed	implementation-target	차 29..32는 직함 회장으로 불리는 인물의 성이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s531:4	이	noun	true	fdbc2ad823695b6e52c4eb02c6e22485c4bc66831fba57402c4ed30851037a9b	confirmed	implementation-target	검찰이 추궁한 사람의 성 이는 27..30과 66..69다. 이를 10..16은 앞 문단의 수사 결과를 가리키는 대명사다.
+explicit-pos	corpus-positives-gsd	gsd:test-s531:9	이	noun	true	fdbc2ad823695b6e52c4eb02c6e22485c4bc66831fba57402c4ed30851037a9b	confirmed	implementation-target	검찰이 추궁한 사람의 성 이는 27..30과 66..69다. 이를 10..16은 앞 문단의 수사 결과를 가리키는 대명사다.
+explicit-pos	corpus-positives-gsd	gsd:test-s587:4	이도원	noun	true	7268f828f1b47f5f9bc5b240f17a09bc590a660ed0c4b8ad22d1c9454c9290db	confirmed	implementation-target	이도원 30..39는 인용 발언을 한 사람의 성명이다. 이어지는 씨는 호칭이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s712:3	차	noun	true	1c89901f2a4c3f846fe168ae34f828e5395857842dc56be439fcdc37c960be18	confirmed	implementation-target	차 29..32는 직함 회장으로 불리는 인물의 성이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s788:5	신	noun	true	1b4905bbcd21d0aeddd1935260926f94c0c477257763c49305d3f436b402a1b5	confirmed	implementation-target	신 31..34는 사고를 당한 택시 운전자의 성이다. 이어지는 씨는 호칭이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s877:4	의사	noun	true	fff6175e75c7438c87260913bd84d1066f45f1950d23ed3fa7c593815c0402ef	confirmed	implementation-target	의사 36..42는 진료를 맡은 사람의 직업을 나타낸다. 뒤의 선생님은 존칭이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s882:1	원장	noun	true	f9bde314678672c4a5d8fa35ba509815487312423e57dd85c50a50afae9d4fde	confirmed	implementation-target	원장 0..6은 설명을 한 사람의 직함이고 뒤의 선생님은 존칭이다.
+explicit-pos	corpus-positives-gsd	gsd:test-s920:2	원장	noun	true	39d3450fdd98203b556213e2bae101a3708cebb111ffb8c93897e90d1140bc8b	confirmed	implementation-target	원장 13..19는 교육 태도를 가르친 사람의 직함이고 뒤의 선생님은 존칭이다.
