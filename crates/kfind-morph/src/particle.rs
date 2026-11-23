@@ -534,7 +534,12 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         "particle.even.majeo",
         "particle.topic",
     ];
-    let focus_without_topic = &FOCUS[..FOCUS.len() - 1];
+    const SUBJECT_OBJECT_TAILS: &[&str] = &[
+        "particle.only",
+        "particle.limit.ggaji",
+        "particle.even.jocha",
+        "particle.even.majeo",
+    ];
     Arc::from([
         transition(
             "particle.plural",
@@ -578,8 +583,8 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.emphasis.yamallo",
             ],
         ),
-        transition("particle.subject", focus_without_topic),
-        transition("particle.object", focus_without_topic),
+        transition("particle.subject", SUBJECT_OBJECT_TAILS),
+        transition("particle.object", SUBJECT_OBJECT_TAILS),
         transition("particle.topic", &["particle.contrast.keonyeong"]),
         transition(
             "particle.comitative",
@@ -715,7 +720,6 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         transition(
             "particle.genitive",
             &[
-                "particle.additive",
                 "particle.only",
                 "particle.even.jocha",
                 "particle.even.majeo",
@@ -940,6 +944,36 @@ mod tests {
             assert!(
                 verifier.verify_exact("사용자", suffix).is_none(),
                 "accepted 사용자{suffix}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_additive_after_structural_case() {
+        let verifier = ParticleVerifier::default();
+        // 의도적으로 문법격 조사 뒤에 보조사 도를 붙인 연쇄는 거부한다.
+        for (core, suffix) in [
+            ("집", "이도"),
+            ("학교", "가도"),
+            ("책", "을도"),
+            ("나무", "를도"),
+            ("사람", "의도"),
+        ] {
+            assert!(
+                verifier.verify_exact(core, suffix).is_none(),
+                "{core}{suffix}"
+            );
+        }
+        for (core, suffix) in [
+            ("책", "도"),
+            ("책", "만을"),
+            ("학교", "에서도"),
+            ("선생님", "께서도"),
+            ("길", "로도"),
+        ] {
+            assert!(
+                verifier.verify_exact(core, suffix).is_some(),
+                "{core}{suffix}"
             );
         }
     }
