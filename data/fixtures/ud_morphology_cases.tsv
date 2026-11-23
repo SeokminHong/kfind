@@ -76,6 +76,19 @@ regression.proper-name-nominal-boundary.atomic-whole	트위터	noun	smart-only-e
 regression.proper-name-nominal-boundary.independent-unknown	트위	noun	smart-only-exact	0	9	트위는 내 별명이고 트위터는 서비스 이름이다.
 regression.proper-name-nominal-boundary.compound-leading	동대문	noun	smart-only-exact	0	9	동대문시장은 관광객으로 붐볐다.
 regression.proper-name-nominal-boundary.productive-leading	텃밭	noun	smart-only-exact	0	6	텃밭학교에서 채소를 기른다.
+regression.compound-leading-outer-particle.department-object	전공	noun	smart-only-exact	0	6	전공과를 신설했다.
+regression.compound-leading-outer-particle.personnel-object	인사	noun	smart-only-exact	0	6	인사과를 찾아갔다.
+regression.compound-leading-outer-particle.general-affairs-object	총무	noun	smart-only-exact	0	6	총무과를 먼저 찾았다.
+regression.compound-leading-outer-particle.department-subject	전공	noun	smart-only-exact	0	6	전공과가 문을 열었다.
+regression.compound-leading-outer-particle.department-direction	전공	noun	smart-only-exact	0	6	전공과로 찾아갔다.
+regression.compound-leading-outer-particle.department-copula	전공	noun	smart-only-exact	10	16	여기는 전공과입니다.
+regression.compound-leading-outer-particle.department-whole	전공과	noun	smart-only-exact	0	12	전공과를 신설했다.
+regression.compound-leading-outer-particle.price-topic	판매	noun	smart-only-exact	0	6	판매가는 오천 원이다.
+regression.compound-leading-outer-particle.price-whole	판매가	noun	smart-only-exact	0	12	판매가는 오천 원이다.
+regression.compound-leading-outer-particle.contracted-pronoun	무언	noun	no-match	27	33	그것은 표준 이상의 무언가와도 관련이 있다.
+regression.compound-leading-outer-particle.music-title	무언가	noun	smart-only-exact	16	28	멘델스존의 무언가를 연주했다.
+regression.compound-leading-outer-particle.independent-noun	무언	noun	smart-only-exact	0	12	무언으로 답했다.
+regression.compound-leading-outer-particle.derived-adjective	불	noun	no-match	14	17	그 계산은 불가능하다.
 regression.postnominal-count.eggplant	가다	verb	no-match	0	6	가지 두 개만 주세요.
 regression.postnominal-count.eggplant-noun	가지	noun	smart-exact	0	6	가지 두 개만 주세요.
 regression.postnominal-count.attached-digits	가다	verb	no-match	0	6	가지 2개 주세요.
