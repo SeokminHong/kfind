@@ -94,8 +94,6 @@ def compare_reviewed_ranges(
                 annotated[key].update(
                     (part["byte_start"], part["byte_end"]) for part in review["source_spans"]
                 )
-    for key, ranges in (other_positive_ranges or {}).items():
-        annotated[key].update(ranges)
 
     verified_rows = unverified_positive_rows = reused_ranges = missing_count = extra_count = 0
     verified_excluded_rows = partially_excluded_positive_rows = 0
@@ -114,7 +112,10 @@ def compare_reviewed_ranges(
                         (part["byte_start"], part["byte_end"])
                         for part in spans[case_id]
                     } - {gold}
-                    pending = other - annotated[case["text"], case["query"], case["pos"]]
+                    key = (case["text"], case["query"], case["pos"])
+                    pending = other - annotated[key]
+                    if pending and other_positive_ranges:
+                        pending.difference_update(other_positive_ranges.get(key, ()))
                     reused_ranges += len(other) - len(pending)
                     if pending:
                         unverified_ranges[case_id] = sorted(pending)
@@ -284,6 +285,8 @@ def main() -> int:
     source_reviews = source_ranges_for_reviews(
         evidence, {key for key, review in source_registry.items() if review.split == split}
     )
+    other_positive_ranges = other_gsd_positive_ranges(evidence, source_registry, split)
+    del evidence
 
     predictions = {}
     spans = {}
@@ -315,7 +318,7 @@ def main() -> int:
             spans,
             source_reviews,
             include_residual=args.residual,
-            other_positive_ranges=other_gsd_positive_ranges(evidence, source_registry, split),
+            other_positive_ranges=other_positive_ranges,
         ),
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
