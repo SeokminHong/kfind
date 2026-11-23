@@ -1835,6 +1835,23 @@ impl ConstraintResolver {
             && self.has_progressive_auxiliary_inflection(auxiliary)
     }
 
+    #[must_use]
+    pub fn has_non_accusative_progressive_frame(&self, host: &str, auxiliary: &str) -> bool {
+        host.strip_suffix('고')
+            .is_some_and(stem_excludes_accusative)
+            && self.has_progressive_auxiliary_frame(host, auxiliary)
+    }
+
+    #[must_use]
+    pub fn has_compound_progressive_frame(&self, host: &str, auxiliary: &str) -> bool {
+        self.has_progressive_auxiliary_frame(host, auxiliary)
+            && host.char_indices().skip(1).any(|(split, _)| {
+                let (nominal, verb) = host.split_at(split);
+                self.has_exact_nominal_surface(nominal)
+                    && self.has_progressive_auxiliary_frame(verb, auxiliary)
+            })
+    }
+
     /// Source alignment for a bare nominal and the following verb connective.
     #[must_use]
     pub fn has_attested_compound_predicate_connective(&self, nominal: &str, host: &str) -> bool {
@@ -3372,6 +3389,45 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_verb_adnominal_analysis(&self, text: &str) -> bool {
+        self.has_verb_ending_analysis(text, StructuralPos::ETM)
+    }
+
+    #[must_use]
+    pub fn has_verb_nominalized_subject(&self, text: &str) -> bool {
+        let has_nominalization = |host: &str| {
+            host.ends_with(|last| {
+                last == '기'
+                    || crate::decompose_syllable(last)
+                        .is_some_and(|syllable| syllable.jongseong == crate::hangul::JONG_MIEUM)
+            }) && self.has_verb_ending_analysis(host, StructuralPos::ETN)
+        };
+        has_nominalization(text)
+            || text.char_indices().skip(1).any(|(split, _)| {
+                let (host, tail) = text.split_at(split);
+                has_nominalization(host)
+                    && complete_suffix(&self.resource, tail, |pos| {
+                        matches!(pos, StructuralPos::JKS | StructuralPos::JX)
+                    })
+            })
+    }
+
+    fn has_verb_ending_analysis(&self, text: &str, ending: StructuralPos) -> bool {
+        let accepts_ending = |pos| pos == ending;
+        predicate_inflected_path(
+            &self.resource,
+            text,
+            |pos| pos == StructuralPos::VV,
+            accepts_ending,
+        ) || derived_inflected_path(
+            &self.resource,
+            text,
+            |pos| pos == StructuralPos::XSV,
+            accepts_ending,
+        )
+    }
+
+    #[must_use]
     pub fn has_predicate_adnominal_surface(&self, text: &str) -> bool {
         let mut matched = false;
         let mut modifier = false;
@@ -3554,7 +3610,9 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_predicate(&self, text: &str) -> bool {
-        self.independent_final_predicate::<false>(text, false).0 != PredicatePosSet::EMPTY
+        self.independent_final_predicate::<false>(text, false, false)
+            .0
+            != PredicatePosSet::EMPTY
     }
 
     #[must_use]
@@ -3596,26 +3654,37 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_adjective(&self, text: &str) -> bool {
-        self.independent_final_predicate::<false>(text, false).0
+        self.independent_final_predicate::<false>(text, false, false)
+            .0
             == PredicatePosSet::one(PredicatePos::Adjective)
     }
 
     #[must_use]
+    pub fn has_final_predicate_in_subject_frame(&self, text: &str) -> bool {
+        let (positions, excludes_object) =
+            self.independent_final_predicate::<true>(text, false, true);
+        positions == PredicatePosSet::one(PredicatePos::Adjective) || excludes_object
+    }
+
+    #[must_use]
     pub fn has_independent_final_predicate_without_object(&self, text: &str) -> bool {
-        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, false);
+        let (positions, excludes_object) =
+            self.independent_final_predicate::<true>(text, false, false);
         positions == PredicatePosSet::one(PredicatePos::Adjective) || excludes_object
     }
 
     #[must_use]
     pub fn has_independent_final_verb_with_object(&self, text: &str) -> bool {
-        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, false);
+        let (positions, excludes_object) =
+            self.independent_final_predicate::<true>(text, false, false);
         positions.contains(PredicatePos::Verb) && !excludes_object
     }
 
     /// Finds a final verb analysis when the caller has identified an object in the clause.
     #[must_use]
     pub fn has_final_verb_after_object(&self, text: &str) -> bool {
-        let (positions, excludes_object) = self.independent_final_predicate::<true>(text, true);
+        let (positions, excludes_object) =
+            self.independent_final_predicate::<true>(text, true, false);
         positions.contains(PredicatePos::Verb) && !excludes_object
     }
 
@@ -3656,10 +3725,12 @@ impl ConstraintResolver {
             })
     }
 
+    #[inline(never)]
     fn independent_final_predicate<const CHECK_OBJECT: bool>(
         &self,
         text: &str,
         has_object_context: bool,
+        check_adjective_pos: bool,
     ) -> (PredicatePosSet, bool) {
         let has_final_ending = |length: usize, endings: &[StructuralPos]| {
             complete_inflected_ending(&self.resource, endings, &text[length..], |pos| {
@@ -3681,7 +3752,16 @@ impl ConstraintResolver {
                     return;
                 };
                 match predicate {
-                    StructuralPos::VV if has_final_ending(length, endings) => {
+                    StructuralPos::VV
+                        if has_final_ending(length, endings)
+                            && !(check_adjective_pos
+                                && ATTESTED_ADJECTIVE_ONLY_STEMS.contains(&&text[..length])
+                                && has_exact_sequence(
+                                    &self.resource,
+                                    &text[..length],
+                                    &[StructuralPos::VA],
+                                )) =>
+                    {
                         record(PredicatePos::Verb, length);
                     }
                     StructuralPos::VA if has_final_ending(length, endings) => {
