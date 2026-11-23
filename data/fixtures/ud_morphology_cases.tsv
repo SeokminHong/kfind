@@ -3383,6 +3383,14 @@ regression.quantity-adverb.before-adnominal	거	noun	no-match	17	23	남은 물�
 regression.quantity-adverb.corrected-pud-adnominal	거	noun	no-match	45	51	당연히 옷은 많고 먹을 만한 것은 거의 없는 것이 그 사무실 풍경이다.
 regression.quantity-adverb.genitive-before-adnominal	거	noun	smart-only-exact	4	10	네 거의 낡은 덮개를 교체했다.
 regression.quantity-adverb.dependent-with-adnominal-modifier	거	noun	smart-only-exact	11	17	네가 준 거의 낡은 덮개를 교체했다.
+regression.degree-adverb-negative-host.dependent-object	거	noun	smart-only-exact	17	20	아이가 남긴 걸 챙겼고, 어른들은 거의 손대지 않았다.
+regression.degree-adverb-negative-host.whole-adverb	거의	adverb	smart-only-exact	45	51	아이가 남긴 걸 챙겼고, 어른들은 거의 손대지 않았다.
+regression.degree-adverb-negative-host.cannot	거	noun	no-match	10	16	누나는 거의 고치지 못했다.
+regression.degree-adverb-negative-host.oblique-topic	거	noun	no-match	16	22	그곳에서는 거의 일어나지 않았다.
+regression.degree-adverb-negative-host.derived-connective	거	noun	no-match	23	29	조사팀은 성과를 거의 측정하지 않았다.
+regression.degree-adverb-negative-host.negated-adnominal	거	noun	no-match	13	19	사람들은 거의 고치지 않은 제품을 샀다.
+regression.degree-adverb-negative-host.possessive	거	noun	smart-only-exact	14	20	우리는 네 거의 닳지 않은 손잡이를 골랐다.
+regression.degree-adverb-negative-host.adnominal	거	noun	smart-only-exact	17	23	친구가 건넨 거의 찢어지지 않은 표지를 보관했다.
 regression.degree-adverb.standard-layer-and-verb	하다	verb	smart-only-exact	24	30	한층 더 좋아지게 하고 있다.
 regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	35	41	그 사이 한층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
