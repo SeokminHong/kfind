@@ -320,8 +320,12 @@ pub(super) fn has_degree_adverb_after_clause_argument(
                 && !resolver.has_pronominal_genitive_surface(&previous)
                 && !resolver.has_whole_determiner(&previous)
                 && !resolver.has_predicate_adnominal_surface(&previous)
-                && !resolver.has_nominal_with_optional_particles(&next)
-                && resolver.has_predicate_adnominal_surface(&next))
+                && ((!resolver.has_nominal_with_optional_particles(&next)
+                    && resolver.has_predicate_adnominal_surface(&next))
+                    || (!resolver.has_exact_nominal_surface(&next)
+                        && context::has_negative_connective_frame(
+                            haystack, next_end, &next, resolver,
+                        ))))
     })
 }
 
