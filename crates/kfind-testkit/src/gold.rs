@@ -230,7 +230,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 925;
+    const EXPECTED_CASES: usize = 927;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
