@@ -105,7 +105,7 @@ pub(super) fn rejects(
         || nominal::has_comparative_nominal_frame(haystack, candidate, branch, resolver)
         || has_nominal_quotative_rera(haystack, candidate, resolver)
         || has_competing_wa_analysis(haystack, candidate, branch, resolver)
-        || has_attached_result_state_auxiliary(haystack, candidate, branch, atom, resolver)
+        || has_competing_state_auxiliary(haystack, candidate, branch, atom, resolver)
         || has_derived_passive_instead_of_independent_verb(
             haystack, candidate, branch, atom, resolver,
         )
@@ -155,23 +155,23 @@ fn has_derived_passive_instead_of_independent_verb(
                 .is_some_and(|next| resolver.has_topic_marked_nominal(&next)))
 }
 
-fn has_attached_result_state_auxiliary(
+fn has_competing_state_auxiliary(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
     atom: &AtomPlan,
     resolver: &ConstraintResolver,
 ) -> bool {
-    let CandidateConsumption::PredicateContinuation {
-        source_positions, ..
-    } = branch.consumption
-    else {
-        return false;
+    let (source_positions, allows_attached) = match branch.consumption {
+        CandidateConsumption::PredicateContinuation {
+            source_positions, ..
+        } => (source_positions, true),
+        CandidateConsumption::StructuralPredicateEnding {
+            source_positions, ..
+        } => (source_positions, false),
+        _ => return false,
     };
-    let span = &candidate.consumed;
     if source_positions != kfind_morph::PredicatePosSet::one(PredicatePos::Adjective)
-        || is_boundary_before(haystack, span.start)
-        || !is_boundary_after(haystack, span.end)
         || branch.origins.is_empty()
         || !branch.origins.iter().all(|origin| {
             atom.analyses[usize::from(origin.analysis_index)]
@@ -182,15 +182,38 @@ fn has_attached_result_state_auxiliary(
     {
         return false;
     }
-    bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES).is_ok_and(
-        |whole| {
-            context::normalized_token(haystack, whole.start..span.start).is_some_and(|host| {
-                context::normalized_token(haystack, span.clone()).is_some_and(|auxiliary| {
-                    resolver.has_result_state_auxiliary_frame(&host, &auxiliary)
-                })
-            })
-        },
-    )
+    let span = &candidate.consumed;
+    let independent = is_boundary_before(haystack, span.start);
+    if !independent && !(allows_attached && is_boundary_after(haystack, span.end)) {
+        return false;
+    }
+    let Ok(whole) = bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES)
+    else {
+        return false;
+    };
+    let Some(auxiliary) = context::normalized_token(haystack, span.start..whole.end) else {
+        return false;
+    };
+    if independent {
+        return context::previous_word_on_line(haystack, span.start).is_some_and(
+            |(start, host)| {
+                (resolver.has_progressive_auxiliary_frame(&host, &auxiliary)
+                    || resolver.has_spaced_result_state_auxiliary_frame(&host, &auxiliary))
+                    && (!(resolver.has_exact_nominal_surface(&host)
+                        || resolver.has_subject_marked_nominal(&host)
+                        || resolver.has_topic_marked_nominal(&host))
+                        || context::previous_word_on_line(haystack, start).is_some_and(
+                            |(_, object)| {
+                                resolver.has_object_marked_nominal(&object)
+                                    || resolver
+                                        .has_attested_compound_predicate_connective(&object, &host)
+                            },
+                        ))
+            },
+        );
+    }
+    context::normalized_token(haystack, whole.start..span.start)
+        .is_some_and(|host| resolver.has_result_state_auxiliary_frame(&host, &auxiliary))
 }
 
 fn has_purpose_motion_frame(

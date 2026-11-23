@@ -1513,6 +1513,20 @@ impl ConstraintResolver {
     /// Verifies the attached result-state auxiliary 있다 (KRDict 62595).
     #[must_use]
     pub fn has_result_state_auxiliary_frame(&self, host: &str, auxiliary: &str) -> bool {
+        self.has_result_state_auxiliary(host, auxiliary, true)
+    }
+
+    /// Verifies the result-state auxiliary after a separate host.
+    #[must_use]
+    pub fn has_spaced_result_state_auxiliary_frame(&self, host: &str, auxiliary: &str) -> bool {
+        self.has_result_state_auxiliary(host, auxiliary, false)
+            && !host
+                .char_indices()
+                .skip(1)
+                .any(|(split, _)| self.has_adnominal_dependent_noun(&host[..split], &host[split..]))
+    }
+
+    fn has_result_state_auxiliary(&self, host: &str, auxiliary: &str, attached: bool) -> bool {
         use crate::hangul::{
             JONG_NONE, JUNG_A, JUNG_AE, JUNG_E, JUNG_EO, JUNG_WA, JUNG_WAE, JUNG_WEO, JUNG_YE,
             JUNG_YEO, decompose_syllable,
@@ -1549,7 +1563,7 @@ impl ConstraintResolver {
                     |pos| pos == StructuralPos::VV,
                     connective,
                 ))
-                || (host.chars().count() <= 2
+                || ((!attached || host.chars().count() <= 2)
                     && derived_inflected_path(
                         &self.resource,
                         host,
@@ -1621,6 +1635,49 @@ impl ConstraintResolver {
         go_auxiliary_inflections().iter().any(|form| {
             form.pos == PredicatePos::AuxiliaryVerb && matches_predicate_branch(text, form)
         })
+    }
+
+    #[must_use]
+    pub fn has_progressive_auxiliary_frame(&self, host: &str, auxiliary: &str) -> bool {
+        let connective = |pos| pos == StructuralPos::EC;
+        host.ends_with('고')
+            && (predicate_inflected_path(
+                &self.resource,
+                host,
+                |pos| matches!(pos, StructuralPos::VV | StructuralPos::VX),
+                connective,
+            ) || derived_inflected_path(
+                &self.resource,
+                host,
+                |pos| pos == StructuralPos::XSV,
+                connective,
+            ))
+            && self.has_progressive_auxiliary_inflection(auxiliary)
+    }
+
+    /// Source alignment for a bare nominal and the following verb connective.
+    #[must_use]
+    pub fn has_attested_compound_predicate_connective(&self, nominal: &str, host: &str) -> bool {
+        if !self.has_exact_nominal_surface(nominal) {
+            return false;
+        }
+        let joined = [nominal, host].concat();
+        let mut verb = false;
+        self.resource
+            .common_prefix_positions(joined.as_bytes(), |length, positions| {
+                if !verb
+                    && length > nominal.len()
+                    && let [StructuralPos::VV, endings @ ..] = positions
+                {
+                    verb = complete_inflected_ending(
+                        &self.resource,
+                        endings,
+                        &joined[length..],
+                        |pos| pos == StructuralPos::EC,
+                    );
+                }
+            });
+        verb && !self.has_exact_nominal_surface(&joined)
     }
 
     fn has_matching_vowel_auxiliary_inflection(

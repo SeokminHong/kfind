@@ -3346,3 +3346,26 @@ regression.possibility-adjective.negation-not-verb	있다	verb	no-match	41	47	�
 regression.possibility-adjective.result-state-verb	있다	verb	smart-only-exact	21	27	그 자리에서 서 있을 수 있다.
 regression.possibility-adjective.ordinary-number	있다	adjective	smart-only-exact	28	34	자료에 큰 수가 하나 있다.
 regression.possibility-adjective.proper-noun	있다	verb	smart-only-exact	18	24	수가 여기 더 있을 거예요.
+regression.result-state-pos.progressive-verb	있다	verb	smart-only-exact	23	29	모래가 흩날리고 있다.
+regression.result-state-pos.progressive-not-adjective	있다	adjective	no-match	23	29	모래가 흩날리고 있다.
+regression.result-state-pos.negative-progressive-verb	있다	verb	smart-only-exact	31	37	올해는 눈이 오지 않고 있다.
+regression.result-state-pos.negative-progressive-not-adjective	있다	adjective	no-match	31	37	올해는 눈이 오지 않고 있다.
+regression.result-state-pos.adnominal-progressive-verb	있다	verb	smart-only-exact	17	23	신청을 받고 있는 담당자에게 문의했다.
+regression.result-state-pos.adnominal-progressive-not-adjective	있다	adjective	no-match	17	23	신청을 받고 있는 담당자에게 문의했다.
+regression.result-state-pos.spaced-verb	있다	verb	smart-only-exact	28	34	탁자 위에 컵이 놓여 있다.
+regression.result-state-pos.spaced-not-adjective	있다	adjective	no-match	28	34	탁자 위에 컵이 놓여 있다.
+regression.result-state-pos.past-verb	있다	verb	smart-only-exact	31	40	나중에 보니 불이 꺼져 있었다.
+regression.result-state-pos.past-not-adjective	있다	adjective	no-match	31	40	나중에 보니 불이 꺼져 있었다.
+regression.result-state-pos.nominalized-verb	있다	verb	smart-only-exact	30	39	대표단이 이미 들어와 있음을 알렸다.
+regression.result-state-pos.nominalized-not-adjective	있다	adjective	no-match	30	39	대표단이 이미 들어와 있음을 알렸다.
+regression.result-state-pos.mixed-adjective	있다	adjective	smart-only-exact	49	55	대표단이 들어와 있다. 더 기다릴 수 있다.
+regression.result-state-pos.mixed-verb	있다	verb	smart-only-exact	23	29	대표단이 들어와 있다. 더 기다릴 수 있다.
+regression.result-state-pos.nominal-host	있다	adjective	smart-only-exact	17	23	마을에 차고 있다.
+regression.result-state-pos.object-verb	있다	verb	smart-only-exact	30	36	경비원은 권총을 차고 있다.
+regression.result-state-pos.object-not-adjective	있다	adjective	no-match	30	36	경비원은 권총을 차고 있다.
+regression.result-state-pos.long-derived-verb	있다	verb	smart-only-exact	33	39	아래에 조건이 게시되어 있다.
+regression.result-state-pos.long-derived-not-adjective	있다	adjective	no-match	33	39	아래에 조건이 게시되어 있다.
+regression.result-state-pos.bare-nominal-verb	있다	verb	smart-only-exact	40	49	대표단은 서울에서 자리 잡고 있었다.
+regression.result-state-pos.bare-nominal-not-adjective	있다	adjective	no-match	40	49	대표단은 서울에서 자리 잡고 있었다.
+regression.result-state-pos.book-title-adjective	있다	adjective	smart-only-exact	20	26	도서관에 잡고 있다.
+regression.result-state-pos.dependent-scope	있다	adjective	smart-only-exact	21	30	자료를 읽는 데 있어서 집중력이 중요하다.

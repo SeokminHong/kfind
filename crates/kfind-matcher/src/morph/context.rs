@@ -482,6 +482,14 @@ pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     previous_word_with_start(bytes, at).map(|(_, word)| word)
 }
 
+pub(super) fn previous_word_on_line(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
+    let (start, word) = previous_word_with_start(bytes, at)?;
+    (!bytes[start..at]
+        .iter()
+        .any(|byte| matches!(byte, b'\r' | b'\n')))
+    .then_some((start, word))
+}
+
 pub(super) fn is_locative_pronoun(word: &str) -> bool {
     matches!(word, "여기" | "거기" | "저기" | "어디")
 }
