@@ -3446,3 +3446,16 @@ regression.terminal-particle-boundary.short-noun-component	배	noun	smart-only-e
 regression.terminal-particle-boundary.noun-alternative	가시	noun	smart-only-exact	0	9	가시나 줄기를 자르세요.
 regression.terminal-particle-boundary.noun-compound	가시	noun	smart-only-exact	0	6	가시나무가 잘 자란다.
 regression.terminal-particle-boundary.spaced-noun	종교	noun	smart-only-exact	0	6	종교 도서와 소설을 샀다.
+regression.future-adnominal-auxiliary.final-rival	나다	verb	no-match	24	30	이 작품은 역사에 남을 만하다.
+regression.future-adnominal-auxiliary.final-main	남다	verb	smart-only-exact	24	30	이 작품은 역사에 남을 만하다.
+regression.future-adnominal-auxiliary.adnominal-rival	나다	verb	no-match	27	33	이번 회의는 기록에 남을 법한 이야기로 마무리됐다.
+regression.future-adnominal-auxiliary.adnominal-main	남다	verb	smart-only-exact	27	33	이번 회의는 기록에 남을 법한 이야기로 마무리됐다.
+regression.future-adnominal-auxiliary.derived-modifier	나다	verb	no-match	17	23	그는 후대에 남을 만한 훌륭한 작품을 감상했다.
+regression.future-adnominal-auxiliary.copular-modifier	나다	verb	no-match	20	26	누구나 기억에 남을 만한 상징적인 장면을 떠올렸다.
+regression.future-adnominal-auxiliary.existential	나다	verb	no-match	10	16	후대에 남을 만한 기록이 있다.
+regression.future-adnominal-auxiliary.other-lexeme-rival	살다	verb	no-match	10	16	생선을 삶을 뻔했다.
+regression.future-adnominal-auxiliary.other-lexeme-main	삶다	verb	smart-only-exact	10	16	생선을 삶을 뻔했다.
+regression.future-adnominal-auxiliary.joined	남다	verb	smart-only-exact	24	30	이 작품은 역사에 남을만하다.
+regression.future-adnominal-auxiliary.nominal-object	나다	verb	smart-only-exact	33	39	아이들은 화분에 새싹이 남을 지켜봤다.
+regression.future-adnominal-auxiliary.same-surface-name	나다	verb	smart-only-exact	10	16	새싹이 남을 만한 씨가 관찰했다.
+regression.future-adnominal-auxiliary.actual-range	나다	verb	smart-only-exact	62	68	기억에 남을 만한 일이 있다. 화분에서 새싹이 남을 지켜봤다.
