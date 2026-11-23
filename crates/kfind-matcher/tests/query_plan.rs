@@ -3247,6 +3247,45 @@ fn predicate_canonical_candidates_keep_the_whole_syllable() {
 }
 
 #[test]
+fn canonical_attached_auxiliary_uses_original_span() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("서", "VV+EC", "서/VV/*+어/EC/*"),
+        component_entry("있", "VX"),
+        component_entry("있었", "VX+EP"),
+        component_entry("었", "EP"),
+        component_entry("다", "EF"),
+        component_expression_entry("열어", "VV+EC", "열/VV/*+어/EC/*"),
+        component_expression_entry("뒀", "VX+EP", "두/VX/*+었/EP/*"),
+    ]);
+
+    for (query, haystack, expected) in [
+        ("서다", "문 앞에 서있었다.", "서있었다"),
+        ("서다", "문 앞에 서 있었다.", "서"),
+        ("열다", "그는 창문을 열어뒀다.", "열어뒀다"),
+    ] {
+        let matcher = compile_with_full_pos_and_resource(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Verb),
+                normalization: NormalizationMode::Canonical,
+                ..CompileOptions::default()
+            },
+            Arc::clone(&resource),
+        );
+        let nfd_haystack: String = haystack.nfd().collect();
+        let nfd_expected: String = expected.nfd().collect();
+        for (text, target) in [(haystack, expected), (&nfd_haystack, &nfd_expected)] {
+            let start = text.find(target).expect("fixture has the expected surface");
+            assert_eq!(
+                matcher.find_span_at(text.as_bytes(), 0),
+                Some(start..start + target.len()),
+                "{text}"
+            );
+        }
+    }
+}
+
+#[test]
 fn numeric_distributive_accepts_a_decomposed_unit_and_suffix() {
     let matcher = compile_embedded_with_resource(
         "n:개",

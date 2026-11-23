@@ -154,34 +154,51 @@ impl MorphMatcher {
                     pos,
                     source_positions,
                     ..
-                } => {
-                    let visible_connective = candidate.consumed.end > candidate.verified.core.end;
-                    let token = haystack
-                        .get(whole.clone())
-                        .and_then(|token| std::str::from_utf8(token).ok());
-                    let complete_attached_path = token.is_some_and(|token| {
-                        resolver
-                            .has_complete_attached_auxiliary_path(token, DEFAULT_LATTICE_NODE_LIMIT)
-                    });
+                } => 'attached: {
+                    let core = &candidate.verified.core;
+                    let visible_connective = candidate.consumed.end > core.end;
+                    let Some(token) = context::normalized_token(haystack, whole.clone()) else {
+                        break 'attached false;
+                    };
+                    let Some(host) =
+                        context::normalized_token(haystack, whole.start..candidate.consumed.end)
+                    else {
+                        break 'attached false;
+                    };
+                    let Some(trailing) = token.strip_prefix(host.as_ref()) else {
+                        break 'attached false;
+                    };
+                    let core_len = if *core == (whole.start..candidate.consumed.end) {
+                        host.len()
+                    } else {
+                        let Some(stem) = context::normalized_token(haystack, core.clone()) else {
+                            break 'attached false;
+                        };
+                        stem.len()
+                    };
+                    let connective_end = host.len();
+                    let at_word_start = whole.start == core.start;
+                    let complete_attached_path = resolver
+                        .has_complete_attached_auxiliary_path(&token, DEFAULT_LATTICE_NODE_LIMIT);
                     let source_auxiliary_suffix =
                         resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT);
-                    let unambiguous_contraction = haystack
-                        .get(candidate.verified.core.start..candidate.consumed.end)
-                        .and_then(|surface| std::str::from_utf8(surface).ok())
-                        .is_some_and(|surface| {
-                            resolver.has_unambiguous_predicate_surface(surface, source_positions)
-                        });
-                    let extended_predicate_prefix = token.is_some_and(|token| {
-                        resolver.has_extended_predicate_prefix_path(
-                            token,
-                            candidate.verified.core.len(),
-                            source_positions,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        )
-                    });
-                    let unambiguous_whole_path = token.is_some_and(|token| {
-                        resolver.has_unambiguous_attached_auxiliary_whole_path(token)
-                    });
+                    let unambiguous_contraction = if at_word_start {
+                        resolver.has_unambiguous_predicate_surface(&host, source_positions)
+                    } else {
+                        context::normalized_token(haystack, core.start..candidate.consumed.end)
+                            .is_some_and(|surface| {
+                                resolver
+                                    .has_unambiguous_predicate_surface(&surface, source_positions)
+                            })
+                    };
+                    let extended_predicate_prefix = resolver.has_extended_predicate_prefix_path(
+                        &token,
+                        core_len,
+                        source_positions,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    );
+                    let unambiguous_whole_path =
+                        resolver.has_unambiguous_attached_auxiliary_whole_path(&token);
                     let resultative_contraction = (complete_attached_path
                         || source_auxiliary_suffix)
                         && resolver.has_attached_resultative_inflection(trailing, pos);
@@ -190,57 +207,50 @@ impl MorphMatcher {
                             trailing,
                             DEFAULT_LATTICE_NODE_LIMIT,
                         )
-                        && haystack
-                            .get(whole.start..candidate.consumed.end)
-                            .and_then(|surface| std::str::from_utf8(surface).ok())
-                            .is_some_and(|surface| {
-                                resolver
-                                    .has_exact_predicate_connective_path(surface, source_positions)
-                            });
-                    let at_word_start = whole.start == candidate.verified.core.start;
+                        && resolver.has_exact_predicate_connective_path(&host, source_positions);
                     let contracted_host = at_word_start && has_rule("contraction.ha-yeo");
                     let supported_connective = source_auxiliary_suffix
                         && resolver.has_vowel_auxiliary_inflection(trailing, pos)
-                        && token.is_some_and(|token| {
-                            let connective_end = candidate.consumed.end - whole.start;
-                            let host = &token[..connective_end];
+                        && {
                             let verifies_particle = |suffix| {
-                                self.particle_verifier.verify_exact(host, suffix).is_some()
+                                self.particle_verifier.verify_exact(&host, suffix).is_some()
                             };
                             let competing_nominal = resolver
-                                .has_competing_nominal_after_connective(token, connective_end)
-                                || (resolver.has_exact_nominal_surface(host)
+                                .has_competing_nominal_after_connective(&token, connective_end)
+                                || (resolver.has_exact_nominal_surface(&host)
                                     && (verifies_particle(trailing)
                                         || trailing
                                             .char_indices()
                                             .skip(1)
                                             .any(|(end, _)| verifies_particle(&trailing[..end]))));
                             if competing_nominal {
-                                return contracted_host
+                                contracted_host
                                     && has_contracted_auxiliary_host_context(
                                         haystack, &whole, trailing, resolver,
                                     )
                                     && resolver.has_exact_predicate_connective_path(
-                                        host,
+                                        &host,
                                         source_positions,
-                                    );
-                            }
-                            resolver
-                                .has_derived_predicate_connective_surface(host, source_positions)
-                                || ((contracted_host
+                                    )
+                            } else {
+                                resolver.has_derived_predicate_connective_surface(
+                                    &host,
+                                    source_positions,
+                                ) || ((contracted_host
                                     || (at_word_start
                                         && complete_attached_path
                                         && !extended_predicate_prefix
                                         && !resolver.whole_predicate_conflicts(
-                                            token,
+                                            &token,
                                             connective_end,
                                             pos,
                                         )))
                                     && resolver.has_exact_predicate_connective_path(
-                                        host,
+                                        &host,
                                         source_positions,
                                     ))
-                        });
+                            }
+                        };
                     let competing_lexical_predicate = at_word_start
                         && !source_auxiliary_suffix
                         && extended_predicate_prefix
@@ -257,31 +267,24 @@ impl MorphMatcher {
                                     || unambiguous_whole_path
                                     || resultative_contraction))
                             || supported_connective
-                            || token.is_some_and(|token| {
-                                let auxiliary_start = candidate.consumed.end - whole.start;
-                                let host = &token[..auxiliary_start];
-                                if !resolver
-                                    .has_exact_predicate_connective_path(host, source_positions)
-                                    || branch.origins.iter().all(|origin| {
-                                        origin
-                                            .rule_path
-                                            .iter()
-                                            .any(|rule| rule.as_str() == "lexical.dictionary-voice")
-                                    })
-                                {
-                                    return false;
-                                }
-                                trailing.char_indices().skip(1).any(|(split, _)| {
+                            || (resolver
+                                .has_exact_predicate_connective_path(&host, source_positions)
+                                && !branch.origins.iter().all(|origin| {
+                                    origin
+                                        .rule_path
+                                        .iter()
+                                        .any(|rule| rule.as_str() == "lexical.dictionary-voice")
+                                })
+                                && trailing.char_indices().skip(1).any(|(split, _)| {
                                     let (auxiliary, particles) = trailing.split_at(split);
                                     self.particle_verifier
                                         .verify_exact(auxiliary, particles)
                                         .is_some()
                                         && resolver.has_nominalized_attached_auxiliary_path(
-                                            &token[..auxiliary_start + split],
+                                            &token[..connective_end + split],
                                             DEFAULT_LATTICE_NODE_LIMIT,
                                         )
-                                })
-                            }))
+                                })))
                 }
                 _ => false,
             };
