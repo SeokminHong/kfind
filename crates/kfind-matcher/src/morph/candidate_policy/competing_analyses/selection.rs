@@ -4,6 +4,7 @@ use kfind_data::NominalRole;
 use kfind_morph::{CoarsePos, ConstraintResolver, verify_copula_surface_after_nominal};
 use kfind_query::{AtomPlan, CandidateProgram};
 
+use crate::DEFAULT_ANALYSIS_WINDOW_LIMITS;
 use crate::boundary::{is_sentence_end_after, surrounding_token_span};
 
 use super::{ExecutedCandidate, context};
@@ -203,22 +204,37 @@ pub(super) fn has_incompatible_argument(
             {
                 return true;
             }
-            let is_motion = |word: &str| {
-                ConstraintResolver::has_motion_go_inflection(word)
-                    && !ConstraintResolver::has_possession_inflection(word)
-            };
-            word.ends_with('고')
-                && (marked_object
+            if !word.ends_with('고')
+                || !(marked_object
                     || (resolver.has_exact_nominal_surface(&previous)
                         && !resolver.has_exact_non_copula_predicate_surface(&previous)))
-                && context::next_word_on_line(haystack, whole.end).is_some_and(|(end, next)| {
-                    is_motion(&next)
-                        || (((next.ends_with(['에', '로']) && resolver.has_nominal_oblique(&next))
-                            || (resolver.has_exact_adverb_surface(&next)
-                                && !resolver.has_exact_noun_with_optional_particles(&next)))
-                            && context::next_word_on_line(haystack, end)
-                                .is_some_and(|(_, motion)| is_motion(&motion)))
-                })
+            {
+                return false;
+            }
+            let limit = whole
+                .end
+                .saturating_add(DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+            let mut after = whole.end;
+            while let Some((end, next)) = context::next_word_on_line(haystack, after) {
+                if end > limit {
+                    break;
+                }
+                if (resolver.has_deictic_motion_inflection(&next)
+                    && !ConstraintResolver::has_possession_inflection(&next))
+                    || (marked_object && resolver.has_progressive_auxiliary_frame(&word, &next))
+                {
+                    return true;
+                }
+                if !context::has_unmarked_adverbial_modifier(&next, resolver)
+                    && (resolver.has_exact_nominal_surface(&next)
+                        || !(resolver.has_nominal_oblique(&next)
+                            || resolver.has_vowel_connective_host(&next)))
+                {
+                    break;
+                }
+                after = end;
+            }
+            false
         }
         // A subject that denotes an orthographic unit can be identified
         // by a syllable followed by reduced 이다. Motion requires separate

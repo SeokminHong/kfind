@@ -144,21 +144,22 @@ pub(super) fn has_clause_final_go_frame(
         return false;
     }
     // 가 is a complete inflection of 가다, which takes a destination (KRDict 27500).
-    let Some((adverb_start, adverb)) = context::previous_word_on_line(haystack, span.start) else {
+    let mut has_modifier = false;
+    let Some((start, destination)) =
+        context::previous_matching_word_on_line(haystack, span.start, |_, word| {
+            let modifier = context::has_unmarked_adverbial_modifier(word, resolver);
+            has_modifier |= modifier;
+            !modifier
+        })
+    else {
         return false;
     };
-    if !resolver.has_exact_adverb_surface(&adverb)
-        || resolver.has_exact_noun_with_optional_particles(&adverb)
-    {
-        return false;
-    }
-    context::previous_word_on_line(haystack, adverb_start).is_some_and(|(start, destination)| {
-        resolver.has_spatial_destination(&destination)
-            || (resolver.has_exact_proper_name_surface(&destination)
-                && context::previous_word_on_line(haystack, start).is_some_and(|(_, means)| {
-                    means.ends_with('로') && resolver.has_nominal_oblique(&means)
-                }))
-    })
+    context::has_direction_argument(&destination, resolver)
+        || (has_modifier
+            && resolver.has_exact_proper_name_surface(&destination)
+            && context::previous_word_on_line(haystack, start).is_some_and(|(_, means)| {
+                means.ends_with('로') && context::has_direction_argument(&means, resolver)
+            }))
 }
 
 pub(super) fn has_late_schedule_frame(

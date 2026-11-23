@@ -3149,10 +3149,21 @@ regression.possession-motion-sequence.adverb-possession	가지다	verb	smart-onl
 regression.possession-motion-sequence.intentional-motion	가다	verb	smart-only-exact	37	43	나는 보조 배터리를 가지고 갈게.
 regression.possession-motion-sequence.intentional-possession	가지다	verb	smart-only-exact	27	36	나는 보조 배터리를 가지고 갈게.
 regression.possession-motion-sequence.independent-auxiliary	가다	verb	smart-only-exact	30	33	유모차를 밀고 집까지 가 보자.
+regression.possession-motion-sequence.destination-and-adverbs	가다	verb	smart-only-exact	44	50	책을 가지고 학교에 먼저 빠르게 갔다.
+regression.possession-motion-sequence.destination-and-adverbs-possession	가지다	verb	smart-only-exact	7	16	책을 가지고 학교에 먼저 빠르게 갔다.
+regression.possession-motion-sequence.vowel-connective	가다	verb	smart-only-exact	37	40	책을 가지고 학교에 서둘러 간 학생이 있다.
+regression.possession-motion-sequence.dative	가다	verb	smart-only-exact	33	39	책을 가지고 선생님한테 갔다.
+regression.possession-motion-sequence.source-compound	가다	verb	no-match	7	16	책을 가지고 학교에서 나왔다.
+regression.possession-motion-sequence.come	가다	verb	no-match	7	16	책을 가지고 교실에 왔다.
+regression.possession-motion-sequence.attendant-state	가다	verb	smart-only-exact	35	41	책을 가지고 있었다. 집에 갔다.
 regression.directional-motion-nominal.unmarked-destination-noun	가	noun	no-match	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.unmarked-destination-verb	가다	verb	smart-only-exact	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.marked-destination-noun	가	noun	no-match	30	33	저녁에 마을로 어떻게 가?
 regression.directional-motion-nominal.marked-destination-verb	가다	verb	smart-only-exact	30	33	저녁에 마을로 어떻게 가?
+regression.directional-motion-nominal.destination-adjacent	가	noun	no-match	17	20	어서 학교에 가.
+regression.directional-motion-nominal.destination-intervening-adverbs	가	noun	no-match	24	27	학교에 먼저 빨리 가.
+regression.directional-motion-nominal.destination-intervening-adverbs-verb	가다	verb	smart-only-exact	24	27	학교에 먼저 빨리 가.
+regression.directional-motion-nominal.destination-dative	가	noun	no-match	33	36	건너편에 계신 할머니께 가.
 regression.directional-motion-nominal.preserve-noun	가	noun	smart-only-exact	10	16	벽난로 가에 의자를 놓고 집으로 어떻게 가?
 regression.directional-motion-nominal.preserve-verb	가다	verb	smart-only-exact	54	57	벽난로 가에 의자를 놓고 집으로 어떻게 가?
 regression.directional-motion-nominal.vocative	가	noun	smart-only-exact	28	31	마을로 어떻게 갈까, 가?
@@ -3434,6 +3445,13 @@ regression.nominal-topic-copula.past	가다	verb	no-match	21	27	골목 안에 �
 regression.nominal-topic-copula.auxiliary	가다	verb	smart-only-exact	10	16	학교에 가게는 됐지만 가게는 하나뿐이다.
 regression.nominal-topic-copula.adnominal	가다	verb	smart-only-exact	10	16	친구를 가게는 한 일이었다.
 regression.nominal-topic-copula.imperative	가다	verb	smart-only-exact	28	34	자네 먼저 저 가게에 가게.
+regression.nominal-topic-copula.additive	가다	verb	no-match	0	6	가게도 부모님의 사업장이다.
+regression.nominal-topic-copula.focus-chain	가다	verb	no-match	0	6	가게만은 제 소유다.
+regression.nominal-topic-copula.focus-chain-noun	가게	noun	smart-only-exact	0	12	가게만은 제 소유다.
+regression.nominal-topic-copula.inclusive	가다	verb	no-match	0	6	가게까지 부모님의 사업장이다.
+regression.nominal-topic-copula.nominal-genitive	가다	verb	no-match	0	6	가게마저 우리 동네의 명소예요.
+regression.nominal-topic-copula.additive-auxiliary	가다	verb	smart-only-exact	17	23	아이를 혼자 가게도 했다.
+regression.nominal-topic-copula.focus-adnominal	가다	verb	smart-only-exact	17	23	아이를 혼자 가게만 한 일이었다.
 regression.terminal-particle-boundary.genitive	우리	pronoun	no-match	0	9	우리나라의 역사입니다.
 regression.terminal-particle-boundary.comitative	우리	pronoun	no-match	0	9	우리나라와 미국이 만났다.
 regression.terminal-particle-boundary.copula	우리	pronoun	no-match	0	9	우리나라다.
