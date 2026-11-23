@@ -1,5 +1,7 @@
 case_id	query	pos	form	lemma	xpos	gold_form
 gsd:test-s66:1	들깨	noun	들깻가루	들깨+가루	NNG+NNG	들깻
+gsd:test-s369:9	이동	noun	이동	이동	NNG	이동
+gsd:test-s369:22	연체	noun	연체	연체	NNG	연체
 gsd:test-s436:8	무료	noun	무료	무료	NNG	무료
 gsd:test-s1:38	있다	adjective	있다	있+다	VA+EF	있다
 gsd:test-s15:6	있다	adjective	있지만	있+지만	VA+EC	있지만
