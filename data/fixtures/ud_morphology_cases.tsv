@@ -3429,6 +3429,27 @@ regression.attached-auxiliary-proof.original-predicate	고치다	verb	smart-only
 regression.attached-auxiliary-proof.compound-past	걷다	verb	smart-only-exact	17	35	그는 소매를 걷어붙였으며 일할 준비를 마쳤다.
 regression.attached-auxiliary-proof.compound-head	몰다	verb	smart-only-exact	36	51	경찰이 용의자를 범인으로 몰아붙였다.
 regression.attached-auxiliary-proof.derived-host	하다	verb	smart-only-exact	26	35	경비원이 상황을 말해줬다.
+regression.derived-auxiliary-tail.give-present	주다	verb	smart-only-exact	30	36	꼭 필요한 정보를 말해준다.
+regression.derived-auxiliary-tail.give-past	주다	verb	smart-only-exact	29	35	경비원이 상황을 말해줬다.
+regression.derived-auxiliary-tail.give-adnominal	주다	verb	smart-only-exact	13	16	그가 말해준 정보는 맞았다.
+regression.derived-auxiliary-tail.another-host	주다	verb	smart-only-exact	36	42	직원이 필요한 자료를 전해준다.
+regression.derived-auxiliary-tail.another-auxiliary	보다	verb	smart-only-exact	13	19	직접 일해봤다.
+regression.derived-auxiliary-tail.auxiliary-connective	보다	verb	smart-only-exact	20	26	그 소식을 말해보고 정하자.
+regression.derived-auxiliary-tail.auxiliary-completion	버리다	verb	smart-only-exact	30	39	그가 예약 취소를 말해버렸다.
+regression.derived-auxiliary-tail.auxiliary-storage	두다	verb	smart-only-exact	20	29	그는 답을 전해두었다.
+regression.derived-auxiliary-tail.independent-verb	주다	verb	smart-only-exact	31	34	그가 그 소식을 말하고 준 선물을 포장했다.
+regression.derived-auxiliary-tail.lexical-host	주다	verb	smart-only-exact	33	39	그는 매일 그림책을 읽어준다.
+regression.derived-auxiliary-tail.spaced-past	주다	verb	smart-only-exact	34	40	아이에게 그 소식을 말해 줬다.
+regression.derived-auxiliary-tail.long-spaced-host	주다	verb	smart-only-exact	33	48	선생님이 절차를 설명해 주시겠어요.
+regression.derived-auxiliary-tail.place-name	주다	verb	no-match	16	25	황해도의 해주라는 도시를 방문했다.
+regression.derived-auxiliary-tail.non-auxiliary-homograph	줄다	verb	no-match	29	35	경비원이 상황을 말해줬다.
+regression.derived-auxiliary-tail.non-auxiliary-rieul	줄다	verb	no-match	30	36	꼭 필요한 정보를 말해준다.
+regression.derived-auxiliary-tail.independent-rieul	줄다	verb	smart-only-exact	17	23	물이 빠르게 준다.
+regression.derived-auxiliary-tail.independent-motion	가다	verb	smart-only-exact	14	23	비를 피해 가다가 동료를 만났다.
+regression.derived-auxiliary-tail.ha-suffix	하다	verb	no-match	23	29	그는 바다를 항해했다.
+regression.derived-auxiliary-tail.ha-full-predicate	항해하다	verb	smart-only-exact	17	29	그는 바다를 항해했다.
+regression.derived-auxiliary-tail.whole-lexeme	나다	verb	no-match	62	68	이런 점에서도 젠투펭귄의 온순한 성격이 나타난다.
+regression.derived-auxiliary-tail.preserved-whole-lexeme	나타나다	verb	smart-only-exact	56	68	이런 점에서도 젠투펭귄의 온순한 성격이 나타난다.
 regression.han-adnominal-chain.predicate-and-cardinal	하다	verb	smart-only-exact	57	63	생일을 맞은 한 신입사원의 가족이 인사를 하고 있다.
 regression.han-adnominal-chain.cardinal-determiner	한	determiner	smart-only-exact	17	20	생일을 맞은 한 신입사원의 가족이 인사를 하고 있다.
 regression.han-adnominal-chain.passive-and-dative	하다	verb	smart-only-exact	41	47	어제 뽑힌 한 작가에게 문의를 하고 있다.
