@@ -72,7 +72,7 @@ pub(super) fn rejects(
         || nominal::has_bound_nominal_suffix(haystack, candidate, branch, resolver)
         || nominal::has_adverb_instead_of_genitive(haystack, candidate, resolver)
         || nominal::has_adverb_between_object_and_predicate(haystack, candidate, branch, resolver)
-        || nominal::has_degree_adverb_after_clause_argument(haystack, candidate, branch, resolver)
+        || nominal::has_degree_adverb_in_predicate_frame(haystack, candidate, branch, resolver)
         || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
         || quantity::has_counted_unit_copula(haystack, candidate, branch, resolver)
         || quantity::has_spaced_dictionary_numeric_unit(haystack, candidate, branch, resolver)

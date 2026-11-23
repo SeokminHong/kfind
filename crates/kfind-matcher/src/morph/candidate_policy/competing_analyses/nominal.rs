@@ -1,4 +1,7 @@
-use kfind_morph::{ConstraintResolver, RuleId};
+use kfind_morph::{
+    ConstraintResolver, RuleId, decompose_syllable,
+    hangul::{JONG_NIEUN, JONG_RIEUL},
+};
 use kfind_query::{CandidateConsumption, CandidateProgram};
 use unicode_normalization::UnicodeNormalization;
 
@@ -264,7 +267,7 @@ pub(super) fn has_adverb_between_object_and_predicate(
         || resolver.has_accusative_verb_connective(&predicate)
 }
 
-pub(super) fn has_degree_adverb_after_clause_argument(
+pub(super) fn has_degree_adverb_in_predicate_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -296,20 +299,36 @@ pub(super) fn has_degree_adverb_after_clause_argument(
     {
         return false;
     }
-    let Some((start, previous)) = context::previous_word_with_start(haystack, core.start) else {
+    let Some((_, previous)) = context::previous_word_on_line(haystack, core.start) else {
         return false;
     };
-    if haystack[start..core.start]
-        .iter()
-        .any(|byte| matches!(byte, b'\r' | b'\n'))
-        || !(resolver.has_subject_marked_nominal(&previous)
-            || resolver.has_object_marked_nominal(&previous)
-            || resolver.has_topic_marked_nominal(&previous)
-            || resolver.has_nominal_oblique(&previous)
-            || previous
-                .strip_suffix(['은', '는'])
-                .is_some_and(|host| resolver.has_nominal_oblique(host)))
-    {
+    let clause_argument = resolver.has_subject_marked_nominal(&previous)
+        || resolver.has_object_marked_nominal(&previous)
+        || resolver.has_topic_marked_nominal(&previous)
+        || resolver.has_nominal_oblique(&previous)
+        || previous
+            .strip_suffix(['은', '는'])
+            .is_some_and(|host| resolver.has_nominal_oblique(host));
+    let connective = |word: &str| {
+        resolver.has_complete_connective_path(word)
+            && !resolver.has_exact_nominal_surface(word)
+            && !resolver.has_whole_modifier(word)
+            && !resolver.has_explicit_copula_after_nominal(word)
+    };
+    let can_modify_dependent_noun = || {
+        resolver.has_nominal_genitive_surface(&previous)
+            || resolver.has_pronominal_genitive_surface(&previous)
+            || resolver.has_whole_determiner(&previous)
+            // 연결형과 겹치는 ETM 표지를 현대 관형 어미의 ㄴ·ㄹ 받침과 대조한다.
+            || ((clause_argument
+                || previous
+                    .chars()
+                    .next_back()
+                    .and_then(decompose_syllable)
+                    .is_some_and(|last| matches!(last.jongseong, JONG_NIEUN | JONG_RIEUL)))
+                && resolver.has_predicate_adnominal_surface(&previous))
+    };
+    if !clause_argument && (!connective(&previous) || can_modify_dependent_noun()) {
         return false;
     }
     context::next_word_on_line(haystack, whole.end).is_some_and(|(next_end, next)| {
@@ -323,11 +342,7 @@ pub(super) fn has_degree_adverb_after_clause_argument(
         {
             return true;
         }
-        if resolver.has_nominal_genitive_surface(&previous)
-            || resolver.has_pronominal_genitive_surface(&previous)
-            || resolver.has_whole_determiner(&previous)
-            || resolver.has_predicate_adnominal_surface(&previous)
-        {
+        if clause_argument && can_modify_dependent_noun() {
             return false;
         }
         if !resolver.has_nominal_with_optional_particles(&next)
@@ -335,13 +350,15 @@ pub(super) fn has_degree_adverb_after_clause_argument(
         {
             return true;
         }
-        !resolver.has_exact_nominal_surface(&next)
-            && (context::has_negative_connective_frame(haystack, next_end, &next, resolver)
-                || following.is_some_and(|(noun_end, noun)| {
-                    resolver.has_possibility_nominal(&next, &noun)
-                        && context::next_word_on_line(haystack, noun_end)
-                            .is_some_and(|(_, state)| resolver.has_possibility_predicate(&state))
-                }))
+        connective(&next)
+            || (!resolver.has_exact_nominal_surface(&next)
+                && (context::has_negative_connective_frame(haystack, next_end, &next, resolver)
+                    || following.is_some_and(|(noun_end, noun)| {
+                        resolver.has_possibility_nominal(&next, &noun)
+                            && context::next_word_on_line(haystack, noun_end).is_some_and(
+                                |(_, state)| resolver.has_possibility_predicate(&state),
+                            )
+                    })))
     })
 }
 
