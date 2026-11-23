@@ -43,6 +43,9 @@ Component 리소스의 `홈쇼핑` 명사 분절은 표준국어대사전의
 `군복무`의 명사 성분은 우리말샘 `군 복무`(840051)와
 표준국어대사전 `군`(40063), `복무`(437299)에서 확인했습니다.
 
+`군일`의 접두사 분절은 표준국어대사전 `군-`(40278)와
+`군일`(400185)의 표기와 뜻에서 확인했습니다.
+
 Component 리소스의 `일왕` 분절은 UD Korean-PUD 기여자들의
 `w01095092`, `w01095093` 주석을 대조해 작성했습니다.
 [Korean-PUD 원문](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/e942f9c5e9351f37bcb8f202bb9df70f78c60d35/ko_pud-ud-test.conllu) · [원자료 CC BY-SA 3.0](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/r2.18/LICENSE.txt)
