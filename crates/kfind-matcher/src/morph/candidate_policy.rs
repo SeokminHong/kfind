@@ -212,10 +212,7 @@ impl MorphMatcher {
             }
         }
         if boundary == BoundaryPolicy::Smart
-            && candidate
-                .suffix_rules
-                .last()
-                .is_some_and(|rule| rule.as_str() == "ending.directive-ram")
+            && has_directive_ram_ending(haystack, candidate, branch)
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 let token = &candidate.consumed;
                 context::normalized_token(haystack, token.clone())
@@ -794,6 +791,38 @@ fn verifies_directive(stem: &str, ending: &str, accepts_rule: impl FnOnce(&str) 
             matched.consumed_bytes == ending.len()
                 && matches!(matched.rule_path.as_slice(), [rule] if accepts_rule(rule.as_str()))
         })
+}
+
+fn has_directive_ram_ending(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+) -> bool {
+    let is_directive_ram = |rule: &str| rule == "ending.directive-ram";
+    if candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| is_directive_ram(rule.as_str()))
+    {
+        return true;
+    }
+    let suffix = candidate.anchor.end..candidate.consumed.end;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::StructuralPredicateEnding { pos, .. } if pos.is_action()
+    ) || !haystack
+        .get(suffix.clone())
+        .is_some_and(|bytes| bytes.ends_with("람".as_bytes()) || bytes.ends_with("람".as_bytes()))
+    {
+        return false;
+    }
+    let (Some(stem), Some(suffix)) = (
+        context::normalized_token(haystack, candidate.anchor.clone()),
+        context::normalized_token(haystack, suffix),
+    ) else {
+        return false;
+    };
+    verifies_directive(&stem, &suffix, is_directive_ram)
 }
 
 fn has_dependent_quotative_frame(
