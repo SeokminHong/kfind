@@ -205,9 +205,7 @@ pub(super) fn has_incompatible_argument(
             // The vowel connective of 가다 is 가. KRDict 61191 licenses the
             // separate auxiliary 가지다 in -어 가지고, including following particles.
             if previous == "가"
-                && word.strip_prefix("가지고").is_some_and(|tail| {
-                    tail.is_empty() || resolver.has_nominal_focus_particle_tail(tail)
-                })
+                && context::has_causal_gajida_tail(&word, resolver)
                 && context::previous_matching_word_on_line(haystack, start, |_, word| {
                     !context::has_unmarked_adverbial_modifier(word, resolver)
                 })
@@ -224,7 +222,9 @@ pub(super) fn has_incompatible_argument(
             if !ConstraintResolver::has_possession_inflection(&word) {
                 return false;
             }
-            let marked_object = resolver.has_object_marked_nominal(&previous);
+            let marked_object = resolver.has_object_marked_nominal(&previous)
+                || (matches!(previous.as_ref(), "을" | "를")
+                    && context::has_quoted_object_host(haystack, start));
             if marked_object
                 && previous.strip_suffix(['을', '를']).is_some_and(|noun| {
                     resolver.has_nominal_role(noun, NominalRole::OwnershipAsset)

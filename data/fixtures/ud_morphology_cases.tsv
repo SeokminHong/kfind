@@ -3217,6 +3217,14 @@ regression.possession-motion-sequence.spaced-auxiliary-serial	가다	verb	smart-
 regression.possession-motion-sequence.spaced-auxiliary-direction	가다	verb	smart-only-exact	24	27	학교에 먼저 빨리 가 가지고 서류를 받았다.
 regression.possession-motion-sequence.spaced-auxiliary-focus	가다	verb	smart-only-exact	10	13	학교에 가 가지고도 서류를 받지 못했다.
 regression.possession-motion-sequence.spaced-auxiliary-topic	가다	verb	smart-only-exact	10	13	학교에 가 가지고는 그 서류를 받을 수 없다.
+regression.possession-motion-sequence.quoted-object	가다	verb	no-match	20	29	그는 ‘가’를 가지고 자리에 갔다.
+regression.possession-motion-sequence.quoted-object-motion	가다	verb	smart-exact	40	46	그는 ‘가’를 가지고 자리에 갔다.
+regression.possession-motion-sequence.quoted-object-possession	가지다	verb	smart-only-exact	33	42	직원은 “제목 없음”을 가지고 편집실에 갔다.
+regression.possession-motion-sequence.quoted-command	가다	verb	smart-only-exact	13	16	친구가 “가!”라고 소리쳤다.
+regression.possession-motion-sequence.attached-auxiliary-motion	가다	verb	smart-only-exact	10	22	학교에 가가지고 서류를 받았다.
+regression.possession-motion-sequence.attached-auxiliary-focus	가다	verb	smart-only-exact	10	25	학교에 가가지고도 서류를 받지 못했다.
+regression.possession-motion-sequence.attached-auxiliary-come	오다	verb	smart-only-exact	17	29	친구가 집에 와가지고 함께 밥을 먹었다.
+regression.possession-motion-sequence.attached-auxiliary-write	쓰다	verb	smart-only-exact	10	22	손으로 써가지고 제출했다.
 regression.directional-motion-nominal.unmarked-destination-noun	가	noun	no-match	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.unmarked-destination-verb	가다	verb	smart-only-exact	30	33	기차로 대전역 어떻게 가?
 regression.directional-motion-nominal.marked-destination-noun	가	noun	no-match	30	33	저녁에 마을로 어떻게 가?

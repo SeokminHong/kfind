@@ -321,6 +321,22 @@ impl MorphMatcher {
                         && !source_auxiliary_suffix
                         && extended_predicate_prefix
                         && !vowel_auxiliary;
+                    let licensed_causal_auxiliary = at_word_start
+                        && context::has_causal_gajida_tail(trailing, resolver)
+                        && !resolver.has_exact_nominal_surface(&token)
+                        && (host.chars().count() <= 2
+                            || !resolver
+                                .has_derived_predicate_connective_surface(&host, source_positions))
+                        && (visible_connective
+                            || unambiguous_contraction
+                            || context::previous_matching_word_on_line(
+                                haystack,
+                                whole.start,
+                                |_, word| !context::has_unmarked_adverbial_modifier(word, resolver),
+                            )
+                            .is_some_and(|(_, word)| {
+                                pos.is_action() && context::has_direction_argument(&word, resolver)
+                            }));
                     let licensed_compound = visible_connective
                         && complete_attached_path
                         && source_auxiliary_suffix
@@ -340,6 +356,7 @@ impl MorphMatcher {
                             || supported_connective);
                     !competing_lexical_predicate
                         && (licensed_auxiliary
+                            || licensed_causal_auxiliary
                             || licensed_compound
                             || (resolver
                                 .has_exact_predicate_connective_path(&host, source_positions)
