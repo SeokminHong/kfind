@@ -23,7 +23,7 @@ const reviews = new Map([
     pos: 'numeral',
   }],
   ['--after-colloquial-pos', {
-    checksum: '5e5b16769d5489b5589e1aceb5980ab726e6cdd3aab55fad4cb628e1da844f62',
+    checksum: '5777fa0709933a3d593f33705b67ba0cd492ede65b2bd5441a5ffd188a1317c7',
     registry: './gsd-colloquial-noun-copula-span-review.tsv',
     pos: 'noun',
   }],
