@@ -1055,6 +1055,16 @@ fn source_aligned_compound_predicate_tails_survive_competing_whole_paths() {
         atomic("끌어가", "VV"),
         expression("끌어가", "VV+EC+VX", "끌/VV/*+어/EC/*+가/VX/*"),
     ]);
+    assert!(!resolver.has_declared_compound_predicate_component(
+        "올라가",
+        "올라".len().."올라가".len(),
+        crate::PredicatePosSet::one(PredicatePos::Verb),
+    ));
+    assert!(resolver.has_declared_compound_predicate_component(
+        "끌어가는",
+        "끌어".len().."끌어가".len(),
+        crate::PredicatePosSet::one(PredicatePos::AuxiliaryVerb),
+    ));
     for (text, core, lexical_form, pos) in [
         (
             "올라가",

@@ -508,12 +508,20 @@ fn overlaps_competing_ending(
     resolver: &ConstraintResolver,
 ) -> bool {
     let span = &candidate.consumed;
-    if !is_boundary_after(haystack, span.end)
-        || is_boundary_before(haystack, span.start)
-        || !matches!(
-            branch.consumption,
-            CandidateConsumption::PredicateContinuation { .. }
-        )
+    let CandidateConsumption::PredicateContinuation {
+        source_positions, ..
+    } = branch.consumption
+    else {
+        return false;
+    };
+    if is_boundary_before(haystack, span.start) {
+        return false;
+    }
+    let ends_word = is_boundary_after(haystack, span.end);
+    if !ends_word
+        && !haystack.get(span.end..).is_some_and(|rest| {
+            rest.starts_with("는".as_bytes()) || rest.starts_with("는".as_bytes())
+        })
     {
         return false;
     }
@@ -521,20 +529,63 @@ fn overlaps_competing_ending(
         return false;
     };
     let tail = tail.as_ref();
+    let quotative_adnominal = match (tail, ends_word) {
+        ("다는", true) | ("다", false) => Some("다는"),
+        ("자는", true) | ("자", false) => Some("자는"),
+        _ => None,
+    };
+    if !ends_word && quotative_adnominal.is_none() {
+        return false;
+    }
     let endings: &[&str] = match tail {
         "만" => &["지만", "건만"],
         "마는" => &["지마는", "건마는"],
         "나" => &["으나", "거나"],
-        _ if tail.starts_with("는다") => std::slice::from_ref(&tail),
+        _ if quotative_adnominal.is_some() || tail.starts_with("는다") => {
+            std::slice::from_ref(&tail)
+        }
         _ => return false,
     };
-    let whole = surrounding_token_span(haystack, span.clone());
-    if whole.len() > MAX_CONSUMPTION_BYTES {
-        return false;
-    }
-    let Some(token) = context::normalized_token(haystack, whole) else {
+    let Ok(whole) = bounded_surrounding_token_span(haystack, span.clone(), MAX_CONSUMPTION_BYTES)
+    else {
         return false;
     };
+    let Some(token) = context::normalized_token(haystack, whole.clone()) else {
+        return false;
+    };
+    if let Some(ending) = quotative_adnominal {
+        if !ends_word
+            && context::normalized_token(haystack, span.start..whole.end).as_deref() != Some(ending)
+        {
+            return false;
+        }
+        return token.strip_suffix(ending).is_some_and(|host| {
+            if !(has_quotative_adnominal_head(haystack, whole.end, resolver)
+                || context::next_word_on_line(haystack, whole.end)
+                    .is_some_and(|(_, next)| resolver.has_final_copula_after_dependent_noun(&next)))
+            {
+                return false;
+            }
+            let clause = &token[..token.len() - '는'.len_utf8()];
+            let marker = host.len()..clause.len();
+            (match ending {
+                "다는" => {
+                    resolver.has_independent_final_predicate(clause)
+                        || resolver.has_existential_final_predicate(clause)
+                        || resolver.has_final_copula_after_nominal(clause)
+                        || resolver.has_attached_auxiliary_final_predicate(
+                            clause,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                }
+                _ => resolver.has_complete_connective_path(clause),
+            }) && !resolver.has_declared_compound_predicate_component(
+                &token,
+                marker,
+                source_positions,
+            )
+        });
+    }
     // The candidate covers a competing ending or its final syllables.
     endings
         .iter()

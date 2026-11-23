@@ -3425,6 +3425,17 @@ regression.degree-adverb-connective.dependent-object	거	noun	smart-only-exact	1
 regression.degree-adverb-connective.whole-adverb	거의	adverb	smart-only-exact	62	68	네가 고른 걸 챙겼고 나머지 곡은 잠깐 나오고 거의 생략되는데 끝 장면은 더 길다.
 regression.degree-adverb-connective.separate-sentences	거	noun	smart-only-exact	55	61	연주가 끝났고 부록을 펼쳤다. 이것은 네 거의 수리 안내다.
 regression.degree-adverb-connective.adjective-and-dependent	거	noun	smart-only-exact	85	88	설렁탕 맛은 거의 비슷하지만 신선한 야채를 맘껏 먹을 수 있는 게 참 좋네요.
+regression.quotative-overlap.derived-past	달다	verb	no-match	22	28	점검이 완료되었다는 안내가 나왔다.
+regression.quotative-overlap.whole-derived-past	완료되다	verb	smart-only-exact	10	28	점검이 완료되었다는 안내가 나왔다.
+regression.quotative-overlap.independent-past	달다	verb	no-match	13	19	꽃이 피었다는 말을 들었다.
+regression.quotative-overlap.present	달다	verb	no-match	19	25	점검이 시작된다는 알림이 왔다.
+regression.quotative-overlap.existential	달다	verb	no-match	10	16	물이 있다는 사실을 확인했다.
+regression.quotative-overlap.dependent-copula	달다	verb	no-match	20	26	지금도 찾고 있다는 것이다.
+regression.quotative-overlap.separate-hanging	달다	verb	smart-only-exact	41	47	일을 끝냈다는 말을 듣고 벽에 다는 표찰을 골랐다.
+regression.quotative-overlap.lexical-hanging	매달다	verb	smart-only-exact	20	29	창가에 풍경을 매다는 기둥을 세웠다.
+regression.quotative-overlap.propositive	자다	verb	no-match	20	26	친구가 함께 걷자는 말을 건넸다.
+regression.quotative-overlap.separate-sleep	자다	verb	smart-only-exact	34	40	밖에 나가자는 말을 듣고 자는 아이를 깨웠다.
+regression.quotative-overlap.lexical-sleep	잠자다	verb	smart-only-exact	0	9	잠자는 아이를 깨우지 마세요.
 regression.degree-adverb.standard-layer-and-verb	하다	verb	smart-only-exact	24	30	한층 더 좋아지게 하고 있다.
 regression.degree-adverb.temporal-context-and-verb	하다	verb	smart-only-exact	35	41	그 사이 한층 더 빨라지게 하고 있다.
 regression.degree-adverb.relative-clause-with-object	하다	verb	smart-only-exact	17	20	그가 도배를 한 층 더 위에는 창고가 있다.
