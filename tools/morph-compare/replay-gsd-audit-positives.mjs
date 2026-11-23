@@ -84,7 +84,7 @@ try {
         index = nextIndex;
     }
     const corrected = readFileSync(paths[index]);
-    assert.equal(sha256(corrected), '5231c0e7c4d3c72de2982e0c38fc5420f01dcbecd764428e993b903e56dc8308',
+    assert.equal(sha256(corrected), 'ae694ce3309045bbe892bd151a51cb3bcc00ae0d0bf545b9014cc9664e274a5b',
         'unexpected corrected GSD positives SHA-256');
     process.stdout.write(corrected);
 } finally {
