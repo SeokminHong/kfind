@@ -3409,6 +3409,15 @@ regression.result-state-pos.bare-nominal-verb	있다	verb	smart-only-exact	40	49
 regression.result-state-pos.bare-nominal-not-adjective	있다	adjective	no-match	40	49	대표단은 서울에서 자리 잡고 있었다.
 regression.result-state-pos.book-title-adjective	있다	adjective	smart-only-exact	20	26	도서관에 잡고 있다.
 regression.result-state-pos.dependent-scope	있다	adjective	smart-only-exact	21	30	자료를 읽는 데 있어서 집중력이 중요하다.
+regression.stacked-result-state.on-verb	있다	verb	smart-only-exact	33	42	식당에 텔레비전이 켜져 있어요.
+regression.stacked-result-state.on-adjective	있다	adjective	no-match	33	42	식당에 텔레비전이 켜져 있어요.
+regression.stacked-result-state.change-verb	있다	verb	smart-only-exact	23	32	작업대가 넓어져 있어서 여러 사람이 함께 작업할 수 있었다.
+regression.stacked-result-state.retained-possibility	있다	adjective	smart-only-exact	71	80	작업대가 넓어져 있어서 여러 사람이 함께 작업할 수 있었다.
+regression.stacked-result-state.obscured-verb	있다	verb	smart-only-exact	27	36	무대 뒤쪽이 가려져 있었다.
+regression.stacked-result-state.obscured-adjective	있다	adjective	no-match	27	36	무대 뒤쪽이 가려져 있었다.
+regression.stacked-result-state.existential	있다	adjective	smart-only-exact	20	29	책상에 사전이 있어서 바로 확인했다.
+regression.stacked-result-state.spaced-park-verb	있다	verb	smart-only-exact	127	133	길이가 4킬로미터를 넘는 골든 게이트 파크는 식물원, 천문관, 일본식 정원, 수족관으로 꾸며져 있다.
+regression.stacked-result-state.spaced-park-adjective	있다	adjective	no-match	127	133	길이가 4킬로미터를 넘는 골든 게이트 파크는 식물원, 천문관, 일본식 정원, 수족관으로 꾸며져 있다.
 regression.particle-interior-predicate.source-simple	서다	verb	no-match	16	19	설명한 글에서 오류를 발견했다.
 regression.particle-interior-predicate.source-topic	서다	verb	no-match	16	22	설명한 글에서는 다른 근거를 들었다.
 regression.particle-interior-predicate.source-additive	서다	verb	no-match	16	22	설명한 글에서도 같은 오류를 발견했다.
