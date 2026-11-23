@@ -313,19 +313,35 @@ pub(super) fn has_degree_adverb_after_clause_argument(
         return false;
     }
     context::next_word_on_line(haystack, whole.end).is_some_and(|(next_end, next)| {
-        resolver.has_complete_attached_counted_unit(&next)
-            || context::next_word_on_line(haystack, next_end)
-                .is_some_and(|(_, unit)| resolver.has_inflected_counted_unit(&next, &unit))
-            || (!resolver.has_nominal_genitive_surface(&previous)
-                && !resolver.has_pronominal_genitive_surface(&previous)
-                && !resolver.has_whole_determiner(&previous)
-                && !resolver.has_predicate_adnominal_surface(&previous)
-                && ((!resolver.has_nominal_with_optional_particles(&next)
-                    && resolver.has_predicate_adnominal_surface(&next))
-                    || (!resolver.has_exact_nominal_surface(&next)
-                        && context::has_negative_connective_frame(
-                            haystack, next_end, &next, resolver,
-                        ))))
+        if resolver.has_complete_attached_counted_unit(&next) {
+            return true;
+        }
+        let following = context::next_word_on_line(haystack, next_end);
+        if following
+            .as_ref()
+            .is_some_and(|(_, unit)| resolver.has_inflected_counted_unit(&next, unit))
+        {
+            return true;
+        }
+        if resolver.has_nominal_genitive_surface(&previous)
+            || resolver.has_pronominal_genitive_surface(&previous)
+            || resolver.has_whole_determiner(&previous)
+            || resolver.has_predicate_adnominal_surface(&previous)
+        {
+            return false;
+        }
+        if !resolver.has_nominal_with_optional_particles(&next)
+            && resolver.has_predicate_adnominal_surface(&next)
+        {
+            return true;
+        }
+        !resolver.has_exact_nominal_surface(&next)
+            && (context::has_negative_connective_frame(haystack, next_end, &next, resolver)
+                || following.is_some_and(|(noun_end, noun)| {
+                    resolver.has_possibility_nominal(&next, &noun)
+                        && context::next_word_on_line(haystack, noun_end)
+                            .is_some_and(|(_, state)| resolver.has_possibility_predicate(&state))
+                }))
     })
 }
 

@@ -2398,12 +2398,28 @@ impl ConstraintResolver {
     /// Checks the final state predicate following a verified possibility nominal.
     #[must_use]
     pub fn has_final_possibility_predicate(&self, text: &str) -> bool {
+        self.has_possibility_predicate_ending(text, |pos| pos == StructuralPos::EF)
+    }
+
+    /// Checks a possibility predicate ending a clause or modifying a noun.
+    #[must_use]
+    pub fn has_possibility_predicate(&self, text: &str) -> bool {
+        self.has_possibility_predicate_ending(text, |pos| {
+            matches!(pos, StructuralPos::EF | StructuralPos::ETM)
+        })
+    }
+
+    fn has_possibility_predicate_ending(
+        &self,
+        text: &str,
+        accepts_ending: impl Fn(StructuralPos) -> bool,
+    ) -> bool {
         text.starts_with(['있', '없'])
             && predicate_inflected_path(
                 &self.resource,
                 text,
                 |pos| matches!(pos, StructuralPos::VA | StructuralPos::VV),
-                |pos| pos == StructuralPos::EF,
+                accepts_ending,
             )
     }
 
